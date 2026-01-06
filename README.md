@@ -1,4 +1,4 @@
-# Humanity Foundation (HF) NGO Management System
+# Humanity Foundation Dashboard
 
 A secure, hierarchy-driven backend system for managing NGO members, approvals, and internal operations.
 
