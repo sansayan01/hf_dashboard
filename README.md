@@ -3,7 +3,7 @@
 A secure, hierarchy-driven backend system for managing NGO members, approvals, and internal operations.
 
 ## 🚀 Features
-- **Strict Hierarchy**: Super Admin → DM → BM → RM → RO. i made every thing like before after this changes
+- **Strict Hierarchy**: Super Admin → DM → BM → RM → RO. 
 - **Controlled Access**: Users can only see and manage their own downline tree.
 - **Data Recovery BIN**: 30-day recovery period for deleted users.
 - **Auto-generated Employee IDs**: Format `HF[Designation][DDMMYY]XXXX`.
