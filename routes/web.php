@@ -88,3 +88,13 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
     // Future Office-In-Charge routes can go here
 });
+
+// Temporary Route to Fix Storage Link (Run once then delete)
+Route::get('/fix-storage', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        return 'Storage Linked Successfully! <a href="/login">Go to Login</a>';
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
