@@ -121,10 +121,10 @@
                                     </td>
                                     <td class="p-6">
                                         <div class="flex items-center space-x-1">
-                                            <a href="{{ route('surveys.appointments.create', $survey->id) }}" class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 text-[10px] font-black uppercase tracking-wider transition-colors">
+                                            <a href="{{ route('patients.appointments.create', $survey->id) }}" class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 text-[10px] font-black uppercase tracking-wider transition-colors">
                                                 Create
                                             </a>
-                                            <a href="{{ route('surveys.appointments.index', $survey->id) }}" class="px-3 py-1.5 rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 text-[10px] font-black uppercase tracking-wider transition-colors">
+                                            <a href="{{ route('patients.appointments.index', $survey->id) }}" class="px-3 py-1.5 rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 text-[10px] font-black uppercase tracking-wider transition-colors">
                                                 View
                                             </a>
                                         </div>

@@ -17,7 +17,7 @@
     <!-- Tailwind CSS (Vite Build) -->
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.tsx'])
-    
+
     <!-- Old CDN (Commented out for React Integration) -->
     <!-- <script src="https://cdn.tailwindcss.com"></script> -->
 
@@ -127,6 +127,16 @@
                                     </path>
                                 </svg>
                                 <span>Dashboard</span>
+                            </a>
+                        <li>
+                            <a href="{{ route('surveys.index') }}"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('surveys.*') ? 'bg-accent text-white shadow-lg' : '' }}">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                <span>Survey</span>
                             </a>
                         <li>
                             <a href="{{ route('patients.index') }}"
@@ -291,7 +301,8 @@
                 </div>
 
                 <footer class="mt-12 pb-2">
-                    <p class="text-center text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                    <p
+                        class="text-center text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                         Copyright © 2026 Humanity Foundation. All rights reserved.
                     </p>
                 </footer>
@@ -368,17 +379,17 @@
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
                 color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
                 @if(session('view_appointment_url'))
-                    showDenyButton: true,
+                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-            }).then((result) => {
-                @if(session('view_appointment_url'))
-                    if (result.isDenied) {
-                        window.location.href = "{{ session('view_appointment_url') }}";
-                    }
-                @endif
-            });
+                }).then((result) => {
+                    @if(session('view_appointment_url'))
+                        if (result.isDenied) {
+                            window.location.href = "{{ session('view_appointment_url') }}";
+                        }
+                    @endif
+                });
         @endif
 
         @if(session('error'))

@@ -40,6 +40,15 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::delete('/{id}/force', [UserController::class, 'forceDelete'])->name('force-delete');
     });
 
+    // Survey Management
+    Route::prefix('surveys')->name('surveys.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SurveyController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\SurveyController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\SurveyController::class, 'store'])->name('store');
+        Route::get('/{survey}/edit', [App\Http\Controllers\SurveyController::class, 'edit'])->name('edit');
+        Route::put('/{survey}', [App\Http\Controllers\SurveyController::class, 'update'])->name('update');
+    });
+
     // Patient Management (using Survey model with 'patient' parameter name)
     Route::bind('patient', function ($value) {
         return \App\Models\Survey::findOrFail($value);
