@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserApproved;
 
 class UserController extends Controller
 {
@@ -451,6 +453,14 @@ class UserController extends Controller
             'User',
             $user->id
         );
+
+        // Send Approval Email
+        try {
+            Mail::to($user->email)->send(new UserApproved($user));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send approval email: ' . $e->getMessage());
+            // We don't stop the approval process if email fails, but we log it.
+        }
 
         return back()->with('success', 'User approved successfully.');
     }
