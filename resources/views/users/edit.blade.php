@@ -1,0 +1,396 @@
+@extends('layouts.app')
+
+@section('title', 'Edit Member')
+@section('header_title', 'Edit ' . $user->profile->full_name)
+
+@section('content')
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="p-8 border-b border-slate-50">
+                <h3 class="font-bold text-xl text-slate-800">Edit Member Details</h3>
+                <p class="text-sm text-slate-500 mt-1">Update the profile and professional information for
+                    {{ $user->employee_id }}.</p>
+            </div>
+
+            <form action="{{ route('users.update', $user->id) }}" method="POST" enctype="multipart/form-data"
+                class="p-8 space-y-10">
+                @csrf
+                @method('PUT')
+
+                <!-- Section: Account Info -->
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-1.5 h-6 bg-accent rounded-full"></div>
+                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Account Credentials</h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Employee ID</label>
+                            @if(auth()->user()->isSuperAdmin())
+                                <input type="text" name="employee_id" value="{{ old('employee_id', $user->employee_id) }}" 
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                <p class="text-[10px] text-accent font-bold mt-1 uppercase italic">Super Admin can modify this ID</p>
+                            @else
+                                <input type="text" value="{{ $user->employee_id }}" disabled
+                                    class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 outline-none">
+                                <p class="text-[10px] text-bodydark font-bold mt-1 uppercase italic">Employee ID cannot be changed</p>
+                            @endif
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                            <input type="email" name="email" value="{{ old('email', $user->email) }}" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Personal Profile -->
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-1.5 h-6 bg-accent rounded-full"></div>
+                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Personal Profile</h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
+                            <input type="text" name="full_name" value="{{ old('full_name', $user->profile->full_name) }}"
+                                required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
+                                oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Phone Number</label>
+                            <input type="tel" name="phone_number"
+                                value="{{ old('phone_number', $user->profile->phone_number) }}" required maxlength="10"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Blood Group</label>
+                            <select name="blood_group"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                <option value="">Select Group</option>
+                                @foreach(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $group)
+                                    <option value="{{ $group }}" {{ old('blood_group', $user->profile->blood_group) == $group ? 'selected' : '' }}>{{ $group }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Profile Picture</label>
+                            <div class="flex items-center space-x-4">
+                                @if($user->profile->profile_picture)
+                                    <img src="{{ asset('storage/' . $user->profile->profile_picture) }}"
+                                        class="w-12 h-12 rounded-xl object-cover border border-slate-200">
+                                @endif
+                                <input type="file" name="profile_picture" accept="image/*"
+                                    class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-accent file:text-white">
+                            </div>
+                        </div>
+
+                        <div class="col-span-full">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Detailed Address</label>
+                            <textarea name="address" required rows="3"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
+                                oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')">{{ old('address', $user->profile->address) }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">State</label>
+                            <select name="state" id="state-select" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                <option value="">Select State</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">District</label>
+                            <select name="district" id="district-select" required disabled
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none disabled:opacity-50">
+                                <option value="">Select District</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Block</label>
+                            <select name="block" id="block-select" required disabled
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none disabled:opacity-50">
+                                <option value="">Select Block</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Gram Panchayat</label>
+                            <select name="gram_panchayat" id="gp-select" required disabled
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none disabled:opacity-50">
+                                <option value="">Select GP</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Pin Code</label>
+                            <input type="text" name="pin_code" value="{{ old('pin_code', $user->profile->pin_code) }}"
+                                required maxlength="6"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Aadhaar Number</label>
+                            <input type="text" name="aadhaar_number"
+                                value="{{ old('aadhaar_number', $user->profile->aadhaar_number) }}" required maxlength="12"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12)">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">PAN Number</label>
+                            <input type="text" name="pan_number" value="{{ old('pan_number', $user->profile->pan_number) }}"
+                                required maxlength="10"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
+                                oninput="validatePAN(this)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Bank Account -->
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-1.5 h-6 bg-accent rounded-full"></div>
+                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Banking Information</h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Bank Name</label>
+                            <select name="bank_name" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                <option value="">Select Bank</option>
+                                @php
+                                    $selectedBank = old('bank_name', $user->bankDetails->bank_name ?? '');
+                                @endphp
+                                @foreach([
+                                    'State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Punjab National Bank',
+                                    'Bank of Baroda', 'Canara Bank', 'Union Bank of India', 'Bank of India', 'Indian Bank',
+                                    'Central Bank of India', 'Indian Overseas Bank', 'UCO Bank', 'Bank of Maharashtra',
+                                    'Punjab & Sind Bank', 'IDBI Bank', 'Yes Bank', 'Kotak Mahindra Bank', 'Federal Bank',
+                                    'IndusInd Bank', 'South Indian Bank', 'Karnataka Bank', 'City Union Bank', 'Karur Vysya Bank',
+                                    'Tamilnad Mercantile Bank', 'RBL Bank', 'Bandhan Bank', 'IDFC First Bank', 'AU Small Finance Bank',
+                                    'Equitas Small Finance Bank', 'India Post Payments Bank', 'Paytm Payments Bank',
+                                    'Airtel Payments Bank', 'Jio Payments Bank'
+                                ] as $bank)
+                                    <option value="{{ $bank }}" {{ $selectedBank == $bank ? 'selected' : '' }}>{{ $bank }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Account Number</label>
+                            <input type="text" name="account_number"
+                                value="{{ old('account_number', $user->bankDetails->account_number ?? '') }}" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">IFSC Code</label>
+                            <input type="text" name="ifsc_code"
+                                value="{{ old('ifsc_code', $user->bankDetails->ifsc_code ?? '') }}" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="pt-10 border-t border-slate-100 flex items-center justify-between">
+                    <a href="{{ route('users.show', $user->id) }}"
+                        class="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition">Cancel</a>
+                    <button type="submit"
+                        class="px-10 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all">
+                        Update Member Details
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection
+
+@section('js')
+    <script src="{{ asset('js/locations.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+
+            const stateSelect = document.getElementById('state-select');
+            const districtSelect = document.getElementById('district-select');
+            const blockSelect = document.getElementById('block-select');
+            const gpSelect = document.getElementById('gp-select');
+
+            // Current Values
+            const currentState = "{{ old('state', $user->profile->state) }}";
+            const currentDistrict = "{{ old('district', $user->profile->district) }}";
+            const currentBlock = "{{ old('block', $user->profile->block) }}";
+            const currentGP = "{{ old('gram_panchayat', $user->profile->gram_panchayat) }}";
+
+            // Populate States
+            if (window.locationData) {
+                for (const state in window.locationData) {
+                    const option = new Option(state, state);
+                    if (state === currentState) option.selected = true;
+                    stateSelect.add(option);
+                }
+            }
+
+            function updateDistricts(state, selectedDistrict = null) {
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+                blockSelect.innerHTML = '<option value="">Select Block</option>';
+                gpSelect.innerHTML = '<option value="">Select GP</option>';
+
+                if (state && window.locationData[state]) {
+                    districtSelect.disabled = false;
+                    for (const district in window.locationData[state]) {
+                        const option = new Option(district, district);
+                        if (district === selectedDistrict) option.selected = true;
+                        districtSelect.add(option);
+                    }
+                    if (selectedDistrict) updateBlocks(state, selectedDistrict, currentBlock);
+                } else {
+                    districtSelect.disabled = true;
+                    blockSelect.disabled = true;
+                    gpSelect.disabled = true;
+                }
+            }
+
+            function updateBlocks(state, district, selectedBlock = null) {
+                blockSelect.innerHTML = '<option value="">Select Block</option>';
+                gpSelect.innerHTML = '<option value="">Select GP</option>';
+
+                if (district && window.locationData[state][district]) {
+                    blockSelect.disabled = false;
+                    for (const block in window.locationData[state][district]) {
+                        const option = new Option(block, block);
+                        if (block === selectedBlock) option.selected = true;
+                        blockSelect.add(option);
+                    }
+                    if (selectedBlock) updateGPs(state, district, selectedBlock, currentGP);
+                } else {
+                    blockSelect.disabled = true;
+                    gpSelect.disabled = true;
+                }
+            }
+
+            function updateGPs(state, district, block, selectedGP = null) {
+                gpSelect.innerHTML = '<option value="">Select GP</option>';
+
+                if (block && window.locationData[state][district][block]) {
+                    gpSelect.disabled = false;
+                    const gps = window.locationData[state][district][block];
+                    gps.forEach(gp => {
+                        const option = new Option(gp, gp);
+                        if (gp === selectedGP) option.selected = true;
+                        gpSelect.add(option);
+                    });
+                } else {
+                    gpSelect.disabled = true;
+                }
+            }
+
+            // Initial trigger
+            if (currentState) {
+                updateDistricts(currentState, currentDistrict);
+            }
+
+            stateSelect.addEventListener('change', function () {
+                updateDistricts(this.value);
+            });
+
+            districtSelect.addEventListener('change', function () {
+                updateBlocks(stateSelect.value, this.value);
+            });
+
+            blockSelect.addEventListener('change', function () {
+                updateGPs(stateSelect.value, districtSelect.value, this.value);
+            });
+
+            // PAN Formatting helper
+            window.validatePAN = function(input) {
+                let val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                let result = '';
+                
+                for (let i = 0; i < val.length && i < 10; i++) {
+                    if (i < 5) {
+                        if (/[A-Z]/.test(val[i])) result += val[i];
+                    } else if (i < 9) {
+                        if (/[0-9]/.test(val[i])) result += val[i];
+                    } else {
+                        if (/[A-Z]/.test(val[i])) result += val[i];
+                    }
+                }
+                input.value = result;
+            };
+
+            // Auto-capitalization Title Case helper
+            const titleCase = (str) => {
+                return str.toLowerCase().split(' ').map(word => {
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                }).join(' ');
+            };
+
+            const fullNameInput = document.querySelector('input[name="full_name"]');
+            const addressInput = document.querySelector('textarea[name="address"]');
+
+            if (fullNameInput) {
+                fullNameInput.addEventListener('blur', function() {
+                    this.value = titleCase(this.value);
+                });
+            }
+
+            if (addressInput) {
+                addressInput.addEventListener('blur', function() {
+                    this.value = titleCase(this.value);
+                });
+            }
+
+            // PAN Validation on Submit
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const panInput = document.querySelector('input[name="pan_number"]');
+                const panPattern = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+                if (panInput && panInput.value && !panPattern.test(panInput.value)) {
+                    e.preventDefault();
+                    alert('Invalid PAN Card format!\n\nRules:\n1. First 5 must be LETTERS\n2. Next 4 must be DIGITS\n3. Last 1 must be a LETTER\n\nExample: ABCDE1234F');
+                    panInput.focus();
+                    return false;
+                }
+
+                const aadhaarInput = document.querySelector('input[name="aadhaar_number"]');
+                if (aadhaarInput && aadhaarInput.value && aadhaarInput.value.length !== 12) {
+                    e.preventDefault();
+                    alert('Aadhaar Number must be exactly 12 digits.');
+                    aadhaarInput.focus();
+                    return false;
+                }
+
+                const phoneInput = document.querySelector('input[name="phone_number"]');
+                if (phoneInput && phoneInput.value && phoneInput.value.length !== 10) {
+                    e.preventDefault();
+                    alert('Phone Number must be exactly 10 digits.');
+                    phoneInput.focus();
+                    return false;
+                }
+
+                const pinInput = document.querySelector('input[name="pin_code"]');
+                if (pinInput && pinInput.value && pinInput.value.length !== 6) {
+                    e.preventDefault();
+                    alert('Pin Code must be exactly 6 digits.');
+                    pinInput.focus();
+                    return false;
+                }
+            });
+        });
+    </script>
+@endsection
