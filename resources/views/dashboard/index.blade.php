@@ -88,6 +88,7 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        @if(!auth()->user()->isRO())
         <!-- Hierarchy Tree Preview -->
         <div id="down-tree-card"
             class="lg:col-span-2 glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden flex flex-col transition-all h-[60vh] relative z-20">
@@ -136,6 +137,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Recent Activity & Pending Approvals -->
         <div class="space-y-8">
