@@ -43,6 +43,40 @@
                             <input type="email" name="email" value="{{ old('email', $user->email) }}" required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                         </div>
+
+                        <!-- Password Reset Section (Optional) -->
+                        @if(auth()->user()->isSuperAdmin() || auth()->id() === $user->id)
+                        <div class="col-span-1 md:col-span-2 border-t border-slate-100 pt-6 mt-2">
+                             <div class="p-4 bg-orange-50 rounded-xl border border-orange-100">
+                                <h5 class="text-sm font-bold text-orange-800 mb-3 flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-11V7a4 4 0 11-8 0v4h8z" /></svg>
+                                    Reset Password (Optional)
+                                </h5>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="relative">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1.5">New Password</label>
+                                        <div class="relative">
+                                            <input type="password" name="password" id="new_password" placeholder="Leave blank to keep current"
+                                                class="w-full pl-4 pr-10 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all outline-none text-sm">
+                                            <button type="button" onclick="togglePassword('new_password')" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-accent">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="relative">
+                                        <label class="block text-xs font-bold text-slate-600 mb-1.5">Confirm Password</label>
+                                        <div class="relative">
+                                            <input type="password" name="password_confirmation" id="confirm_password" placeholder="Confirm new password"
+                                                class="w-full pl-4 pr-10 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all outline-none text-sm">
+                                            <button type="button" onclick="togglePassword('confirm_password')" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-accent">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
 
@@ -392,5 +426,14 @@
                 }
             });
         });
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+            } else {
+                input.type = "password";
+            }
+        }
     </script>
 @endsection

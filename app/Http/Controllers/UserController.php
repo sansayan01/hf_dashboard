@@ -338,6 +338,7 @@ class UserController extends Controller
             'account_number' => 'nullable|string',
             'ifsc_code' => 'required|string',
             'profile_picture' => 'nullable|image|max:10000',
+            'password' => 'nullable|min:8|confirmed',
         ];
 
         if ($currentUser->isSuperAdmin()) {
@@ -362,6 +363,13 @@ class UserController extends Controller
 
             if ($currentUser->isSuperAdmin() && $request->has('employee_id')) {
                 $userData['employee_id'] = $request->employee_id;
+            }
+
+            if ($request->filled('password')) {
+                // Only Super Admin or the user themselves can change the password
+                if ($currentUser->isSuperAdmin() || $currentUser->id === $user->id) {
+                    $userData['password'] = Hash::make($request->password);
+                }
             }
 
             $user->update($userData);
