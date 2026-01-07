@@ -6,7 +6,7 @@
 
 <div class="tree-item" data-id="{{ $item->id }}">
     <div
-        class="flex items-center group py-2 px-3 rounded-xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 border-b-4 border-b-slate-300 dark:border-b-slate-950 shadow-md mb-2 relative">
+        class="flex items-center group py-2 px-4 rounded-xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 border-b-4 border-b-slate-300 dark:border-b-slate-950 shadow-md mb-2 relative w-full min-w-[600px] h-16">
 
         <!-- Toggle Icon (Click only here to expand/collapse) -->
         <div class="w-6 h-6 flex items-center justify-center mr-2 cursor-pointer bg-white dark:bg-slate-700/50 rounded-lg border border-slate-200/50 dark:border-white/5 hover:bg-slate-100 transition-colors"
@@ -38,6 +38,11 @@
                 @endif
             </div>
 
+            <!-- Status Dot (After profile picture) -->
+            <div
+                class="w-2.5 h-2.5 rounded-full {{ $item->status === 'active' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' }} mr-3 flex-shrink-0">
+            </div>
+
             <!-- Member Info -->
             <div class="flex-1 min-w-0">
                 <div class="flex items-center space-x-2">
@@ -54,11 +59,6 @@
                     class="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover/link:text-accent/70 mt-0.5 transition-colors">
                     {{ $item->getDesignationLabel() }}
                 </p>
-            </div>
-
-            <!-- Status Dot -->
-            <div
-                class="w-2.5 h-2.5 rounded-full {{ $item->status === 'active' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' }} mr-2">
             </div>
         </a>
     </div>

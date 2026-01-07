@@ -74,6 +74,10 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::post('/{patient}/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
     });
 
+    // Membership Management
+    Route::get('/membership', [App\Http\Controllers\MembershipController::class, 'index'])->name('membership.index');
+    Route::get('/patients/{patient}/membership', [App\Http\Controllers\MembershipController::class, 'show'])->name('patients.membership');
+
     // Global Appointments (Accessible from Sidebar)
     Route::get('/appointments', [AppointmentController::class, 'all'])->name('appointments.all');
     Route::post('/appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('appointments.complete');

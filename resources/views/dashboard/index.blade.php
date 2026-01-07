@@ -157,7 +157,7 @@
         @if(!auth()->user()->isRO())
         <!-- Hierarchy Tree Preview -->
         <div id="down-tree-card"
-            class="lg:col-span-2 glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden flex flex-col transition-all h-[60vh] relative z-20">
+            class="col-span-1 lg:col-span-2 glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden flex flex-col transition-all h-[60vh] relative z-20">
             <div class="p-8 border-b border-slate-200/5 flex items-center justify-between bg-white dark:bg-white/5 dark:backdrop-blur-sm">
                 <div class="flex items-center space-x-2 md:space-x-4">
                     <h3 class="font-black text-xs md:text-xl text-slate-800 dark:text-white tracking-tight">Down Tree</h3>
@@ -529,6 +529,13 @@
         if (rootChildren) {
             rootChildren.classList.remove('hidden');
             if (rootIcon) rootIcon.classList.add('rotate-90');
+        }
+
+        // Set default zoom to 150% on mobile devices
+        const isMobile = window.innerWidth < 768; // md breakpoint
+        if (isMobile) {
+            currentZoom = 1.5;
+            updateZoom();
         }
     });
 </script>
