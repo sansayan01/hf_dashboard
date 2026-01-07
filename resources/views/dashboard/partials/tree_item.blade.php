@@ -6,10 +6,10 @@
 
 <div class="tree-item" data-id="{{ $item->id }}">
     <div
-        class="flex items-center group py-1 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
+        class="flex items-center group py-2 px-3 rounded-xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 border-b-4 border-b-slate-300 dark:border-b-slate-950 shadow-md mb-2 relative">
 
         <!-- Toggle Icon (Click only here to expand/collapse) -->
-        <div class="w-6 h-6 flex items-center justify-center mr-1 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition-colors"
+        <div class="w-6 h-6 flex items-center justify-center mr-2 cursor-pointer bg-white dark:bg-slate-700/50 rounded-lg border border-slate-200/50 dark:border-white/5 hover:bg-slate-100 transition-colors"
             onclick="toggleTreeItem(event, {{ $item->id }})">
             @if($hasChildren)
                 <svg id="toggle-icon-{{ $item->id }}"
@@ -26,7 +26,7 @@
         <a href="{{ route('users.show', $item->id) }}" class="flex items-center flex-1 min-w-0 group/link">
             <!-- Small Profile Picture -->
             <div
-                class="w-8 h-8 rounded-lg overflow-hidden mr-3 bg-slate-100 dark:bg-slate-800 flex-shrink-0 border border-slate-200/50 dark:border-white/5 ring-2 ring-transparent group-hover/link:ring-accent/20 transition-all">
+                class="w-9 h-9 rounded-lg overflow-hidden mr-3 bg-white dark:bg-slate-800 flex-shrink-0 border border-slate-200/50 dark:border-white/5 ring-1 ring-slate-200/50 dark:ring-white/10">
                 @if($item->profile && $item->profile->profile_picture)
                     <img src="{{ asset('storage/' . $item->profile->profile_picture) }}" alt="Avatar"
                         class="w-full h-full object-cover">
@@ -46,7 +46,7 @@
                         {{ $item->profile->full_name ?? 'N/A' }}
                     </span>
                     <span
-                        class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 tracking-tighter">
+                        class="text-[9px] font-black px-1.5 py-0.5 rounded bg-white dark:bg-slate-700 text-slate-500 tracking-tighter border border-slate-100 dark:border-slate-600">
                         {{ $item->employee_id }}
                     </span>
                 </div>
@@ -58,7 +58,7 @@
 
             <!-- Status Dot -->
             <div
-                class="w-2 h-2 rounded-full {{ $item->status === 'active' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' }} mr-2">
+                class="w-2.5 h-2.5 rounded-full {{ $item->status === 'active' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' }} mr-2">
             </div>
         </a>
     </div>
