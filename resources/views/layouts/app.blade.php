@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>{{ config('app.name', 'HF Management') }} - @yield('title')</title>
 
     <!-- Fonts -->
@@ -390,17 +390,17 @@
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
                 color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
                 @if(session('view_appointment_url'))
-                                    showDenyButton: true,
+                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                    }).then((result) => {
+                            }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                    });
+                            });
         @endif
 
         @if(session('error'))
@@ -425,7 +425,7 @@
             });
         @endif
     </script>
+    @include('layouts.partials.ai_assistant')
     @yield('js')
 </body>
-
 </html>

@@ -22,5 +22,11 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        // Register Observers for Google Sheets Sync
+        \App\Models\User::observe(\App\Observers\GoogleSheetSyncObserver::class);
+        \App\Models\Survey::observe(\App\Observers\GoogleSheetSyncObserver::class);
+        \App\Models\Appointment::observe(\App\Observers\GoogleSheetSyncObserver::class);
     }
 }
+

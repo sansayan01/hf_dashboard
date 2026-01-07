@@ -531,12 +531,9 @@
             if (rootIcon) rootIcon.classList.add('rotate-90');
         }
 
-        // Set default zoom to 150% on mobile devices
-        const isMobile = window.innerWidth < 768; // md breakpoint
-        if (isMobile) {
-            currentZoom = 1.5;
-            updateZoom();
-        }
+        // Set default zoom to 100% for all devices
+        currentZoom = 1.0;
+        updateZoom();
     });
 </script>
 @endsection

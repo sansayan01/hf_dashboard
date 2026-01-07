@@ -99,15 +99,77 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/password', [App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
 
+    // AI Assistant
+    Route::post('/ai/chat', [\App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');
+
     // Future Office-In-Charge routes can go here
 });
 
-// Temporary Route to Fix Storage Link (Run once then delete)
+
+// Route to Fix Storage Link and provide diagnostic info
 Route::get('/fix-storage', function () {
     try {
+        $publicPath = public_path();
+        $storagePath = storage_path('app/public');
+
+        // Manual check for common shared hosting public directories
+        if (!file_exists($publicPath . '/index.php')) {
+            $possiblePaths = [
+                base_path('../public_html'),
+                base_path('public_html'),
+                dirname(base_path()) . '/public_html'
+            ];
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path . '/index.php')) {
+                    $publicPath = $path;
+                    break;
+                }
+            }
+        }
+
+        $linkPath = $publicPath . '/storage';
+
+        if (file_exists($linkPath)) {
+            if (is_link($linkPath) || is_dir($linkPath)) {
+                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                    exec("rd /s /q \"$linkPath\"");
+                } else {
+                    // Using Laravel's Filesystem to delete is safer
+                    app('files')->deleteDirectory($linkPath);
+                    if (file_exists($linkPath)) {
+                        app('files')->delete($linkPath);
+                    }
+                }
+            }
+        }
+
         \Illuminate\Support\Facades\Artisan::call('storage:link');
-        return 'Storage Linked Successfully! <a href="/login">Go to Login</a>';
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        $status = "<b>Status:</b> Done!<br>";
+        $status .= "<b>Public Path:</b> $publicPath<br>";
+        $status .= "<b>Storage Path:</b> $storagePath<br>";
+        $status .= "<b>Link Status:</b> " . (file_exists($linkPath) ? "Created Successfully" : "Failed to create link automatically") . "<br>";
+        $status .= "<b>Output:</b> " . nl2br($output);
+
+        return "<div style='font-family: sans-serif; padding: 20px; border: 1px solid #ccc; border-radius: 8px;'>" . $status . '<br><br><a href="/" style="display: inline-block; padding: 10px 20px; background: #3C50E0; color: white; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></div>';
     } catch (\Exception $e) {
-        return "Error: " . $e->getMessage();
+        return "Error: " . $e->getMessage() . '<br>File: ' . $e->getFile() . ' on line ' . $e->getLine();
     }
 });
+
+
+// Fallback Route to serve storage files if symlink is not working (Shared Hosting Fix)
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
+
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+
+    $file = file_get_contents($fullPath);
+    $type = mime_content_type($fullPath);
+
+    return response($file)->header('Content-Type', $type);
+})->where('path', '.*');
+

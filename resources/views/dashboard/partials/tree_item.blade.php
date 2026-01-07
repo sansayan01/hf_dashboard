@@ -6,7 +6,7 @@
 
 <div class="tree-item" data-id="{{ $item->id }}">
     <div
-        class="flex items-center group py-2 px-4 rounded-xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 border-b-4 border-b-slate-300 dark:border-b-slate-950 shadow-md mb-2 relative w-full min-w-[600px] h-16">
+        class="flex items-center group py-2 px-4 rounded-xl bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 border-b-4 border-b-slate-300 dark:border-b-slate-950 shadow-md mb-2 relative w-full max-w-[600px] h-16">
 
         <!-- Toggle Icon (Click only here to expand/collapse) -->
         <div class="w-6 h-6 flex items-center justify-center mr-2 cursor-pointer bg-white dark:bg-slate-700/50 rounded-lg border border-slate-200/50 dark:border-white/5 hover:bg-slate-100 transition-colors"
