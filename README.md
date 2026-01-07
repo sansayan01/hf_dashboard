@@ -1,56 +1,80 @@
-# Humanity Foundation Dashboard
+# Humanity Foundation Dashboard 🌍
 
-A secure, hierarchy-driven backend system for managing NGO members, approvals, and internal operations.
+A high-performance, secure, and hierarchy-driven backend system designed for the **Humanity Foundation**. This platform manages NGO operations, field surveys, patient appointments, and real-time data synchronization with advanced AI integrations.
 
-## 🚀 Features
-- **Strict Hierarchy**: Super Admin → DM → BM → RM → RO. 
-- **Controlled Access**: Users can only see and manage their own downline tree.
-- **Data Recovery BIN**: 30-day recovery period for deleted users.
-- **Auto-generated Employee IDs**: Format `HF[Designation][DDMMYY]XXXX`.
-- **Premium UI**: TailAdmin-inspired responsive dashboard with glassmorphism.
-- **Activity Logging**: Full audit trail for all system actions.
+---
+
+## 🤖 AI-Powered Intelligence (Core Highlight)
+The platform integrates cutting-edge AI features (Powered by OpenRouter/Mistral) to streamline operations:
+
+- **AI Smart Assistant**: A real-time, context-aware chatbot integrated into every dashboard page. It handles:
+  - **Dynamic Knowledge Base**: Answers staff queries about foundation protocols and operational steps.
+  - **Contextual Help**: Understands where the user is in the app and provides relevant guidance.
+  - **Natural Language Data Insights**: (Planned) Querying patient and field data using plain English/Bengali.
+- **Smart Data Formatting**: Intelligent parsing of complex inputs (like appointment times and dates) to ensure database integrity and consistent synchronization.
+- **AI Health Flagging**: (Coming Soon) Automated risk assessment of patient survey data to prioritize critical medical cases.
+
+---
+
+## 🚀 Core Features
+
+### 📡 Real-Time Data Sync
+- **Google Sheets Integration**: Automated, bi-directional sync of Users, Patients, and Appointments.
+- **Event-Driven Observers**: Every CRUD operation triggers an instant update to the foundation's central Google Sheets for external reporting.
+- **Force Sync Tools**: CLI commands to bulk-sync existing database records to the cloud.
+
+### 🏢 Governance & Hierarchy
+- **Strict Organizational Structure**: Super Admin → DM (District) → BM (Block) → RM (Regional) → RO (Relative).
+- **Scoped Visibility**: Users can only view, manage, and report on their own downline tree, ensuring data privacy and operational focus.
+- **Automated Employee IDs**: Intelligent generation system with format `HF[Designation][Sequence]`.
+
+### 🏥 Patient & Appointment Management
+- **Centralized Patient Profiles**: Detailed medical survey records with demographic and health history.
+- **Clinic Scheduling**: Robust appointment system with status tracking (Scheduled → Successful/Missed).
+- **Validation Rules**: Smart validation for Aadhar, PAN, Phone Numbers, and Address formatting.
+
+### 🛡️ Security & Recovery
+- **Data Recovery BIN**: 30-day "Soft Delete" period for users with a dedicated restoration interface for Super Admins.
+- **Audit Trails**: Full activity logging for critical system actions.
+- **Secure Authentication**: Role-based access control (RBAC) with hashed credentials.
+
+### 🎨 Premium User Experience
+- **TailAdmin Glassmorphism**: High-end UI design with a modern dark/light mode toggle.
+- **Responsive Tree View**: Visual hierarchy representation of the team structure.
+- **Dynamic Dashboards**: Real-time stats counting team members, patients, and pending tasks.
+
+---
 
 ## 🛠 Prerequisites
 - PHP 8.2+
 - MySQL 5.7+
 - Composer
 - OpenSSL & Curl PHP extensions enabled
+- OpenRouter API Key (for AI features)
 
 ## 📦 Installation Steps
 
-1. **Clone the repository** (or download files) to your `htdocs` folder.
+1. **Clone the repository** to your server root.
 2. **Enable PHP Extensions**:
-   - Open your `php.ini` file.
-   - Uncomment (remove `;`) these lines:
-     ```ini
-     extension=openssl
-     extension=curl
-     ```
-   - Restart your Apache server.
+   - Open `php.ini`.
+   - Uncomment `extension=openssl` and `extension=curl`.
+   - Restart Apache.
 3. **Database Setup**:
-   - Create a database named `hf_database` in MySQL.
+   - Create a database named `hf_database`.
 4. **Environment Setup**:
-   - Copy `.env.example` to `.env` (already done).
-   - Update `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` in `.env`.
-5. **Install Dependencies**:
+   - Rename `.env.example` to `.env`.
+   - Update `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`.
+   - Add `OPENROUTER_API_KEY="..."` and `GOOGLE_SHEET_WEB_APP_URL="..."`.
+5. **Install & Initialize**:
    ```bash
    php composer.phar install
-   ```
-6. **Generate Key & Migrate**:
-   ```bash
    php artisan key:generate
    php artisan migrate --seed
    ```
 
-## 🔐 Credentials
+## 🔐 Admin Credentials
 - **Super Admin**: `admin@humanityfoundation.org`
 - **Password**: `Admin@123`
 
-## 📂 Project Structure
-- `app/Models/User.php`: Core hierarchy logic and permission scopes.
-- `app/Http/Controllers/UserController.php`: Downline and BIN management.
-- `resources/views/layouts/app.blade.php`: Premium dashboard layout.
-- `app/Console/Commands/CleanupBin.php`: Automated 30-day trash cleanup.
-
 ---
-© 2026 Humanity Foundation. All Rights Reserved.
+© 2026 Humanity Foundation | *Empowering Health through Technology*
