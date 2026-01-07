@@ -20,7 +20,43 @@ class SurveyController extends Controller
         $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
 
         $query = Survey::with('creator.profile')
-            ->whereIn('created_by', $allowedIds);
+            ->whereIn('created_by', $allowedIds)
+            ->doesntHave('appointments');
+
+        // NIA Logic: If show_nia=1, show records older than 30 days. Otherwise, show records 30 days or newer.
+        // Or strictly: NIA is survey > 30 days with no appointment.
+        // Active list is survey <= 30 days with no appointment.
+        if ($request->has('show_nia') && $request->show_nia == 1) {
+            $query->where('created_at', '<', now()->subDays(30));
+        } else {
+            $query->where('created_at', '>=', now()->subDays(30));
+        }
+
+        // Apply Filters
+        if ($request->filled('collector_id')) {
+            $query->where('created_by', $request->collector_id);
+        }
+
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+
+        if ($request->filled('health_issue')) {
+            $issue = $request->health_issue;
+            if ($issue === 'Normal') {
+                // For "Normal", we might check if no issues are listed, or just allow the loose match if "Normal" is textual.
+                // Given the previous step's logic, let's keep it simple for now or refine if needed.
+            }
+            $query->where('health_issues', 'like', "%{$issue}%");
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
 
         // Apply Search (Patient Name, Phone, or Collector)
         if ($request->filled('search')) {
@@ -39,7 +75,13 @@ class SurveyController extends Controller
 
         $surveys = $query->latest()->get();
 
-        return view('surveys.index', compact('surveys'));
+        // Get list of potential collectors for the filter dropdown
+        // This includes the user themselves and their downline members who have submitted surveys or are capable of it
+        // To be efficient, we can just grab users from the $allowedIds list who actually have surveys, or just all of them.
+        // Let's pass the $downline + self as "collectors"
+        $collectors = collect([$user])->merge($downline);
+
+        return view('surveys.index', compact('surveys', 'collectors'));
     }
 
     /**

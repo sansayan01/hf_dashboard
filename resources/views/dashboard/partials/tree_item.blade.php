@@ -1,5 +1,6 @@
 @php
-    $hasChildren = $item->children->count() > 0;
+    $children = $item->getDirectChildren();
+    $hasChildren = $children->count() > 0;
     $statusColor = $item->status === 'active' ? 'text-emerald-500' : 'text-amber-500';
 @endphp
 
@@ -65,9 +66,10 @@
     @if($hasChildren)
         <div id="children-{{ $item->id }}"
             class="tree-children hidden ml-6 pl-4 border-l border-slate-200 dark:border-slate-800 mt-1 space-y-1">
-            @foreach($item->children as $child)
+            @foreach($children as $child)
                 @include('dashboard.partials.tree_item', ['item' => $child])
             @endforeach
         </div>
     @endif
+
 </div>

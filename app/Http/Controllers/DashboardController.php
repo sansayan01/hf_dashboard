@@ -29,7 +29,14 @@ class DashboardController extends Controller
         $user->load(['children.profile', 'children.children.profile', 'children.children.children.profile']);
 
 
-        // Get statistics (scoped to the viewed user)
+        // Get downline IDs for filtering (scoped to the viewed user)
+        $downlineIds = $user->getAllDownline()->pluck('id');
+        // Include self to see own data + downline data (Cumulative View)
+        // This ensures Uplines see their entire team's performance, but Downlines only see themselves (if they have no team).
+        $allAccessibleIds = $downlineIds->push($user->id);
+
+        // These queries aggregate data from the user and their entire downline tree.
+        // Report Widgets Logic
         $stats = [
             'total_downline' => $user->getDownlineCount(),
             'pending_approvals' => $user->getPendingApprovalsCount(),
@@ -37,9 +44,29 @@ class DashboardController extends Controller
             'active_downline' => $user->getAllDownline()->where('status', 'active')->count(),
         ];
 
-        // Get downline IDs for filtering (scoped to the viewed user)
-        $downlineIds = $user->getAllDownline()->pluck('id');
-        $allAccessibleIds = $downlineIds->push($user->id);
+        // Report Widgets Logic
+        $reports = [
+            'surveys' => [
+                'daily' => \App\Models\Survey::whereIn('created_by', $allAccessibleIds)->whereDate('created_at', now())->count(),
+                'weekly' => \App\Models\Survey::whereIn('created_by', $allAccessibleIds)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                'monthly' => \App\Models\Survey::whereIn('created_by', $allAccessibleIds)->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
+                'total' => \App\Models\Survey::whereIn('created_by', $allAccessibleIds)->count(),
+            ],
+            'appointments' => [
+                'daily' => \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
+                    $q->whereIn('created_by', $allAccessibleIds);
+                })->whereDate('created_at', now())->count(),
+                'weekly' => \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
+                    $q->whereIn('created_by', $allAccessibleIds);
+                })->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+                'monthly' => \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
+                    $q->whereIn('created_by', $allAccessibleIds);
+                })->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
+                'total' => \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
+                    $q->whereIn('created_by', $allAccessibleIds);
+                })->count(),
+            ]
+        ];
 
         // Get recent activities (performed by or performed on downline)
         $recentActivities = ActivityLog::whereIn('user_id', $allAccessibleIds)
@@ -57,7 +84,7 @@ class DashboardController extends Controller
 
         $isViewAs = $currentUser->id !== $user->id;
 
-        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'recentActivities', 'pendingApprovals', 'isViewAs'));
+        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'pendingApprovals', 'isViewAs'));
     }
 
     /**

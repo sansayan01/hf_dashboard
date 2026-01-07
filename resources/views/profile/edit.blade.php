@@ -65,6 +65,19 @@
                                     class="text-slate-700 dark:text-slate-200 tracking-tight">{{ $user->created_at->format('M d, Y') }}</span>
                             </div>
                         </div>
+
+                        @if(auth()->user()->canEdit($user))
+                            <div class="mt-6 w-full">
+                                <a href="{{ route('users.edit', $user->id) }}"
+                                    class="flex items-center justify-center w-full px-4 py-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-accent hover:text-white transition-all space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    <span>Edit Official Details</span>
+                                </a>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Decor -->
@@ -96,7 +109,8 @@
                                         value="{{ old('full_name', $user->profile->full_name ?? '') }}"
                                         class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 outline-none">
                                     @error('full_name') <p class="text-[10px] text-rose-500 font-bold mt-1 pl-1">
-                                    {{ $message }}</p> @enderror
+                                        {{ $message }}
+                                    </p> @enderror
                                 </div>
 
                                 <div class="space-y-1.5">
@@ -127,7 +141,8 @@
                                     </label>
                                 </div>
                                 @error('profile_picture') <p class="text-[10px] text-rose-500 font-bold mt-1 pl-1">
-                                {{ $message }}</p> @enderror
+                                    {{ $message }}
+                                </p> @enderror
                             </div>
 
                             <div class="pt-4 flex justify-end">
@@ -162,7 +177,8 @@
                                 <input type="password" name="current_password" required
                                     class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 outline-none">
                                 @error('current_password') <p class="text-[10px] text-rose-500 font-bold mt-1 pl-1">
-                                {{ $message }}</p> @enderror
+                                    {{ $message }}
+                                </p> @enderror
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -173,7 +189,8 @@
                                     <input type="password" name="password" required
                                         class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 outline-none">
                                     @error('password') <p class="text-[10px] text-rose-500 font-bold mt-1 pl-1">
-                                    {{ $message }}</p> @enderror
+                                        {{ $message }}
+                                    </p> @enderror
                                 </div>
 
                                 <div class="space-y-1.5">

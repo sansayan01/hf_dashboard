@@ -189,9 +189,23 @@ class User extends Authenticatable
         return $designationMap[$this->designation] ?? null;
     }
 
+    // Get direct children (for hierarchy tree)
+    public function getDirectChildren()
+    {
+        if ($this->isSuperAdmin()) {
+            return User::where('designation', 'dm')->get();
+        }
+        return $this->children;
+    }
+
     // Get all downline users (entire tree)
     public function getAllDownline()
     {
+        if ($this->isSuperAdmin()) {
+            // Treat all non-SA users as downline for ANY Super Admin
+            return User::where('designation', '!=', 'super_admin')->get();
+        }
+
         $downline = collect();
 
         foreach ($this->children as $child) {
@@ -205,6 +219,9 @@ class User extends Authenticatable
     // Count total downline
     public function getDownlineCount()
     {
+        if ($this->isSuperAdmin()) {
+            return User::where('designation', '!=', 'super_admin')->count();
+        }
         return $this->getAllDownline()->count();
     }
 

@@ -22,10 +22,12 @@
     </div>
     @endif
     <!-- Stats Grid -->
-    <div class="grid {{ auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-2' }} {{ auth()->user()->isSuperAdmin() ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }} gap-2 md:gap-6 mb-10">
+    <!-- Stats Grid -->
+    @if(!$user->isRO())
+    <div class="grid {{ auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2' }} md:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} lg:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} gap-2 md:gap-6 mb-2">
         <!-- Total Downline -->
         <div
-            class="glass bg-white dark:bg-darkbg/40 p-2 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+            class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
             <div class="absolute top-0 right-0 w-12 h-12 bg-accent/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
             <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                 <div
@@ -46,7 +48,7 @@
 
         <!-- Active Members -->
         <div
-            class="glass bg-white dark:bg-darkbg/40 p-2 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+            class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
             <div class="absolute top-0 right-0 w-12 h-12 bg-success/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
             <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                 <div
@@ -66,7 +68,7 @@
         @if($user->isSuperAdmin())
         <!-- Pending Approvals -->
         <div
-            class="glass bg-white dark:bg-darkbg/40 p-2 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+            class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
             <div class="absolute top-0 right-0 w-12 h-12 bg-pink-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
             <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                 <div
@@ -83,8 +85,72 @@
                 {{ number_format($stats['pending_approvals']) }}</p>
         </div>
         @endif
+    </div>
+    @endif
 
+    <!-- Reports Grid -->
+    <div class="grid grid-cols-2 gap-2 md:gap-6 mb-10">
+        <!-- Survey Reports -->
+        <a href="{{ route('surveys.index') }}" class="block glass bg-white dark:bg-darkbg/40 p-2 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+            <div class="absolute top-0 right-0 w-12 h-12 bg-indigo-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
+            <div class="flex items-center justify-between mb-2 md:mb-6 relative z-10">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 md:w-12 md:h-12 bg-indigo-500/10 text-indigo-500 rounded-lg md:rounded-xl flex items-center justify-center">
+                        <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400">Total Surveys</h3>
+                        <p class="text-xl md:text-3xl font-black text-slate-800 dark:text-white">{{ number_format($reports['surveys']['total']) }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2 relative z-10">
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
+                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Today</p>
+                    <p class="text-sm md:text-lg font-black text-indigo-500">{{ number_format($reports['surveys']['daily']) }}</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
+                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Week</p>
+                    <p class="text-sm md:text-lg font-black text-indigo-500">{{ number_format($reports['surveys']['weekly']) }}</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
+                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Month</p>
+                    <p class="text-sm md:text-lg font-black text-indigo-500">{{ number_format($reports['surveys']['monthly']) }}</p>
+                </div>
+            </div>
+        </a>
 
+        <!-- Appointment Reports -->
+        <a href="{{ route('appointments.all') }}" class="block glass bg-white dark:bg-darkbg/40 p-2 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+            <div class="absolute top-0 right-0 w-12 h-12 bg-emerald-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
+            <div class="flex items-center justify-between mb-2 md:mb-6 relative z-10">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 md:w-12 md:h-12 bg-emerald-500/10 text-emerald-500 rounded-lg md:rounded-xl flex items-center justify-center">
+                        <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400">Total Apps</h3>
+                        <p class="text-xl md:text-3xl font-black text-slate-800 dark:text-white">{{ number_format($reports['appointments']['total']) }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2 relative z-10">
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
+                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Today</p>
+                    <p class="text-sm md:text-lg font-black text-emerald-500">{{ number_format($reports['appointments']['daily']) }}</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
+                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Week</p>
+                    <p class="text-sm md:text-lg font-black text-emerald-500">{{ number_format($reports['appointments']['weekly']) }}</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
+                    <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Month</p>
+                    <p class="text-sm md:text-lg font-black text-emerald-500">{{ number_format($reports['appointments']['monthly']) }}</p>
+                </div>
+            </div>
+        </a>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

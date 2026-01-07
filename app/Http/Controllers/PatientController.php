@@ -20,7 +20,8 @@ class PatientController extends Controller
         $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
 
         $query = Survey::with('creator.profile')
-            ->whereIn('created_by', $allowedIds);
+            ->whereIn('created_by', $allowedIds)
+            ->has('appointments');
 
         // Apply Search (Patient Name, Phone, or Collector)
         if ($request->filled('search')) {
@@ -38,9 +39,34 @@ class PatientController extends Controller
             });
         }
 
+        // Apply Advanced Filters
+        if ($request->filled('collector_id')) {
+            $query->where('created_by', $request->collector_id);
+        }
+
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+
+        if ($request->filled('health_issue')) {
+            $issue = $request->health_issue;
+            $query->where('health_issues', 'like', "%{$issue}%");
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
         $patients = $query->latest()->get();
 
-        return view('patients.index', compact('patients'));
+        // Get list of potential collectors for the filter dropdown
+        $collectors = collect([$user])->merge($downline);
+
+        return view('patients.index', compact('patients', 'collectors'));
     }
 
     /**

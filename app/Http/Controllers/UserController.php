@@ -168,7 +168,8 @@ class UserController extends Controller
         // Additional validation for Super Admin
         if ($currentUser->isSuperAdmin()) {
             $rules['designation'] = 'required|in:super_admin,dm,bm,rm,ro';
-            $rules['parent_id'] = 'required_unless:designation,super_admin|nullable|exists:users,id';
+            // Parent ID required unless creating SA or DM (DMs are auto-assigned to creator or general pool)
+            $rules['parent_id'] = 'required_unless:designation,super_admin,dm|nullable|exists:users,id';
         }
 
         $validated = $request->validate(array_merge($rules, [
@@ -192,7 +193,14 @@ class UserController extends Controller
             // Determine designation and parent
             if ($currentUser->isSuperAdmin()) {
                 $designation = $request->designation;
-                $parentId = ($designation === 'super_admin') ? null : $request->parent_id;
+                if ($designation === 'super_admin') {
+                    $parentId = null;
+                } elseif ($designation === 'dm') {
+                    // Auto-assign current SA as parent for DMs (though all SAs can see them)
+                    $parentId = $currentUser->id;
+                } else {
+                    $parentId = $request->parent_id;
+                }
             } else {
                 $designation = $currentUser->getAllowedChildDesignation();
                 $parentId = $currentUser->id;
