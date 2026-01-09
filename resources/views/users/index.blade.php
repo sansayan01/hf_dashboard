@@ -119,16 +119,21 @@
                     @forelse($users as $u)
                         <tr class="hover:bg-slate-50 transition-colors group">
                             <td class="px-6 py-4">
-                                <div class="flex items-center space-x-3">
+                                <a href="{{ route('users.show', $u->id) }}" class="flex items-center space-x-3 group">
                                     <div
-                                        class="w-10 h-10 rounded-full bg-accent/5 text-accent flex items-center justify-center font-bold">
-                                        {{ substr($u->profile->full_name ?? 'U', 0, 1) }}
+                                        class="w-10 h-10 rounded-full bg-accent/5 text-accent flex items-center justify-center font-bold overflow-hidden border border-slate-100 dark:border-white/5 group-hover:border-accent/30 transition-colors">
+                                        @if($u->profile && $u->profile->profile_picture)
+                                            <img src="{{ asset('storage/' . $u->profile->profile_picture) }}" alt="Avatar"
+                                                class="w-full h-full object-cover">
+                                        @else
+                                            {{ substr($u->profile->full_name ?? 'U', 0, 1) }}
+                                        @endif
                                     </div>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-800">{{ $u->profile->full_name }}</p>
+                                        <p class="text-sm font-bold text-slate-800 group-hover:text-accent transition-colors">{{ $u->profile->full_name }}</p>
                                         <p class="text-[10px] text-bodydark font-bold uppercase">{{ $u->employee_id }}</p>
                                     </div>
-                                </div>
+                                </a>
                             </td>
                             <td class="px-6 py-4">
                                 <span

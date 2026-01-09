@@ -162,7 +162,7 @@ class UserController extends Controller
             'phone_number' => 'required|digits:10',
             'blood_group' => 'nullable|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
             'aadhaar_number' => 'required|digits:12',
-            'pan_number' => 'required|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
+            'pan_number' => 'nullable|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
         ];
 
         // Additional validation for Super Admin
@@ -179,8 +179,8 @@ class UserController extends Controller
             'block' => 'required|string',
             'gram_panchayat' => 'required|string',
             'pin_code' => 'required|digits:6',
-            'bank_name' => 'nullable|string',
-            'account_number' => 'nullable|string',
+            'bank_name' => 'required|string',
+            'account_number' => 'required|string',
             'ifsc_code' => 'required|string',
             'profile_picture' => 'nullable|image|max:10000',
         ]));
@@ -335,15 +335,15 @@ class UserController extends Controller
             'phone_number' => 'required|digits:10',
             'blood_group' => 'nullable|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
             'aadhaar_number' => 'required|digits:12',
-            'pan_number' => 'required|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
+            'pan_number' => 'nullable|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
             'address' => 'required|string',
             'state' => 'required|string',
             'district' => 'required|string',
             'block' => 'required|string',
             'gram_panchayat' => 'required|string',
             'pin_code' => 'required|digits:6',
-            'bank_name' => 'nullable|string',
-            'account_number' => 'nullable|string',
+            'bank_name' => 'required|string',
+            'account_number' => 'required|string',
             'ifsc_code' => 'required|string',
             'profile_picture' => 'nullable|image|max:10000',
             'password' => 'nullable|min:8|confirmed',
@@ -472,7 +472,7 @@ class UserController extends Controller
 
         // Send Approval Email
         try {
-            Mail::to($user->email)->send(new UserApproved($user));
+            Mail::to($user->email)->send(new UserApproved($user, $currentUser));
         } catch (\Exception $e) {
             \Log::error('Failed to send approval email: ' . $e->getMessage());
             // We don't stop the approval process if email fails, but we log it.

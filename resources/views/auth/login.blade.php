@@ -16,7 +16,7 @@
                     colors: {
                         primary: '#1C2434',
                         accent: '#3C50E0',
-                        body: '#F1F5F9',
+                        body: '#F5EEDC',
                     },
                     fontFamily: {
                         sans: ['Outfit', 'sans-serif'],
@@ -27,7 +27,7 @@
     </script>
 </head>
 
-<body class="bg-body font-sans text-primary">
+<body class="font-sans text-primary" style="background: linear-gradient(135deg, #FAF3E0 0%, #E6D5B8 100%);">
     <div class="flex min-h-screen">
         <!-- Left Side: Login Form -->
         <div class="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-20 bg-white shadow-2xl z-10">

@@ -22,11 +22,19 @@ class UserApproved extends Mailable
     public $user;
 
     /**
+     * The approver instance.
+     *
+     * @var \App\Models\User
+     */
+    public $approver;
+
+    /**
      * Create a new message instance.
      */
-    public function __construct(User $user)
+    public function __construct(User $user, User $approver)
     {
         $this->user = $user;
+        $this->approver = $approver;
     }
 
     /**

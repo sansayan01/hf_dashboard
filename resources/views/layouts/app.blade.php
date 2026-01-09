@@ -33,8 +33,8 @@
         }
 
         .gradient-bg {
-            background: #F1F5F9;
-            /* Default light background */
+            background: linear-gradient(135deg, #FAF3E0 0%, #E6D5B8 100%);
+            /* Distinct creamy off-color gradient */
         }
 
         .dark .gradient-bg {
@@ -306,7 +306,7 @@
             </header>
 
             <!-- Dashboard Content -->
-            <div class="flex-1 overflow-y-auto p-6 lg:p-10 bg-body flex flex-col justify-between">
+            <div class="flex-1 overflow-y-auto p-6 lg:p-10 flex flex-col justify-between">
                 <div>
                     @yield('content')
                 </div>
@@ -390,17 +390,17 @@
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
                 color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
                 @if(session('view_appointment_url'))
-                                                    showDenyButton: true,
+                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                            }).then((result) => {
+                                        }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                            });
+                                        });
         @endif
 
         @if(session('error'))
@@ -428,4 +428,5 @@
     @include('layouts.partials.ai_assistant')
     @yield('js')
 </body>
+
 </html>

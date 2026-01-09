@@ -200,7 +200,7 @@
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">PAN Number</label>
-                            <input type="text" name="pan_number" value="{{ old('pan_number') }}" required maxlength="10" placeholder="ABCDE1234F"
+                            <input type="text" name="pan_number" value="{{ old('pan_number') }}" maxlength="10" placeholder="ABCDE1234F"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="validatePAN(this)">
                         </div>
@@ -444,7 +444,7 @@
                 // Update Hint
                 hintDesignation.innerText = designation ? designation.toUpperCase() : 'XX';
 
-                if (designation === 'super_admin') {
+                if (designation === 'super_admin' || designation === 'dm') {
                     parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
                     parentSelect.required = false;
                     parentSelect.closest('div').classList.add('opacity-50');

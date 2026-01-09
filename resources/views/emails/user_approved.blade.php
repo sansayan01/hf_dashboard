@@ -2,38 +2,40 @@
 <html>
 
 <head>
-    <title>Account Approved</title>
+    <title>Welcome to the Family</title>
 </head>
 
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 
-    <h2>Hello {{ $user->profile->full_name }},</h2>
+    <h2>Dear {{ $user->profile->full_name }},</h2>
 
-    <p>Congratulations! Your account with <strong>Humanity Foundation</strong> has been approved by the administration.
-    </p>
+    <p>Welcome to the Humanity Foundation family!<br>
+        We are truly grateful to have you join us in our mission to create positive change and serve humanity.</p>
 
-    <p>We are thrilled to welcome you to our team.</p>
+    <p>Your support means a lot to us, and together we can make a real difference in the lives of those who need it
+        most.</p>
 
-    <h3>Your Account Details:</h3>
+    <p>Thank you for being part of this journey.</p>
+
+    <h3>Your Official Details:</h3>
     <ul>
         <li><strong>Employee ID:</strong> {{ $user->employee_id }}</li>
-        <li><strong>Designation:</strong> {{ strtoupper(str_replace('_', ' ', $user->designation)) }}</li>
-        <li><strong>Email:</strong> {{ $user->email }}</li>
+        <li><strong>Designation:</strong> {{ ucwords(str_replace('_', ' ', $user->designation)) }}</li>
+        <li><strong>Password:</strong> <em>(The password set during registration)</em></li>
     </ul>
 
-    <p>You can now login to your dashboard using the password you created during registration.</p>
+    <p>You may now access your dashboard using your registered email and password.</p>
 
-    <p>
+    <p style="margin-top: 30px;">
         <a href="{{ route('login') }}"
-            style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Login
+            style="background-color: #3C50E0; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login
             to Dashboard</a>
     </p>
 
-    <p>If you have any questions, please contact your reporting manager.</p>
-
     <br>
-    <p>Best Regards,</p>
-    <p><strong>Humanity Foundation Team</strong></p>
+    <p>Warm regards,</p>
+    <p><strong>{{ $approver->profile->full_name ?? 'The Administration' }}</strong><br>
+        Humanity Foundation</p>
 
 </body>
 

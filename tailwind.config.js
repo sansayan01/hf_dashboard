@@ -20,13 +20,13 @@ export default {
                 success: '#10B981',
                 danger: '#FB4848',
                 warning: '#F2994A',
-                body: '#F1F5F9',
+                body: '#F5EEDC',
                 bodydark: '#8A99AF',
                 darkbg: '#0F172A',
                 darkcard: '#1E293B',
                 darkaccent: '#3C50E0',
                 // Shadcn mappings (using project colors)
-                background: '#F1F5F9', // body
+                background: '#F5EEDC', // body
                 foreground: '#1C2434', // primary
                 card: '#FFFFFF',
                 'card-foreground': '#1C2434',
