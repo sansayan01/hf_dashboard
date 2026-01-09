@@ -181,7 +181,7 @@ class UserController extends Controller
             'pin_code' => 'required|digits:6',
             'bank_name' => 'required|string',
             'account_number' => 'required|string',
-            'ifsc_code' => 'required|string',
+            'ifsc_code' => 'required|string|max:11',
             'profile_picture' => 'nullable|image|max:10000',
         ]));
 
@@ -344,7 +344,7 @@ class UserController extends Controller
             'pin_code' => 'required|digits:6',
             'bank_name' => 'required|string',
             'account_number' => 'required|string',
-            'ifsc_code' => 'required|string',
+            'ifsc_code' => 'required|string|max:11',
             'profile_picture' => 'nullable|image|max:10000',
             'password' => 'nullable|min:8|confirmed',
         ];

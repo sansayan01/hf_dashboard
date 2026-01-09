@@ -242,7 +242,7 @@
                         </div>
                         <div class="md:col-span-1">
                             <label class="block text-sm font-bold text-slate-700 mb-2">IFSC Code</label>
-                            <input type="text" name="ifsc_code" value="{{ old('ifsc_code') }}" placeholder="Enter IFSC code" required
+                            <input type="text" name="ifsc_code" value="{{ old('ifsc_code') }}" placeholder="Enter IFSC code" required maxlength="11"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')">
                         </div>
