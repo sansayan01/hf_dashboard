@@ -132,6 +132,13 @@ class PatientController extends Controller
         $patient->created_by = Auth::id();
         $patient->save();
 
+        \App\Models\ActivityLog::logActivity(
+            action: 'patient_registered',
+            description: "New patient registered: {$patient->full_name} ({$patient->patient_id})",
+            modelType: 'App\Models\Survey',
+            modelId: $patient->id
+        );
+
         return redirect()->route('patients.index')->with('success', 'Patient registered successfully!');
     }
 
@@ -224,6 +231,13 @@ class PatientController extends Controller
         $patient->insurance_loan_req = $validated['insurance_loan_req'] ?? 'No';
         $patient->save();
 
+        \App\Models\ActivityLog::logActivity(
+            action: 'patient_updated',
+            description: "Patient profile updated: {$patient->full_name} ({$patient->patient_id})",
+            modelType: 'App\Models\Survey',
+            modelId: $patient->id
+        );
+
         return redirect()->route('patients.index')->with('success', 'Patient updated successfully!');
     }
 
@@ -239,6 +253,13 @@ class PatientController extends Controller
         }
 
         $patient->delete();
+
+        \App\Models\ActivityLog::logActivity(
+            action: 'patient_deleted',
+            description: "Patient record moved to bin: {$patient->full_name} ({$patient->patient_id})",
+            modelType: 'App\Models\Survey',
+            modelId: $patient->id
+        );
 
         return redirect()->route('patients.index')->with('success', 'Patient record moved to BIN. Can be restored within 30 days.');
     }
@@ -277,6 +298,13 @@ class PatientController extends Controller
         }
 
         $patient->restore();
+
+        \App\Models\ActivityLog::logActivity(
+            action: 'patient_restored',
+            description: "Patient record restored from bin: {$patient->full_name} ({$patient->patient_id})",
+            modelType: 'App\Models\Survey',
+            modelId: $patient->id
+        );
 
         return redirect()->route('patients.bin')->with('success', 'Patient record restored successfully.');
     }

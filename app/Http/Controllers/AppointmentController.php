@@ -129,6 +129,13 @@ class AppointmentController extends Controller
         $appointment->created_by = auth()->id();
         $appointment->save();
 
+        \App\Models\ActivityLog::logActivity(
+            action: 'appointment_created',
+            description: "New appointment scheduled for {$patient->full_name} for {$appointment->appointment_date}",
+            modelType: 'App\Models\Appointment',
+            modelId: $appointment->id
+        );
+
         return redirect()->route('patients.index')
             ->with('success', 'Appointment scheduled successfully.')
             ->with('view_appointment_url', route('patients.appointments.index', $patient->id));
@@ -188,6 +195,13 @@ class AppointmentController extends Controller
             'appointment_time' => $validated['appointment_time'],
         ]);
 
+        \App\Models\ActivityLog::logActivity(
+            action: 'appointment_updated',
+            description: "Appointment updated for {$appointment->survey->full_name} to {$appointment->appointment_date}",
+            modelType: 'App\Models\Appointment',
+            modelId: $appointment->id
+        );
+
         return redirect()->route('patients.index')
             ->with('success', 'Appointment updated successfully.')
             ->with('view_appointment_url', route('patients.appointments.index', $appointment->survey_id));
@@ -204,6 +218,13 @@ class AppointmentController extends Controller
         }
 
         $appointment->update(['status' => 'successful']);
+
+        \App\Models\ActivityLog::logActivity(
+            action: 'appointment_completed',
+            description: "Appointment marked as successful for {$appointment->survey->full_name}",
+            modelType: 'App\Models\Appointment',
+            modelId: $appointment->id
+        );
 
         return redirect()->back()->with('success', 'Appointment marked as successful.');
     }
@@ -240,6 +261,13 @@ class AppointmentController extends Controller
         }
 
         $appointment->update(['status' => 'not_attended']);
+
+        \App\Models\ActivityLog::logActivity(
+            action: 'appointment_missed',
+            description: "Appointment reported as not attended for {$appointment->survey->full_name}",
+            modelType: 'App\Models\Appointment',
+            modelId: $appointment->id
+        );
 
         return redirect()->back()->with('success', 'Appointment finalized as Not Attended.');
     }

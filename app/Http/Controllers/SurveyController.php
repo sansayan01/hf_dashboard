@@ -127,6 +127,13 @@ class SurveyController extends Controller
         $survey->created_by = Auth::id();
         $survey->save();
 
+        \App\Models\ActivityLog::logActivity(
+            action: 'survey_created',
+            description: "New health survey created for {$survey->full_name} ({$survey->patient_id})",
+            modelType: 'App\Models\Survey',
+            modelId: $survey->id
+        );
+
         return redirect()->route('surveys.index')->with('success', 'Survey submitted successfully!');
     }
 
@@ -182,6 +189,13 @@ class SurveyController extends Controller
         $survey->pin = $validated['pin'];
         $survey->health_issues = $healthIssues;
         $survey->save();
+
+        \App\Models\ActivityLog::logActivity(
+            action: 'survey_updated',
+            description: "Health survey updated for {$survey->full_name} ({$survey->patient_id})",
+            modelType: 'App\Models\Survey',
+            modelId: $survey->id
+        );
 
         return redirect()->route('surveys.index')->with('success', 'Survey updated successfully!');
     }

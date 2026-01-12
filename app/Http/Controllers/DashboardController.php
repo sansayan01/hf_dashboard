@@ -68,12 +68,22 @@ class DashboardController extends Controller
             ]
         ];
 
-        // Get recent activities (performed by or performed on downline)
-        $recentActivities = ActivityLog::whereIn('user_id', $allAccessibleIds)
-            ->orWhereIn('performed_by', $allAccessibleIds)
+        // Calculate the most recent 3 AM IST
+        $now = now()->timezone('Asia/Kolkata');
+        if ($now->hour < 3) {
+            $startTime = $now->copy()->subDay()->setTime(3, 0, 0);
+        } else {
+            $startTime = $now->copy()->setTime(3, 0, 0);
+        }
+
+        // Get recent activities (performed by or performed on downline) since 3 AM IST
+        $recentActivities = ActivityLog::where(function ($q) use ($allAccessibleIds) {
+            $q->whereIn('user_id', $allAccessibleIds)
+                ->orWhereIn('performed_by', $allAccessibleIds);
+        })
+            ->where('created_at', '>', $startTime)
             ->with(['user.profile', 'performedBy.profile'])
             ->latest()
-            ->take(10)
             ->get();
 
         // Get pending approvals (Super Admin only - or theoretically if a user can approve others)
