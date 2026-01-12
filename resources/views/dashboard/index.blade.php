@@ -79,8 +79,8 @@
 
             @if($user->isSuperAdmin())
                 <!-- Pending Approvals -->
-                <div
-                    class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+                <div onclick="document.getElementById('pending-approval-section').scrollIntoView({ behavior: 'smooth' })"
+                    class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative cursor-pointer">
                     <div class="absolute top-0 right-0 w-12 h-12 bg-pink-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                     <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                         <div
@@ -262,7 +262,7 @@
         <div class="space-y-8">
             @if($user->isSuperAdmin())
                 <!-- Pending Approvals -->
-                <div
+                <div id="pending-approval-section"
                     class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden">
                     <div
                         class="p-6 border-b border-slate-200/5 bg-white dark:bg-white/5 dark:backdrop-blur-sm flex items-center justify-between">

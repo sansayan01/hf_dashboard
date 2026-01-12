@@ -16,6 +16,43 @@
             <form action="{{ route('surveys.store') }}" method="POST" class="p-8 space-y-8">
                 @csrf
 
+                @if(count($users) > 0)
+                    <div class="p-6 bg-indigo-50/50 dark:bg-indigo-500/5 rounded-2xl border-2 border-indigo-100 dark:border-indigo-500/20 space-y-4">
+                        <div class="flex items-center space-x-3 text-indigo-600 dark:text-indigo-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <h4 class="text-sm font-black uppercase tracking-widest">{{ auth()->user()->isSuperAdmin() ? 'Create Behalf Of' : 'Register for Team Member' }}</h4>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Team Member (Search by Name or ID)</label>
+                            <input list="team_members" name="created_by_user_search" id="created_by_user_search"
+                                class="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none text-sm font-bold text-slate-700 dark:text-white transition-all focus:border-indigo-500"
+                                placeholder="Start typing name or employee ID..."
+                                oninput="updateUserId(this.value)">
+                            <input type="hidden" name="created_by_user" id="created_by_user" value="{{ old('created_by_user') }}">
+                            <datalist id="team_members">
+                                @foreach($users as $u)
+                                    <option value="{{ $u->employee_id }} - {{ $u->profile->full_name }}" data-id="{{ $u->id }}">
+                                @endforeach
+                            </datalist>
+                            <script>
+                                function updateUserId(value) {
+                                    const options = document.querySelectorAll('#team_members option');
+                                    let foundId = '';
+                                    options.forEach(option => {
+                                        if (option.value === value) {
+                                            foundId = option.getAttribute('data-id');
+                                        }
+                                    });
+                                    document.getElementById('created_by_user').value = foundId;
+                                }
+                            </script>
+                            <p class="text-[10px] text-slate-400 font-medium italic">If left empty, the survey will be registered under your name.</p>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Full Name -->
                     <div class="space-y-2">

@@ -89,7 +89,12 @@ class SurveyController extends Controller
      */
     public function create()
     {
-        return view('surveys.create');
+        $user = Auth::user();
+
+        // Fetch all downline members + load profiles for the selection list
+        $users = $user->getAllDownline()->load('profile');
+
+        return view('surveys.create', compact('users'));
     }
 
     /**
@@ -97,7 +102,8 @@ class SurveyController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $currentUser = Auth::user();
+        $rules = [
             'full_name' => 'required|string|max:255',
             'age' => 'required|integer|min:1|max:120',
             'gender' => 'required|in:male,female,other',
@@ -106,7 +112,10 @@ class SurveyController extends Controller
             'pin' => 'required|string|size:6',
             'health_issue_category' => 'nullable|array',
             'health_issue_other' => 'nullable|string',
-        ]);
+            'created_by_user' => 'nullable|exists:users,id',
+        ];
+
+        $validated = $request->validate($rules);
 
         // Process health issues
         $healthIssuesArr = $validated['health_issue_category'] ?? [];
@@ -116,6 +125,17 @@ class SurveyController extends Controller
         }
         $healthIssues = implode(', ', $healthIssuesArr) ?: 'Normal';
 
+        $createdBy = $currentUser->id;
+        if ($request->filled('created_by_user')) {
+            $targetUser = \App\Models\User::findOrFail($request->created_by_user);
+
+            // Authorization Check: Target must be in requester's downline or be themselves
+            if ($targetUser->id !== $currentUser->id && !$currentUser->canAccess($targetUser)) {
+                abort(403, 'Unauthorized: You can only create surveys for your own team members.');
+            }
+            $createdBy = $targetUser->id;
+        }
+
         $survey = new Survey();
         $survey->full_name = $validated['full_name'];
         $survey->age = $validated['age'];
@@ -124,7 +144,7 @@ class SurveyController extends Controller
         $survey->address = $validated['address'];
         $survey->pin = $validated['pin'];
         $survey->health_issues = $healthIssues;
-        $survey->created_by = Auth::id();
+        $survey->created_by = $createdBy;
         $survey->save();
 
         \App\Models\ActivityLog::logActivity(

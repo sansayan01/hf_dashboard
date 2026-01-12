@@ -69,12 +69,12 @@ class PatientController extends Controller
         return view('patients.index', compact('patients', 'collectors'));
     }
 
-    /**
-     * Show the form for creating a new patient.
-     */
     public function create()
     {
-        return view('patients.create');
+        $user = Auth::user();
+        $users = $user->getAllDownline()->load('profile');
+
+        return view('patients.create', compact('users'));
     }
 
     /**
@@ -82,7 +82,8 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $currentUser = Auth::user();
+        $rules = [
             'full_name' => 'required|string|max:255',
             'relative_name' => 'nullable|string|max:255',
             'age' => 'required|integer|min:1|max:120',
@@ -101,7 +102,10 @@ class PatientController extends Controller
             'health_issue_category' => 'nullable|array',
             'health_issue_other' => 'nullable|string',
             'insurance_loan_req' => 'nullable|string',
-        ]);
+            'created_by_user' => 'nullable|exists:users,id',
+        ];
+
+        $validated = $request->validate($rules);
 
         // Combine health issues
         $healthIssuesArr = $validated['health_issue_category'] ?? [];
@@ -110,6 +114,17 @@ class PatientController extends Controller
             $healthIssuesArr[] = $request->health_issue_other;
         }
         $healthIssues = implode(', ', $healthIssuesArr);
+
+        $createdBy = $currentUser->id;
+        if ($request->filled('created_by_user')) {
+            $targetUser = \App\Models\User::findOrFail($request->created_by_user);
+
+            // Authorization Check: Target must be in requester's downline or be themselves
+            if ($targetUser->id !== $currentUser->id && !$currentUser->canAccess($targetUser)) {
+                abort(403, 'Unauthorized: You can only register patients for your own team members.');
+            }
+            $createdBy = $targetUser->id;
+        }
 
         $patient = new Survey();
         $patient->full_name = $validated['full_name'];
@@ -129,7 +144,7 @@ class PatientController extends Controller
         $patient->past_diseases = $validated['past_diseases'] ?? null;
         $patient->health_issues = $healthIssues;
         $patient->insurance_loan_req = $validated['insurance_loan_req'] ?? 'No';
-        $patient->created_by = Auth::id();
+        $patient->created_by = $createdBy;
         $patient->save();
 
         \App\Models\ActivityLog::logActivity(
