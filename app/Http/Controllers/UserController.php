@@ -482,6 +482,50 @@ class UserController extends Controller
     }
 
     /**
+     * Approve multiple users at once
+     */
+    public function bulkApprove(Request $request)
+    {
+        $currentUser = auth()->user();
+
+        // Only Super Admin can approve
+        if (!$currentUser->isSuperAdmin()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $userIds = $request->input('selected_users', []);
+        if (empty($userIds)) {
+            return back()->with('error', 'No members selected for approval.');
+        }
+
+        $users = User::whereIn('id', $userIds)->where('status', 'pending')->get();
+        $count = 0;
+
+        foreach ($users as $user) {
+            $user->update(['status' => 'active']);
+
+            ActivityLog::logActivity(
+                'approved',
+                $user->id,
+                $currentUser->id,
+                "Approved user (Bulk): {$user->profile->full_name}",
+                'User',
+                $user->id
+            );
+
+            // Send Approval Email
+            try {
+                Mail::to($user->email)->send(new UserApproved($user, $currentUser));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send bulk approval email for user ' . $user->id . ': ' . $e->getMessage());
+            }
+            $count++;
+        }
+
+        return back()->with('success', "{$count} members approved successfully.");
+    }
+
+    /**
      * Soft delete a user (move to BIN)
      */
     public function destroy($id)
@@ -489,9 +533,9 @@ class UserController extends Controller
         $currentUser = auth()->user();
         $user = User::findOrFail($id);
 
-        // Check access
-        if (!$currentUser->canAccess($user)) {
-            abort(403, 'Unauthorized access');
+        // Check access - Only Super Admin can delete members
+        if (!$currentUser->isSuperAdmin()) {
+            abort(403, 'Permission denied: Only Super Admin can delete users.');
         }
 
         // Prevent self-deletion

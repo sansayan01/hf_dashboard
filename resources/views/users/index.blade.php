@@ -130,7 +130,8 @@
                                         @endif
                                     </div>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-800 group-hover:text-accent transition-colors">{{ $u->profile->full_name }}</p>
+                                        <p class="text-sm font-bold text-slate-800 group-hover:text-accent transition-colors">
+                                            {{ $u->profile->full_name }}</p>
                                         <p class="text-[10px] text-bodydark font-bold uppercase">{{ $u->employee_id }}</p>
                                     </div>
                                 </a>
@@ -184,18 +185,21 @@
                                         </form>
                                     @endif
 
-                                    <form action="{{ route('users.destroy', $u->id) }}" method="POST"
-                                        onsubmit="return confirm('Move to BIN?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-2 text-danger hover:bg-danger/10 rounded-lg transition">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </form>
+                                    @if(auth()->user()->isSuperAdmin())
+                                        <form action="{{ route('users.destroy', $u->id) }}" method="POST"
+                                            onsubmit="return confirm('Move to BIN?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-2 text-danger hover:bg-danger/10 rounded-lg transition"
+                                                title="Delete User">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

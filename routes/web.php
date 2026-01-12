@@ -33,6 +33,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
         // Approval
         Route::post('/{user}/approve', [UserController::class, 'approve'])->name('approve');
+        Route::post('/bulk/approve', [UserController::class, 'bulkApprove'])->name('bulk-approve');
 
         // BIN / Trash System
         Route::get('/trash/bin', [UserController::class, 'bin'])->name('bin');
