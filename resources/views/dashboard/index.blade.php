@@ -263,7 +263,7 @@
             @if($user->isSuperAdmin())
                 <!-- Pending Approvals -->
                 <div id="pending-approval-section"
-                    class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden">
+                    class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden transition-all hover:shadow-2xl hover:shadow-accent/5 max-h-[80vh] flex flex-col">
                     <div
                         class="p-6 border-b border-slate-200/5 bg-white dark:bg-white/5 dark:backdrop-blur-sm flex items-center justify-between">
                         <h3 class="font-black text-lg text-slate-800 dark:text-white tracking-tight">Pending Approval</h3>
@@ -273,9 +273,9 @@
                                 class="px-2 py-1 bg-pink-500/10 text-pink-500 text-[10px] font-black rounded-lg border border-pink-500/20">{{ $pendingApprovals->count() }}</span>
                         </div>
                     </div>
-                    <form id="dashboard-bulk-approve-form" action="{{ route('users.bulk-approve') }}" method="POST">
+                    <form id="dashboard-bulk-approve-form" action="{{ route('users.bulk-approve') }}" method="POST" class="flex-1 flex flex-col overflow-hidden">
                         @csrf
-                        <div class="p-6">
+                        <div class="p-6 flex-1 overflow-y-auto scrollbar-hide">
                             <div class="space-y-4">
                                 @forelse($pendingApprovals as $pending)
                                     <div
@@ -323,20 +323,20 @@
                                             All catch up!</p>
                                     </div>
                                 @endforelse
-                                
-                                @if($pendingApprovals->count() > 0)
-                                    <div id="dashboard-bulk-btn-container" class="hidden pt-4 border-t border-slate-100 dark:border-white/5">
-                                        <button type="submit" 
-                                            class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            <span>Approve <span id="dashboard-selected-count">0</span> Selected Members</span>
-                                        </button>
-                                    </div>
-                                @endif
                             </div>
                         </div>
+                        
+                        @if($pendingApprovals->count() > 0)
+                            <div id="dashboard-bulk-btn-container" class="hidden p-6 pt-4 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-white/5">
+                                <button type="submit" 
+                                    class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>Approve <span id="dashboard-selected-count">0</span> Selected Members</span>
+                                </button>
+                            </div>
+                        @endif
                     </form>
 
                     <!-- Hidden Single Approve Form -->

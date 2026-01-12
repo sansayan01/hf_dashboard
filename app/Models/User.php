@@ -157,6 +157,17 @@ class User extends Authenticatable
         return $this->designation === 'ro';
     }
 
+    // Check if user can create users
+    public function canCreateUsers()
+    {
+        return in_array($this->designation, ['super_admin', 'dm', 'bm', 'rm']);
+    }
+
+    public function canApprove(User $user)
+    {
+        // Strictly only Super Admin can approve users
+        return $this->isSuperAdmin();
+    }
 
     // Get allowed child designation
     public function getAllowedChildDesignation()
@@ -190,9 +201,8 @@ class User extends Authenticatable
     // Get all downline users (entire tree)
     public function getAllDownline()
     {
-        if ($this->hasAdminPrivileges()) {
-            return User::where('id', '!=', $this->id)
-                ->where('designation', '!=', 'super_admin')->get();
+        if ($this->isSuperAdmin()) {
+            return User::where('designation', '!=', 'super_admin')->get();
         }
 
         $ids = $this->getAllDownlineIds();
@@ -214,7 +224,7 @@ class User extends Authenticatable
     // Count total downline
     public function getDownlineCount()
     {
-        if ($this->hasAdminPrivileges()) {
+        if ($this->isSuperAdmin()) {
             return User::where('designation', '!=', 'super_admin')->count();
         }
         return $this->getAllDownline()->count();
@@ -222,12 +232,11 @@ class User extends Authenticatable
 
     public function getPendingApprovalsCount()
     {
-        // Admins can see all pending
-        if ($this->hasAdminPrivileges()) {
+        if ($this->isSuperAdmin()) {
             return User::pending()->count();
         }
 
-        // Normal users see 0 (or only their team's pending if we wanted that logic)
+        // Non-super admins cannot approve, so they have 0 pending approvals to handle
         return 0;
     }
 
@@ -264,8 +273,8 @@ class User extends Authenticatable
     // Check if user can access another user's data
     public function canAccess(User $targetUser)
     {
-        // Super admin/Office in charge can access everyone
-        if ($this->hasAdminPrivileges()) {
+        // Super admin can access everyone
+        if ($this->isSuperAdmin()) {
             return true;
         }
 
@@ -278,56 +287,15 @@ class User extends Authenticatable
         return $this->getAllDownline()->contains('id', $targetUser->id);
     }
 
-
-    public function isOfficeInChargeExpired()
-    {
-        if (!$this->is_office_in_charge) {
-            return true;
-        }
-
-        if ($this->office_in_charge_type === 'permanent') {
-            return false;
-        }
-
-        if ($this->office_in_charge_end_date && Carbon::parse($this->office_in_charge_end_date)->endOfDay()->isPast()) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public function isEffectiveOfficeInCharge()
-    {
-        return $this->is_office_in_charge && !$this->isOfficeInChargeExpired();
-    }
-
-    // Check if user has admin privileges (Super Admin or Office in Charge)
-    public function hasAdminPrivileges()
-    {
-        return $this->isSuperAdmin() || $this->isEffectiveOfficeInCharge();
-    }
-
-    // Check if user can create users
-    public function canCreateUsers()
-    {
-        return $this->hasAdminPrivileges() || in_array($this->designation, ['dm', 'bm', 'rm']);
-    }
-
-    public function canApprove(User $user)
-    {
-        // Super Admin or Office in Charge can approve users
-        return $this->hasAdminPrivileges();
-    }
-
     // Check if user can edit another user's data
     public function canEdit(User $targetUser)
     {
-        // Super admin/Office in charge can always edit everyone
-        if ($this->hasAdminPrivileges()) {
+        // Super admin can always edit everyone
+        if ($this->isSuperAdmin()) {
             return true;
         }
 
-        // After approval (active status), ONLY admin can edit
+        // After approval (active status), ONLY super admin can edit
         if ($targetUser->status === 'active') {
             return false;
         }
@@ -335,6 +303,23 @@ class User extends Authenticatable
         // While pending, managers can edit their direct or indirect downline
         // (Self-edit is also allowed here if pending, but hierarchy is the focus)
         return $this->canAccess($targetUser);
+    }
+
+    public function isOfficeInChargeExpired()
+    {
+        if (!$this->is_office_in_charge) {
+            return false;
+        }
+
+        if ($this->office_in_charge_type === 'permanent') {
+            return false;
+        }
+
+        if ($this->office_in_charge_end_date && Carbon::parse($this->office_in_charge_end_date)->isPast()) {
+            return true;
+        }
+
+        return false;
     }
 
     // Get designation label
