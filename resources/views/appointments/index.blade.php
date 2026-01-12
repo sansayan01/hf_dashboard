@@ -123,6 +123,44 @@
                         <div class="flex flex-col items-end space-y-2">
                              @if($appointment->status === 'scheduled' || $appointment->status === 'missed_reported')
                                 <div class="flex items-center space-x-2">
+                                    @if($appointment->status === 'scheduled' && (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()))
+                                        <form action="{{ route('appointments.complete', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Mark as successful?')">
+                                            @csrf
+                                            <button type="submit" class="p-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-xl transition-all shadow-sm border border-emerald-500/10" title="Mark Successful">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('appointments.report_missed', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Report as missed?')">
+                                            @csrf
+                                            <button type="submit" class="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white rounded-xl transition-all shadow-sm border border-rose-500/10" title="Report Missed">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                    @if($appointment->status === 'missed_reported' && (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()))
+                                        <form action="{{ route('appointments.complete', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Confirm as SUCCESSFUL?')">
+                                            @csrf
+                                            <button type="submit" class="p-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all shadow-lg shadow-emerald-500/20" title="Confirm Success">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('appointments.confirm_missed', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Confirm as NOT ATTENDED?')">
+                                            @csrf
+                                            <button type="submit" class="p-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition-all shadow-lg shadow-rose-500/20" title="Confirm Not Attended">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    @endif
+
                                     <a href="{{ route('patients.appointments.edit', $appointment->id) }}" 
                                         class="p-2 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl transition-all shadow-sm border border-amber-500/10 group/edit"
                                         title="Edit Appointment">

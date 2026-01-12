@@ -157,16 +157,22 @@ class User extends Authenticatable
         return $this->designation === 'ro';
     }
 
+    // Check if user is Office In-Charge
+    public function isOfficeInCharge()
+    {
+        return $this->designation === 'office_in_charge';
+    }
+
     // Check if user can create users
     public function canCreateUsers()
     {
-        return in_array($this->designation, ['super_admin', 'dm', 'bm', 'rm']);
+        return in_array($this->designation, ['super_admin', 'office_in_charge', 'dm', 'bm', 'rm']);
     }
 
     public function canApprove(User $user)
     {
-        // Strictly only Super Admin can approve users
-        return $this->isSuperAdmin();
+        // Super Admin and Office In-Charge can approve users
+        return $this->isSuperAdmin() || $this->isOfficeInCharge();
     }
 
     // Get allowed child designation
@@ -192,7 +198,7 @@ class User extends Authenticatable
     // Get direct children (for hierarchy tree)
     public function getDirectChildren()
     {
-        if ($this->isSuperAdmin()) {
+        if ($this->isSuperAdmin() || $this->isOfficeInCharge()) {
             return User::where('designation', 'dm')->get();
         }
         return $this->children;
@@ -202,6 +208,16 @@ class User extends Authenticatable
     public function getAllDownline()
     {
         if ($this->isSuperAdmin()) {
+            // Super Admin sees everyone except other SAs in downline list (usually)
+            // But technically SA has access to everyone. 
+            // For the purpose of "Downline", we usually mean people below.
+            return User::where('designation', '!=', 'super_admin')->get();
+        }
+
+        if ($this->isOfficeInCharge()) {
+            // Office In-Charge sees everyone EXCEPT Super Admins
+            // They can see other Office In-Charges if they exist (though usually only 1)
+            // But per requirement "can't see super user", so we exclude SA.
             return User::where('designation', '!=', 'super_admin')->get();
         }
 
@@ -224,7 +240,7 @@ class User extends Authenticatable
     // Count total downline
     public function getDownlineCount()
     {
-        if ($this->isSuperAdmin()) {
+        if ($this->isSuperAdmin() || $this->isOfficeInCharge()) {
             return User::where('designation', '!=', 'super_admin')->count();
         }
         return $this->getAllDownline()->count();
@@ -232,11 +248,11 @@ class User extends Authenticatable
 
     public function getPendingApprovalsCount()
     {
-        if ($this->isSuperAdmin()) {
+        if ($this->isSuperAdmin() || $this->isOfficeInCharge()) {
             return User::pending()->count();
         }
 
-        // Non-super admins cannot approve, so they have 0 pending approvals to handle
+        // Non-admin users cannot approve, so they have 0 pending approvals to handle
         return 0;
     }
 
@@ -244,6 +260,7 @@ class User extends Authenticatable
     {
         $designationCodes = [
             'super_admin' => 'SA',
+            'office_in_charge' => 'OI',
             'dm' => 'DM',
             'bm' => 'BM',
             'rm' => 'RM',
@@ -278,6 +295,11 @@ class User extends Authenticatable
             return true;
         }
 
+        // Office In-Charge can access everyone EXCEPT Super Admin
+        if ($this->isOfficeInCharge()) {
+            return !$targetUser->isSuperAdmin();
+        }
+
         // Can access self
         if ($this->id === $targetUser->id) {
             return true;
@@ -295,7 +317,12 @@ class User extends Authenticatable
             return true;
         }
 
-        // After approval (active status), ONLY super admin can edit
+        // Office In-Charge can edit everyone EXCEPT Super Admin
+        if ($this->isOfficeInCharge()) {
+            return !$targetUser->isSuperAdmin();
+        }
+
+        // After approval (active status), ONLY Super Admin or Office In-Charge can edit
         if ($targetUser->status === 'active') {
             return false;
         }
@@ -327,6 +354,7 @@ class User extends Authenticatable
     {
         $labels = [
             'super_admin' => 'Super Admin',
+            'office_in_charge' => 'Office In-Charge',
             'dm' => 'District Manager',
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',

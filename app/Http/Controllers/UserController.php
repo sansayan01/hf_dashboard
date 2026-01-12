@@ -117,15 +117,22 @@ class UserController extends Controller
 
         $allDesignations = [
             'super_admin' => 'Super Admin',
+            'office_in_charge' => 'Office In-Charge',
             'dm' => 'District Manager',
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
             'ro' => 'Relationship Officer',
         ];
 
-        if ($currentUser->isSuperAdmin()) {
+        if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
             // Super Admin can create any role
+            // Office In-Charge can create any role except SA and OI
             $allowedDesignation = null; // Let the view handle dropdown
+
+            if ($currentUser->isOfficeInCharge()) {
+                unset($allDesignations['super_admin']);
+                unset($allDesignations['office_in_charge']);
+            }
 
             // Get potential parents grouped by their designation
             $potentialParents = User::whereIn('designation', ['super_admin', 'dm', 'bm', 'rm'])
@@ -169,11 +176,17 @@ class UserController extends Controller
             'pan_number' => 'nullable|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
         ];
 
-        // Additional validation for Super Admin
-        if ($currentUser->isSuperAdmin()) {
-            $rules['designation'] = 'required|in:super_admin,dm,bm,rm,ro';
-            // Parent ID required unless creating SA or DM (DMs are auto-assigned to creator or general pool)
-            $rules['parent_id'] = 'required_unless:designation,super_admin,dm|nullable|exists:users,id';
+        // Additional validation for Super Admin and Office In-Charge
+        if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
+            $allowed = 'dm,bm,rm,ro';
+            if ($currentUser->isSuperAdmin()) {
+                $allowed .= ',super_admin,office_in_charge';
+            }
+            $rules['designation'] = "required|in:$allowed";
+
+            // Parent ID required unless creating SA, Office In-Charge, or DM
+            // Note: Office In-Charge can't create SA/OI, so this mainly affects DM creation for them
+            $rules['parent_id'] = 'required_unless:designation,super_admin,office_in_charge,dm|nullable|exists:users,id';
         }
 
         $validated = $request->validate(array_merge($rules, [
@@ -195,12 +208,13 @@ class UserController extends Controller
 
         try {
             // Determine designation and parent
-            if ($currentUser->isSuperAdmin()) {
+            if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
                 $designation = $request->designation;
-                if ($designation === 'super_admin') {
+                if ($designation === 'super_admin' || $designation === 'office_in_charge') {
+                    // Super Admin and Office In-Charge don't need a parent
                     $parentId = null;
                 } elseif ($designation === 'dm') {
-                    // Auto-assign current SA as parent for DMs (though all SAs can see them)
+                    // Auto-assign current user as parent for DMs if they are creating one
                     $parentId = $currentUser->id;
                 } else {
                     $parentId = $request->parent_id;
@@ -353,7 +367,7 @@ class UserController extends Controller
             'password' => 'nullable|min:8|confirmed',
         ];
 
-        if ($currentUser->isSuperAdmin()) {
+        if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
             $rules['employee_id'] = 'required|string|unique:users,employee_id,' . $user->id;
         }
 
@@ -373,13 +387,13 @@ class UserController extends Controller
                 'email' => $request->email,
             ];
 
-            if ($currentUser->isSuperAdmin() && $request->has('employee_id')) {
+            if (($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) && $request->has('employee_id')) {
                 $userData['employee_id'] = $request->employee_id;
             }
 
             if ($request->filled('password')) {
-                // Only Super Admin or the user themselves can change the password
-                if ($currentUser->isSuperAdmin() || $currentUser->id === $user->id) {
+                // Only Super Admin/Office In-Charge or the user themselves can change the password
+                if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge() || $currentUser->id === $user->id) {
                     $userData['password'] = Hash::make($request->password);
                 }
             }
@@ -537,14 +551,19 @@ class UserController extends Controller
         $currentUser = auth()->user();
         $user = User::findOrFail($id);
 
-        // Check access - Only Super Admin can delete members
-        if (!$currentUser->isSuperAdmin()) {
-            abort(403, 'Permission denied: Only Super Admin can delete users.');
+        // Check access - Only Super Admin and Office In-Charge can delete members
+        if (!$currentUser->isSuperAdmin() && !$currentUser->isOfficeInCharge()) {
+            abort(403, 'Permission denied: Only Admin users can delete members.');
         }
 
         // Prevent self-deletion
         if ($user->id === $currentUser->id) {
             return back()->with('error', 'You cannot delete yourself.');
+        }
+
+        // Prevent Office In-Charge from deleting Super Admin
+        if ($currentUser->isOfficeInCharge() && $user->isSuperAdmin()) {
+            return back()->with('error', 'Permission denied: You cannot delete a Super Admin.');
         }
 
         $user->delete();
@@ -570,13 +589,20 @@ class UserController extends Controller
     {
         $currentUser = auth()->user();
 
-        $deletedUsers = $currentUser->isSuperAdmin()
-            ? User::onlyTrashed()->with('profile')->paginate(20)
-            : User::onlyTrashed()
-                ->where('parent_id', $currentUser->id)
-                ->orWhereIn('id', $currentUser->getAllDownline()->pluck('id'))
-                ->with('profile')
-                ->paginate(20);
+        $query = User::onlyTrashed()->with('profile');
+
+        if (!$currentUser->isSuperAdmin() && !$currentUser->isOfficeInCharge()) {
+            // Standard users only see their own downline deleted
+            $query->where(function ($q) use ($currentUser) {
+                $q->where('parent_id', $currentUser->id)
+                    ->orWhereIn('id', $currentUser->getAllDownline()->pluck('id'));
+            });
+        } elseif ($currentUser->isOfficeInCharge()) {
+            // Office In-Charge sees all deleted EXCEPT Super Admins
+            $query->where('designation', '!=', 'super_admin');
+        }
+
+        $deletedUsers = $query->paginate(20);
 
         return view('users.bin', compact('deletedUsers'));
     }
@@ -589,9 +615,14 @@ class UserController extends Controller
         $currentUser = auth()->user();
         $user = User::onlyTrashed()->findOrFail($id);
 
-        // Check if user can restore (creator or super admin)
-        if (!$currentUser->isSuperAdmin() && $user->parent_id !== $currentUser->id) {
+        // Check if user can restore (Super Admin, Office In-Charge, or direct parent)
+        if (!$currentUser->isSuperAdmin() && !$currentUser->isOfficeInCharge() && $user->parent_id !== $currentUser->id) {
             abort(403, 'You do not have permission to restore this user.');
+        }
+
+        // Prevent Office In-Charge from restoring Super Admin
+        if ($currentUser->isOfficeInCharge() && $user->isSuperAdmin()) {
+            abort(403, 'Permission denied: Office In-Charge cannot restore Super Admin.');
         }
 
         $user->restore();

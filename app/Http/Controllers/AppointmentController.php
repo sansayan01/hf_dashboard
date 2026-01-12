@@ -212,8 +212,8 @@ class AppointmentController extends Controller
      */
     public function complete(Appointment $appointment)
     {
-        // Check access - Only Super Admin can finalize appointments
-        if (!auth()->user()->isSuperAdmin()) {
+        // Check access - Only Super Admin and Office In-Charge can finalize appointments
+        if (!auth()->user()->isSuperAdmin() && !auth()->user()->isOfficeInCharge()) {
             abort(403);
         }
 
@@ -255,8 +255,8 @@ class AppointmentController extends Controller
      */
     public function reportMissed(Appointment $appointment)
     {
-        // Check access - Only Super Admin can finalize appointments
-        if (!auth()->user()->isSuperAdmin()) {
+        // Check access - Only Super Admin and Office In-Charge can finalize appointments
+        if (!auth()->user()->isSuperAdmin() && !auth()->user()->isOfficeInCharge()) {
             abort(403);
         }
 
@@ -277,8 +277,8 @@ class AppointmentController extends Controller
      */
     public function confirmMissed(Appointment $appointment)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403, 'Only Super Admin can confirm non-attendance.');
+        if (!auth()->user()->isSuperAdmin() && !auth()->user()->isOfficeInCharge()) {
+            abort(403, 'Only Super Admin or Office In-Charge can confirm non-attendance.');
         }
 
         $appointment->update(['status' => 'not_attended']);

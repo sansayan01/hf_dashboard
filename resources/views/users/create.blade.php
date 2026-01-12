@@ -15,8 +15,8 @@
             <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-10">
                 @csrf
 
-                <!-- Section: Designation & Parent (Super Admin Only) -->
-                @if(auth()->user()->isSuperAdmin())
+                <!-- Section: Designation & Parent (Super Admin & Office In-Charge Only) -->
+                @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
                 <div class="mb-10">
                     <div class="flex items-center space-x-2 mb-6">
                         <div class="w-1.5 h-6 bg-accent rounded-full"></div>
@@ -430,8 +430,8 @@
                 });
             }
 
-            // Super Admin: Dynamic Parent Selection & Hint Update
-            @if(auth()->user()->isSuperAdmin())
+            // Super Admin & Office In-Charge: Dynamic Parent Selection & Hint Update
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
             const designationSelect = document.getElementById('designation-select');
             const parentSelect = document.getElementById('parent-select');
             const hintDesignation = document.getElementById('hint-designation');
@@ -442,9 +442,17 @@
                 parentSelect.innerHTML = '<option value="">Select Parent</option>';
                 
                 // Update Hint
-                hintDesignation.innerText = designation ? designation.toUpperCase() : 'XX';
+                const hintMap = {
+                    'super_admin': 'SA',
+                    'office_in_charge': 'OI',
+                    'dm': 'DM',
+                    'bm': 'BM',
+                    'rm': 'RM',
+                    'ro': 'RO'
+                };
+                hintDesignation.innerText = hintMap[designation] || 'XX';
 
-                if (designation === 'super_admin' || designation === 'dm') {
+                if (designation === 'super_admin' || designation === 'office_in_charge' || designation === 'dm') {
                     parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
                     parentSelect.required = false;
                     parentSelect.closest('div').classList.add('opacity-50');

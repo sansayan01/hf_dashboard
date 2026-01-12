@@ -27,21 +27,69 @@
                     @endif
                 </p>
             </div>
-                <a href="{{ route('appointments.all', ['view' => 'scheduled']) }}" 
-                    class="px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ (!request('view') || request('view') === 'scheduled') ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-white dark:bg-slate-800 text-slate-500 hover:text-accent border border-slate-100 dark:border-white/5' }}">
-                    Scheduled
-                </a>
-                <a href="{{ route('appointments.all', ['view' => 'successful']) }}" 
-                    class="px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ request('view') === 'successful' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-white dark:bg-slate-800 text-slate-500 hover:text-emerald-500 border border-slate-100 dark:border-white/5' }}">
-                    Successful
-                </a>
-                <a href="{{ route('appointments.all', ['view' => 'not_attended']) }}" 
-                    class="px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ request('view') === 'not_attended' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'bg-white dark:bg-slate-800 text-slate-500 hover:text-rose-500 border border-slate-100 dark:border-white/5' }}">
-                    Not Attended
-                </a>
+            <div class="flex items-center gap-3">
+                <!-- Registry Filter Dropdown -->
+                <div class="relative">
+                    <button type="button" 
+                        onclick="toggleDropdown('appointment-filter-dropdown')"
+                        class="px-5 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200/10 dark:border-white/5 shadow-sm flex items-center gap-2 hover:border-accent transition-all active:scale-95">
+                        <span class="w-2 h-2 rounded-full {{ request('view') === 'successful' ? 'bg-emerald-500' : (request('view') === 'not_attended' ? 'bg-rose-500' : 'bg-accent') }}"></span>
+                        @if(request('view') === 'successful') 
+                            View: Successful 
+                        @elseif(request('view') === 'not_attended') 
+                            View: Not Attended 
+                        @else 
+                            View: Scheduled 
+                        @endif
+                        <svg class="w-3 h-3 text-slate-400 transition-transform duration-200" id="dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    
+                    <div id="appointment-filter-dropdown" 
+                        class="hidden absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-white/5 p-4 z-[100] transition-all transform origin-top-right opacity-0 invisible scale-95 translate-y-2">
+                        <div class="grid grid-cols-1 gap-3">
+                            <!-- Scheduled Tile -->
+                            <a href="{{ route('appointments.all', ['view' => 'scheduled', 'search' => request('search'), 'date' => request('date')]) }}" 
+                                class="group/tile flex items-center p-3 rounded-2xl bg-accent/5 hover:bg-accent border border-accent/10 hover:border-accent transition-all duration-300">
+                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm group-hover/tile:scale-110 transition-transform">
+                                    <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-accent group-hover/tile:text-white transition-colors">Scheduled</p>
+                                    <p class="text-[8px] font-bold text-slate-400 group-hover/tile:text-white/70 transition-colors">Upcoming clinical visits</p>
+                                </div>
+                            </a>
+                            
+                            <!-- Successful Tile -->
+                            <a href="{{ route('appointments.all', ['view' => 'successful', 'search' => request('search'), 'date' => request('date')]) }}" 
+                                class="group/tile flex items-center p-3 rounded-2xl bg-emerald-500/5 hover:bg-emerald-500 border border-emerald-500/10 hover:border-emerald-500 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm group-hover/tile:scale-110 transition-transform">
+                                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 group-hover/tile:text-white transition-colors">Successful</p>
+                                    <p class="text-[8px] font-bold text-slate-400 group-hover/tile:text-white/70 transition-colors">Completed health checkups</p>
+                                </div>
+                            </a>
+
+                            <!-- Not Attended Tile -->
+                            <a href="{{ route('appointments.all', ['view' => 'not_attended', 'search' => request('search'), 'date' => request('date')]) }}" 
+                                class="group/tile flex items-center p-3 rounded-2xl bg-rose-500/5 hover:bg-rose-500 border border-rose-500/10 hover:border-rose-500 transition-all duration-300">
+                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm group-hover/tile:scale-110 transition-transform">
+                                    <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-rose-600 group-hover/tile:text-white transition-colors">Not Attended</p>
+                                    <p class="text-[8px] font-bold text-slate-400 group-hover/tile:text-white/70 transition-colors">Missed or skipped visits</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 <span class="px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200/10 dark:border-white/5">
                     {{ $appointments->total() }} Records
                 </span>
+            </div>
         </div>
 
         <!-- Search & Filter Bar -->
@@ -186,7 +234,7 @@
                                         </div>
                                     </td>
                                     <td class="p-6 text-right space-x-2 whitespace-nowrap">
-                                        @if($appointment->status === 'scheduled' && auth()->user()->isSuperAdmin())
+                                        @if($appointment->status === 'scheduled' && (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()))
                                             <form action="{{ route('appointments.complete', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to mark this appointment as successful?')">
                                                 @csrf
                                                 <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-500 transition-all border border-emerald-500/10" title="Mark as Successful">
@@ -205,7 +253,7 @@
                                             </form>
                                         @endif
 
-                                        @if($appointment->status === 'missed_reported' && auth()->user()->isSuperAdmin())
+                                        @if($appointment->status === 'missed_reported' && (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()))
                                             <form action="{{ route('appointments.complete', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Confirm this appointment as SUCCESSFUL?')">
                                                 @csrf
                                                 <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-lg shadow-emerald-500/20" title="Confirm Success">
@@ -262,4 +310,38 @@
             </div>
         @endif
     </div>
+@endsection
+@section('js')
+    <script>
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            const arrow = document.getElementById('dropdown-arrow');
+            
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                setTimeout(() => {
+                    dropdown.classList.remove('opacity-0', 'invisible', 'translate-y-2', 'scale-95');
+                    arrow.classList.add('rotate-180');
+                }, 10);
+            } else {
+                dropdown.classList.add('opacity-0', 'invisible', 'translate-y-2', 'scale-95');
+                arrow.classList.remove('rotate-180');
+                setTimeout(() => {
+                    dropdown.classList.add('hidden');
+                }, 200);
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('appointment-filter-dropdown');
+            const button = dropdown.previousElementSibling;
+            
+            if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+                if (!dropdown.classList.contains('hidden')) {
+                    toggleDropdown('appointment-filter-dropdown');
+                }
+            }
+        });
+    </script>
 @endsection

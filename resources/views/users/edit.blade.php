@@ -27,10 +27,10 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Employee ID</label>
-                            @if(auth()->user()->isSuperAdmin())
+                            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
                                 <input type="text" name="employee_id" value="{{ old('employee_id', $user->employee_id) }}" 
                                     class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
-                                <p class="text-[10px] text-accent font-bold mt-1 uppercase italic">Super Admin can modify this ID</p>
+                                <p class="text-[10px] text-accent font-bold mt-1 uppercase italic">Admin changes allowed</p>
                             @else
                                 <input type="text" value="{{ $user->employee_id }}" disabled
                                     class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 outline-none">
@@ -45,7 +45,7 @@
                         </div>
 
                         <!-- Password Reset Section (Optional) -->
-                        @if(auth()->user()->isSuperAdmin() || auth()->id() === $user->id)
+                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge() || auth()->id() === $user->id)
                         <div class="col-span-1 md:col-span-2 border-t border-slate-100 pt-6 mt-2">
                              <div class="p-4 bg-orange-50 rounded-xl border border-orange-100">
                                 <h5 class="text-sm font-bold text-orange-800 mb-3 flex items-center">
