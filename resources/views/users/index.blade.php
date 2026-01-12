@@ -90,6 +90,17 @@
                         </select>
                     </div>
 
+                    <!-- Status -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Status Filter</label>
+                        <select name="status"
+                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                            <option value="">All Status</option>
+                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active Members</option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending Approvals</option>
+                        </select>
+                    </div>
+
                     <div class="lg:col-span-3 flex items-end space-x-2">
                         <button type="submit"
                             class="h-10 px-6 bg-accent text-white rounded-xl text-sm font-bold hover:opacity-90 transition">Apply
@@ -101,132 +112,183 @@
             </form>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50">
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Member Detail
-                        </th>
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Designation
-                        </th>
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Joined On</th>
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
-                            Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    @forelse($users as $u)
-                        <tr class="hover:bg-slate-50 transition-colors group">
-                            <td class="px-6 py-4">
-                                <a href="{{ route('users.show', $u->id) }}" class="flex items-center space-x-3 group">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-accent/5 text-accent flex items-center justify-center font-bold overflow-hidden border border-slate-100 dark:border-white/5 group-hover:border-accent/30 transition-colors">
-                                        @if($u->profile && $u->profile->profile_picture)
-                                            <img src="{{ asset('storage/' . $u->profile->profile_picture) }}" alt="Avatar"
-                                                class="w-full h-full object-cover">
+        <form id="bulk-actions-form" action="{{ route('users.bulk-approve') }}" method="POST">
+            @csrf
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50">
+                            @if(auth()->user()->isSuperAdmin())
+                                <th class="px-6 py-4 w-10">
+                                    <input type="checkbox" id="user-select-all"
+                                        class="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent">
+                                </th>
+                            @endif
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Member
+                                Detail
+                            </th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                Designation
+                            </th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Joined On
+                            </th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status
+                            </th>
+                            <th
+                                class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @forelse($users as $u)
+                            <tr class="hover:bg-slate-50 transition-colors group">
+                                @if(auth()->user()->isSuperAdmin())
+                                    <td class="px-6 py-4">
+                                        @if($u->status === 'pending')
+                                            <input type="checkbox" name="selected_users[]" value="{{ $u->id }}" 
+                                                class="user-checkbox w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent">
                                         @else
-                                            {{ substr($u->profile->full_name ?? 'U', 0, 1) }}
+                                            <div class="w-4 h-4"></div>
+                                        @endif
+                                    </td>
+                                @endif
+                                <td class="px-6 py-4">
+                                    <a href="{{ route('users.show', $u->id) }}" class="flex items-center space-x-3 group">
+                                        <div
+                                            class="w-10 h-10 rounded-full bg-accent/5 text-accent flex items-center justify-center font-bold overflow-hidden border border-slate-100 dark:border-white/5 group-hover:border-accent/30 transition-colors">
+                                            @if($u->profile && $u->profile->profile_picture)
+                                                <img src="{{ asset('storage/' . $u->profile->profile_picture) }}" alt="Avatar"
+                                                    class="w-full h-full object-cover">
+                                            @else
+                                                {{ substr($u->profile->full_name ?? 'U', 0, 1) }}
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <p
+                                                class="text-sm font-bold text-slate-800 group-hover:text-accent transition-colors">
+                                                {{ $u->profile->full_name }}
+                                            </p>
+                                            <p class="text-[10px] text-bodydark font-bold uppercase">{{ $u->employee_id }}</p>
+                                        </div>
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="px-3 py-1 bg-primary/5 text-primary rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/10">
+                                        {{ $u->getDesignationLabel() }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <p class="text-xs text-slate-500 font-medium">{{ $u->created_at->format('d M, Y') }}</p>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($u->status === 'active')
+                                        <span class="inline-flex items-center space-x-1.5 text-success">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+                                            <span class="text-[10px] font-black uppercase tracking-widest">Active</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center space-x-1.5 text-warning">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
+                                            <span class="text-[10px] font-black uppercase tracking-widest">Pending</span>
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div
+                                        class="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <a href="{{ route('users.show', $u->id) }}"
+                                            class="p-2 text-slate-400 hover:text-accent transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                                </path>
+                                            </svg>
+                                        </a>
+
+                                        @if($u->status === 'pending' && auth()->user()->canApprove($u))
+                                            <form action="{{ route('users.approve', $u->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="p-2 text-success hover:bg-success/10 rounded-lg transition"
+                                                    title="Approve Member">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        @if(auth()->user()->isSuperAdmin())
+                                            <form action="{{ route('users.destroy', $u->id) }}" method="POST"
+                                                onsubmit="return confirm('Move to BIN?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="p-2 text-danger hover:bg-danger/10 rounded-lg transition"
+                                                    title="Delete User">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                        </path>
+                                                    </svg>
+                                                </button>
+                                            </form>
                                         @endif
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-bold text-slate-800 group-hover:text-accent transition-colors">
-                                            {{ $u->profile->full_name }}</p>
-                                        <p class="text-[10px] text-bodydark font-bold uppercase">{{ $u->employee_id }}</p>
-                                    </div>
-                                </a>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span
-                                    class="px-3 py-1 bg-primary/5 text-primary rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/10">
-                                    {{ $u->getDesignationLabel() }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <p class="text-xs text-slate-500 font-medium">{{ $u->created_at->format('d M, Y') }}</p>
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($u->status === 'active')
-                                    <span class="inline-flex items-center space-x-1.5 text-success">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
-                                        <span class="text-[10px] font-black uppercase tracking-widest">Active</span>
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center space-x-1.5 text-warning">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
-                                        <span class="text-[10px] font-black uppercase tracking-widest">Pending</span>
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <div
-                                    class="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <a href="{{ route('users.show', $u->id) }}"
-                                        class="p-2 text-slate-400 hover:text-accent transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-20 text-center">
+                                    <div class="max-w-xs mx-auto text-slate-400">
+                                        <svg class="w-12 h-12 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
                                             </path>
                                         </svg>
-                                    </a>
-
-                                    @if($u->status === 'pending' && auth()->user()->canApprove($u))
-                                        <form action="{{ route('users.approve', $u->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="p-2 text-success hover:bg-success/10 rounded-lg transition"
-                                                title="Approve Member">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M5 13l4 4L19 7"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    @endif
-
-                                    @if(auth()->user()->isSuperAdmin())
-                                        <form action="{{ route('users.destroy', $u->id) }}" method="POST"
-                                            onsubmit="return confirm('Move to BIN?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-2 text-danger hover:bg-danger/10 rounded-lg transition"
-                                                title="Delete User">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                    </path>
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-20 text-center">
-                                <div class="max-w-xs mx-auto text-slate-400">
-                                    <svg class="w-12 h-12 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
-                                        </path>
-                                    </svg>
-                                    <p class="font-bold">No downline members found yet.</p>
-                                    <p class="text-xs mt-1">Start growing the foundation by adding new members.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        @if($users instanceof \Illuminate\Pagination\LengthAwarePaginator)
-            <div class="p-6 border-t border-slate-100 italic">
-                {{ $users->links() }}
+                                        <p class="font-bold">No downline members found yet.</p>
+                                        <p class="text-xs mt-1">Start growing the foundation by adding new members.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
+
+            <!-- Bulk Action Bar -->
+            <div id="bulk-action-bar" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 flex items-center space-x-6">
+                    <div class="px-4 border-r border-slate-700">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Selected</p>
+                        <p class="text-white font-black text-lg" id="selected-count">0</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button type="submit" 
+                            class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Approve Selected</span>
+                        </button>
+                        <button type="button" onclick="cancelSelection()"
+                            class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-black uppercase tracking-widest rounded-xl transition-all">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+            @if($users instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                <div class="p-6 border-t border-slate-100 italic">
+                    {{ $users->links() }}
+                </div>
+            @endif
     </div>
 @endsection
 
@@ -239,6 +301,41 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            // Bulk Selection Logic
+            const selectAll = document.getElementById('user-select-all');
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            const bulkBar = document.getElementById('bulk-action-bar');
+            const selectedCount = document.getElementById('selected-count');
+
+            function updateBulkBar() {
+                const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+                selectedCount.textContent = checkedCount;
+                if (checkedCount > 0) {
+                    bulkBar.classList.remove('hidden');
+                } else {
+                    bulkBar.classList.add('hidden');
+                }
+            }
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function() {
+                    checkboxes.forEach(cb => {
+                        cb.checked = selectAll.checked;
+                    });
+                    updateBulkBar();
+                });
+            }
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateBulkBar);
+            });
+
+            window.cancelSelection = function() {
+                checkboxes.forEach(cb => cb.checked = false);
+                if (selectAll) selectAll.checked = false;
+                updateBulkBar();
+            }
+
             const districtSelect = document.getElementById('district-filter');
             const blockSelect = document.getElementById('block-filter');
             const gpSelect = document.getElementById('gp-filter');

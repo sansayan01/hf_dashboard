@@ -267,53 +267,82 @@
                     <div
                         class="p-6 border-b border-slate-200/5 bg-white dark:bg-white/5 dark:backdrop-blur-sm flex items-center justify-between">
                         <h3 class="font-black text-lg text-slate-800 dark:text-white tracking-tight">Pending Approval</h3>
-                        <span
-                            class="px-2 py-1 bg-pink-500/10 text-pink-500 text-[10px] font-black rounded-lg border border-pink-500/20">{{ $pendingApprovals->count() }}</span>
-                    </div>
-                    <div class="p-6">
-                        <div class="space-y-4">
-                            @forelse($pendingApprovals as $pending)
-                                <div
-                                    class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200/5 group hover:border-accent/30 transition-all">
-                                    <a href="{{ route('users.show', $pending->id) }}"
-                                        class="flex items-center space-x-3 group/info flex-1 min-w-0">
-                                        <div
-                                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent/20 to-blue-600/20 text-accent dark:text-blue-400 flex items-center justify-center text-sm font-black shadow-inner group-hover/info:scale-110 transition-transform overflow-hidden">
-                                            @if($pending->profile && $pending->profile->profile_picture)
-                                                <img src="{{ asset('storage/' . $pending->profile->profile_picture) }}" alt="Avatar"
-                                                    class="w-full h-full object-cover">
-                                            @else
-                                                {{ substr($pending->profile->full_name, 0, 1) }}
-                                            @endif
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p
-                                                class="text-xs font-black text-slate-800 dark:text-white truncate group-hover/info:text-accent transition-colors">
-                                                {{ $pending->profile->full_name }}</p>
-                                            <p
-                                                class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
-                                                {{ $pending->getDesignationLabel() }}</p>
-                                        </div>
-                                    </a>
-                                    <form action="{{ route('users.approve', $pending->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit"
-                                            class="p-2.5 bg-white dark:bg-slate-800 text-emerald-500 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-emerald-500 hover:text-white transition shadow-sm group">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                        </button>
-                                    </form>
-                                </div>
-                            @empty
-                                <div class="text-center py-8">
-                                    <p class="text-[10px] text-slate-400 dark:text-slate-600 font-black uppercase tracking-[0.2em]">
-                                        All catch up!</p>
-                                </div>
-                            @endforelse
+                        <div class="flex items-center space-x-3">
+                            <a href="{{ route('users.index', ['status' => 'pending']) }}" class="text-[10px] font-black uppercase tracking-widest text-accent hover:underline">View All</a>
+                            <span
+                                class="px-2 py-1 bg-pink-500/10 text-pink-500 text-[10px] font-black rounded-lg border border-pink-500/20">{{ $pendingApprovals->count() }}</span>
                         </div>
                     </div>
+                    <form id="dashboard-bulk-approve-form" action="{{ route('users.bulk-approve') }}" method="POST">
+                        @csrf
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                @forelse($pendingApprovals as $pending)
+                                    <div
+                                        class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200/5 group hover:border-accent/30 transition-all">
+                                        <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                            <input type="checkbox" name="selected_users[]" value="{{ $pending->id }}" 
+                                                class="dashboard-user-checkbox w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent mr-2">
+                                            
+                                            <a href="{{ route('users.show', $pending->id) }}"
+                                                class="flex items-center space-x-3 group/info flex-1 min-w-0">
+                                                <div
+                                                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent/20 to-blue-600/20 text-accent dark:text-blue-400 flex items-center justify-center text-sm font-black shadow-inner group-hover/info:scale-110 transition-transform overflow-hidden">
+                                                    @if($pending->profile && $pending->profile->profile_picture)
+                                                        <img src="{{ asset('storage/' . $pending->profile->profile_picture) }}" alt="Avatar"
+                                                            class="w-full h-full object-cover">
+                                                    @else
+                                                        {{ substr($pending->profile->full_name, 0, 1) }}
+                                                    @endif
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <p
+                                                        class="text-xs font-black text-slate-800 dark:text-white truncate group-hover/info:text-accent transition-colors">
+                                                        {{ $pending->profile->full_name }}</p>
+                                                    <p
+                                                        class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+                                                        {{ $pending->getDesignationLabel() }}</p>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        
+                                        <div class="flex items-center space-x-2">
+                                            <button type="button" 
+                                                onclick="confirmSingleApprove('{{ $pending->id }}', '{{ $pending->profile->full_name }}')"
+                                                class="p-2.5 bg-white dark:bg-slate-800 text-emerald-500 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-emerald-500 hover:text-white transition shadow-sm group">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="text-center py-8">
+                                        <p class="text-[10px] text-slate-400 dark:text-slate-600 font-black uppercase tracking-[0.2em]">
+                                            All catch up!</p>
+                                    </div>
+                                @endforelse
+                                
+                                @if($pendingApprovals->count() > 0)
+                                    <div id="dashboard-bulk-btn-container" class="hidden pt-4 border-t border-slate-100 dark:border-white/5">
+                                        <button type="submit" 
+                                            class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            <span>Approve <span id="dashboard-selected-count">0</span> Selected Members</span>
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Hidden Single Approve Form -->
+                    <form id="single-approve-form" method="POST" style="display:none;">
+                        @csrf
+                    </form>
                 </div>
             @endif
 
@@ -632,6 +661,69 @@
             // Set default zoom to 100% for all devices
             currentZoom = 1.0;
             updateZoom();
+
+            // Dashboard Bulk Approval Logic
+            const dashCheckboxes = document.querySelectorAll('.dashboard-user-checkbox');
+            const dashBulkBar = document.getElementById('dashboard-bulk-btn-container');
+            const dashSelectedCount = document.getElementById('dashboard-selected-count');
+
+            function updateDashboardBulkBar() {
+                const checkedCount = document.querySelectorAll('.dashboard-user-checkbox:checked').length;
+                if (dashSelectedCount) dashSelectedCount.textContent = checkedCount;
+                
+                if (dashBulkBar) {
+                    if (checkedCount > 0) {
+                        dashBulkBar.classList.remove('hidden');
+                    } else {
+                        dashBulkBar.classList.add('hidden');
+                    }
+                }
+            }
+
+            dashCheckboxes.forEach(cb => {
+                cb.addEventListener('change', updateDashboardBulkBar);
+            });
+
+            // Handle dashboard bulk form submission
+            const dashBulkForm = document.getElementById('dashboard-bulk-approve-form');
+            if (dashBulkForm) {
+                dashBulkForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const count = document.querySelectorAll('.dashboard-user-checkbox:checked').length;
+                    
+                    Swal.fire({
+                        title: 'Bulk Approval',
+                        text: `Are you sure you want to approve ${count} selected members?`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#10B981',
+                        cancelButtonColor: '#64748B',
+                        confirmButtonText: 'Yes, Approve All'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                });
+            }
         });
+
+        function confirmSingleApprove(userId, userName) {
+            Swal.fire({
+                title: 'Approve Member',
+                text: `Are you sure you want to approve ${userName}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10B981',
+                cancelButtonColor: '#64748B',
+                confirmButtonText: 'Yes, Approve'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('single-approve-form');
+                    form.action = `/users/${userId}/approve`;
+                    form.submit();
+                }
+            });
+        }
     </script>
 @endsection
