@@ -105,10 +105,29 @@
                         @enderror
                     </div>
 
-                    <!-- React Calendar Integration -->
-                    <div id="calendar-booking-root"
-                        class="col-span-1 md:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-4">
-                        <!-- The React component will mount here and inject hidden inputs for appointment_date and appointment_time -->
+                    <!-- Standard Date & Time Inputs -->
+                    <div class="space-y-2">
+                        <label for="appointment_date"
+                            class="block text-[10px] font-black uppercase tracking-widest text-slate-500">Appointment
+                            Date</label>
+                        <input type="date" name="appointment_date" id="appointment_date"
+                            value="{{ old('appointment_date') }}"
+                            class="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:border-accent focus:ring-0 transition-colors font-bold text-slate-700">
+                        @error('appointment_date')
+                            <p class="text-xs text-rose-500 font-bold">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="appointment_time"
+                            class="block text-[10px] font-black uppercase tracking-widest text-slate-500">Appointment
+                            Time</label>
+                        <input type="time" name="appointment_time" id="appointment_time"
+                            value="{{ old('appointment_time') }}"
+                            class="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:border-accent focus:ring-0 transition-colors font-bold text-slate-700">
+                        @error('appointment_time')
+                            <p class="text-xs text-rose-500 font-bold">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -117,9 +136,12 @@
                         class="px-6 py-3 bg-slate-100 text-slate-500 font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-slate-200 transition-colors">
                         Cancel
                     </a>
-                    <button type="submit"
-                        class="px-8 py-3 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">
-                        Schedule Appointment
+                    <button type="submit" id="submit-btn"
+                        class="px-8 py-3 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all flex items-center">
+                        <span id="btn-text">Schedule Appointment</span>
+                        <div id="btn-loader"
+                            class="hidden ml-2 w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin">
+                        </div>
                     </button>
                 </div>
             </form>
@@ -129,6 +151,66 @@
 
 @section('js')
     <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const btn = document.getElementById('submit-btn');
+            const text = document.getElementById('btn-text');
+            const loader = document.getElementById('btn-loader');
+
+            if (btn.disabled) return;
+
+            // Get values for validation
+            const doctorType = document.getElementById('doctor_type').value;
+            const doctorTypeOther = document.getElementById('specialist-other-input').value;
+            const location = document.getElementById('location').value;
+            const apptDateInput = document.querySelector('input[name="appointment_date"]');
+            const apptTimeInput = document.querySelector('input[name="appointment_time"]');
+            const apptDate = apptDateInput ? apptDateInput.value : '';
+            const apptTime = apptTimeInput ? apptTimeInput.value : '';
+
+            // Validation check
+            let errors = [];
+            if (!doctorType) errors.push('Select a Specialist Type');
+            if (doctorType === 'Any other' && !doctorTypeOther.trim()) errors.push('Specify the other Specialist');
+            if (!location.trim()) errors.push('Enter the Camp Location');
+            if (!apptDate) errors.push('Select an Appointment Date');
+            if (!apptTime) errors.push('Select an Appointment Time');
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Incomplete Form',
+                    html: `<div class="text-left font-bold text-sm"><ul class="list-disc list-inside">${errors.map(err => `<li>${err}</li>`).join('')}</ul></div>`,
+                    confirmButtonColor: '#F2994A',
+                    background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
+                    color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
+                });
+                return;
+            }
+
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Schedule Appointment?',
+                text: "Are you sure you want to book this appointment with the selected details?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3C50E0',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, Schedule it!',
+                background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
+                color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-70', 'cursor-not-allowed');
+                    text.innerText = 'Scheduling...';
+                    loader.classList.remove('hidden');
+                    this.submit();
+                }
+            });
+        });
+
         function handleSpecialistSelection(value) {
             const container = document.getElementById('specialist-other-container');
             const input = document.getElementById('specialist-other-input');

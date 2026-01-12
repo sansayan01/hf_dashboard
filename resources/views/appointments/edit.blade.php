@@ -145,9 +145,12 @@
                         class="px-6 py-3 bg-slate-100 text-slate-500 font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-slate-200 transition-colors">
                         Cancel
                     </a>
-                    <button type="submit"
-                        class="px-8 py-3 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">
-                        Update Appointment
+                    <button type="submit" id="submit-btn"
+                        class="px-8 py-3 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all flex items-center">
+                        <span id="btn-text">Update Appointment</span>
+                        <div id="btn-loader"
+                            class="hidden ml-2 w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin">
+                        </div>
                     </button>
                 </div>
             </form>
@@ -157,6 +160,64 @@
 
 @section('js')
     <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const btn = document.getElementById('submit-btn');
+            const text = document.getElementById('btn-text');
+            const loader = document.getElementById('btn-loader');
+
+            if (btn.disabled) return;
+
+            // Get values for validation
+            const doctorType = document.getElementById('doctor_type').value;
+            const doctorTypeOther = document.getElementById('specialist-other-input').value;
+            const location = document.getElementById('location').value;
+            const apptDate = document.querySelector('input[name="appointment_date"]').value;
+            const apptTime = document.querySelector('input[name="appointment_time"]').value;
+
+            // Validation check
+            let errors = [];
+            if (!doctorType) errors.push('Select a Specialist Type');
+            if (doctorType === 'Any other' && !doctorTypeOther.trim()) errors.push('Specify the other Specialist');
+            if (!location.trim()) errors.push('Enter the Camp Location');
+            if (!apptDate) errors.push('Select a Date');
+            if (!apptTime) errors.push('Select a Time');
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Incomplete Form',
+                    html: `<div class="text-left font-bold text-sm"><ul class="list-disc list-inside">${errors.map(err => `<li>${err}</li>`).join('')}</ul></div>`,
+                    confirmButtonColor: '#F2994A',
+                    background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
+                    color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
+                });
+                return;
+            }
+
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Update Appointment?',
+                text: "Are you sure you want to save the changes to this appointment?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3C50E0',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, Update it!',
+                background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
+                color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-70', 'cursor-not-allowed');
+                    text.innerText = 'Updating...';
+                    loader.classList.remove('hidden');
+                    this.submit();
+                }
+            });
+        });
+
         function handleSpecialistSelection(value) {
             const container = document.getElementById('specialist-other-container');
             const input = document.getElementById('specialist-other-input');

@@ -54,6 +54,7 @@ export function Calendar20() {
                         {timeSlots.map((time) => (
                             <Button
                                 key={time}
+                                type="button"
                                 variant={selectedTime === time ? "default" : "outline"}
                                 onClick={() => setSelectedTime(time)}
                                 className="w-full shadow-none"
@@ -94,7 +95,11 @@ export function Calendar20() {
             </CardFooter>
 
             {/* Hidden inputs for form submission if used inside a form */}
-            <input type="hidden" name="appointment_date" value={date ? date.toISOString().split('T')[0] : ''} />
+            <input type="hidden" name="appointment_date" value={date ? [
+                date.getFullYear(),
+                (date.getMonth() + 1).toString().padStart(2, '0'),
+                date.getDate().toString().padStart(2, '0')
+            ].join('-') : ''} />
             <input type="hidden" name="appointment_time" value={selectedTime || ''} />
         </Card>
     )

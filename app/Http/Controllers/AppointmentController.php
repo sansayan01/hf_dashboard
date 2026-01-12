@@ -112,17 +112,17 @@ class AppointmentController extends Controller
             $doctorType = $request->doctor_type_other;
         }
 
-        // Ensure only the time part is stored to avoid double time specification errors
+        // Force date to be a simple Y-m-d string to prevent timezone shifts
         try {
-            $validated['appointment_time'] = \Carbon\Carbon::parse($validated['appointment_time'])->format('H:i:s');
+            $appointmentDate = \Illuminate\Support\Carbon::parse($validated['appointment_date'])->toDateString();
         } catch (\Exception $e) {
-            // Fallback if parsing fails
+            $appointmentDate = $validated['appointment_date'];
         }
 
         $appointment = new Appointment([
             'doctor_type' => $doctorType,
             'location' => $validated['location'],
-            'appointment_date' => $validated['appointment_date'],
+            'appointment_date' => $appointmentDate,
             'appointment_time' => $validated['appointment_time'],
         ]);
         $appointment->survey_id = $patient->id;
@@ -174,17 +174,17 @@ class AppointmentController extends Controller
             $doctorType = $request->doctor_type_other;
         }
 
-        // Ensure only the time part is stored
+        // Force date to be a simple Y-m-d string to prevent timezone shifts
         try {
-            $validated['appointment_time'] = \Carbon\Carbon::parse($validated['appointment_time'])->format('H:i:s');
+            $appointmentDate = \Illuminate\Support\Carbon::parse($validated['appointment_date'])->toDateString();
         } catch (\Exception $e) {
-            // Fallback
+            $appointmentDate = $validated['appointment_date'];
         }
 
         $appointment->update([
             'doctor_type' => $doctorType,
             'location' => $validated['location'],
-            'appointment_date' => $validated['appointment_date'],
+            'appointment_date' => $appointmentDate,
             'appointment_time' => $validated['appointment_time'],
         ]);
 
@@ -198,9 +198,8 @@ class AppointmentController extends Controller
      */
     public function complete(Appointment $appointment)
     {
-        // Check access
-        $user = auth()->user();
-        if ($user->id !== $appointment->created_by && !$user->canAccess($appointment->creator)) {
+        // Check access - Only Super Admin can finalize appointments
+        if (!auth()->user()->isSuperAdmin()) {
             abort(403);
         }
 
@@ -210,9 +209,9 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Report the specified appointment as missed (Staff action).
+     * Delete the specified appointment.
      */
-    public function reportMissed(Appointment $appointment)
+    public function destroy(Appointment $appointment)
     {
         // Check access
         $user = auth()->user();
@@ -220,15 +219,29 @@ class AppointmentController extends Controller
             abort(403);
         }
 
-        if ($user->isSuperAdmin()) {
-            $appointment->update(['status' => 'not_attended']);
-            $msg = 'Appointment finalized as Not Attended.';
-        } else {
-            $appointment->update(['status' => 'missed_reported']);
-            $msg = 'Appointment marked as missed and sent for Super Admin confirmation.';
+        // Only allow deleting upcoming or missed reported appointments
+        if (!in_array($appointment->status, ['scheduled', 'missed_reported'])) {
+            return redirect()->back()->with('error', 'Cannot delete finalized appointments.');
         }
 
-        return redirect()->back()->with('success', $msg);
+        $appointment->delete();
+
+        return redirect()->back()->with('success', 'Appointment deleted successfully.');
+    }
+
+    /**
+     * Report the specified appointment as missed (Staff action).
+     */
+    public function reportMissed(Appointment $appointment)
+    {
+        // Check access - Only Super Admin can finalize appointments
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403);
+        }
+
+        $appointment->update(['status' => 'not_attended']);
+
+        return redirect()->back()->with('success', 'Appointment finalized as Not Attended.');
     }
 
     /**

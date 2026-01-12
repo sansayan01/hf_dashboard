@@ -21,7 +21,7 @@ class Appointment extends Model
     ];
 
     protected $casts = [
-        'appointment_date' => 'date',
+        'appointment_date' => 'date:Y-m-d',
     ];
 
     /**

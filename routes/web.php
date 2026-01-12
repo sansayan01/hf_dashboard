@@ -74,6 +74,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::post('/{patient}/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::get('/appointments/{appointment}/edit', [AppointmentController::class, 'edit'])->name('appointments.edit');
         Route::put('/appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
+        Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
     });
 
     // Membership Management
