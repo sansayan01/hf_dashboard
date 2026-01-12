@@ -104,15 +104,17 @@ class SurveyController extends Controller
             'phone_number' => 'required|string|size:10',
             'address' => 'required|string',
             'pin' => 'required|string|size:6',
-            'health_issue_category' => 'required|string',
+            'health_issue_category' => 'nullable|array',
             'health_issue_other' => 'nullable|string',
         ]);
 
-        // Combine health issues
-        $healthIssues = $validated['health_issue_category'];
-        if ($healthIssues === 'Any other' && $request->filled('health_issue_other')) {
-            $healthIssues = $request->health_issue_other;
+        // Process health issues
+        $healthIssuesArr = $validated['health_issue_category'] ?? [];
+        $healthIssuesArr = array_filter($healthIssuesArr, fn($val) => $val !== 'Any other');
+        if ($request->filled('health_issue_other')) {
+            $healthIssuesArr[] = $request->health_issue_other;
         }
+        $healthIssues = implode(', ', $healthIssuesArr) ?: 'Normal';
 
         $survey = new Survey();
         $survey->full_name = $validated['full_name'];
@@ -160,15 +162,17 @@ class SurveyController extends Controller
             'phone_number' => 'required|string|size:10',
             'address' => 'required|string',
             'pin' => 'required|string|size:6',
-            'health_issue_category' => 'required|string',
+            'health_issue_category' => 'nullable|array',
             'health_issue_other' => 'nullable|string',
         ]);
 
-        // Combine health issues
-        $healthIssues = $validated['health_issue_category'];
-        if ($healthIssues === 'Any other' && $request->filled('health_issue_other')) {
-            $healthIssues = $request->health_issue_other;
+        // Process health issues
+        $healthIssuesArr = $validated['health_issue_category'] ?? [];
+        $healthIssuesArr = array_filter($healthIssuesArr, fn($val) => $val !== 'Any other');
+        if ($request->filled('health_issue_other')) {
+            $healthIssuesArr[] = $request->health_issue_other;
         }
+        $healthIssues = implode(', ', $healthIssuesArr) ?: 'Normal';
 
         $survey->full_name = $validated['full_name'];
         $survey->age = $validated['age'];

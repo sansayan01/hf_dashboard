@@ -86,45 +86,63 @@
                 <!-- Health Issues -->
                 @php
                     $standardIssues = ['Gas', 'Sugar', 'Pressure', 'Thyroid', 'Uric Acid', 'Skin/Hair', 'Heart', 'Eye', 'ENT', 'Dental'];
-                    $currentHealth = old('health_issues', $survey->health_issues);
-                    $isStandard = in_array($currentHealth, $standardIssues) || empty($currentHealth);
-                    $selectedCategory = $isStandard ? $currentHealth : 'Any other';
-                    $otherContent = !$isStandard ? $currentHealth : '';
+                    $dbHealthArr = array_filter(array_map('trim', explode(',', $survey->health_issues ?? '')));
+                    
+                    // Get selected categories from old input or database
+                    $selectedCategories = old('health_issue_category');
+                    if (is_null($selectedCategories)) {
+                        // If no old input (first load), derive from DB
+                        $selectedCategories = array_intersect($dbHealthArr, $standardIssues);
+                        $otherFromDb = array_diff($dbHealthArr, $standardIssues);
+                        if (!empty($otherFromDb)) {
+                            $selectedCategories[] = 'Any other';
+                        }
+                    }
+                    
+                    $hasOther = in_array('Any other', $selectedCategories);
+                    $otherValuesFromDb = implode(', ', array_diff($dbHealthArr, $standardIssues));
+                    $otherText = old('health_issue_other', $otherValuesFromDb);
                 @endphp
 
                 <div class="space-y-4">
-                    <div class="space-y-2">
-                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Health Issues
-                            (Category)</label>
-                        <select id="health-select" name="health_issue_category" required
-                            class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-accent focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none"
-                            onchange="handleHealthSelection(this.value)">
-                            <option value="">Select Health Category</option>
-                            @foreach($standardIssues as $issue)
-                                <option value="{{ $issue }}" {{ $selectedCategory == $issue ? 'selected' : '' }}>{{ $issue }}
-                                </option>
+                    <div class="space-y-4">
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Health Issues (Category)</label>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            @foreach($standardIssues as $index => $issue)
+                                <label for="health_issue_{{ $index }}" class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-accent/30 cursor-pointer transition-all has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5">
+                                    <input type="checkbox" name="health_issue_category[]" value="{{ $issue }}" id="health_issue_{{ $index }}"
+                                        class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent"
+                                        {{ in_array($issue, $selectedCategories) ? 'checked' : '' }}>
+                                    <span class="text-sm font-bold text-slate-700 dark:text-white">{{ $issue }}</span>
+                                </label>
                             @endforeach
-                            <option value="Any other" {{ $selectedCategory == 'Any other' ? 'selected' : '' }}>Any other
-                            </option>
-                        </select>
+                            
+                            <label for="health_any_other" class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-accent/30 cursor-pointer transition-all has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5">
+                                <input type="checkbox" name="health_issue_category[]" value="Any other" id="health_any_other"
+                                    class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent"
+                                    onchange="toggleHealthOther(this.checked)"
+                                    {{ $hasOther ? 'checked' : '' }}>
+                                <span class="text-sm font-bold text-slate-700 dark:text-white">Any other</span>
+                            </label>
+                        </div>
                     </div>
 
                     <div id="health-other-container"
-                        class="space-y-2 {{ $selectedCategory == 'Any other' ? '' : 'hidden' }}">
-                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Specify Other
-                            Health Issue</label>
+                        class="space-y-2 {{ $hasOther ? '' : 'hidden' }}">
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Specify Other Health Issue</label>
                         <textarea id="health-other-input" name="health_issue_other" rows="3"
                             class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-accent focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white resize-none"
-                            placeholder="Enter the specific health issue here...">{{ old('health_issue_other', $otherContent) }}</textarea>
+                            placeholder="Enter the specific health issue here...">{{ $otherText }}</textarea>
                     </div>
                 </div>
 
                 <script>
-                    function handleHealthSelection(value) {
+                    function toggleHealthOther(isChecked) {
                         const container = document.getElementById('health-other-container');
                         const input = document.getElementById('health-other-input');
 
-                        if (value === 'Any other') {
+                        if (isChecked) {
                             container.classList.remove('hidden');
                             input.required = true;
                             input.focus();

@@ -98,16 +98,18 @@ class PatientController extends Controller
             'gp' => 'nullable|string|max:255',
             'landmark' => 'nullable|string|max:255',
             'past_diseases' => 'nullable|string',
-            'health_issue_category' => 'required|string',
+            'health_issue_category' => 'nullable|array',
             'health_issue_other' => 'nullable|string',
             'insurance_loan_req' => 'nullable|string',
         ]);
 
         // Combine health issues
-        $healthIssues = $validated['health_issue_category'];
-        if ($healthIssues === 'Any other' && $request->filled('health_issue_other')) {
-            $healthIssues = $request->health_issue_other;
+        $healthIssuesArr = $validated['health_issue_category'] ?? [];
+        $healthIssuesArr = array_filter($healthIssuesArr, fn($val) => $val !== 'Any other');
+        if ($request->filled('health_issue_other')) {
+            $healthIssuesArr[] = $request->health_issue_other;
         }
+        $healthIssues = implode(', ', $healthIssuesArr);
 
         $patient = new Survey();
         $patient->full_name = $validated['full_name'];
@@ -190,16 +192,18 @@ class PatientController extends Controller
             'gp' => 'nullable|string|max:255',
             'landmark' => 'nullable|string|max:255',
             'past_diseases' => 'nullable|string',
-            'health_issue_category' => 'required|string',
+            'health_issue_category' => 'nullable|array',
             'health_issue_other' => 'nullable|string',
             'insurance_loan_req' => 'nullable|string',
         ]);
 
         // Combine health issues
-        $healthIssues = $validated['health_issue_category'];
-        if ($healthIssues === 'Any other' && $request->filled('health_issue_other')) {
-            $healthIssues = $request->health_issue_other;
+        $healthIssuesArr = $validated['health_issue_category'] ?? [];
+        $healthIssuesArr = array_filter($healthIssuesArr, fn($val) => $val !== 'Any other');
+        if ($request->filled('health_issue_other')) {
+            $healthIssuesArr[] = $request->health_issue_other;
         }
+        $healthIssues = implode(', ', $healthIssuesArr);
 
         $patient->full_name = $validated['full_name'];
         $patient->relative_name = $validated['relative_name'] ?? null;

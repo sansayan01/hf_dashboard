@@ -101,37 +101,34 @@
 
                     <!-- Health Issues -->
                     <div class="space-y-4">
-                        <div class="space-y-2">
-                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Primary Health
-                                Issue <span class="text-danger">*</span></label>
-                            <select id="health-select" name="health_issue_category" required
-                                class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-accent focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none"
-                                onchange="handleHealthSelection(this.value)">
-                                <option value="">Select Health Category</option>
-                                <option value="Gas" {{ old('health_issue_category') == 'Gas' ? 'selected' : '' }}>Gas</option>
-                                <option value="Sugar" {{ old('health_issue_category') == 'Sugar' ? 'selected' : '' }}>Sugar
-                                </option>
-                                <option value="Pressure" {{ old('health_issue_category') == 'Pressure' ? 'selected' : '' }}>
-                                    Pressure</option>
-                                <option value="Thyroid" {{ old('health_issue_category') == 'Thyroid' ? 'selected' : '' }}>
-                                    Thyroid</option>
-                                <option value="Uric Acid" {{ old('health_issue_category') == 'Uric Acid' ? 'selected' : '' }}>
-                                    Uric Acid</option>
-                                <option value="Skin/Hair" {{ old('health_issue_category') == 'Skin/Hair' ? 'selected' : '' }}>
-                                    Skin/Hair</option>
-                                <option value="Heart" {{ old('health_issue_category') == 'Heart' ? 'selected' : '' }}>Heart
-                                </option>
-                                <option value="Eye" {{ old('health_issue_category') == 'Eye' ? 'selected' : '' }}>Eye</option>
-                                <option value="ENT" {{ old('health_issue_category') == 'ENT' ? 'selected' : '' }}>ENT</option>
-                                <option value="Dental" {{ old('health_issue_category') == 'Dental' ? 'selected' : '' }}>Dental
-                                </option>
-                                <option value="Any other" {{ old('health_issue_category') == 'Any other' ? 'selected' : '' }}>
-                                    Any other</option>
-                            </select>
+                        <div class="space-y-4">
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Health Issues (Category)</label>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                @php
+                                    $standardIssues = ['Gas', 'Sugar', 'Pressure', 'Thyroid', 'Uric Acid', 'Skin/Hair', 'Heart', 'Eye', 'ENT', 'Dental'];
+                                @endphp
+                                @foreach($standardIssues as $index => $issue)
+                                    <label for="health_issue_{{ $index }}" class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-accent/30 cursor-pointer transition-all has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5">
+                                        <input type="checkbox" name="health_issue_category[]" value="{{ $issue }}" id="health_issue_{{ $index }}"
+                                            class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent"
+                                            {{ is_array(old('health_issue_category')) && in_array($issue, old('health_issue_category')) ? 'checked' : '' }}>
+                                        <span class="text-sm font-bold text-slate-700 dark:text-white">{{ $issue }}</span>
+                                    </label>
+                                @endforeach
+                                
+                                <label for="health_any_other" class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-accent/30 cursor-pointer transition-all has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5">
+                                    <input type="checkbox" name="health_issue_category[]" value="Any other" id="health_any_other"
+                                        class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent"
+                                        onchange="toggleHealthOther(this.checked)"
+                                        {{ is_array(old('health_issue_category')) && in_array('Any other', old('health_issue_category')) ? 'checked' : '' }}>
+                                    <span class="text-sm font-bold text-slate-700 dark:text-white">Any other</span>
+                                </label>
+                            </div>
                         </div>
 
                         <div id="health-other-container"
-                            class="space-y-2 {{ old('health_issue_category') == 'Any other' ? '' : 'hidden' }}">
+                            class="space-y-2 {{ is_array(old('health_issue_category')) && in_array('Any other', old('health_issue_category')) ? '' : 'hidden' }}">
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Specify Other
                                 Health Issue</label>
                             <textarea id="health-other-input" name="health_issue_other" rows="2"
@@ -345,11 +342,11 @@
             });
         });
 
-        function handleHealthSelection(value) {
+        function toggleHealthOther(isChecked) {
             const container = document.getElementById('health-other-container');
             const input = document.getElementById('health-other-input');
 
-            if (value === 'Any other') {
+            if (isChecked) {
                 container.classList.remove('hidden');
                 input.required = true;
                 input.focus();

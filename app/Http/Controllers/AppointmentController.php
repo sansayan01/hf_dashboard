@@ -100,10 +100,17 @@ class AppointmentController extends Controller
 
         $validated = $request->validate([
             'doctor_type' => 'required|string|max:255',
+            'doctor_type_other' => 'nullable|string|max:255',
             'location' => 'required|string|max:255',
             'appointment_date' => 'required|date',
             'appointment_time' => 'required',
         ]);
+
+        // Process doctor type
+        $doctorType = $validated['doctor_type'];
+        if ($doctorType === 'Any other' && $request->filled('doctor_type_other')) {
+            $doctorType = $request->doctor_type_other;
+        }
 
         // Ensure only the time part is stored to avoid double time specification errors
         try {
@@ -112,7 +119,12 @@ class AppointmentController extends Controller
             // Fallback if parsing fails
         }
 
-        $appointment = new Appointment($validated);
+        $appointment = new Appointment([
+            'doctor_type' => $doctorType,
+            'location' => $validated['location'],
+            'appointment_date' => $validated['appointment_date'],
+            'appointment_time' => $validated['appointment_time'],
+        ]);
         $appointment->survey_id = $patient->id;
         $appointment->created_by = auth()->id();
         $appointment->save();
@@ -120,6 +132,65 @@ class AppointmentController extends Controller
         return redirect()->route('patients.index')
             ->with('success', 'Appointment scheduled successfully.')
             ->with('view_appointment_url', route('patients.appointments.index', $patient->id));
+    }
+
+    /**
+     * Show the form for editing the specified appointment.
+     */
+    public function edit(Appointment $appointment)
+    {
+        // Check access
+        $user = auth()->user();
+        if ($user->id !== $appointment->created_by && !$user->canAccess($appointment->creator)) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $patient = $appointment->survey;
+        return view('appointments.edit', compact('appointment', 'patient'));
+    }
+
+    /**
+     * Update the specified appointment in storage.
+     */
+    public function update(Request $request, Appointment $appointment)
+    {
+        // Check access
+        $user = auth()->user();
+        if ($user->id !== $appointment->created_by && !$user->canAccess($appointment->creator)) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $validated = $request->validate([
+            'doctor_type' => 'required|string|max:255',
+            'doctor_type_other' => 'nullable|string|max:255',
+            'location' => 'required|string|max:255',
+            'appointment_date' => 'required|date',
+            'appointment_time' => 'required',
+        ]);
+
+        // Process doctor type
+        $doctorType = $validated['doctor_type'];
+        if ($doctorType === 'Any other' && $request->filled('doctor_type_other')) {
+            $doctorType = $request->doctor_type_other;
+        }
+
+        // Ensure only the time part is stored
+        try {
+            $validated['appointment_time'] = \Carbon\Carbon::parse($validated['appointment_time'])->format('H:i:s');
+        } catch (\Exception $e) {
+            // Fallback
+        }
+
+        $appointment->update([
+            'doctor_type' => $doctorType,
+            'location' => $validated['location'],
+            'appointment_date' => $validated['appointment_date'],
+            'appointment_time' => $validated['appointment_time'],
+        ]);
+
+        return redirect()->route('patients.index')
+            ->with('success', 'Appointment updated successfully.')
+            ->with('view_appointment_url', route('patients.appointments.index', $appointment->survey_id));
     }
 
     /**
