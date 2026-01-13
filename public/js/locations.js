@@ -46,7 +46,7 @@ const locationData = {
             "Kultali": ["Deulbari-Debipur", "Gopalganj", "Gurguria Bhubaneswari", "Jalahaberia-I", "Jalahaberia-II", "Kundakhali-Godabar", "Maipith-Baikunthapur", "Meriganj-I", "Meriganj-II"],
             "Magrahat-I": ["Bihari-I", "Bihari-II", "Ektara", "Gokarni", "Hariharpur", "Kalikapota", "Rangilabad", "Sherpur", "Sirakol", "Usthi", "Uttar Kusum"],
             "Magrahat-II": ["Amratala", "Dhamua-Dakshin", "Dhamua-Uttar", "Dhanpota", "Gokulnagar", "Hogla", "Jugdia-Benipur", "Mohanpur", "Multi", "Nainar", "Urelchandpur"],
-            "Mandir Bazar": ["Anchana", "Chandpur Chaitanyapur", "Dakshin Bishnupur", "Dhanurhat", "Gabberia", "Ghateswar", "Jagatpur", "Kecharkur", "Krishnapur", "Nisapur"],
+            "Mandirbazar": ["Anchana", "Chandpur Chaitanyapur", "Dakshin Bishnupur", "Dhanurhat", "Gabberia", "Ghateswar", "Jagadishpur", "Kecharkur", "Krishnapur", "Nisapur"],
             "Mathurapur-I": ["Abad Bhagabanpur", "Chhatrabhog", "Debipur", "Ghoradal", "Krishnachandrapur", "Lakshminarayanpur-Dakshin", "Lakshminarayanpur-Uttar", "Mathurapur-Paschim", "Mathurapur-Purba", "Uttar Kashi"],
             "Mathurapur-II": ["Dighirpar-Bakultala", "Gilatala", "Kankandighi", "Kashinagar", "Kautala", "Kumrapara", "Lalpur", "Nandakumarpur", "Nagendrapur", "Raidighi", "Radhakantapur"],
             "Namkhana": ["Budhakhali", "Fresherganj", "Haripur", "Ishwaripur", "Mousuni", "Namkhana", "Narayanpur"],

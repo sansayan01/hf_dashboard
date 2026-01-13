@@ -78,13 +78,15 @@ class UserController extends Controller
         // super_admin > dm > bm > rm > ro
         $hierarchyLevels = [
             'super_admin' => 0,
-            'dm' => 1,
-            'bm' => 2,
-            'rm' => 3,
-            'ro' => 4
+            'office_in_charge' => 1,
+            'dm' => 2,
+            'bm' => 3,
+            'rm' => 4,
+            'ro' => 5
         ];
 
         $designationLabels = [
+            'office_in_charge' => 'Office In-Charge',
             'dm' => 'District Manager',
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
