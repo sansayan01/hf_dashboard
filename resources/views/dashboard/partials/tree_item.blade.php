@@ -65,10 +65,10 @@
 
     @if($hasChildren)
         <div id="children-{{ $item->id }}"
-            class="tree-children hidden ml-6 pl-4 border-l border-slate-200 dark:border-slate-800 mt-1 space-y-1">
-            @foreach($children as $child)
-                @include('dashboard.partials.tree_item', ['item' => $child])
-            @endforeach
+            class="tree-children hidden ml-6 pl-4 border-l border-slate-200 dark:border-slate-800 mt-1 space-y-1"
+            data-loaded="false">
+            <!-- Shimmer/Loading state -->
+            <div class="tree-loading-shimmer hidden py-2 italic text-[10px] text-slate-400">Loading team...</div>
         </div>
     @endif
 

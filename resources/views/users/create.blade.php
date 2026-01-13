@@ -228,7 +228,7 @@
                                     'IndusInd Bank', 'South Indian Bank', 'Karnataka Bank', 'City Union Bank', 'Karur Vysya Bank',
                                     'Tamilnad Mercantile Bank', 'RBL Bank', 'Bandhan Bank', 'IDFC First Bank', 'AU Small Finance Bank',
                                     'Equitas Small Finance Bank', 'India Post Payments Bank', 'Paytm Payments Bank',
-                                    'Airtel Payments Bank', 'Jio Payments Bank'
+                                    'Airtel Payments Bank', 'Jio Payments Bank', 'Rajnagar Samabaya Krishi Unnayan Samity Ltd', 'Bangiya Gramin Vikash Bank'
                                 ] as $bank)
                                     <option value="{{ $bank }}" {{ old('bank_name') == $bank ? 'selected' : '' }}>{{ $bank }}</option>
                                 @endforeach

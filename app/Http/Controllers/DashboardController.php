@@ -18,7 +18,6 @@ class DashboardController extends Controller
 
         if ($targetUserId != $currentUser->id) {
             $user = User::findOrFail($targetUserId);
-            // Permission check: Must be in downline
             if (!$currentUser->canAccess($user)) {
                 abort(403, 'Unauthorized to view this dashboard.');
             }
@@ -26,57 +25,58 @@ class DashboardController extends Controller
             $user = $currentUser;
         }
 
-        $user->load(['children.profile', 'children.children.profile', 'children.children.children.profile']);
+        // Optimization: Fetch IDs once
+        $downlineIds = $user->getAllDownlineIds();
+        $allAccessibleIds = array_merge($downlineIds, [$user->id]);
 
-
-        // Get downline IDs for filtering (scoped to the viewed user)
-        $downlineIds = $user->getAllDownline()->pluck('id');
-        // Include self to see own data + downline data (Cumulative View)
-        // This ensures Uplines see their entire team's performance, but Downlines only see themselves (if they have no team).
-        $allAccessibleIds = $downlineIds->push($user->id);
-
-        // These queries aggregate data from the user and their entire downline tree.
-        // Report Widgets Logic
+        // Optimized Stats
         $stats = [
-            'total_downline' => $user->getDownlineCount(),
+            'total_downline' => count($downlineIds),
             'pending_approvals' => $user->getPendingApprovalsCount(),
             'direct_children' => $user->children()->count(),
-            'active_downline' => $user->getAllDownline()->where('status', 'active')->count(),
+            'active_downline' => User::whereIn('id', $downlineIds)->where('status', 'active')->count(),
         ];
 
-        // Report Widgets Logic
+        // Optimized Reports using conditional aggregation
+        $now = now();
+        $startOfWeek = $now->copy()->startOfWeek();
+        $startOfMonth = $now->copy()->startOfMonth();
+        $today = $now->copy()->startOfDay();
+
+        $surveyStats = \App\Models\Survey::whereIn('created_by', $allAccessibleIds)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
+            ", [$today, $startOfWeek, $startOfMonth])
+            ->first();
+
+        $appStats = \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
+            $q->whereIn('created_by', $allAccessibleIds);
+        })
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
+            ", [$today, $startOfWeek, $startOfMonth])
+            ->first();
+
         $reports = [
-            'surveys' => [
-                'daily' => \App\Models\Survey::whereIn('created_by', $allAccessibleIds)->whereDate('created_at', now())->count(),
-                'weekly' => \App\Models\Survey::whereIn('created_by', $allAccessibleIds)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-                'monthly' => \App\Models\Survey::whereIn('created_by', $allAccessibleIds)->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
-                'total' => \App\Models\Survey::whereIn('created_by', $allAccessibleIds)->count(),
-            ],
-            'appointments' => [
-                'daily' => \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
-                    $q->whereIn('created_by', $allAccessibleIds);
-                })->whereDate('created_at', now())->count(),
-                'weekly' => \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
-                    $q->whereIn('created_by', $allAccessibleIds);
-                })->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-                'monthly' => \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
-                    $q->whereIn('created_by', $allAccessibleIds);
-                })->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count(),
-                'total' => \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
-                    $q->whereIn('created_by', $allAccessibleIds);
-                })->count(),
-            ]
+            'surveys' => $surveyStats->toArray(),
+            'appointments' => $appStats->toArray()
         ];
 
         // Calculate the most recent 3 AM IST
-        $now = now()->timezone('Asia/Kolkata');
-        if ($now->hour < 3) {
-            $startTime = $now->copy()->subDay()->setTime(3, 0, 0);
+        $startTime = now()->timezone('Asia/Kolkata');
+        if ($startTime->hour < 3) {
+            $startTime = $startTime->subDay()->setTime(3, 0, 0);
         } else {
-            $startTime = $now->copy()->setTime(3, 0, 0);
+            $startTime = $startTime->setTime(3, 0, 0);
         }
 
-        // Get recent activities (performed by or performed on downline) since 3 AM IST
+        // Limit to 50 results for faster render
         $recentActivities = ActivityLog::where(function ($q) use ($allAccessibleIds) {
             $q->whereIn('user_id', $allAccessibleIds)
                 ->orWhereIn('performed_by', $allAccessibleIds);
@@ -84,15 +84,17 @@ class DashboardController extends Controller
             ->where('created_at', '>', $startTime)
             ->with(['user.profile', 'performedBy.profile'])
             ->latest()
+            ->limit(50)
             ->get();
 
-        // Get pending approvals (Super Admin only - or theoretically if a user can approve others)
-        // For "View As", we probably still want to show what *that* user would see if they have approval rights
         $pendingApprovals = $user->isSuperAdmin()
             ? User::pending()->with('profile')->latest()->get()
-            : collect(); // Or $user->getPendingApprovals() if that logic exists
+            : collect();
 
         $isViewAs = $currentUser->id !== $user->id;
+
+        // Eager load only immediate children to speed up initial load
+        $user->load(['children.profile']);
 
         return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'pendingApprovals', 'isViewAs'));
     }
@@ -104,18 +106,45 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $targetUserId = $request->get('user_id', $user->id);
-
-        // Check if user can access target user
         $targetUser = User::findOrFail($targetUserId);
 
-        if (!$user->canAccess($targetUser) && $targetUser->id !== $user->id) {
-            abort(403, 'Unauthorized access');
+        if (!$user->canAccess($targetUser)) {
+            abort(403);
         }
 
-        // Build tree
-        $tree = $this->buildTree($targetUser);
+        return response()->json($this->buildTree($targetUser));
+    }
 
-        return response()->json($tree);
+    /**
+     * Get hierarchy tree children partial
+     */
+    public function getTreeChildren($userId)
+    {
+        try {
+            $user = User::findOrFail($userId);
+            $currentUser = auth()->user();
+
+            if (!$currentUser->canAccess($user)) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            $children = $user->getDirectChildren();
+
+            // Eager load for performance and to avoid null issues in view
+            if ($children instanceof \Illuminate\Database\Eloquent\Collection) {
+                $children->load('profile');
+            }
+
+            $html = '';
+            foreach ($children as $child) {
+                $html .= view('dashboard.partials.tree_item', ['item' => $child])->render();
+            }
+
+            return response()->json(['html' => $html]);
+        } catch (\Exception $e) {
+            \Log::error("Hierarchy Tree Error: " . $e->getMessage());
+            return response()->json(['error' => 'Server Error', 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**

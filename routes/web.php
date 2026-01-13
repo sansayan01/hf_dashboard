@@ -20,6 +20,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/hierarchy-tree', [DashboardController::class, 'getHierarchyTree'])->name('hierarchy.tree');
+    Route::get('/hierarchy-children/{user}', [DashboardController::class, 'getTreeChildren'])->name('hierarchy.children');
 
     // User Management
     Route::prefix('users')->name('users.')->group(function () {

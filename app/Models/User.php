@@ -199,7 +199,7 @@ class User extends Authenticatable
     public function getDirectChildren()
     {
         if ($this->isSuperAdmin() || $this->isOfficeInCharge()) {
-            return User::where('designation', 'dm')->get();
+            return self::where('designation', 'dm')->get();
         }
         return $this->children;
     }
@@ -225,25 +225,32 @@ class User extends Authenticatable
         return User::whereIn('id', $ids)->get();
     }
 
-    // Helper to get recursive IDs
+    // Helper to get recursive IDs (Iterative to avoid N+1 and deep recursion)
     public function getAllDownlineIds()
     {
-        $ids = $this->children()->pluck('id')->toArray();
+        $allIds = [];
+        $toProcess = [$this->id];
 
-        foreach ($this->children as $child) {
-            $ids = array_merge($ids, $child->getAllDownlineIds());
+        while (!empty($toProcess)) {
+            $batchIds = self::whereIn('parent_id', $toProcess)->pluck('id')->toArray();
+            if (empty($batchIds))
+                break;
+            $allIds = array_merge($allIds, $batchIds);
+            $toProcess = $batchIds;
         }
 
-        return array_unique($ids);
+        return $allIds;
     }
 
     // Count total downline
     public function getDownlineCount()
     {
         if ($this->isSuperAdmin() || $this->isOfficeInCharge()) {
-            return User::where('designation', '!=', 'super_admin')->count();
+            return self::where('designation', '!=', 'super_admin')->count();
         }
-        return $this->getAllDownline()->count();
+
+        $ids = $this->getAllDownlineIds();
+        return self::whereIn('id', $ids)->count();
     }
 
     public function getPendingApprovalsCount()

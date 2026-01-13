@@ -263,7 +263,7 @@
             @if($user->isSuperAdmin() || $user->isOfficeInCharge())
                 <!-- Pending Approvals -->
                 <div id="pending-approval-section"
-                    class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden transition-all hover:shadow-2xl hover:shadow-accent/5 max-h-[80vh] flex flex-col">
+                    class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden transition-all hover:shadow-2xl hover:shadow-accent/5 h-[80vh] flex flex-col">
                     <div
                         class="p-6 border-b border-slate-200/5 bg-white dark:bg-white/5 dark:backdrop-blur-sm flex items-center justify-between">
                         <h3 class="font-black text-lg text-slate-800 dark:text-white tracking-tight">Pending Approval</h3>
@@ -347,10 +347,13 @@
             @endif
 
             <!-- Recent Activity -->
-            <div
-                class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden transition-all hover:shadow-2xl hover:shadow-accent/5 h-[60vh] flex flex-col">
-                <div class="p-6 border-b border-slate-200/5 bg-white dark:bg-white/5 dark:backdrop-blur-sm">
+            <div id="timeline-card"
+                class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden transition-all hover:shadow-2xl hover:shadow-accent/5 h-[60vh] flex flex-col relative z-20">
+                <div class="p-6 border-b border-slate-200/5 bg-white dark:bg-white/5 dark:backdrop-blur-sm flex items-center justify-between">
                     <h3 class="font-black text-lg text-slate-800 dark:text-white tracking-tight">Timeline</h3>
+                    <button onclick="toggleFullscreenTimeline()" id="expand-timeline-btn"
+                        class="text-[10px] font-bold text-accent dark:text-blue-400 hover:text-white hover:bg-accent px-3 py-1.5 rounded-xl transition-all border border-accent/20">Expand
+                        Viewer</button>
                 </div>
                 <div class="p-6 flex-1 overflow-y-auto space-y-6 scrollbar-hide">
                     @forelse($recentActivities as $activity)
@@ -468,6 +471,30 @@
             background: rgba(30, 41, 59, 0.8) !important;
         }
 
+        /* Fullscreen Timeline Styles */
+        #timeline-card.fullscreen-timeline {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 10000 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            background: #F8FAFC !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .dark #timeline-card.fullscreen-timeline {
+            background: #0F172A !important;
+        }
+
+        #timeline-card.fullscreen-timeline .p-6.flex-1 {
+            height: auto !important;
+            overflow-y: auto !important;
+        }
+
         /* Simple custom scrollbar for the tree */
         .overflow-auto::-webkit-scrollbar {
             width: 4px;
@@ -512,14 +539,40 @@
 
 @section('js')
     <script>
-        function toggleTreeItem(event, itemId) {
+        window.APP_URL = "{{ url('/') }}";
+
+        async function toggleTreeItem(event, itemId) {
             event.stopPropagation();
             const children = document.getElementById(`children-${itemId}`);
             const icon = document.getElementById(`toggle-icon-${itemId}`);
 
             if (children) {
                 if (children.classList.contains('hidden')) {
-                    children.classList.remove('hidden');
+                    // Load children via AJAX if not already loaded
+                    if (children.dataset.loaded === 'false') {
+                        const shimmer = children.querySelector('.tree-loading-shimmer');
+                        if (shimmer) shimmer.classList.remove('hidden');
+                        children.classList.remove('hidden');
+                        
+                        try {
+                            const response = await fetch(`${window.APP_URL}/hierarchy-children/${itemId}`);
+                            if (!response.ok) {
+                                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                            }
+                            const data = await response.json();
+                            
+                            // Remove shimmer and add content
+                            if (shimmer) shimmer.remove();
+                            children.innerHTML = data.html;
+                            children.dataset.loaded = 'true';
+                        } catch (error) {
+                            console.error('Error loading children:', error);
+                            if (shimmer) shimmer.innerText = `Error: ${error.message}`;
+                            return;
+                        }
+                    } else {
+                        children.classList.remove('hidden');
+                    }
                     if (icon) icon.classList.add('rotate-90');
                 } else {
                     children.classList.add('hidden');
@@ -536,6 +589,20 @@
             if (isFullscreen) {
                 btn.innerText = 'Exit Fullscreen';
                 document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            } else {
+                btn.innerText = 'Expand Viewer';
+                document.body.style.overflow = '';
+            }
+        }
+
+        function toggleFullscreenTimeline() {
+            const card = document.getElementById('timeline-card');
+            const btn = document.getElementById('expand-timeline-btn');
+            const isFullscreen = card.classList.toggle('fullscreen-timeline');
+
+            if (isFullscreen) {
+                btn.innerText = 'Exit Fullscreen';
+                document.body.style.overflow = 'hidden';
             } else {
                 btn.innerText = 'Expand Viewer';
                 document.body.style.overflow = '';
@@ -660,10 +727,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             const rootId = "{{ $user->id }}";
             const rootChildren = document.getElementById(`children-${rootId}`);
-            const rootIcon = document.getElementById(`toggle-icon-${rootId}`);
             if (rootChildren) {
-                rootChildren.classList.remove('hidden');
-                if (rootIcon) rootIcon.classList.add('rotate-90');
+                // Manually trigger toggle for first load to fetch children
+                const pseudoEvent = { stopPropagation: () => {} };
+                toggleTreeItem(pseudoEvent, rootId);
             }
 
             // Set default zoom to 100% for all devices
