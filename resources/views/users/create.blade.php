@@ -41,6 +41,41 @@
                             </select>
                         </div>
                     </div>
+
+                    <!-- Office In-Charge Upline Selection (Only for Super Admin) -->
+                    @if(auth()->user()->isSuperAdmin())
+                    <div id="office-in-charge-upline-section" class="hidden mt-6">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+                            <p class="text-sm text-blue-800 font-semibold">
+                                <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                Office In-Charge Configuration: Select the upline this Office In-Charge will represent
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Upline's Designation</label>
+                                <select name="upline_designation" id="upline-designation-select"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                    <option value="">Select Upline Designation</option>
+                                    <option value="super_admin" {{ old('upline_designation') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+                                    <option value="hs" {{ old('upline_designation') == 'hs' ? 'selected' : '' }}>Head of State (HS)</option>
+                                    <option value="dm" {{ old('upline_designation') == 'dm' ? 'selected' : '' }}>District Manager (DM)</option>
+                                    <option value="bm" {{ old('upline_designation') == 'bm' ? 'selected' : '' }}>Block Manager (BM)</option>
+                                    <option value="rm" {{ old('upline_designation') == 'rm' ? 'selected' : '' }}>Relationship Manager (RM)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Select Upline Person</label>
+                                <select name="upline_id" id="upline-person-select"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                    <option value="">Select Upline Designation First</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
                 @endif
 
@@ -437,6 +472,30 @@
             const hintDesignation = document.getElementById('hint-designation');
             const potentialParents = @json($potentialParents ?? []);
 
+            @if(auth()->user()->isSuperAdmin())
+            const officeInChargeUplineSection = document.getElementById('office-in-charge-upline-section');
+            const uplineDesignationSelect = document.getElementById('upline-designation-select');
+            const uplinePersonSelect = document.getElementById('upline-person-select');
+            const potentialUplines = @json($potentialUplines ?? []);
+
+            // Handle upline designation change
+            uplineDesignationSelect.addEventListener('change', function() {
+                const uplineDesignation = this.value;
+                uplinePersonSelect.innerHTML = '<option value="">Select Person</option>';
+
+                if (uplineDesignation && potentialUplines[uplineDesignation]) {
+                    potentialUplines[uplineDesignation].forEach(upline => {
+                        const name = upline.profile ? upline.profile.full_name : upline.email;
+                        const option = new Option(`${name} (${upline.employee_id})`, upline.id);
+                        if (upline.id == "{{ old('upline_id') }}") {
+                            option.selected = true;
+                        }
+                        uplinePersonSelect.add(option);
+                    });
+                }
+            });
+            @endif
+
             designationSelect.addEventListener('change', function() {
                 const designation = this.value;
                 parentSelect.innerHTML = '<option value="">Select Parent</option>';
@@ -452,6 +511,21 @@
                     'ro': 'RO'
                 };
                 hintDesignation.innerText = hintMap[designation] || 'XX';
+
+                @if(auth()->user()->isSuperAdmin())
+                // Show/hide Office In-Charge upline section
+                if (designation === 'office_in_charge') {
+                    officeInChargeUplineSection.classList.remove('hidden');
+                    uplineDesignationSelect.required = true;
+                    uplinePersonSelect.required = true;
+                } else {
+                    officeInChargeUplineSection.classList.add('hidden');
+                    uplineDesignationSelect.required = false;
+                    uplinePersonSelect.required = false;
+                    uplineDesignationSelect.value = '';
+                    uplinePersonSelect.innerHTML = '<option value="">Select Upline Designation First</option>';
+                }
+                @endif
 
                 // Roles that don't need manual parent selection (Top Level or Auto-assigned)
                 if (designation === 'super_admin' || designation === 'office_in_charge' || designation === 'hs') {
@@ -489,6 +563,13 @@
             if (designationSelect.value) {
                 triggerSelectChange(designationSelect);
             }
+
+            @if(auth()->user()->isSuperAdmin())
+            // Trigger upline designation change if old value exists
+            if (uplineDesignationSelect.value) {
+                triggerSelectChange(uplineDesignationSelect);
+            }
+            @endif
             @endif
 
             // PAN Validation on Submit

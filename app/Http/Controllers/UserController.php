@@ -150,7 +150,17 @@ class UserController extends Controller
                 ->get()
                 ->groupBy('designation');
 
-            return view('users.create', compact('allowedDesignation', 'allDesignations', 'potentialParents'));
+            // Get potential uplines for Office In-Charge (only for Super Admin)
+            $potentialUplines = [];
+            if ($currentUser->isSuperAdmin()) {
+                $potentialUplines = User::whereIn('designation', ['super_admin', 'hs', 'dm', 'bm', 'rm'])
+                    ->with('profile')
+                    ->active()
+                    ->get()
+                    ->groupBy('designation');
+            }
+
+            return view('users.create', compact('allowedDesignation', 'allDesignations', 'potentialParents', 'potentialUplines'));
         }
 
         // Regular users only create their specific child role
@@ -194,12 +204,13 @@ class UserController extends Controller
             $rules['designation'] = "required|in:$allowed";
 
             // Parent ID required unless creating SA, Office In-Charge, or HS (if top level)
-            // Note: Office In-Charge can't create SA/OI.
-            // HS usually reports to SA, but finding 'super_admin' parent is automatic or null?
-            // Actually, for HS, parent might be null (reporting to system) or SA. 
-            // Let's enforce null parent for HS created by SA contextually or assign SA? 
-            // Code in try-block handles parent assignment. Here we relax validation.
             $rules['parent_id'] = 'required_unless:designation,super_admin,office_in_charge,hs|nullable|exists:users,id';
+
+            // Office In-Charge specific validation (only Super Admin can create)
+            if ($currentUser->isSuperAdmin()) {
+                $rules['upline_designation'] = 'required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
+                $rules['upline_id'] = 'required_if:designation,office_in_charge|exists:users,id';
+            }
         }
 
         $validated = $request->validate(array_merge($rules, [
@@ -285,14 +296,29 @@ class UserController extends Controller
             }
 
             // Create user
-            $newUser = User::create([
+            $userData = [
                 'employee_id' => $employeeId,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'designation' => $designation,
                 'parent_id' => $parentId,
                 'status' => 'pending',
-            ]);
+            ];
+
+            // If creating Office In-Charge, add upline information
+            if ($designation === 'office_in_charge' && $currentUser->isSuperAdmin()) {
+                $userData['upline_id'] = $request->upline_id;
+                $userData['upline_designation'] = $request->upline_designation;
+
+                // Validate that upline_id matches the upline_designation
+                $uplineUser = User::find($request->upline_id);
+                if (!$uplineUser || $uplineUser->designation !== $request->upline_designation) {
+                    DB::rollBack();
+                    return back()->withInput()->with('error', 'The selected upline does not match the upline designation.');
+                }
+            }
+
+            $newUser = User::create($userData);
 
             // Create profile
             UserProfile::create([

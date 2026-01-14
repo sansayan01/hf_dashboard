@@ -28,6 +28,8 @@ class User extends Authenticatable
         'office_in_charge_creator_id',
         'office_in_charge_type',
         'office_in_charge_end_date',
+        'upline_id',
+        'upline_designation',
     ];
 
     /**
@@ -99,6 +101,12 @@ class User extends Authenticatable
     public function officeInChargeCreator()
     {
         return $this->belongsTo(User::class, 'office_in_charge_creator_id');
+    }
+
+    // Upline (the user this Office In-Charge represents)
+    public function upline()
+    {
+        return $this->belongsTo(User::class, 'upline_id');
     }
 
     /**
@@ -230,7 +238,13 @@ class User extends Authenticatable
         }
 
         if ($this->isOfficeInCharge()) {
-            // Office In-Charge sees everyone EXCEPT Super Admins
+            // Office In-Charge with upline sees the same downline as their upline
+            if ($this->upline_id && $this->upline) {
+                // Get the upline's downline
+                return $this->upline->getAllDownline();
+            }
+
+            // Fallback: Office In-Charge without upline sees everyone EXCEPT Super Admins
             // They can see other Office In-Charges if they exist (though usually only 1)
             // But per requirement "can't see super user", so we exclude SA.
             return User::where('designation', '!=', 'super_admin')->get();
@@ -318,9 +332,19 @@ class User extends Authenticatable
             return true;
         }
 
-        // Office In-Charge can access everyone EXCEPT Super Admin
+        // Office In-Charge can access everyone EXCEPT Super Admin and their upline
         if ($this->isOfficeInCharge()) {
-            return !$targetUser->isSuperAdmin();
+            // Cannot access Super Admin
+            if ($targetUser->isSuperAdmin()) {
+                return false;
+            }
+
+            // Cannot access their own upline (the person they represent)
+            if ($this->upline_id && $targetUser->id === $this->upline_id) {
+                return false;
+            }
+
+            return true;
         }
 
         // Can access self
