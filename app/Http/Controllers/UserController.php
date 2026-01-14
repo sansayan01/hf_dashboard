@@ -83,14 +83,16 @@ class UserController extends Controller
         $hierarchyLevels = [
             'super_admin' => 0,
             'office_in_charge' => 1,
-            'dm' => 2,
-            'bm' => 3,
-            'rm' => 4,
-            'ro' => 5
+            'hs' => 2,
+            'dm' => 3,
+            'bm' => 4,
+            'rm' => 5,
+            'ro' => 6
         ];
 
         $designationLabels = [
             'office_in_charge' => 'Office In-Charge',
+            'hs' => 'Head of State',
             'dm' => 'District Manager',
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
@@ -124,6 +126,7 @@ class UserController extends Controller
         $allDesignations = [
             'super_admin' => 'Super Admin',
             'office_in_charge' => 'Office In-Charge',
+            'hs' => 'Head of State',
             'dm' => 'District Manager',
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
@@ -141,7 +144,7 @@ class UserController extends Controller
             }
 
             // Get potential parents grouped by their designation
-            $potentialParents = User::whereIn('designation', ['super_admin', 'dm', 'bm', 'rm'])
+            $potentialParents = User::whereIn('designation', ['super_admin', 'hs', 'dm', 'bm', 'rm'])
                 ->with('profile')
                 ->active()
                 ->get()
@@ -184,15 +187,19 @@ class UserController extends Controller
 
         // Additional validation for Super Admin and Office In-Charge
         if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
-            $allowed = 'dm,bm,rm,ro';
+            $allowed = 'hs,dm,bm,rm,ro';
             if ($currentUser->isSuperAdmin()) {
                 $allowed .= ',super_admin,office_in_charge';
             }
             $rules['designation'] = "required|in:$allowed";
 
-            // Parent ID required unless creating SA, Office In-Charge, or DM
-            // Note: Office In-Charge can't create SA/OI, so this mainly affects DM creation for them
-            $rules['parent_id'] = 'required_unless:designation,super_admin,office_in_charge,dm|nullable|exists:users,id';
+            // Parent ID required unless creating SA, Office In-Charge, or HS (if top level)
+            // Note: Office In-Charge can't create SA/OI.
+            // HS usually reports to SA, but finding 'super_admin' parent is automatic or null?
+            // Actually, for HS, parent might be null (reporting to system) or SA. 
+            // Let's enforce null parent for HS created by SA contextually or assign SA? 
+            // Code in try-block handles parent assignment. Here we relax validation.
+            $rules['parent_id'] = 'required_unless:designation,super_admin,office_in_charge,hs|nullable|exists:users,id';
         }
 
         $validated = $request->validate(array_merge($rules, [
@@ -219,10 +226,46 @@ class UserController extends Controller
                 if ($designation === 'super_admin' || $designation === 'office_in_charge') {
                     // Super Admin and Office In-Charge don't need a parent
                     $parentId = null;
+                } elseif ($designation === 'hs') {
+                    // HS reports to current user (SA/OI) or is top level. 
+                    // Per req: "HS will inform to super admin".
+                    $parentId = $currentUser->id;
                 } elseif ($designation === 'dm') {
-                    // Auto-assign current user as parent for DMs if they are creating one
+                    // DM now reports to HS. Parent ID must be supplied (HS ID)
+                    $parentId = $request->parent_id;
+
+                    // Enforce that the selected parent is indeed an HS
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'hs') {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'District Managers must be assigned to a Head of State (HS). Please select a valid HS as the parent.');
+                    }
+                } elseif ($designation === 'bm') {
+                    $parentId = $request->parent_id;
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'dm') {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Block Managers must be assigned to a District Manager (DM).');
+                    }
+                } elseif ($designation === 'rm') {
+                    $parentId = $request->parent_id;
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'bm') {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Relationship Managers must be assigned to a Block Manager (BM).');
+                    }
+                } elseif ($designation === 'ro') {
+                    $parentId = $request->parent_id;
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'rm') {
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'Relationship Officers must be assigned to a Relationship Manager (RM).');
+                    }
+                } elseif ($designation === 'hs') {
+                    // Safety check if not caught by previous block
                     $parentId = $currentUser->id;
                 } else {
+                    // Fallback for any other future roles, though strictness implies we handled all.
                     $parentId = $request->parent_id;
                 }
             } else {
@@ -336,7 +379,27 @@ class UserController extends Controller
             abort(403, 'Permission denied: Only Super Admin can edit approved members.');
         }
 
-        return view('users.edit', compact('user'));
+        // Prepare data for role/hierarchy management (for Admins)
+        $allDesignations = [
+            'super_admin' => 'Super Admin',
+            'office_in_charge' => 'Office In-Charge',
+            'hs' => 'Head of State',
+            'dm' => 'District Manager',
+            'bm' => 'Block Manager',
+            'rm' => 'Relationship Manager',
+            'ro' => 'Relationship Officer',
+        ];
+
+        $potentialParents = [];
+        if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
+            $potentialParents = User::whereIn('designation', ['super_admin', 'hs', 'dm', 'bm', 'rm'])
+                ->with('profile')
+                ->active()
+                ->get()
+                ->groupBy('designation');
+        }
+
+        return view('users.edit', compact('user', 'allDesignations', 'potentialParents'));
     }
 
     /**
@@ -375,6 +438,8 @@ class UserController extends Controller
 
         if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
             $rules['employee_id'] = 'required|string|unique:users,employee_id,' . $user->id;
+            $rules['designation'] = 'sometimes|required|string';
+            $rules['parent_id'] = 'nullable|exists:users,id';
         }
 
         $validated = $request->validate($rules);
@@ -395,6 +460,68 @@ class UserController extends Controller
 
             if (($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) && $request->has('employee_id')) {
                 $userData['employee_id'] = $request->employee_id;
+            }
+
+            // Handle Hierarchy/Role Change (Admins Only)
+            if (($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) && $request->has('designation') && $request->designation !== $user->designation) {
+                $designation = $request->designation;
+                $parentId = $request->parent_id;
+
+                // Validate Logic
+                if ($designation === 'super_admin' || $designation === 'office_in_charge') {
+                    $parentId = null;
+                } elseif ($designation === 'hs') {
+                    $parentId = $currentUser->id; // Assign to admin updating it safely? Or null? Let's use current admin or null.
+                    // If changing to HS, they become top level.
+                    // If request->parent_id is null, it's fine.
+                } elseif ($designation === 'dm') {
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'hs') {
+                        throw new \Exception('District Managers must be assigned to a Head of State (HS).');
+                    }
+                } elseif ($designation === 'bm') {
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'dm') {
+                        throw new \Exception('Block Managers must be assigned to a District Manager (DM).');
+                    }
+                } elseif ($designation === 'rm') {
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'bm') {
+                        throw new \Exception('Relationship Managers must be assigned to a Block Manager (BM).');
+                    }
+                } elseif ($designation === 'ro') {
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'rm') {
+                        throw new \Exception('Relationship Officers must be assigned to a Relationship Manager (RM).');
+                    }
+                }
+
+                $userData['designation'] = $designation;
+                $userData['parent_id'] = $parentId;
+            } elseif (($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) && $request->has('parent_id') && $request->parent_id != $user->parent_id) {
+                // Just changing parent not designation
+                $designation = $user->designation; // Current
+                $parentId = $request->parent_id;
+
+                // Same validation logic...
+                if ($designation === 'dm') {
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'hs')
+                        throw new \Exception('DM must match HS parent.');
+                } elseif ($designation === 'bm') {
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'dm')
+                        throw new \Exception('BM must match DM parent.');
+                } elseif ($designation === 'rm') {
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'bm')
+                        throw new \Exception('RM must match BM parent.');
+                } elseif ($designation === 'ro') {
+                    $parentUser = User::find($parentId);
+                    if (!$parentUser || $parentUser->designation !== 'rm')
+                        throw new \Exception('RO must match RM parent.');
+                }
+                $userData['parent_id'] = $parentId;
             }
 
             if ($request->filled('password')) {

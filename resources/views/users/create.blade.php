@@ -445,6 +445,7 @@
                 const hintMap = {
                     'super_admin': 'SA',
                     'office_in_charge': 'OI',
+                    'hs': 'HS',
                     'dm': 'DM',
                     'bm': 'BM',
                     'rm': 'RM',
@@ -452,7 +453,8 @@
                 };
                 hintDesignation.innerText = hintMap[designation] || 'XX';
 
-                if (designation === 'super_admin' || designation === 'office_in_charge' || designation === 'dm') {
+                // Roles that don't need manual parent selection (Top Level or Auto-assigned)
+                if (designation === 'super_admin' || designation === 'office_in_charge' || designation === 'hs') {
                     parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
                     parentSelect.required = false;
                     parentSelect.closest('div').classList.add('opacity-50');
@@ -461,7 +463,7 @@
                     parentSelect.closest('div').classList.remove('opacity-50');
 
                     let targetParentDesignation = '';
-                    if (designation === 'dm') targetParentDesignation = 'super_admin';
+                    if (designation === 'dm') targetParentDesignation = 'hs';
                     else if (designation === 'bm') targetParentDesignation = 'dm';
                     else if (designation === 'rm') targetParentDesignation = 'bm';
                     else if (designation === 'ro') targetParentDesignation = 'rm';

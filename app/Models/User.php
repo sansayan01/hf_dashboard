@@ -133,6 +133,11 @@ class User extends Authenticatable
         return $this->designation === 'super_admin';
     }
 
+    public function isHS()
+    {
+        return $this->designation === 'hs';
+    }
+
     // Check if user is DM
     public function isDM()
     {
@@ -189,27 +194,27 @@ class User extends Authenticatable
     public function getAllowedChildDesignation()
     {
         $designationMap = [
-            'super_admin' => 'super_admin', // SA can create another SA
+            'super_admin' => 'super_admin', // SA can create another SA 
+            'hs' => 'dm',
             'dm' => 'bm',
             'bm' => 'rm',
             'rm' => 'ro',
         ];
 
-        // If currently SA, we might want to default to 'dm' for the regular flow 
-        // but SA can create any role including SA in the controller logic.
-        // This map is used by non-SA users to know what they can create.
+        // If currently SA, they can create HS (implicit or explicit in controller)
+        // But for default child selection:
         if ($this->isSuperAdmin())
-            return 'dm';
+            return 'hs';
 
 
         return $designationMap[$this->designation] ?? null;
     }
 
-    // Get direct children (for hierarchy tree)
     public function getDirectChildren()
     {
         if ($this->isSuperAdmin() || $this->isOfficeInCharge()) {
-            return self::where('designation', 'dm')->get();
+            // Only HS is direct child of SA/OI now. DMs must be under HS.
+            return self::where('designation', 'hs')->get();
         }
         return $this->children;
     }
@@ -278,6 +283,7 @@ class User extends Authenticatable
         $designationCodes = [
             'super_admin' => 'SA',
             'office_in_charge' => 'OI',
+            'hs' => 'HS',
             'dm' => 'DM',
             'bm' => 'BM',
             'rm' => 'RM',
@@ -382,6 +388,7 @@ class User extends Authenticatable
         $labels = [
             'super_admin' => 'Super Admin',
             'office_in_charge' => 'Office In-Charge',
+            'hs' => 'Head of State',
             'dm' => 'District Manager',
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',

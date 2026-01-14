@@ -92,7 +92,7 @@
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
         <aside id="sidebar"
-            class="sidebar fixed inset-y-0 left-0 z-50 w-72 bg-primary/95 dark:bg-darkbg/40 backdrop-blur-xl text-white lg:static lg:block overflow-hidden flex flex-col border-r border-slate-200/10 dark:border-white/5">
+            class="sidebar fixed inset-y-0 left-0 z-50 w-72 bg-primary/95 dark:bg-darkbg/40 backdrop-blur-xl text-white lg:static lg:block overflow-y-auto flex flex-col border-r border-slate-200/10 dark:border-white/5 sidebar-scroll">
             <!-- Sidebar Header -->
             <div class="p-6 flex items-center justify-between border-b border-secondary">
                 <div class="flex items-center space-x-3">
@@ -114,7 +114,7 @@
             </div>
 
             <!-- Sidebar Nav -->
-            <nav class="flex-1 overflow-y-auto p-4 sidebar-scroll">
+            <nav class="flex-1 p-4">
                 <div class="mb-4">
                     <p class="text-xs font-semibold text-bodydark uppercase tracking-widest px-4 mb-3">Menu</p>
                     <ul class="space-y-1">
@@ -142,17 +142,17 @@
                                 </li>
                             @endif
                         @if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_create_surveys'))
-                        <li>
-                            <a href="{{ route('patients.index') }}"
-                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('patients.*') ? 'bg-accent text-white shadow-lg' : '' }}">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
-                                    </path>
-                                </svg>
-                                <span>Patients</span>
-                            </a>
-                        </li>
+                            <li>
+                                <a href="{{ route('patients.index') }}"
+                                    class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('patients.*') ? 'bg-accent text-white shadow-lg' : '' }}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                                        </path>
+                                    </svg>
+                                    <span>Patients</span>
+                                </a>
+                            </li>
                         @endif
                         @if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments'))
                             <li>
@@ -399,17 +399,17 @@
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
                 color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
                 @if(session('view_appointment_url'))
-                                                                                                            showDenyButton: true,
+                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                        }).then((result) => {
+                                                            }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                        });
+                                                            });
         @endif
 
         @if(session('error'))

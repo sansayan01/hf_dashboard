@@ -21,7 +21,7 @@ return new class extends Migration {
         });
 
         // Seed default permissions
-        $roles = ['office_in_charge', 'dm', 'bm', 'rm', 'ro'];
+        $roles = ['office_in_charge', 'hs', 'dm', 'bm', 'rm', 'ro'];
         $permissions = [
             'can_create_users',
             'can_approve_users',
@@ -40,6 +40,9 @@ return new class extends Migration {
 
                 // Define some sane defaults
                 if ($role === 'office_in_charge') {
+                    $enabled = true;
+                } elseif ($role === 'hs') {
+                    // Head of State gets full access by default
                     $enabled = true;
                 } elseif ($role === 'dm' && in_array($permission, ['can_create_users', 'can_view_downline', 'can_create_surveys', 'can_view_reports', 'can_manage_appointments', 'can_edit_user_details'])) {
                     $enabled = true;

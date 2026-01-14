@@ -37,7 +37,7 @@ class ProfileController extends Controller
             abort(403);
         }
 
-        $roles = ['office_in_charge', 'dm', 'bm', 'rm', 'ro'];
+        $roles = ['office_in_charge', 'hs', 'dm', 'bm', 'rm', 'ro'];
         $permissionsBatch = $request->get('permissions', []);
 
         foreach ($roles as $role) {
@@ -48,7 +48,7 @@ class ProfileController extends Controller
             if (isset($permissionsBatch[$role])) {
                 foreach ($permissionsBatch[$role] as $key => $value) {
                     RolePermission::where('role', $role)
-                        ->where('permission_key', $key)
+                        ->where('permission', $key)
                         ->update(['is_enabled' => true]);
                 }
             }

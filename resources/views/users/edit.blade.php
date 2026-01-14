@@ -17,6 +17,38 @@
                 @csrf
                 @method('PUT')
 
+                <!-- Section: Administrative Role Management (Admins Only) -->
+                @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-8">
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-1.5 h-6 bg-accent rounded-full"></div>
+                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Role & Hierarchy Management</h4>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Current Designation</label>
+                            <select name="designation" id="designation-select"
+                                class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                @foreach($allDesignations ?? [] as $val => $label)
+                                    <option value="{{ $val }}" {{ $user->designation == $val ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Reports To (Parent)</label>
+                            <select name="parent_id" id="parent-select"
+                                class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                <option value="">Select Parent</option>
+                                @if($user->parent)
+                                    <option value="{{ $user->parent_id }}" selected>{{ $user->parent->profile->full_name ?? $user->parent->email }} (Current)</option>
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-bodydark font-bold mt-4 uppercase italic">Warning: changing designation requires re-assigning valid parent.</p>
+                </div>
+                @endif
+
                 <!-- Section: Account Info -->
                 <div>
                     <div class="flex items-center space-x-2 mb-6">
@@ -257,6 +289,58 @@
     <script src="{{ asset('js/locations.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
+            // Admin Role Management Logic
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+            const designationSelect = document.getElementById('designation-select');
+            const parentSelect = document.getElementById('parent-select');
+            const potentialParents = @json($potentialParents ?? []);
+            const currentParentId = "{{ $user->parent_id }}";
+
+            // Function to populate parents based on designation
+            function updateParents(designation) {
+                parentSelect.innerHTML = '<option value="">Select Parent</option>';
+                
+                // Top Level Roles
+                if (designation === 'super_admin' || designation === 'office_in_charge' || designation === 'hs') {
+                    parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
+                    // If current user is parent (e.g. HS created by SA), we might want to keep it?
+                    // But backend logic handles null/current assignment for Top Level.
+                    // Let's leave value empty or allow keeping existing if it matches logic?
+                    // Actually, if HS, parent IS SA/OI. Backend sets it.
+                    // But here we are editing. If existing HS has parent SA, we want to keep it.
+                    // But visual "None (Top Level)" implies no manual selection needed.
+                } else {
+                    let targetParentDesignation = '';
+                    if (designation === 'dm') targetParentDesignation = 'hs';
+                    else if (designation === 'bm') targetParentDesignation = 'dm';
+                    else if (designation === 'rm') targetParentDesignation = 'bm';
+                    else if (designation === 'ro') targetParentDesignation = 'rm';
+
+                    if (targetParentDesignation && potentialParents[targetParentDesignation]) {
+                        potentialParents[targetParentDesignation].forEach(parent => {
+                            const name = parent.profile ? parent.profile.full_name : parent.email;
+                            const option = new Option(`${name} (${parent.employee_id || 'ID'})`, parent.id);
+                            if (parent.id == currentParentId) {
+                                option.selected = true;
+                            }
+                            parentSelect.add(option);
+                        });
+                    }
+                }
+            }
+
+            if (designationSelect) {
+                designationSelect.addEventListener('change', function() {
+                    updateParents(this.value);
+                });
+                
+                // Initial run to populate compatible list if not changed
+                // Use setTimeout to ensure other scripts don't conflict? No need.
+                // But we want to preserve current selection on load if it matches logic.
+                updateParents(designationSelect.value);
+            }
+            @endif
 
 
             const stateSelect = document.getElementById('state-select');
