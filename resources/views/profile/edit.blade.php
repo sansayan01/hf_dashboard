@@ -1,17 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto px-4 py-8">
         <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Account Settings</h1>
-            <p class="text-slate-500 dark:text-slate-400 font-medium mt-1">Manage your professional profile and security
-                credentials.</p>
+        <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
+                    {{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'Admin Controls' : 'Account Settings' }}
+                </h1>
+                <p class="text-slate-500 dark:text-slate-400 font-medium mt-1">
+                    {{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'Manage global system permissions and role access levels.' : 'Manage your professional profile and security credentials.' }}
+                </p>
+            </div>
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+                <div class="flex items-center space-x-2">
+                    <span class="px-3 py-1 bg-accent/10 text-accent text-[10px] font-black uppercase tracking-widest rounded-full border border-accent/20">System Administrator</span>
+                </div>
+            @endif
         </div>
 
         @if (session('success'))
-            <div
-                class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center space-x-3 text-emerald-600 dark:text-emerald-400 text-sm font-bold shadow-sm shadow-emerald-500/5 transition-all animate-in fade-in slide-in-from-top-4">
+            <div class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center space-x-3 text-emerald-600 dark:text-emerald-400 text-sm font-bold shadow-sm shadow-emerald-500/5 transition-all animate-in fade-in slide-in-from-top-4">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                 </svg>
@@ -19,254 +28,253 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Sidebar Info -->
-            <div class="lg:col-span-4 space-y-6">
-                <div
-                    class="bg-white dark:bg-darkcard p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-white/5 relative overflow-hidden group">
-                    <div class="relative z-10 flex flex-col items-center">
-                        <div class="relative group/avatar mb-4">
-                            <div
-                                class="w-24 h-24 rounded-3xl overflow-hidden ring-4 ring-slate-50 dark:ring-white/5 shadow-xl transition-transform group-hover/avatar:scale-105 duration-500">
-                                @if ($user->profile && $user->profile->profile_picture)
-                                    <img src="{{ asset('storage/' . $user->profile->profile_picture) }}"
-                                        class="w-full h-full object-cover">
-                                @else
-                                    <div
-                                        class="w-full h-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-3xl font-black">
-                                        {{ substr($user->profile->full_name ?? $user->email, 0, 1) }}
-                                    </div>
-                                @endif
-                                <div
-                                    class="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-black uppercase tracking-widest cursor-pointer">
-                                    Change
-                                </div>
-                            </div>
-                        </div>
-                        <h2 class="text-lg font-black text-slate-800 dark:text-white text-center line-clamp-1">
-                            {{ $user->profile->full_name ?? 'User' }}
-                        </h2>
-                        <span
-                            class="mt-1 px-3 py-1 bg-accent/10 text-accent text-[10px] font-black uppercase tracking-widest rounded-full">
-                            {{ str_replace('_', ' ', $user->designation) }}
-                        </span>
+        @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+            <!-- Admin Permissions Interface -->
+            <div class="bg-white dark:bg-darkcard rounded-[2rem] shadow-xl border border-slate-100 dark:border-white/5 overflow-hidden">
+                <form action="{{ route('profile.permissions') }}" method="POST">
+                    @csrf
+                    <div class="flex flex-col lg:flex-row">
+                        <!-- Sidebar Tabs -->
+                        <div class="lg:w-72 bg-slate-50/50 dark:bg-white/[0.02] border-r border-slate-100 dark:border-white/5 p-6">
+                            <nav class="space-y-2" id="permission-tabs">
+                                @php
+                                    $roles = [
+                                        'office_in_charge' => ['label' => 'Office In-Charge', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04M12 21a11.955 11.955 0 01-8.618-3.04m17.236 0A11.955 11.955 0 0112 21'],
+                                        'dm' => ['label' => 'District Manager', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'],
+                                        'bm' => ['label' => 'Block Manager', 'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+                                        'rm' => ['label' => 'Relationship Manager', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'],
+                                        'ro' => ['label' => 'Relationship Officer', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z']
+                                    ];
+                                @endphp
 
-                        <div class="w-full h-[1px] bg-slate-100 dark:bg-white/5 my-6"></div>
-
-                        <div class="w-full space-y-4">
-                            <div class="flex items-center justify-between text-[11px] font-bold">
-                                <span class="text-slate-400 dark:text-slate-500 uppercase tracking-wider">Employee ID</span>
-                                <span
-                                    class="text-slate-700 dark:text-slate-200 tracking-tight">{{ $user->employee_id }}</span>
-                            </div>
-                            <div class="flex items-center justify-between text-[11px] font-bold">
-                                <span class="text-slate-400 dark:text-slate-500 uppercase tracking-wider">Join Date</span>
-                                <span
-                                    class="text-slate-700 dark:text-slate-200 tracking-tight">{{ $user->created_at->format('M d, Y') }}</span>
-                            </div>
-                        </div>
-
-                        @if(auth()->user()->canEdit($user))
-                            <div class="mt-6 w-full">
-                                <a href="{{ route('users.edit', $user->id) }}"
-                                    class="flex items-center justify-center w-full px-4 py-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-accent hover:text-white transition-all space-x-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    <span>Edit Official Details</span>
-                                </a>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- Decor -->
-                    <div
-                        class="absolute -bottom-6 -right-6 w-24 h-24 bg-accent/5 rounded-full blur-2xl group-hover:bg-accent/10 transition-all duration-700">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Sections -->
-            <div class="lg:col-span-8 space-y-8">
-                <!-- Profile Info -->
-                <div
-                    class="bg-white dark:bg-darkcard rounded-3xl shadow-sm border border-slate-100 dark:border-white/5 overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
-                        <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Personal
-                            Information</h3>
-                    </div>
-                    <div class="p-8">
-                        <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data"
-                            class="space-y-6">
-                            @csrf
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-1.5">
-                                    <label
-                                        class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Full
-                                        Name</label>
-                                    <input type="text" name="full_name"
-                                        value="{{ old('full_name', $user->profile->full_name ?? '') }}"
-                                        class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 outline-none">
-                                    @error('full_name') <p class="text-[10px] text-rose-500 font-bold mt-1 pl-1">
-                                        {{ $message }}
-                                    </p> @enderror
-                                </div>
-
-                                <div class="space-y-1.5">
-                                    <label
-                                        class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Email
-                                        Address (Read-only)</label>
-                                    <input type="email" value="{{ $user->email }}" disabled
-                                        class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-400 dark:text-slate-500 outline-none cursor-not-allowed">
-                                </div>
-                            </div>
-
-                            <div class="space-y-1.5">
-                                <label
-                                    class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Profile
-                                    Picture</label>
-                                <div class="flex items-center justify-center w-full">
-                                    <label
-                                        class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
-                                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <svg class="w-8 h-8 mb-3 text-slate-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                @foreach($roles as $key => $data)
+                                    <button type="button" onclick="switchTab('{{ $key }}')" id="tab-btn-{{ $key }}"
+                                        class="permission-tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest group">
+                                        <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-slate-400 group-hover:text-accent transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $data['icon'] }}" />
                                             </svg>
-                                            <p class="text-xs font-bold text-slate-500">Click to upload new image</p>
                                         </div>
-                                        <input type="file" name="profile_picture" class="hidden" />
-                                    </label>
-                                </div>
-                                @error('profile_picture') <p class="text-[10px] text-rose-500 font-bold mt-1 pl-1">
-                                    {{ $message }}
-                                </p> @enderror
-                            </div>
+                                        <span class="text-slate-500 group-hover:text-slate-800 dark:group-hover:text-white">{{ $data['label'] }}</span>
+                                    </button>
+                                @endforeach
 
-                            <div class="pt-4 flex justify-end">
-                                <button type="submit"
-                                    class="px-8 py-3 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-slate-800/10">
-                                    Save Changes
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Security / Password -->
-                <div
-                    class="bg-white dark:bg-darkcard rounded-3xl shadow-sm border border-slate-100 dark:border-white/5 overflow-hidden">
-                    <div
-                        class="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between">
-                        <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Security &
-                            Password</h3>
-                        <div
-                            class="px-3 py-1 bg-rose-500/10 text-rose-500 text-[8px] font-black uppercase tracking-tighter rounded-full border border-rose-500/10">
-                            High Priority
-                        </div>
-                    </div>
-                    <div class="p-8">
-                        <form action="{{ route('profile.password') }}" method="POST" class="space-y-6">
-                            @csrf
-                            <div class="space-y-1.5">
-                                <label
-                                    class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Current
-                                    Password</label>
-                                <div class="relative">
-                                    <input type="password" name="current_password" required
-                                        class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 outline-none">
-                                    <button type="button" onclick="togglePassword(this)"
-                                        class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-accent transition-colors">
-                                        <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        <svg class="w-4 h-4 eye-off-icon hidden" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                        </svg>
+                                <div class="pt-8 mt-8 border-t border-slate-100 dark:border-white/5">
+                                    <button type="button" onclick="switchTab('my-account')" id="tab-btn-my-account"
+                                        class="permission-tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest group">
+                                        <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-slate-400 group-hover:text-accent transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            </svg>
+                                        </div>
+                                        <span class="text-slate-500 group-hover:text-slate-800 dark:group-hover:text-white">Admin Profile</span>
                                     </button>
                                 </div>
-                                @error('current_password') <p class="text-[10px] text-rose-500 font-bold mt-1 pl-1">
-                                    {{ $message }}
-                                </p> @enderror
-                            </div>
+                            </nav>
+                        </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-1.5">
-                                    <label
-                                        class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">New
-                                        Password</label>
-                                    <div class="relative">
-                                        <input type="password" name="password" required
-                                            class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 outline-none">
-                                        <button type="button" onclick="togglePassword(this)"
-                                            class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-accent transition-colors">
-                                            <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                            <svg class="w-4 h-4 eye-off-icon hidden" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                            </svg>
-                                        </button>
+                        <!-- Content Area -->
+                        <div class="flex-1 p-8 lg:p-12">
+                            @foreach($roles as $key => $data)
+                                <div id="permission-content-{{ $key }}" class="permission-content hidden animate-in fade-in slide-in-from-right-4 duration-500">
+                                    <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                        <div>
+                                            <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">{{ $data['label'] }} Permissions</h2>
+                                            <p class="text-slate-500 font-medium">Define what users with the {{ $data['label'] }} role are allowed to perform in the system.</p>
+                                        </div>
+                                        <div class="flex items-center space-x-4 bg-slate-50 dark:bg-white/5 px-6 py-4 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
+                                            <div class="text-right">
+                                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Master Control</p>
+                                                <p class="text-xs font-bold text-slate-600 dark:text-slate-300">Permit All Actions</p>
+                                            </div>
+                                            <div class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" onchange="toggleAllPermissions('{{ $key }}', this.checked)" class="sr-only peer toggle-all-checkbox">
+                                                <div class="w-11 h-6 bg-rose-500 peer-focus:outline-none rounded-full dark:bg-rose-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500 transition-all"></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    @error('password') <p class="text-[10px] text-rose-500 font-bold mt-1 pl-1">
-                                        {{ $message }}
-                                    </p> @enderror
-                                </div>
 
-                                <div class="space-y-1.5">
-                                    <label
-                                        class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Confirm
-                                        New Password</label>
-                                    <div class="relative">
-                                        <input type="password" name="password_confirmation" required
-                                            class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 outline-none">
-                                        <button type="button" onclick="togglePassword(this)"
-                                            class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-accent transition-colors">
-                                            <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                            <svg class="w-4 h-4 eye-off-icon hidden" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                            </svg>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        @php
+                                            $perms = $rolePermissions[$key] ?? collect();
+                                        @endphp
+
+                                        @foreach($perms as $perm)
+                                            <label class="group flex items-center justify-between p-5 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-3xl cursor-pointer hover:border-accent/30 hover:bg-white dark:hover:bg-white/[0.05] transition-all">
+                                                <div class="flex-1 pr-4">
+                                                    <p class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-1">{{ str_replace('_', ' ', $perm->permission_key) }}</p>
+                                                    <p class="text-[10px] text-slate-400 font-bold uppercase">Grant Access</p>
+                                                </div>
+                                                <div class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" name="permissions[{{ $key }}][{{ $perm->permission_key }}]" value="1" 
+                                                        class="sr-only peer role-permission-checkbox" {{ $perm->is_enabled ? 'checked' : '' }}>
+                                                    <div class="w-11 h-6 bg-rose-500 peer-focus:outline-none rounded-full dark:bg-rose-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500 transition-all"></div>
+                                                </div>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    
+                                    <div class="mt-12 pt-8 border-t border-slate-100 dark:border-white/5 flex justify-end">
+                                        <button type="submit" class="px-10 py-4 bg-accent text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-accent/20">
+                                            Save All Permissions
                                         </button>
                                     </div>
                                 </div>
-                            </div>
+                            @endforeach
 
-                            <div class="pt-4 flex justify-end">
-                                <button type="submit"
-                                    class="px-8 py-3 bg-accent text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-accent/20">
-                                    Update Password
-                                </button>
+                            <!-- My Account Tab (Hidden content from original profile) -->
+                            <div id="permission-content-my-account" class="permission-content hidden animate-in fade-in slide-in-from-right-4 duration-500">
+                                <div class="grid grid-cols-1 lg:grid-cols-1 gap-8">
+                                    <!-- Simplified forms from original profile -->
+                                    <div class="bg-slate-50/50 dark:bg-white/[0.02] p-8 rounded-[2rem] border border-slate-100 dark:border-white/5">
+                                        <h3 class="text-xl font-black text-slate-800 dark:text-white mb-6 uppercase tracking-tight">Admin Profile Information</h3>
+                                        <div class="space-y-6">
+                                            <p class="text-xs text-slate-500 font-bold">Manage your own profile details and security independently.</p>
+                                            <div class="flex flex-wrap gap-4">
+                                                <a href="{{ route('users.edit', $user->id) }}" class="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 font-black rounded-xl text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">Edit Official Details</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-8 p-8 border border-rose-500/10 bg-rose-500/[0.02] rounded-[2rem]">
+                                        <h3 class="text-lg font-black text-rose-500 mb-4 uppercase tracking-tighter">Security Notice</h3>
+                                        <p class="text-xs text-slate-500 leading-relaxed">Admin accounts have elevated privileges. Ensure you use strong passwords and rotate them periodically to maintain system integrity.</p>
+                                    </div>
+                                </div>
                             </div>
-                        </form>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        @else
+            <!-- Regular User Interface (Original) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- User Profile View (Keep original layout for non-admins) -->
+                <!-- Copy of original content -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-white dark:bg-darkcard p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-white/5 relative overflow-hidden group">
+                        <div class="relative z-10 flex flex-col items-center">
+                            <div class="relative group/avatar mb-4">
+                                <div class="w-24 h-24 rounded-3xl overflow-hidden ring-4 ring-slate-50 dark:ring-white/5 shadow-xl transition-transform group-hover/avatar:scale-105 duration-500">
+                                    @if ($user->profile && $user->profile->profile_picture)
+                                        <img src="{{ asset('storage/' . $user->profile->profile_picture) }}" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-3xl font-black">
+                                            {{ substr($user->profile->full_name ?? $user->email, 0, 1) }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            <h2 class="text-lg font-black text-slate-800 dark:text-white text-center">{{ $user->profile->full_name ?? 'User' }}</h2>
+                            <span class="mt-1 px-3 py-1 bg-accent/10 text-accent text-[10px] font-black uppercase tracking-widest rounded-full">
+                                {{ $user->getDesignationLabel() }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 space-y-8">
+                    <!-- Original Personal Info Form -->
+                    <div class="bg-white dark:bg-darkcard rounded-3xl shadow-sm border border-slate-100 dark:border-white/5 overflow-hidden">
+                        <div class="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+                            <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Personal Information</h3>
+                        </div>
+                        <div class="p-8">
+                            <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                                @csrf
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-1.5">
+                                        <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Full Name</label>
+                                        <input type="text" name="full_name" value="{{ old('full_name', $user->profile->full_name ?? '') }}" class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 outline-none">
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Email Address</label>
+                                        <input type="email" value="{{ $user->email }}" disabled class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-400 dark:text-slate-500 cursor-not-allowed">
+                                    </div>
+                                </div>
+                                <div class="pt-4 flex justify-end">
+                                    <button type="submit" class="px-8 py-3 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Security / Password -->
+                    <div class="bg-white dark:bg-darkcard rounded-3xl shadow-sm border border-slate-100 dark:border-white/5 overflow-hidden">
+                        <div class="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+                            <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Security & Password</h3>
+                        </div>
+                        <div class="p-8">
+                            <form action="{{ route('profile.password') }}" method="POST" class="space-y-6">
+                                @csrf
+                                <div class="space-y-1.5">
+                                    <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Current Password</label>
+                                    <input type="password" name="current_password" required class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all text-sm outline-none">
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-1.5">
+                                        <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">New Password</label>
+                                        <input type="password" name="password" required class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all text-sm outline-none">
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Confirm New Password</label>
+                                        <input type="password" name="password_confirmation" required class="w-full px-4 py-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all text-sm outline-none">
+                                    </div>
+                                </div>
+                                <div class="pt-4 flex justify-end">
+                                    <button type="submit" class="px-8 py-3 bg-accent text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all">Update Password</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        @endif
     </div>
 @endsection
 
 @section('js')
+    @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+    <script>
+        function switchTab(roleId) {
+            // Hide all content
+            document.querySelectorAll('.permission-content').forEach(el => el.classList.add('hidden'));
+            
+            // Remove active style from all buttons
+            document.querySelectorAll('.permission-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'dark:bg-slate-800', 'shadow-md', 'scale-[1.02]');
+                btn.querySelector('div').classList.remove('bg-accent', 'text-white');
+                btn.querySelector('div').classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-400');
+                btn.querySelector('span').classList.remove('text-slate-800', 'dark:text-white');
+                btn.querySelector('span').classList.add('text-slate-500');
+            });
+
+            // Show target content
+            document.getElementById('permission-content-' + roleId).classList.remove('hidden');
+            
+            // Apply active style to target button
+            const activeBtn = document.getElementById('tab-btn-' + roleId);
+            activeBtn.classList.add('bg-white', 'dark:bg-slate-800', 'shadow-md', 'scale-[1.02]');
+            activeBtn.querySelector('div').classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-400');
+            activeBtn.querySelector('div').classList.add('bg-accent', 'text-white');
+            activeBtn.querySelector('span').classList.remove('text-slate-500');
+            activeBtn.querySelector('span').classList.add('text-slate-800', 'dark:text-white');
+        }
+
+        function toggleAllPermissions(roleKey, isChecked) {
+            const container = document.getElementById('permission-content-' + roleKey);
+            const checkboxes = container.querySelectorAll('.role-permission-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+            });
+        }
+
+        // Initialize with first tab
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('office_in_charge');
+        });
+    </script>
+    @else
     <script>
         function togglePassword(button) {
             const container = button.parentElement;
@@ -285,4 +293,5 @@
             }
         }
     </script>
+    @endif
 @endsection

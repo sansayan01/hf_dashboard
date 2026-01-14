@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
+use App\Models\RolePermission;
+
 class ProfileController extends Controller
 {
     /**
@@ -15,8 +17,46 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = auth()->user();
+        $is_admin = $user->isSuperAdmin() || $user->isOfficeInCharge();
+
+        if ($is_admin) {
+            $rolePermissions = RolePermission::all()->groupBy('role');
+            return view('profile.edit', compact('user', 'rolePermissions'));
+        }
+
         return view('profile.edit', compact('user'));
     }
+
+    /**
+     * Update role permissions (Bulk update)
+     */
+    public function updatePermissions(Request $request)
+    {
+        $currentUser = auth()->user();
+        if (!$currentUser->isSuperAdmin() && !$currentUser->isOfficeInCharge()) {
+            abort(403);
+        }
+
+        $roles = ['office_in_charge', 'dm', 'bm', 'rm', 'ro'];
+        $permissionsBatch = $request->get('permissions', []);
+
+        foreach ($roles as $role) {
+            // First reset all to false for this role to handle unchecked checkboxes
+            RolePermission::where('role', $role)->update(['is_enabled' => false]);
+
+            // Then enable the ones that were checked for this role
+            if (isset($permissionsBatch[$role])) {
+                foreach ($permissionsBatch[$role] as $key => $value) {
+                    RolePermission::where('role', $role)
+                        ->where('permission_key', $key)
+                        ->update(['is_enabled' => true]);
+                }
+            }
+        }
+
+        return back()->with('success', 'Role permissions updated successfully!');
+    }
+
 
     /**
      * Update the user's password.

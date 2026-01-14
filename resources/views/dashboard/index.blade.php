@@ -77,7 +77,10 @@
                 </p>
             </div>
 
-            @if($user->isSuperAdmin() || $user->isOfficeInCharge())
+            @php
+                $canApprove = auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_approve_users');
+            @endphp
+            @if($canApprove)
                 <!-- Pending Approvals -->
                 <div onclick="document.getElementById('pending-approval-section').scrollIntoView({ behavior: 'smooth' })"
                     class="glass bg-white dark:bg-darkbg/40 {{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative cursor-pointer">
@@ -103,6 +106,7 @@
     @endif
 
     <!-- Reports Grid -->
+    @if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_view_reports'))
     <div class="grid grid-cols-2 gap-2 md:gap-6 mb-10">
         <!-- Survey Reports -->
         <a href="{{ route('surveys.index') }}"
@@ -192,6 +196,7 @@
             </div>
         </a>
     </div>
+    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         @if(!auth()->user()->isRO())
@@ -260,7 +265,7 @@
 
         <!-- Recent Activity & Pending Approvals -->
         <div class="space-y-8">
-            @if($user->isSuperAdmin() || $user->isOfficeInCharge())
+            @if($canApprove)
                 <!-- Pending Approvals -->
                 <div id="pending-approval-section"
                     class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden transition-all hover:shadow-2xl hover:shadow-accent/5 h-[80vh] flex flex-col">
@@ -275,7 +280,7 @@
                     </div>
                     <form id="dashboard-bulk-approve-form" action="{{ route('users.bulk-approve') }}" method="POST" class="flex-1 flex flex-col overflow-hidden">
                         @csrf
-                        <div class="p-6 flex-1 overflow-y-auto scrollbar-hide">
+                        <div class="p-6 flex-1 overflow-y-auto custom-scrollbar">
                             <div class="space-y-4">
                                 @forelse($pendingApprovals as $pending)
                                     <div
@@ -355,7 +360,7 @@
                         class="text-[10px] font-bold text-accent dark:text-blue-400 hover:text-white hover:bg-accent px-3 py-1.5 rounded-xl transition-all border border-accent/20">Expand
                         Viewer</button>
                 </div>
-                <div class="p-6 flex-1 overflow-y-auto space-y-6 scrollbar-hide">
+                <div class="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar">
                     @forelse($recentActivities as $activity)
                                     <div class="flex space-x-4 relative group">
                                         <div class="flex-shrink-0 relative z-10">
@@ -495,15 +500,22 @@
             overflow-y: auto !important;
         }
 
-        /* Simple custom scrollbar for the tree */
+        /* Simple custom scrollbar */
+        /* Simple custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar,
         .overflow-auto::-webkit-scrollbar {
             width: 4px;
             height: 4px;
         }
-
+ 
+        .custom-scrollbar::-webkit-scrollbar-thumb,
         .overflow-auto::-webkit-scrollbar-thumb {
-            background: rgba(60, 80, 224, 0.2);
+            background: rgba(30, 66, 255, 0.3);
             border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
         }
 
         #tree-zoom-container {

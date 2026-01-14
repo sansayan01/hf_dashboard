@@ -166,13 +166,16 @@ class User extends Authenticatable
     // Check if user can create users
     public function canCreateUsers()
     {
-        return in_array($this->designation, ['super_admin', 'office_in_charge', 'dm', 'bm', 'rm']);
+        if ($this->isSuperAdmin())
+            return true;
+        return RolePermission::check($this->designation, 'can_create_users');
     }
 
     public function canApprove(User $user)
     {
-        // Super Admin and Office In-Charge can approve users
-        return $this->isSuperAdmin() || $this->isOfficeInCharge();
+        if ($this->isSuperAdmin())
+            return true;
+        return RolePermission::check($this->designation, 'can_approve_users');
     }
 
     // Get allowed child designation

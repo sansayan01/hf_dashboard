@@ -72,6 +72,12 @@ class PatientController extends Controller
     public function create()
     {
         $user = Auth::user();
+
+        // Permission check
+        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_create_surveys')) {
+            abort(403, 'Unauthorized: You do not have permission to register new patients.');
+        }
+
         $users = $user->getAllDownline()->load('profile');
 
         return view('patients.create', compact('users'));
@@ -83,6 +89,12 @@ class PatientController extends Controller
     public function store(Request $request)
     {
         $currentUser = Auth::user();
+
+        // Permission check
+        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_create_surveys')) {
+            abort(403, 'Unauthorized: You do not have permission to register new patients.');
+        }
+
         $rules = [
             'full_name' => 'required|string|max:255',
             'relative_name' => 'nullable|string|max:255',

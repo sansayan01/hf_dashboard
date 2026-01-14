@@ -91,6 +91,11 @@ class SurveyController extends Controller
     {
         $user = Auth::user();
 
+        // Permission check
+        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_create_surveys')) {
+            abort(403, 'Unauthorized: You do not have permission to create surveys.');
+        }
+
         // Fetch all downline members + load profiles for the selection list
         $users = $user->getAllDownline()->load('profile');
 
@@ -103,6 +108,12 @@ class SurveyController extends Controller
     public function store(Request $request)
     {
         $currentUser = Auth::user();
+
+        // Permission check
+        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_create_surveys')) {
+            abort(403, 'Unauthorized: You do not have permission to create surveys.');
+        }
+
         $rules = [
             'full_name' => 'required|string|max:255',
             'age' => 'required|integer|min:1|max:120',

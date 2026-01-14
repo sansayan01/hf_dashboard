@@ -27,6 +27,10 @@ class UserController extends Controller
 
         // Hierarchy scoping (only see subordinates)
         if (!$currentUser->isSuperAdmin()) {
+            // Permission check: Can view downline
+            if (!\App\Models\RolePermission::check($currentUser->designation, 'can_view_downline')) {
+                abort(403, 'Unauthorized access: You do not have permission to view the team members list.');
+            }
             $downlineIds = $currentUser->getAllDownline()->pluck('id');
             $query->whereIn('id', $downlineIds);
         } else {
@@ -508,8 +512,8 @@ class UserController extends Controller
     {
         $currentUser = auth()->user();
 
-        // Only Super Admin can approve
-        if (!$currentUser->isSuperAdmin()) {
+        // Permission check
+        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_approve_users')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -553,9 +557,9 @@ class UserController extends Controller
         $currentUser = auth()->user();
         $user = User::findOrFail($id);
 
-        // Check access - Only Super Admin and Office In-Charge can delete members
-        if (!$currentUser->isSuperAdmin() && !$currentUser->isOfficeInCharge()) {
-            abort(403, 'Permission denied: Only Admin users can delete members.');
+        // Check access
+        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_delete_users')) {
+            abort(403, 'Permission denied: You do not have permission to delete members.');
         }
 
         // Prevent self-deletion

@@ -220,7 +220,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
-                                <span>Account Settings</span>
+                                <span>{{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'Admin Controls' : 'Account Settings' }}</span>
                             </a>
                         </li>
                     </ul>
@@ -392,17 +392,17 @@
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
                 color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
                 @if(session('view_appointment_url'))
-                                                                                    showDenyButton: true,
+                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                            }).then((result) => {
+                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                            });
+                                                });
         @endif
 
         @if(session('error'))
