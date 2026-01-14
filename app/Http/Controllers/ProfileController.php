@@ -48,7 +48,7 @@ class ProfileController extends Controller
             if (isset($permissionsBatch[$role])) {
                 foreach ($permissionsBatch[$role] as $key => $value) {
                     RolePermission::where('role', $role)
-                        ->where('permission', $key)
+                        ->where('permission_key', $key)
                         ->update(['is_enabled' => true]);
                 }
             }

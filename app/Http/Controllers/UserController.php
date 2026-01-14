@@ -534,13 +534,13 @@ class UserController extends Controller
             $user->update($userData);
 
             // Handle profile picture upload
-            if ($request->hasFile('profile_picture')) {
-                // Delete old picture
-                if ($user->profile->profile_picture) {
-                    Storage::disk('public')->delete($user->profile->profile_picture);
-                }
+            $newProfilePicturePath = null;
+            $oldProfilePicturePath = $user->profile->profile_picture;
 
-                $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
+            if ($request->hasFile('profile_picture')) {
+                // Upload NEW picture first, don't delete old one yet
+                $newProfilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
+                $profilePicturePath = $newProfilePicturePath;
             } else {
                 $profilePicturePath = $user->profile->profile_picture;
             }
@@ -586,11 +586,21 @@ class UserController extends Controller
 
             DB::commit();
 
+            // SUCCESS: Now effectively safe to delete the OLD image if it was replaced
+            if ($newProfilePicturePath && $oldProfilePicturePath && $newProfilePicturePath !== $oldProfilePicturePath) {
+                Storage::disk('public')->delete($oldProfilePicturePath);
+            }
+
             return redirect()->route('users.show', $user->id)
                 ->with('success', 'User updated successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
+
+            // FAILURE: Delete the NEW image that was just uploaded since we are rolling back
+            if (isset($newProfilePicturePath) && $newProfilePicturePath) {
+                Storage::disk('public')->delete($newProfilePicturePath);
+            }
 
             return back()->withInput()->with('error', 'Failed to update user: ' . $e->getMessage());
         }

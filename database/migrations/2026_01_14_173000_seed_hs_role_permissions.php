@@ -24,7 +24,7 @@ return new class extends Migration {
 
         foreach ($permissions as $permission) {
             RolePermission::firstOrCreate(
-                ['role' => $role, 'permission' => $permission],
+                ['role' => $role, 'permission_key' => $permission],
                 [
                     'is_enabled' => true // Default to enabled for HS
                 ]

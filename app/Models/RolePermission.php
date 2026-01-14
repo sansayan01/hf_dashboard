@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class RolePermission extends Model
 {
-    protected $fillable = ['role', 'permission', 'is_enabled'];
+    protected $fillable = ['role', 'permission_key', 'is_enabled'];
 
     protected $casts = [
         'is_enabled' => 'boolean',
@@ -18,7 +18,7 @@ class RolePermission extends Model
     public static function check($role, $key)
     {
         return self::where('role', $role)
-            ->where('permission', $key)
+            ->where('permission_key', $key)
             ->where('is_enabled', true)
             ->exists();
     }
