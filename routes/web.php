@@ -93,7 +93,20 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::get('/setup-db', function () {
         try {
             \Illuminate\Support\Facades\Artisan::call('migrate', ["--force" => true]);
-            return "Database setup successful! Go back to <a href='/patients'>Patients</a>";
+
+            // Force seed the new permission if migration didn't pick it up or was already "run"
+            $roles = ['office_in_charge', 'dm', 'bm', 'rm', 'ro'];
+            $permission = 'can_edit_user_details';
+
+            foreach ($roles as $role) {
+                $enabled = ($role === 'office_in_charge');
+                \Illuminate\Support\Facades\DB::table('role_permissions')->updateOrInsert(
+                    ['role' => $role, 'permission_key' => $permission],
+                    ['is_enabled' => $enabled, 'created_at' => now(), 'updated_at' => now()]
+                );
+            }
+
+            return "Database setup successful! Permissions updated. Go back to <a href='/profile'>Admin Controls</a>";
         } catch (\Exception $e) {
             return "Error: " . $e->getMessage();
         }

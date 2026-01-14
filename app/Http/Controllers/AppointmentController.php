@@ -13,6 +13,11 @@ class AppointmentController extends Controller
      */
     public function index(Survey $patient)
     {
+        // Permission Check
+        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // Check access
         if (!auth()->user()->canAccess($patient->creator) && auth()->user()->id !== $patient->created_by) {
             abort(403, 'Unauthorized access.');
@@ -28,6 +33,11 @@ class AppointmentController extends Controller
      */
     public function all(Request $request)
     {
+        // Permission Check
+        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $user = auth()->user();
         $downline = $user->getAllDownline();
         $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
@@ -80,6 +90,11 @@ class AppointmentController extends Controller
      */
     public function create(Survey $patient)
     {
+        // Permission Check
+        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // Check access
         if (!auth()->user()->canAccess($patient->creator) && auth()->user()->id !== $patient->created_by) {
             abort(403, 'Unauthorized access.');
@@ -93,6 +108,11 @@ class AppointmentController extends Controller
      */
     public function store(Request $request, Survey $patient)
     {
+        // Permission Check
+        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // Check access
         if (!auth()->user()->canAccess($patient->creator) && auth()->user()->id !== $patient->created_by) {
             abort(403, 'Unauthorized access.');
@@ -146,6 +166,11 @@ class AppointmentController extends Controller
      */
     public function edit(Appointment $appointment)
     {
+        // Permission Check
+        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // Check access
         $user = auth()->user();
         if ($user->id !== $appointment->created_by && !$user->canAccess($appointment->creator)) {
@@ -161,6 +186,11 @@ class AppointmentController extends Controller
      */
     public function update(Request $request, Appointment $appointment)
     {
+        // Permission Check
+        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // Check access
         $user = auth()->user();
         if ($user->id !== $appointment->created_by && !$user->canAccess($appointment->creator)) {
@@ -234,6 +264,11 @@ class AppointmentController extends Controller
      */
     public function destroy(Appointment $appointment)
     {
+        // Permission Check
+        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // Check access
         $user = auth()->user();
         if ($user->id !== $appointment->created_by && !$user->canAccess($appointment->creator)) {

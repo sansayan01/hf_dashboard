@@ -1,18 +1,129 @@
 @extends('layouts.app')
 
+@section('css')
+<style>
+    /* Humanity Foundation Premium 3D Elements */
+    
+    /* 1. Admin Save Button */
+    .admin-save-btn {
+        appearance: none;
+        background: linear-gradient(135deg, #3C50E0 0%, #2A3BB7 100%);
+        border: none;
+        border-radius: 20px;
+        color: #FFFFFF !important;
+        cursor: pointer;
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        min-height: 60px;
+        padding: 0 45px;
+        text-transform: uppercase;
+        transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+        box-shadow: 
+            0 8px 0 #1D2A8E,
+            0 15px 25px rgba(60, 80, 224, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .admin-save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+            0 10px 0 #1D2A8E,
+            0 20px 30px rgba(60, 80, 224, 0.5);
+    }
+
+    .admin-save-btn:active {
+        transform: translateY(6px);
+        box-shadow: 0 2px 0 #1D2A8E;
+    }
+
+    /* 2. 3D Dial Toggle */
+    .dial-container {
+        display: inline-flex !important;
+        background: #f1f5f9;
+        padding: 5px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        gap: 2px !important;
+    }
+
+    .dark .dial-container {
+        background: rgba(15, 23, 42, 0.5);
+        border-color: rgba(255,255,255,0.05);
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .dial-label {
+        margin: 0 !important;
+        padding: 0 !important;
+        cursor: pointer;
+    }
+
+    .dial-input {
+        display: none !important;
+    }
+
+    .dial-btn {
+        width: 65px;
+        height: 36px;
+        line-height: 36px;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 900;
+        border-radius: 10px;
+        color: #64748b;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Active ON State */
+    .dial-input-on:checked + .dial-btn-on {
+        background: #22c55e;
+        color: white;
+        box-shadow: 
+            0 4px 0 #15803d,
+            0 8px 20px rgba(34, 197, 94, 0.3);
+        transform: translateY(-2px);
+    }
+
+    /* Active OFF State */
+    .dial-input-off:checked + .dial-btn-off {
+        background: #ef4444;
+        color: white;
+        box-shadow: 
+            0 4px 0 #b91c1c,
+            0 8px 20px rgba(239, 68, 68, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .dial-btn:active {
+        transform: translateY(2px) !important;
+        box-shadow: none !important;
+    }
+
+    .dark .dial-btn {
+        color: #94a3b8;
+    }
+</style>
+@endsection
+
 @section('content')
     <div class="max-w-6xl mx-auto px-4 py-8">
         <!-- Header -->
         <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
-                    {{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'Admin Controls' : 'Account Settings' }}
+                    {{ auth()->user()->isSuperAdmin() ? 'Admin Controls' : 'Account Settings' }}
                 </h1>
                 <p class="text-slate-500 dark:text-slate-400 font-medium mt-1">
-                    {{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'Manage global system permissions and role access levels.' : 'Manage your professional profile and security credentials.' }}
+                    {{ auth()->user()->isSuperAdmin() ? 'Manage global system permissions and role access levels.' : 'Manage your professional profile and security credentials.' }}
                 </p>
             </div>
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+            @if(auth()->user()->isSuperAdmin())
                 <div class="flex items-center space-x-2">
                     <span class="px-3 py-1 bg-accent/10 text-accent text-[10px] font-black uppercase tracking-widest rounded-full border border-accent/20">System Administrator</span>
                 </div>
@@ -28,7 +139,7 @@
             </div>
         @endif
 
-        @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+        @if(auth()->user()->isSuperAdmin())
             <!-- Admin Permissions Interface -->
             <div class="bg-white dark:bg-darkcard rounded-[2rem] shadow-xl border border-slate-100 dark:border-white/5 overflow-hidden">
                 <form action="{{ route('profile.permissions') }}" method="POST">
@@ -82,16 +193,20 @@
                                             <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">{{ $data['label'] }} Permissions</h2>
                                             <p class="text-slate-500 font-medium">Define what users with the {{ $data['label'] }} role are allowed to perform in the system.</p>
                                         </div>
-                                        <div class="flex items-center space-x-4 bg-slate-50 dark:bg-white/5 px-6 py-4 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm">
-                                            <div class="text-right">
+                                        <div class="flex items-center space-x-6 bg-slate-50/80 dark:bg-white/[0.03] px-8 py-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm">
+                                            <div class="hidden sm:block">
+                                                <p class="text-[10px] font-black uppercase tracking-widest text-accent mb-0.5">Global Controller</p>
+                                                <p class="text-xs font-bold text-slate-600 dark:text-slate-300">Permit All Actions Currently Shown</p>
+                                            </div>
+                                            <div class="sm:hidden">
                                                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Master Control</p>
-                                                <p class="text-xs font-bold text-slate-600 dark:text-slate-300">Permit All Actions</p>
                                             </div>
-                                            <div class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" onchange="toggleAllPermissions('{{ $key }}', this.checked)" class="sr-only peer toggle-all-checkbox">
-                                                <div class="w-11 h-6 bg-rose-500 peer-focus:outline-none rounded-full dark:bg-rose-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500 transition-all"></div>
-                                            </div>
+                                            <x-dial-toggle 
+                                                id="master_toggle_{{ $key }}" 
+                                                onchange="toggleAllPermissions('{{ $key }}', this.checked)" 
+                                            />
                                         </div>
+
                                     </div>
 
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -105,17 +220,16 @@
                                                     <p class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-1">{{ str_replace('_', ' ', $perm->permission_key) }}</p>
                                                     <p class="text-[10px] text-slate-400 font-bold uppercase">Grant Access</p>
                                                 </div>
-                                                <div class="relative inline-flex items-center cursor-pointer">
-                                                    <input type="checkbox" name="permissions[{{ $key }}][{{ $perm->permission_key }}]" value="1" 
-                                                        class="sr-only peer role-permission-checkbox" {{ $perm->is_enabled ? 'checked' : '' }}>
-                                                    <div class="w-11 h-6 bg-rose-500 peer-focus:outline-none rounded-full dark:bg-rose-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500 transition-all"></div>
-                                                </div>
+                                                <x-dial-toggle 
+                                                    name="permissions[{{ $key }}][{{ $perm->permission_key }}]" 
+                                                    :checked="$perm->is_enabled" 
+                                                />
                                             </label>
                                         @endforeach
                                     </div>
                                     
                                     <div class="mt-12 pt-8 border-t border-slate-100 dark:border-white/5 flex justify-end">
-                                        <button type="submit" class="px-10 py-4 bg-accent text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-accent/20">
+                                        <button type="submit" class="admin-save-btn">
                                             Save All Permissions
                                         </button>
                                     </div>
@@ -191,6 +305,21 @@
                                         <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Email Address</label>
                                         <input type="email" value="{{ $user->email }}" disabled class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 text-sm font-medium text-slate-400 dark:text-slate-500 cursor-not-allowed">
                                     </div>
+                                    <div class="space-y-1.5 md:col-span-2">
+                                        <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Profile Picture</label>
+                                        <div class="mt-1 flex items-center gap-4">
+                                            <div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-white/10">
+                                                @if ($user->profile && $user->profile->profile_picture)
+                                                    <img src="{{ asset('storage/' . $user->profile->profile_picture) }}" class="w-full h-full object-cover">
+                                                @else
+                                                    <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold">
+                                                        {{ substr($user->profile->full_name ?? $user->email, 0, 1) }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <input type="file" name="profile_picture" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-accent/10 file:text-accent hover:file:bg-accent/20 transition-all">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="pt-4 flex justify-end">
                                     <button type="submit" class="px-8 py-3 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all">Save Changes</button>
@@ -234,7 +363,7 @@
 @endsection
 
 @section('js')
-    @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+    @if(auth()->user()->isSuperAdmin())
     <script>
         function switchTab(roleId) {
             // Hide all content
@@ -266,8 +395,18 @@
             const checkboxes = container.querySelectorAll('.role-permission-checkbox');
             checkboxes.forEach(cb => {
                 cb.checked = isChecked;
+                
+                // Update visual state of dial if present
+                const dial = cb.closest('.dial-container');
+                if (dial) {
+                    const radioOff = dial.querySelector('.dial-input-off');
+                    const radioOn = dial.querySelector('.dial-input-on');
+                    if (isChecked && radioOn) radioOn.checked = true;
+                    if (!isChecked && radioOff) radioOff.checked = true;
+                }
             });
         }
+
 
         // Initialize with first tab
         document.addEventListener('DOMContentLoaded', () => {

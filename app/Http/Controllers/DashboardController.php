@@ -25,16 +25,20 @@ class DashboardController extends Controller
             $user = $currentUser;
         }
 
+        // Check Permissions
+        $canViewDownline = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_view_downline');
+        $canViewReports = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_view_reports');
+
         // Optimization: Fetch IDs once
-        $downlineIds = $user->getAllDownlineIds();
+        $downlineIds = $canViewDownline ? $user->getAllDownlineIds() : [];
         $allAccessibleIds = array_merge($downlineIds, [$user->id]);
 
         // Optimized Stats
         $stats = [
             'total_downline' => count($downlineIds),
-            'pending_approvals' => $user->getPendingApprovalsCount(),
-            'direct_children' => $user->children()->count(),
-            'active_downline' => User::whereIn('id', $downlineIds)->where('status', 'active')->count(),
+            'pending_approvals' => $user->getPendingApprovalsCount(), // This handles its own permission logic in User model
+            'direct_children' => $canViewDownline ? $user->children()->count() : 0,
+            'active_downline' => count($downlineIds) > 0 ? User::whereIn('id', $downlineIds)->where('status', 'active')->count() : 0,
         ];
 
         // Optimized Reports using conditional aggregation
@@ -43,30 +47,33 @@ class DashboardController extends Controller
         $startOfMonth = $now->copy()->startOfMonth();
         $today = $now->copy()->startOfDay();
 
-        $surveyStats = \App\Models\Survey::whereIn('created_by', $allAccessibleIds)
-            ->selectRaw("
-                COUNT(*) as total,
-                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
-                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
-                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
-            ", [$today, $startOfWeek, $startOfMonth])
-            ->first();
+        $reports = [];
+        if ($canViewReports) {
+            $surveyStats = \App\Models\Survey::whereIn('created_by', $allAccessibleIds)
+                ->selectRaw("
+                    COUNT(*) as total,
+                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
+                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
+                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
+                ", [$today, $startOfWeek, $startOfMonth])
+                ->first();
 
-        $appStats = \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
-            $q->whereIn('created_by', $allAccessibleIds);
-        })
-            ->selectRaw("
-                COUNT(*) as total,
-                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
-                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
-                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
-            ", [$today, $startOfWeek, $startOfMonth])
-            ->first();
+            $appStats = \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
+                $q->whereIn('created_by', $allAccessibleIds);
+            })
+                ->selectRaw("
+                    COUNT(*) as total,
+                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
+                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
+                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
+                ", [$today, $startOfWeek, $startOfMonth])
+                ->first();
 
-        $reports = [
-            'surveys' => $surveyStats->toArray(),
-            'appointments' => $appStats->toArray()
-        ];
+            $reports = [
+                'surveys' => $surveyStats ? $surveyStats->toArray() : [],
+                'appointments' => $appStats ? $appStats->toArray() : []
+            ];
+        }
 
         // Calculate the most recent 3 AM IST
         $startTime = now()->timezone('Asia/Kolkata');
@@ -105,6 +112,12 @@ class DashboardController extends Controller
     public function getHierarchyTree(Request $request)
     {
         $user = auth()->user();
+
+        // Permission Check
+        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_view_downline')) {
+            abort(403);
+        }
+
         $targetUserId = $request->get('user_id', $user->id);
         $targetUser = User::findOrFail($targetUserId);
 
@@ -123,6 +136,11 @@ class DashboardController extends Controller
         try {
             $user = User::findOrFail($userId);
             $currentUser = auth()->user();
+
+            // Permission Check
+            if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_view_downline')) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
 
             if (!$currentUser->canAccess($user)) {
                 return response()->json(['error' => 'Unauthorized'], 403);

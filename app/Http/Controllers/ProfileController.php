@@ -17,7 +17,7 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = auth()->user();
-        $is_admin = $user->isSuperAdmin() || $user->isOfficeInCharge();
+        $is_admin = $user->isSuperAdmin();
 
         if ($is_admin) {
             $rolePermissions = RolePermission::all()->groupBy('role');
@@ -33,7 +33,7 @@ class ProfileController extends Controller
     public function updatePermissions(Request $request)
     {
         $currentUser = auth()->user();
-        if (!$currentUser->isSuperAdmin() && !$currentUser->isOfficeInCharge()) {
+        if (!$currentUser->isSuperAdmin()) {
             abort(403);
         }
 

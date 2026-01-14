@@ -29,7 +29,8 @@ return new class extends Migration {
             'can_delete_users',
             'can_create_surveys',
             'can_view_reports',
-            'can_manage_appointments'
+            'can_manage_appointments',
+            'can_edit_user_details'
         ];
 
         foreach ($roles as $role) {
@@ -40,7 +41,7 @@ return new class extends Migration {
                 // Define some sane defaults
                 if ($role === 'office_in_charge') {
                     $enabled = true;
-                } elseif ($role === 'dm' && in_array($permission, ['can_create_users', 'can_view_downline', 'can_create_surveys', 'can_view_reports', 'can_manage_appointments'])) {
+                } elseif ($role === 'dm' && in_array($permission, ['can_create_users', 'can_view_downline', 'can_create_surveys', 'can_view_reports', 'can_manage_appointments', 'can_edit_user_details'])) {
                     $enabled = true;
                 } elseif ($role === 'bm' && in_array($permission, ['can_create_users', 'can_view_downline', 'can_create_surveys', 'can_manage_appointments'])) {
                     $enabled = true;

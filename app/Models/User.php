@@ -171,6 +171,13 @@ class User extends Authenticatable
         return RolePermission::check($this->designation, 'can_create_users');
     }
 
+    public function canEditUserDetails()
+    {
+        if ($this->isSuperAdmin())
+            return true;
+        return RolePermission::check($this->designation, 'can_edit_user_details');
+    }
+
     public function canApprove(User $user)
     {
         if ($this->isSuperAdmin())
@@ -327,18 +334,28 @@ class User extends Authenticatable
             return true;
         }
 
-        // Office In-Charge can edit everyone EXCEPT Super Admin
-        if ($this->isOfficeInCharge()) {
-            return !$targetUser->isSuperAdmin();
+        // Self-edit is allowed (profile section handles specific field restrictions)
+        if ($this->id === $targetUser->id) {
+            return true;
         }
 
-        // After approval (active status), ONLY Super Admin or Office In-Charge can edit
+        // Check for specific edit permission (Applies to all non-Super Admins)
+        if ($this->canEditUserDetails()) {
+            // Cannot edit Super Admin even with permission
+            if ($targetUser->isSuperAdmin()) {
+                return false;
+            }
+
+            // Can edit if they have permission and target is in downline (or accessible)
+            return $this->canAccess($targetUser);
+        }
+
+        // By default, if active, only SA or those with specific permission can edit
         if ($targetUser->status === 'active') {
             return false;
         }
 
-        // While pending, managers can edit their direct or indirect downline
-        // (Self-edit is also allowed here if pending, but hierarchy is the focus)
+        // While pending, users with access can edit (implied ability for managers to fix submissions)
         return $this->canAccess($targetUser);
     }
 

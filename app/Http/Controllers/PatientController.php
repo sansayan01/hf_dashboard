@@ -15,6 +15,11 @@ class PatientController extends Controller
     {
         $user = Auth::user();
 
+        // Permission check
+        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_create_surveys')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // Get all members this user is allowed to see data for (Self + All Downline)
         $downline = $user->getAllDownline();
         $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();

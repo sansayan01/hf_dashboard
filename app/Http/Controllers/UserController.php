@@ -477,6 +477,11 @@ class UserController extends Controller
         $currentUser = auth()->user();
         $user = User::findOrFail($id);
 
+        // Check if user has downline access (Strict Hierarchical Check)
+        if (!$currentUser->canAccess($user)) {
+            abort(403, 'Unauthorized: You can only approve members in your downline.');
+        }
+
         // Check if user can approve
         if (!$currentUser->canApprove($user)) {
             abort(403, 'You do not have permission to approve this user.');
@@ -526,6 +531,11 @@ class UserController extends Controller
         $count = 0;
 
         foreach ($users as $user) {
+            // Strict Downline Check for each user
+            if (!$currentUser->canAccess($user)) {
+                continue; // Skip users not in downline
+            }
+
             $user->update(['status' => 'active']);
 
             ActivityLog::logActivity(

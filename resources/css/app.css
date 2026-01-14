@@ -1,3 +1,88 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Humanity Foundation Custom Styles */
+
+/* 3D Dial Toggle - Exact Match to Image */
+.dial-container {
+    display: inline-flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+    padding: 10px;
+    background: transparent !important;
+    border: none !important;
+}
+
+.dial-label {
+    margin: 0 !important;
+    padding: 0 !important;
+    cursor: pointer;
+    position: relative;
+    height: 50px;
+    /* Account for shadow depth */
+}
+
+.dial-input {
+    display: none !important;
+}
+
+.dial-btn {
+    width: 80px;
+    height: 40px;
+    background: #111;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 40px;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    text-transform: uppercase;
+    border: 2px solid transparent;
+}
+
+/* ON Button - Default State (Inactive) */
+.dial-btn-on {
+    border-color: #0f0;
+    box-shadow:
+        0 5px #0a0,
+        0 10px #050;
+}
+
+/* OFF Button - Default State (Inactive) */
+.dial-btn-off {
+    border-color: #444;
+    box-shadow:
+        0 5px #333,
+        0 10px #222;
+}
+
+/* Active State for ON Button */
+.dial-input:checked+.dial-btn-on {
+    background: rgb(86, 235, 0);
+    color: #000;
+    box-shadow:
+        0 5px rgb(5, 153, 0),
+        0 7px rgb(17, 102, 0);
+    transform: translateY(3px);
+    border-color: rgb(144, 255, 144);
+}
+
+/* Active State for OFF Button */
+.dial-input:checked+.dial-btn-off {
+    background: #ff0000;
+    color: #fff;
+    box-shadow:
+        0 5px #900,
+        0 7px #600;
+    transform: translateY(3px);
+    border-color: rgb(255, 138, 138);
+}
+
+/* Force horizontal layout even in small containers */
+.dial-container .dial-label {
+    display: block !important;
+}
+
+/* Remove hover scale to keep the 3D feel professional */
+.dial-btn:hover {
+    filter: brightness(1.1);
+}
