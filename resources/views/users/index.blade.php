@@ -26,6 +26,24 @@
                     </svg>
                     <span>Filter</span>
                 </button>
+                @if(auth()->user()->isSuperAdmin())
+                    <a href="{{ route('users.bulk-download-id-cards') }}" target="_blank"
+                        class="px-4 py-2 bg-violet-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-violet-600/10 hover:bg-violet-700 transition flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span>All ID Cards</span>
+                    </a>
+                    <a href="{{ route('users.print-all-id-cards') }}" target="_blank"
+                        class="px-4 py-2 bg-pink-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-pink-600/10 hover:bg-pink-700 transition flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h10a2 2 0 002-2v-4H5v4a2 2 0 002 2zM12 17h.01M9 16h6" />
+                        </svg>
+                        <span>Print A4</span>
+                    </a>
+                @endif
                 <a href="{{ route('users.create') }}"
                     class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
                     + Add Member
@@ -92,12 +110,15 @@
 
                     <!-- Status -->
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Status Filter</label>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Status
+                            Filter</label>
                         <select name="status"
                             class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
                             <option value="">All Status</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active Members</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending Approvals</option>
+                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active Members
+                            </option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending Approvals
+                            </option>
                         </select>
                     </div>
 
@@ -145,7 +166,7 @@
                                 @if(auth()->user()->isSuperAdmin())
                                     <td class="px-6 py-4">
                                         @if($u->status === 'pending')
-                                            <input type="checkbox" name="selected_users[]" value="{{ $u->id }}" 
+                                            <input type="checkbox" name="selected_users[]" value="{{ $u->id }}"
                                                 class="user-checkbox w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent">
                                         @else
                                             <div class="w-4 h-4"></div>
@@ -223,6 +244,15 @@
                                         @endif
 
                                         @if(auth()->user()->isSuperAdmin())
+                                            <a href="{{ route('users.id-card', $u->id) }}" target="_blank"
+                                                class="p-2 text-violet-500 hover:bg-violet-500/10 rounded-lg transition"
+                                                title="Generate ID Card">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                </svg>
+                                            </a>
+
                                             <form action="{{ route('users.destroy', $u->id) }}" method="POST"
                                                 onsubmit="return confirm('Move to BIN?')">
                                                 @csrf
@@ -262,17 +292,19 @@
             </div>
 
             <!-- Bulk Action Bar -->
-            <div id="bulk-action-bar" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div id="bulk-action-bar"
+                class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 flex items-center space-x-6">
                     <div class="px-4 border-r border-slate-700">
                         <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Selected</p>
                         <p class="text-white font-black text-lg" id="selected-count">0</p>
                     </div>
                     <div class="flex items-center space-x-3">
-                        <button type="submit" 
+                        <button type="submit"
                             class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center space-x-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M5 13l4 4L19 7" />
                             </svg>
                             <span>Approve Selected</span>
                         </button>
@@ -284,11 +316,11 @@
                 </div>
             </div>
         </form>
-            @if($users instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                <div class="p-6 border-t border-slate-100 italic">
-                    {{ $users->links() }}
-                </div>
-            @endif
+        @if($users instanceof \Illuminate\Pagination\LengthAwarePaginator)
+            <div class="p-6 border-t border-slate-100 italic">
+                {{ $users->links() }}
+            </div>
+        @endif
     </div>
 @endsection
 
@@ -318,7 +350,7 @@
             }
 
             if (selectAll) {
-                selectAll.addEventListener('change', function() {
+                selectAll.addEventListener('change', function () {
                     checkboxes.forEach(cb => {
                         cb.checked = selectAll.checked;
                     });
@@ -330,7 +362,7 @@
                 cb.addEventListener('change', updateBulkBar);
             });
 
-            window.cancelSelection = function() {
+            window.cancelSelection = function () {
                 checkboxes.forEach(cb => cb.checked = false);
                 if (selectAll) selectAll.checked = false;
                 updateBulkBar();

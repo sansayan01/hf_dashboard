@@ -234,9 +234,12 @@ class UserController extends Controller
             // Determine designation and parent
             if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
                 $designation = $request->designation;
-                if ($designation === 'super_admin' || $designation === 'office_in_charge') {
-                    // Super Admin and Office In-Charge don't need a parent
+                if ($designation === 'super_admin') {
+                    // Super Admin doesn't need a parent
                     $parentId = null;
+                } elseif ($designation === 'office_in_charge') {
+                    // Office In-Charge reports to Upline
+                    $parentId = $request->upline_id;
                 } elseif ($designation === 'hs') {
                     // HS reports to current user (SA/OI) or is top level. 
                     // Per req: "HS will inform to super admin".
@@ -382,14 +385,14 @@ class UserController extends Controller
     public function show($id)
     {
         $currentUser = auth()->user();
-        $user = User::with(['profile', 'bankDetails', 'parent.profile', 'children.profile'])->findOrFail($id);
+        $user = User::with(['profile', 'bankDetails', 'parent.profile', 'children.profile', 'upline.profile'])->findOrFail($id);
 
         // Check access
         if (!$currentUser->canAccess($user)) {
             abort(403, 'Unauthorized access');
         }
 
-        return view('users.show', compact('user'));
+        return view('users.show', compact('user', 'currentUser'));
     }
 
     /**
@@ -417,15 +420,24 @@ class UserController extends Controller
         ];
 
         $potentialParents = [];
+        $potentialUplines = [];
         if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
             $potentialParents = User::whereIn('designation', ['super_admin', 'hs', 'dm', 'bm', 'rm'])
                 ->with('profile')
                 ->active()
                 ->get()
                 ->groupBy('designation');
+
+            if ($currentUser->isSuperAdmin()) {
+                $potentialUplines = User::whereIn('designation', ['super_admin', 'hs', 'dm', 'bm', 'rm'])
+                    ->with('profile')
+                    ->active()
+                    ->get()
+                    ->groupBy('designation');
+            }
         }
 
-        return view('users.edit', compact('user', 'allDesignations', 'potentialParents'));
+        return view('users.edit', compact('user', 'allDesignations', 'potentialParents', 'potentialUplines'));
     }
 
     /**
@@ -466,6 +478,12 @@ class UserController extends Controller
             $rules['employee_id'] = 'required|string|unique:users,employee_id,' . $user->id;
             $rules['designation'] = 'sometimes|required|string';
             $rules['parent_id'] = 'nullable|exists:users,id';
+
+            // Office In-Charge specific validation (only Super Admin)
+            if ($currentUser->isSuperAdmin()) {
+                $rules['upline_designation'] = 'required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
+                $rules['upline_id'] = 'required_if:designation,office_in_charge|exists:users,id';
+            }
         }
 
         $validated = $request->validate($rules);
@@ -494,8 +512,17 @@ class UserController extends Controller
                 $parentId = $request->parent_id;
 
                 // Validate Logic
-                if ($designation === 'super_admin' || $designation === 'office_in_charge') {
+                if ($designation === 'super_admin') {
                     $parentId = null;
+                } elseif ($designation === 'office_in_charge') {
+                    // Office In-Charge reports to Upline
+                    $parentId = $request->upline_id ?? $user->parent_id; // Use new upline or keep current if not provided? 
+                    // IMPORTANT: validation in rule ensures upline_id is present if designation is OIC in some cases, 
+                    // but here we rely on request upline_id if we are setting designation/upline. 
+                    // If just updating designation to OIC, upline_id should be in request.
+                    if ($request->has('upline_id')) {
+                        $parentId = $request->upline_id;
+                    }
                 } elseif ($designation === 'hs') {
                     $parentId = $currentUser->id; // Assign to admin updating it safely? Or null? Let's use current admin or null.
                     // If changing to HS, they become top level.
@@ -548,6 +575,30 @@ class UserController extends Controller
                         throw new \Exception('RO must match RM parent.');
                 }
                 $userData['parent_id'] = $parentId;
+            }
+
+            // Update Office In-Charge Upline Info (Super Admin Only)
+            if ($currentUser->isSuperAdmin()) {
+                $targetDesignation = $request->input('designation', $user->designation);
+                if ($targetDesignation === 'office_in_charge') {
+                    if ($request->has('upline_id')) {
+                        $userData['upline_id'] = $request->upline_id;
+
+                        // Validation
+                        $uplineUser = User::find($request->upline_id);
+                        if (!$uplineUser) {
+                            throw new \Exception('Selected upline user not found.');
+                        }
+
+                        // Check designaiton match if provided
+                        if ($request->has('upline_designation')) {
+                            $userData['upline_designation'] = $request->upline_designation;
+                            if ($uplineUser->designation !== $request->upline_designation) {
+                                throw new \Exception('The selected upline does not match the upline designation.');
+                            }
+                        }
+                    }
+                }
             }
 
             if ($request->filled('password')) {
@@ -851,5 +902,57 @@ class UserController extends Controller
         );
 
         return back()->with('success', 'User permanently deleted.');
+    }
+
+    /**
+     * Generate ID Card View
+     */
+    public function idCard(User $user)
+    {
+        // Only Super Admin can generate ID cards for now
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized. Only Super Admin can generate ID cards.');
+        }
+
+        return view('users.id_card', compact('user'));
+    }
+
+    /**
+     * Bulk Download All ID Cards
+     */
+    public function bulkDownloadIdCards()
+    {
+        // Only Super Admin can bulk download
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized. Only Super Admin can bulk download ID cards.');
+        }
+
+        // Get all active users that the admin can access
+        $users = User::with('profile')
+            ->where('status', 'active')
+            ->get();
+
+        return view('users.bulk_id_cards', compact('users'));
+    }
+
+    /**
+     * Print all ID cards in A4 grid
+     */
+    public function printAllIdCards()
+    {
+        // Only Super Admin can print IDs
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Unauthorized. Only Super Admin can print ID cards.');
+        }
+
+        // Get all active users who HAVE a profile picture
+        $users = User::whereHas('profile', function ($query) {
+            $query->whereNotNull('profile_picture');
+        })
+            ->with('profile')
+            ->where('status', 'active')
+            ->get();
+
+        return view('users.printable_id_cards', compact('users'));
     }
 }

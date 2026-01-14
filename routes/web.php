@@ -40,6 +40,11 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/trash/bin', [UserController::class, 'bin'])->name('bin');
         Route::post('/{id}/restore', [UserController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force', [UserController::class, 'forceDelete'])->name('force-delete');
+
+        // ID Card
+        Route::get('/{user}/id-card', [UserController::class, 'idCard'])->name('id-card');
+        Route::get('/bulk/download-id-cards', [UserController::class, 'bulkDownloadIdCards'])->name('bulk-download-id-cards');
+        Route::get('/bulk/print-all', [UserController::class, 'printAllIdCards'])->name('print-all-id-cards');
     });
 
     // Survey Management

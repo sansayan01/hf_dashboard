@@ -243,7 +243,11 @@
                 <div class="p-6 flex-1 bg-slate-50/30 dark:bg-transparent overflow-auto relative" id="tree-canvas">
                     <div id="tree-zoom-container" class="origin-top-left transition-transform duration-200">
                         <div id="tree-root" class="space-y-2">
-                            @include('dashboard.partials.tree_item', ['item' => $user])
+                            @if($user->isOfficeInCharge() && $user->upline)
+                                @include('dashboard.partials.tree_item', ['item' => $user->upline])
+                            @else
+                                @include('dashboard.partials.tree_item', ['item' => $user])
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -737,7 +741,7 @@
 
         // Auto-expand root
         document.addEventListener('DOMContentLoaded', () => {
-            const rootId = "{{ $user->id }}";
+            const rootId = "{{ ($user->isOfficeInCharge() && $user->upline) ? $user->upline->id : $user->id }}";
             const rootChildren = document.getElementById(`children-${rootId}`);
             if (rootChildren) {
                 // Manually trigger toggle for first load to fetch children

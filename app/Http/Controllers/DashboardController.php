@@ -33,11 +33,16 @@ class DashboardController extends Controller
         $downlineIds = $canViewDownline ? $user->getAllDownlineIds() : [];
         $allAccessibleIds = array_merge($downlineIds, [$user->id]);
 
+        // For OIC, also include Upline's own ID in accessible list so we can see their surveys/reports
+        if ($user->isOfficeInCharge() && $user->upline_id) {
+            $allAccessibleIds[] = $user->upline_id;
+        }
+
         // Optimized Stats
         $stats = [
             'total_downline' => count($downlineIds),
             'pending_approvals' => $user->getPendingApprovalsCount(), // This handles its own permission logic in User model
-            'direct_children' => $canViewDownline ? $user->children()->count() : 0,
+            'direct_children' => $canViewDownline ? $user->getDashboardChildrenCount() : 0,
             'active_downline' => count($downlineIds) > 0 ? User::whereIn('id', $downlineIds)->where('status', 'active')->count() : 0,
         ];
 
@@ -101,7 +106,12 @@ class DashboardController extends Controller
         $isViewAs = $currentUser->id !== $user->id;
 
         // Eager load only immediate children to speed up initial load
-        $user->load(['children.profile']);
+        // Eager load only immediate children to speed up initial load
+        if ($user->isOfficeInCharge() && $user->upline) {
+            $user->setRelation('children', collect([$user->upline]));
+        } else {
+            $user->load(['children.profile']);
+        }
 
         return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'pendingApprovals', 'isViewAs'));
     }

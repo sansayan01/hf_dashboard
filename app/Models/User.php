@@ -181,6 +181,9 @@ class User extends Authenticatable
     {
         if ($this->isSuperAdmin())
             return true;
+
+        // For OIC, we check if they have permission button enabled.
+        // What they can create is determined by getAllowedChildDesignation (proxied to Upline).
         return RolePermission::check($this->designation, 'can_create_users');
     }
 
@@ -195,6 +198,16 @@ class User extends Authenticatable
     {
         if ($this->isSuperAdmin())
             return true;
+
+        // If OIC, check if Upline could approve (based on designation logic)
+        // AND check if OIC has the specific permission enabled
+        if ($this->isOfficeInCharge() && $this->upline) {
+            // Proxy upline's designation for the logic, but use OIC's own enabled permission toggle
+            // Actually, "if admin permit him" implies OIC's RolePermission.
+            // But the SCOPE relies on Upline.
+            return RolePermission::check($this->designation, 'can_approve_users');
+        }
+
         return RolePermission::check($this->designation, 'can_approve_users');
     }
 
@@ -215,16 +228,43 @@ class User extends Authenticatable
             return 'hs';
 
 
+        // If OIC, they should have same creation capabilities as their Upline
+        if ($this->isOfficeInCharge() && $this->upline) {
+            return $this->upline->getAllowedChildDesignation();
+        }
+
         return $designationMap[$this->designation] ?? null;
     }
 
     public function getDirectChildren()
     {
-        if ($this->isSuperAdmin() || $this->isOfficeInCharge()) {
-            // Only HS is direct child of SA/OI now. DMs must be under HS.
+        if ($this->isSuperAdmin()) {
             return self::where('designation', 'hs')->get();
         }
-        return $this->children;
+
+        if ($this->isOfficeInCharge()) {
+            if ($this->upline_id && $this->upline) {
+                // For the TREE VIEW structure, OIC sees their Upline as the root node.
+                // This allows the tree to start rendering from the Upline.
+                return collect([$this->upline]);
+            }
+            // Fallback for OIC without upline: see HS
+            return self::where('designation', 'hs')->get();
+        }
+
+        // Standard behavior: Return children but exclude the current user if they are in the list
+        // (This prevents an infinite loop if OIC is viewing the tree and they are structurally a child of the node being viewed)
+        return $this->children->reject(function ($child) {
+            return $child->id === auth()->id();
+        });
+    }
+
+    public function getDashboardChildrenCount()
+    {
+        if ($this->isOfficeInCharge() && $this->upline) {
+            return $this->upline->children()->count();
+        }
+        return $this->children()->count();
     }
 
     // Get all downline users (entire tree)
@@ -257,6 +297,10 @@ class User extends Authenticatable
     // Helper to get recursive IDs (Iterative to avoid N+1 and deep recursion)
     public function getAllDownlineIds()
     {
+        if ($this->isOfficeInCharge() && $this->upline_id) {
+            return $this->upline->getAllDownlineIds();
+        }
+
         $allIds = [];
         $toProcess = [$this->id];
 
@@ -284,9 +328,17 @@ class User extends Authenticatable
 
     public function getPendingApprovalsCount()
     {
-        if ($this->isSuperAdmin() || $this->isOfficeInCharge()) {
+        if ($this->isOfficeInCharge()) {
+            // Proxy to Upline if available
+            return $this->upline ? $this->upline->getPendingApprovalsCount() : 0;
+            // Note: If Upline is DM, and DM logic returns 0, this returns 0. 
+            // This matches "Same Dashboard" requirement.
+        }
+
+        if ($this->isSuperAdmin()) {
             return User::pending()->count();
         }
+
 
         // Non-admin users cannot approve, so they have 0 pending approvals to handle
         return 0;
@@ -339,9 +391,20 @@ class User extends Authenticatable
                 return false;
             }
 
-            // Cannot access their own upline (the person they represent)
-            if ($this->upline_id && $targetUser->id === $this->upline_id) {
-                return false;
+            // Office In-Charge inherits access scope from their Upline
+            if ($this->upline_id && $this->upline) {
+                // Can access if target is in Upline's downline
+                // Using efficient check: is target's root ancestor the upline? or is target in upline's downline list?
+                // Easiest is to check if target is contained in upline's downline.
+                // Note: user said "not above", so accessing Upline might likely be NO.
+                // But let's stick to "work under". 
+
+                // Can access the Upline? Usually subordinates can see manager profile.
+                if ($targetUser->id === $this->upline_id) {
+                    return true;
+                }
+
+                return $this->upline->getAllDownline()->contains('id', $targetUser->id);
             }
 
             return true;

@@ -491,7 +491,32 @@
                             option.selected = true;
                         }
                         uplinePersonSelect.add(option);
+                        uplinePersonSelect.add(option);
                     });
+                }
+                
+                // Sync parent if Office In-Charge is selected
+                if (designationSelect.value === 'office_in_charge') {
+                     const selectedOption = uplinePersonSelect.options[uplinePersonSelect.selectedIndex];
+                     parentSelect.innerHTML = '';
+                     if (uplinePersonSelect.value) {
+                         parentSelect.add(new Option(selectedOption.text, selectedOption.value, true, true));
+                     } else {
+                         parentSelect.add(new Option("Auto-assigned from Upline", ""));
+                     }
+                }
+            });
+            
+            // Allow manual upline change to update parent
+            uplinePersonSelect.addEventListener('change', function() {
+                if (designationSelect.value === 'office_in_charge') {
+                     const selectedOption = this.options[this.selectedIndex];
+                     parentSelect.innerHTML = '';
+                     if (this.value) {
+                         parentSelect.add(new Option(selectedOption.text, selectedOption.value, true, true));
+                     } else {
+                         parentSelect.add(new Option("Auto-assigned from Upline", ""));
+                     }
                 }
             });
             @endif
@@ -527,14 +552,30 @@
                 }
                 @endif
 
-                // Roles that don't need manual parent selection (Top Level or Auto-assigned)
-                if (designation === 'super_admin' || designation === 'office_in_charge' || designation === 'hs') {
+                // Roles that don't need manual parent selection (Top Level)
+                if (designation === 'super_admin' || designation === 'hs') {
                     parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
                     parentSelect.required = false;
                     parentSelect.closest('div').classList.add('opacity-50');
+                    parentSelect.disabled = true;
+                } else if (designation === 'office_in_charge') {
+                    // Office In-Charge gets parent from Upline
+                    parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
+                    parentSelect.required = false;
+                    parentSelect.closest('div').classList.add('opacity-50');
+                    parentSelect.disabled = true;
+                    
+                    // Trigger sync if we have a value
+                    if (document.getElementById('upline-person-select').value) {
+                        const ups = document.getElementById('upline-person-select');
+                        const opt = ups.options[ups.selectedIndex];
+                        parentSelect.innerHTML = '';
+                        parentSelect.add(new Option(opt.text, opt.value, true, true));
+                    }
                 } else {
                     parentSelect.required = true;
                     parentSelect.closest('div').classList.remove('opacity-50');
+                    parentSelect.disabled = false;
 
                     let targetParentDesignation = '';
                     if (designation === 'dm') targetParentDesignation = 'hs';
