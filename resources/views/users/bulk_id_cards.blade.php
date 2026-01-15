@@ -211,7 +211,7 @@
 
                     <div class="profile-container">
                         @if($user->profile && $user->profile->profile_picture)
-                            <img src="{{ asset('storage/' . $user->profile->profile_picture) }}" alt="Profile"
+                            <img src="{{ $user->profile->getProfilePictureUrl() }}" alt="Profile"
                                 class="profile-img">
                         @else
                             <div class="landscape">

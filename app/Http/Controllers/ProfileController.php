@@ -20,7 +20,12 @@ class ProfileController extends Controller
         $is_admin = $user->isSuperAdmin();
 
         if ($is_admin) {
-            $rolePermissions = RolePermission::all()->groupBy('role');
+            try {
+                $rolePermissions = RolePermission::all()->groupBy('role');
+            } catch (\Exception $e) {
+                // Fail-safe: If table missing, return empty collection so page doesn't crash
+                $rolePermissions = collect();
+            }
             return view('profile.edit', compact('user', 'rolePermissions'));
         }
 
@@ -81,6 +86,10 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = auth()->user();
+
+        if (!$user->canEdit($user)) {
+            abort(403, 'Permission denied: You do not have permission to edit your profile.');
+        }
 
         $request->validate([
             'full_name' => 'required|string|max:255',

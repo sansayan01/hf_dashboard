@@ -16,19 +16,20 @@
                     <!-- Profile Picture -->
                     <div class="w-32 h-32 rounded-3xl bg-white p-2 shadow-xl ring-1 ring-slate-100">
                         <div class="w-full h-full rounded-2xl overflow-hidden bg-slate-50 flex items-center justify-center">
-                            @if($user->profile->profile_picture)
-                                <img src="{{ asset('storage/' . $user->profile->profile_picture) }}"
-                                    class="w-full h-full object-cover">
+                            @if($user->profile && $user->profile->profile_picture)
+                                <img src="{{ $user->profile->getProfilePictureUrl() }}" class="w-full h-full object-cover">
                             @else
                                 <span
-                                    class="text-4xl font-black text-accent">{{ substr($user->profile->full_name, 0, 1) }}</span>
+                                    class="text-4xl font-black text-accent">{{ substr($user->profile->full_name ?? $user->employee_id, 0, 1) }}</span>
                             @endif
                         </div>
                     </div>
 
                     <div class="flex-1">
                         <div class="flex flex-wrap items-center gap-3 mb-2">
-                            <h2 class="text-3xl font-black text-slate-800">{{ $user->profile->full_name }}</h2>
+                            <h2 class="text-3xl font-black text-slate-800">
+                                {{ $user->profile->full_name ?? 'Incomplete Profile' }}
+                            </h2>
                             <span
                                 class="px-3 py-1 bg-accent/10 text-accent rounded-full text-[10px] font-black uppercase tracking-widest">
                                 {{ $user->getDesignationLabel() }}
@@ -59,14 +60,50 @@
                         @endif
 
                         @if(auth()->user()->isSuperAdmin())
-                            <a href="{{ route('users.id-card', $user->id) }}" target="_blank"
-                                class="px-6 py-3 bg-violet-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-violet-600/20 hover:bg-violet-700 transition flex items-center space-x-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                                </svg>
-                                <span>ID Card</span>
-                            </a>
+                            <div class="relative group">
+                                <button type="button" onclick="toggleIDCardDropdown()"
+                                    class="px-6 py-3 bg-violet-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-violet-600/20 hover:bg-violet-700 transition flex items-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                    </svg>
+                                    <span>ID Card</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div id="id-card-dropdown"
+                                    class="hidden absolute top-full mt-2 right-0 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50 min-w-[180px]">
+                                    <a href="{{ route('users.id-card', ['user' => $user->id, 'format' => 'png']) }}"
+                                        target="_blank"
+                                        class="block px-4 py-3 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition flex items-center space-x-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <span>PNG Image</span>
+                                    </a>
+                                    <a href="{{ route('users.id-card', ['user' => $user->id, 'format' => 'pdf']) }}"
+                                        target="_blank"
+                                        class="block px-4 py-3 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition flex items-center space-x-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                        <span>PDF Document</span>
+                                    </a>
+                                    <a href="{{ route('users.id-card', ['user' => $user->id, 'format' => 'jpg']) }}"
+                                        target="_blank"
+                                        class="block px-4 py-3 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition flex items-center space-x-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <span>JPG (Canva Compatible)</span>
+                                    </a>
+                                </div>
+                            </div>
                         @endif
 
                         @if($currentUser->canEdit($user))
@@ -229,4 +266,23 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('js')
+    <script>
+        function toggleIDCardDropdown() {
+            const dropdown = document.getElementById('id-card-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdown = document.getElementById('id-card-dropdown');
+            const button = event.target.closest('button[onclick="toggleIDCardDropdown()"]');
+
+            if (!button && dropdown && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    </script>
 @endsection

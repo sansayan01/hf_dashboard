@@ -186,7 +186,7 @@
                             <label class="block text-sm font-bold text-slate-700 mb-2">Profile Picture</label>
                             <div class="flex items-center space-x-4">
                                 @if($user->profile->profile_picture)
-                                    <img src="{{ asset('storage/' . $user->profile->profile_picture) }}"
+                                    <img src="{{ $user->profile->getProfilePictureUrl() }}"
                                         class="w-12 h-12 rounded-xl object-cover border border-slate-200">
                                 @endif
                                 <input type="file" name="profile_picture" accept="image/*"
@@ -252,7 +252,7 @@
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">PAN Number</label>
                             <input type="text" name="pan_number" value="{{ old('pan_number', $user->profile->pan_number) }}"
-                                required maxlength="10"
+                                maxlength="10"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="validatePAN(this)">
                         </div>

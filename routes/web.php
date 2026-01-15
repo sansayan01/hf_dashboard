@@ -135,17 +135,21 @@ Route::get('/fix-storage', function () {
     try {
         $publicPath = public_path();
         $storagePath = storage_path('app/public');
+        $details = "";
 
         // Manual check for common shared hosting public directories
+        // Sometimes public_path() returns the project/public but index.php is in public_html
         if (!file_exists($publicPath . '/index.php')) {
+            $details .= "index.php not found in public_path(). Checking alternatives...<br>";
             $possiblePaths = [
-                base_path('../public_html'),
                 base_path('public_html'),
-                dirname(base_path()) . '/public_html'
+                base_path('../public_html'),
+                dirname(base_path()) . '/public_html',
             ];
             foreach ($possiblePaths as $path) {
                 if (file_exists($path . '/index.php')) {
                     $publicPath = $path;
+                    $details .= "Found Public Root: $path<br>";
                     break;
                 }
             }
@@ -153,47 +157,185 @@ Route::get('/fix-storage', function () {
 
         $linkPath = $publicPath . '/storage';
 
-        if (file_exists($linkPath)) {
-            if (is_link($linkPath) || is_dir($linkPath)) {
-                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                    exec("rd /s /q \"$linkPath\"");
-                } else {
-                    // Using Laravel's Filesystem to delete is safer
-                    app('files')->deleteDirectory($linkPath);
-                    if (file_exists($linkPath)) {
-                        app('files')->delete($linkPath);
-                    }
+        // 1. Remove broken symlink or folder
+        if (file_exists($linkPath) || is_link($linkPath)) {
+            $details .= "Existing storage link/folder found. Attempting removal...<br>";
+            try {
+                if (is_link($linkPath)) {
+                    unlink($linkPath);
+                    $details .= "- Unlinked existing symlink.<br>";
+                } elseif (is_dir($linkPath)) {
+                    // It's a directory, maybe someone copied it
+                    $details .= "- WARNING: Found actual directory at /storage. Symlink might fail unless this is deleted manually.<br>";
                 }
+            } catch (\Throwable $te) {
+                $details .= "- Removal failed: " . $te->getMessage() . "<br>";
             }
         }
 
-        \Illuminate\Support\Facades\Artisan::call('storage:link');
-        $output = \Illuminate\Support\Facades\Artisan::output();
+        // 2. Try Artisan Link
+        $details .= "Attempting artisan storage:link...<br>";
+        try {
+            \Illuminate\Support\Facades\Artisan::call('storage:link');
+            $artisanOutput = \Illuminate\Support\Facades\Artisan::output();
+            $details .= "Artisan Output: " . trim($artisanOutput ?: "No output") . "<br>";
+        } catch (\Throwable $ae) {
+            $details .= "Artisan failed: " . $ae->getMessage() . "<br>";
+        }
 
-        $status = "<b>Status:</b> Done!<br>";
-        $status .= "<b>Public Path:</b> $publicPath<br>";
-        $status .= "<b>Storage Path:</b> $storagePath<br>";
-        $status .= "<b>Link Status:</b> " . (file_exists($linkPath) ? "Created Successfully" : "Failed to create link automatically") . "<br>";
-        $status .= "<b>Output:</b> " . nl2br($output);
+        // 3. Manual symlink if artisan failed or path is different
+        if (!file_exists($linkPath) && !is_link($linkPath)) {
+            $details .= "Artisan failed to create link at $linkPath. Trying manual symlink...<br>";
+            if (function_exists('symlink')) {
+                try {
+                    @symlink($storagePath, $linkPath);
+                    $details .= "Manual symlink attempt finished.<br>";
+                } catch (\Throwable $se) {
+                    $details .= "Manual internal error: " . $se->getMessage() . "<br>";
+                }
+            } else {
+                $details .= "symlink() function is disabled on this server.<br>";
+            }
+        }
 
-        return "<div style='font-family: sans-serif; padding: 20px; border: 1px solid #ccc; border-radius: 8px;'>" . $status . '<br><br><a href="/" style="display: inline-block; padding: 10px 20px; background: #3C50E0; color: white; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></div>';
-    } catch (\Exception $e) {
-        return "Error: " . $e->getMessage() . '<br>File: ' . $e->getFile() . ' on line ' . $e->getLine();
+        $isFixed = (file_exists($linkPath) || is_link($linkPath));
+        $linkStatus = $isFixed ? "<span style='color: #22c55e;'>SUCCESS</span>" : "<span style='color: #ef4444;'>FAILED (Using Fallback Bridge)</span>";
+
+        // Find a sample image to test the bridge
+        $sampleImage = \App\Models\UserProfile::whereNotNull('profile_picture')->first();
+        $bridgeTest = "No images found in database to test.";
+        if ($sampleImage) {
+            $testUrl = route('storage.bridge', ['path' => $sampleImage->profile_picture]);
+            $bridgeTest = "<a href='$testUrl' target='_blank' style='color: #3C50E0; font-weight: bold;'>Click here to test Bridge Image</a><br><small>If you see a picture after clicking, the system is working perfectly!</small>";
+        }
+
+        $html = "
+        <div style='font-family: sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #334155;'>
+            <h1 style='color: #3C50E0;'>Storage System Diagnostic</h1>
+            <div style='background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 24px;'>
+                <p><b>Link Status:</b> $linkStatus</p>
+                <p><b>Public Root:</b> $publicPath</p>
+                <p><b>Storage Target:</b> $storagePath</p>
+                <p><b>Link Location:</b> $linkPath</p>
+            </div>
+
+            <div style='background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin-bottom: 24px;'>
+                <h3 style='color: #166534; margin-top: 0;'>Bridge Test (Your custom fallback)</h3>
+                <p>$bridgeTest</p>
+            </div>
+            
+            <div style='background: #1e293b; color: #94a3b8; border-radius: 16px; padding: 24px; font-family: monospace; font-size: 13px; line-height: 1.6;'>
+                <h3 style='color: #fff; margin-top: 0;'>Log:</h3>
+                $details
+            </div>
+
+            <div style='margin-top: 40px; display: flex; gap: 16px;'>
+                <a href='/' style='padding: 12px 24px; background: #3C50E0; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;'>Go to Dashboard</a>
+                <a href='/fix-storage' style='padding: 12px 24px; border: 1px solid #3C50E0; color: #3C50E0; text-decoration: none; border-radius: 8px; font-weight: bold;'>Refresh Diagnostic</a>
+            </div>
+        </div>";
+
+        return $html;
+    } catch (\Throwable $e) {
+        return "
+        <div style='padding: 40px; font-family: sans-serif;'>
+            <h1 style='color: #ef4444;'>Diagnostic Crashed</h1>
+            <p>Error: " . htmlspecialchars($e->getMessage()) . "</p>
+            <p>File: " . $e->getFile() . " on line " . $e->getLine() . "</p>
+            <pre style='background: #f1f5f9; padding: 20px; border-radius: 8px; overflow-x: auto;'>" . $e->getTraceAsString() . "</pre>
+        </div>";
     }
 });
 
+// Fallback "Storage Bridge" with Smart Finder logic
+Route::get('/storage-render/{path}', function ($path) {
+    // List of possible locations to check for the file
+    $possiblePaths = [
+        storage_path('app/public/' . $path),
+        base_path('storage/app/public/' . $path),
+        public_path('storage/' . $path), // Check if it's a real folder in public
+        base_path('../storage/app/public/' . $path), // External storage check
+    ];
 
-// Fallback Route to serve storage files if symlink is not working (Shared Hosting Fix)
-Route::get('/storage/{path}', function ($path) {
-    $fullPath = storage_path('app/public/' . $path);
-
-    if (!file_exists($fullPath)) {
-        abort(404);
+    foreach ($possiblePaths as $fullPath) {
+        if (file_exists($fullPath) && !is_dir($fullPath)) {
+            return response()->file($fullPath);
+        }
     }
 
-    $file = file_get_contents($fullPath);
-    $type = mime_content_type($fullPath);
+    // Still not found? Log detail for user
+    $checked = implode("<br>", $possiblePaths);
+    return "<h3>File Not Found</h3>
+            <p>Searched for: <b>$path</b></p>
+            <p><b>Checked Locations:</b><br>$checked</p>
+            <p>Please ensure you have uploaded the <code>storage</code> folder to your server.</p>";
+})->where('path', '.*')->name('storage.bridge');
 
-    return response($file)->header('Content-Type', $type);
-})->where('path', '.*');
+
+// Diagnostic route update to include search
+Route::get('/fix-storage', function () {
+    try {
+        $publicPath = public_path();
+        $storagePath = storage_path('app/public');
+        $details = "";
+
+        // Manual check for index.php
+        if (!file_exists($publicPath . '/index.php')) {
+            foreach ([base_path('public_html'), base_path('../public_html')] as $p) {
+                if (file_exists($p . '/index.php')) {
+                    $publicPath = $p;
+                    break;
+                }
+            }
+        }
+        $linkPath = $publicPath . '/storage';
+
+        // Attempt link fix (silent)
+        try {
+            if (is_link($linkPath))
+                @unlink($linkPath);
+            \Illuminate\Support\Facades\Artisan::call('storage:link');
+        } catch (\Throwable $e) {
+        }
+
+        $isFixed = (file_exists($linkPath) && is_link($linkPath));
+        $linkStatus = $isFixed ? "SUCCESS" : "FAILED (Using Smart Bridge)";
+
+        // SEARCH FOR REAL FILE
+        $sample = \App\Models\UserProfile::whereNotNull('profile_picture')->first();
+        $searchResult = "No images found in database.";
+        if ($sample) {
+            $foundAt = "NOT FOUND ANYWHERE";
+            $searchPaths = [
+                storage_path('app/public/' . $sample->profile_picture),
+                base_path('storage/app/public/' . $sample->profile_picture),
+                public_path('storage/' . $sample->profile_picture),
+            ];
+            foreach ($searchPaths as $sp) {
+                if (file_exists($sp)) {
+                    $foundAt = $sp;
+                    break;
+                }
+            }
+            $searchResult = "<b>Searching for:</b> " . $sample->profile_picture . "<br><b>Real Location:</b> " . $foundAt;
+        }
+
+        return "
+        <div style='font-family: sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #334155;'>
+            <h1 style='color: #3C50E0;'>Storage System Diagnostic</h1>
+            <div style='background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 24px;'>
+                <p><b>Link Status:</b> $linkStatus</p>
+                <p><b>Public Root:</b> $publicPath</p>
+                <p><b>Smart Finder:</b> $searchResult</p>
+            </div>
+            
+            <div style='margin-top: 20px;'>
+                <a href='/' style='padding: 12px 24px; background: #3C50E0; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;'>Go to Dashboard</a>
+                <a href='" . route('storage.bridge', ['path' => $sample->profile_picture ?? 'test']) . "' target='_blank' style='margin-left: 10px; color: #3C50E0; font-weight: bold;'>Try Viewing Image Again</a>
+            </div>
+        </div>";
+    } catch (\Throwable $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
 

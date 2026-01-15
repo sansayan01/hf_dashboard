@@ -28,8 +28,8 @@
             <div
                 class="w-9 h-9 rounded-lg overflow-hidden mr-3 bg-white dark:bg-slate-800 flex-shrink-0 border border-slate-200/50 dark:border-white/5 ring-1 ring-slate-200/50 dark:ring-white/10">
                 @if($item->profile && $item->profile->profile_picture)
-                    <img src="{{ asset('storage/' . $item->profile->profile_picture) }}" alt="Avatar"
-                        class="w-full h-full object-cover">
+                    <img src="{{ $item->profile->getProfilePictureUrl() }}" alt="Profile"
+                        class="profile-img w-full h-full object-cover">
                 @else
                     <div
                         class="w-full h-full flex items-center justify-center bg-accent/5 text-accent text-[10px] font-black">
@@ -48,7 +48,7 @@
                 <div class="flex items-center space-x-2">
                     <span
                         class="text-xs font-black text-slate-700 dark:text-slate-200 truncate group-hover/link:text-accent transition-colors">
-                        {{ $item->profile->full_name ?? 'N/A' }}
+                        {{ $item->profile->full_name ?? $item->employee_id }}
                     </span>
                     <span
                         class="text-[9px] font-black px-1.5 py-0.5 rounded bg-white dark:bg-slate-700 text-slate-500 tracking-tighter border border-slate-100 dark:border-slate-600">

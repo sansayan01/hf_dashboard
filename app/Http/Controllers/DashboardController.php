@@ -28,6 +28,7 @@ class DashboardController extends Controller
         // Check Permissions
         $canViewDownline = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_view_downline');
         $canViewReports = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_view_reports');
+        $canApprove = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_approve_users');
 
         // Optimization: Fetch IDs once
         $downlineIds = $canViewDownline ? $user->getAllDownlineIds() : [];
@@ -99,21 +100,18 @@ class DashboardController extends Controller
             ->limit(50)
             ->get();
 
-        $pendingApprovals = $user->isSuperAdmin()
+        $pendingApprovals = ($user->isSuperAdmin() || ($user->isOfficeInCharge() && $user->upline && $user->upline->isSuperAdmin()))
             ? User::pending()->with('profile')->latest()->get()
             : collect();
 
         $isViewAs = $currentUser->id !== $user->id;
 
         // Eager load only immediate children to speed up initial load
-        // Eager load only immediate children to speed up initial load
-        if ($user->isOfficeInCharge() && $user->upline) {
-            $user->setRelation('children', collect([$user->upline]));
-        } else {
+        if (!$user->isOfficeInCharge()) {
             $user->load(['children.profile']);
         }
 
-        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'pendingApprovals', 'isViewAs'));
+        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'pendingApprovals', 'isViewAs', 'canApprove'));
     }
 
     /**

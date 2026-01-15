@@ -301,12 +301,12 @@
                         <div
                             class="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-700 shadow-sm overflow-hidden ring-2 ring-accent/10 group-hover:ring-accent/30 transition-all">
                             @if(auth()->user()->profile && auth()->user()->profile->profile_picture)
-                                <img src="{{ asset('storage/' . auth()->user()->profile->profile_picture) }}" alt="Avatar"
+                                <img src="{{ auth()->user()->profile->getProfilePictureUrl() }}" alt="Avatar"
                                     class="w-full h-full object-cover">
                             @else
                                 <div
-                                    class="w-full h-full flex items-center justify-center bg-accent/5 text-accent font-bold">
-                                    {{ substr(auth()->user()->profile->full_name ?? 'U', 0, 1) }}
+                                    class="w-full h-full flex items-center justify-center bg-accent/5 text-accent font-bold text-xs">
+                                    {{ substr(auth()->user()->profile->full_name ?? auth()->user()->employee_id, 0, 1) }}
                                 </div>
                             @endif
                         </div>
@@ -399,17 +399,17 @@
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
                 color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
                 @if(session('view_appointment_url'))
-                                                                                                                    showDenyButton: true,
+                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                            }).then((result) => {
+                                                                    }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                            });
+                                                                    });
         @endif
 
         @if(session('error'))

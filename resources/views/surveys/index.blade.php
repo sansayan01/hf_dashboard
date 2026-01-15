@@ -284,7 +284,7 @@
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
                                                 @if($survey->creator->profile && $survey->creator->profile->profile_picture)
-                                                    <img src="{{ asset('storage/' . $survey->creator->profile->profile_picture) }}" class="w-full h-full object-cover">
+                                                    <img src="{{ $survey->creator->profile->getProfilePictureUrl() }}" class="w-full h-full object-cover">
                                                 @else
                                                     <div class="w-full h-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] font-black">
                                                         {{ substr($survey->creator->profile->full_name ?? 'U', 0, 1) }}

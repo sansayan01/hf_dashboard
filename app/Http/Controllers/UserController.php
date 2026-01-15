@@ -76,7 +76,8 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->latest()->paginate(20)->withQueryString();
+        $limit = $request->has('view_all') ? 5000 : 20;
+        $users = $query->latest()->paginate($limit)->withQueryString();
 
         // Get allowed designations for filtering based on hierarchy
         // super_admin > dm > bm > rm > ro
@@ -306,6 +307,7 @@ class UserController extends Controller
                 'designation' => $designation,
                 'parent_id' => $parentId,
                 'status' => 'pending',
+                'is_office_in_charge' => ($designation === 'office_in_charge'),
             ];
 
             // If creating Office In-Charge, add upline information
@@ -581,6 +583,7 @@ class UserController extends Controller
             if ($currentUser->isSuperAdmin()) {
                 $targetDesignation = $request->input('designation', $user->designation);
                 if ($targetDesignation === 'office_in_charge') {
+                    $userData['is_office_in_charge'] = true;
                     if ($request->has('upline_id')) {
                         $userData['upline_id'] = $request->upline_id;
 
@@ -907,20 +910,21 @@ class UserController extends Controller
     /**
      * Generate ID Card View
      */
-    public function idCard(User $user)
+    public function idCard(User $user, Request $request)
     {
         // Only Super Admin can generate ID cards for now
         if (!auth()->user()->isSuperAdmin()) {
             abort(403, 'Unauthorized. Only Super Admin can generate ID cards.');
         }
 
-        return view('users.id_card', compact('user'));
+        $format = $request->get('format', 'png'); // Default to PNG, can be 'pdf' or 'svg'
+        return view('users.id_card', compact('user', 'format'));
     }
 
     /**
      * Bulk Download All ID Cards
      */
-    public function bulkDownloadIdCards()
+    public function bulkDownloadIdCards(Request $request)
     {
         // Only Super Admin can bulk download
         if (!auth()->user()->isSuperAdmin()) {
@@ -932,13 +936,14 @@ class UserController extends Controller
             ->where('status', 'active')
             ->get();
 
-        return view('users.bulk_id_cards', compact('users'));
+        $format = $request->get('format', 'png'); // Default to PNG, can be 'pdf' or 'svg'
+        return view('users.bulk_id_cards', compact('users', 'format'));
     }
 
     /**
      * Print all ID cards in A4 grid
      */
-    public function printAllIdCards()
+    public function printAllIdCards(Request $request)
     {
         // Only Super Admin can print IDs
         if (!auth()->user()->isSuperAdmin()) {
@@ -953,6 +958,7 @@ class UserController extends Controller
             ->where('status', 'active')
             ->get();
 
-        return view('users.printable_id_cards', compact('users'));
+        $format = $request->get('format', 'png'); // Default to PNG, can be 'pdf' or 'svg'
+        return view('users.printable_id_cards', compact('users', 'format'));
     }
 }

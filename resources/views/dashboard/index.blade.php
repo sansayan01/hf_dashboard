@@ -298,16 +298,16 @@
                                                 <div
                                                     class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent/20 to-blue-600/20 text-accent dark:text-blue-400 flex items-center justify-center text-sm font-black shadow-inner group-hover/info:scale-110 transition-transform overflow-hidden">
                                                     @if($pending->profile && $pending->profile->profile_picture)
-                                                        <img src="{{ asset('storage/' . $pending->profile->profile_picture) }}" alt="Avatar"
+                                                        <img src="{{ $pending->profile->getProfilePictureUrl() }}" alt="Avatar"
                                                             class="w-full h-full object-cover">
-                                                    @else
-                                                        {{ substr($pending->profile->full_name, 0, 1) }}
+                                @else
+                                                        {{ substr($pending->profile->full_name ?? $pending->employee_id, 0, 1) }}
                                                     @endif
                                                 </div>
                                                 <div class="min-w-0">
                                                     <p
                                                         class="text-xs font-black text-slate-800 dark:text-white truncate group-hover/info:text-accent transition-colors">
-                                                        {{ $pending->profile->full_name }}</p>
+                                                        {{ $pending->profile->full_name ?? 'Incomplete Profile' }}</p>
                                                     <p
                                                         class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
                                                         {{ $pending->getDesignationLabel() }}</p>
@@ -317,7 +317,7 @@
                                         
                                         <div class="flex items-center space-x-2">
                                             <button type="button" 
-                                                onclick="confirmSingleApprove('{{ $pending->id }}', '{{ $pending->profile->full_name }}')"
+                                                onclick="confirmSingleApprove('{{ $pending->id }}', '{{ addslashes($pending->profile->full_name ?? $pending->employee_id) }}')"
                                                 class="p-2.5 bg-white dark:bg-slate-800 text-emerald-500 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-emerald-500 hover:text-white transition shadow-sm group">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

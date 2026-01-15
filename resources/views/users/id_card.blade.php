@@ -179,7 +179,7 @@
             background-color: black;
             color: white;
             width: 100%;
-            height: 60px;
+            height: 45px;
             position: absolute;
             bottom: 0;
             left: 0;
@@ -187,15 +187,24 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
-            line-height: 1.4;
+            font-size: 8px;
+            line-height: 1.3;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="mb-6 flex space-x-4">
+    <div class="mb-6 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <div class="flex items-center space-x-3">
+            <label for="format-select" class="text-sm font-bold text-gray-700">Export Format:</label>
+            <select id="format-select"
+                class="px-4 py-2 border-2 border-gray-300 rounded-lg font-bold text-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200 outline-none transition">
+                <option value="png" {{ ($format ?? 'png') == 'png' ? 'selected' : '' }}>PNG Image</option>
+                <option value="pdf" {{ ($format ?? 'png') == 'pdf' ? 'selected' : '' }}>PDF Document</option>
+                <option value="jpg" {{ ($format ?? 'png') == 'jpg' ? 'selected' : '' }}>JPG (Canva Compatible)</option>
+            </select>
+        </div>
         <button onclick="downloadID()"
             class="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 font-bold transition">
             Download ID Card
@@ -218,7 +227,7 @@
         <!-- Profile Picture -->
         <div class="profile-container">
             @if($user->profile && $user->profile->profile_picture)
-                <img src="{{ asset('storage/' . $user->profile->profile_picture) }}" alt="Profile" class="profile-img">
+                <img src="{{ $user->profile->getProfilePictureUrl() }}" alt="Profile" class="profile-img">
             @else
                 <!-- CSS Landscape Fallback -->
                 <div class="landscape">
@@ -261,33 +270,98 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         function downloadID() {
-            // Set scale to 1 for calculation, then scale up in options
             const card = document.getElementById('id-card');
+            const format = document.getElementById('format-select').value;
+            const employeeId = "{{ $user->employee_id }}";
 
             // Add a small delay to ensure rendering is settled
             setTimeout(() => {
-                html2canvas(card, {
-                    scale: 4, // Even higher resolution
-                    useCORS: true,
-                    logging: false,
-                    allowTaint: false,
-                    backgroundColor: "#ffffff",
-                    windowWidth: card.offsetWidth,
-                    windowHeight: card.offsetHeight,
-                    onclone: function (clonedDoc) {
-                        // Ensure cloned element is visible for capture
-                        const clonedCard = clonedDoc.getElementById('id-card');
-                        clonedCard.style.boxShadow = "none"; // Remove shadow for clean extraction
-                    }
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = "ID_Card_{{ $user->employee_id }}.png";
-                    link.href = canvas.toDataURL("image/png", 1.0);
-                    link.click();
-                });
+                if (format === 'jpg') {
+                    downloadAsJPG(card, employeeId);
+                } else if (format === 'pdf') {
+                    downloadAsPDF(card, employeeId);
+                } else {
+                    downloadAsPNG(card, employeeId);
+                }
             }, 100);
+        }
+
+        function downloadAsPNG(card, employeeId) {
+            html2canvas(card, {
+                scale: 4, // High resolution
+                useCORS: true,
+                logging: false,
+                allowTaint: false,
+                backgroundColor: "#ffffff",
+                windowWidth: card.offsetWidth,
+                windowHeight: card.offsetHeight,
+                onclone: function (clonedDoc) {
+                    const clonedCard = clonedDoc.getElementById('id-card');
+                    clonedCard.style.boxShadow = "none"; // Remove shadow for clean extraction
+                }
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `ID_Card_${employeeId}.png`;
+                link.href = canvas.toDataURL("image/png", 1.0);
+                link.click();
+            });
+        }
+
+        function downloadAsPDF(card, employeeId) {
+            html2canvas(card, {
+                scale: 4,
+                useCORS: true,
+                logging: false,
+                allowTaint: false,
+                backgroundColor: "#ffffff",
+                windowWidth: card.offsetWidth,
+                windowHeight: card.offsetHeight,
+                onclone: function (clonedDoc) {
+                    const clonedCard = clonedDoc.getElementById('id-card');
+                    clonedCard.style.boxShadow = "none";
+                }
+            }).then(canvas => {
+                const { jsPDF } = window.jspdf;
+                const imgData = canvas.toDataURL('image/png', 1.0);
+
+                // ID card dimensions in mm (standard CR80 size: 85.6mm x 53.98mm, but we're using vertical)
+                const cardWidth = 85.6;
+                const cardHeight = 128.4; // Vertical aspect ratio
+
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: [cardWidth, cardHeight]
+                });
+
+                pdf.addImage(imgData, 'PNG', 0, 0, cardWidth, cardHeight);
+                pdf.save(`ID_Card_${employeeId}.pdf`);
+            });
+        }
+
+        function downloadAsJPG(card, employeeId) {
+            html2canvas(card, {
+                scale: 4, // High resolution for quality
+                useCORS: true,
+                logging: false,
+                allowTaint: false,
+                backgroundColor: "#ffffff",
+                windowWidth: card.offsetWidth,
+                windowHeight: card.offsetHeight,
+                onclone: function (clonedDoc) {
+                    const clonedCard = clonedDoc.getElementById('id-card');
+                    clonedCard.style.boxShadow = "none";
+                }
+            }).then(canvas => {
+                // Convert to JPG with high quality (0.95 = 95% quality)
+                const link = document.createElement('a');
+                link.download = `ID_Card_${employeeId}.jpg`;
+                link.href = canvas.toDataURL("image/jpeg", 0.95);
+                link.click();
+            });
         }
 
         // Auto-refresh layout on load to ensure CSS rounding is solid

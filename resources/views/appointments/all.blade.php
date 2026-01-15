@@ -219,16 +219,16 @@
                                     <td class="p-6">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
-                                                @if($appointment->creator->profile && $appointment->creator->profile->profile_picture)
-                                                    <img src="{{ asset('storage/' . $appointment->creator->profile->profile_picture) }}" class="w-full h-full object-cover">
+                                                @if($appointment->creator && $appointment->creator->profile && $appointment->creator->profile->profile_picture)
+                                                    <img src="{{ $appointment->creator->profile->getProfilePictureUrl() }}" class="w-full h-full object-cover">
                                                 @else
                                                     <div class="w-full h-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] font-black">
-                                                        {{ substr($appointment->creator->profile->full_name ?? 'U', 0, 1) }}
+                                                        {{ substr($appointment->creator->profile->full_name ?? ($appointment->creator->employee_id ?? 'U'), 0, 1) }}
                                                     </div>
                                                 @endif
                                             </div>
                                             <div>
-                                                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $appointment->creator->profile->full_name ?? 'Unknown' }}</p>
+                                                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $appointment->creator->profile->full_name ?? ($appointment->creator->employee_id ?? 'Unknown User') }}</p>
                                                 <p class="text-[10px] font-medium text-slate-400">{{ $appointment->created_at->format('M d, Y') }}</p>
                                             </div>
                                         </div>

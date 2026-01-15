@@ -29,11 +29,13 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
+        $loginInput = trim($request->login);
+
         // Determine if login is email or employee_id
-        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'employee_id';
+        $loginType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'employee_id';
 
         // Attempt to find user
-        $user = User::where($loginType, $request->login)->first();
+        $user = User::where($loginType, $loginInput)->first();
 
         // Check if user exists
         if (!$user) {

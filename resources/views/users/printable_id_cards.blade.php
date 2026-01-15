@@ -107,7 +107,7 @@
         .profile-img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: fixed;
             object-position: center;
         }
 
@@ -171,8 +171,8 @@
         }
 
         .designation-bar {
-            background-color: black;
-            color: white;
+            background-color: white;
+            color:black;
             font-weight: 900;
             text-transform: uppercase;
             width: 100%;
@@ -202,7 +202,7 @@
             background-color: black;
             color: white;
             width: 100%;
-            height: 12mm;
+            height: 9mm;
             position: absolute;
             bottom: 0;
             left: 0;
@@ -210,8 +210,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 7.5px;
-            line-height: 1.2;
+            font-size: 6.5px;
+            line-height: 1.1;
         }
     </style>
 </head>
@@ -256,7 +256,7 @@
 
                         <div class="profile-container">
                             @if($user->profile && $user->profile->profile_picture)
-                                <img src="{{ asset('storage/' . $user->profile->profile_picture) }}" alt="Profile"
+                                <img src="{{ $user->profile->getProfilePictureUrl() }}" alt="Profile"
                                     class="profile-img">
                             @else
                                 <div class="landscape">
