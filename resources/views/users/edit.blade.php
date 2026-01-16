@@ -388,6 +388,8 @@
                         officeInChargeUplineSection.classList.remove('hidden');
                         uplineDesignationSelect.required = true;
                         uplinePersonSelect.required = true;
+                        uplineDesignationSelect.disabled = false;
+                        uplinePersonSelect.disabled = false;
                     }
                     // O.I.C. gets parent from Upline. Disable parent select.
                     parentSelect.disabled = true;
@@ -403,6 +405,8 @@
                         officeInChargeUplineSection.classList.add('hidden');
                         uplineDesignationSelect.required = false;
                         uplinePersonSelect.required = false;
+                        uplineDesignationSelect.disabled = true;
+                        uplinePersonSelect.disabled = true;
                     }
                     parentSelect.disabled = false;
                 }
@@ -410,6 +414,7 @@
                 
                 // Top Level Roles
                 if (designation === 'super_admin' || designation === 'hs') {
+                    parentSelect.disabled = true;
                     parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
                     // If current user is parent (e.g. HS created by SA), we might want to keep it?
                     // But backend logic handles null/current assignment for Top Level.

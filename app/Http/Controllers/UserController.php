@@ -209,8 +209,8 @@ class UserController extends Controller
 
             // Office In-Charge specific validation (only Super Admin can create)
             if ($currentUser->isSuperAdmin()) {
-                $rules['upline_designation'] = 'required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
-                $rules['upline_id'] = 'required_if:designation,office_in_charge|exists:users,id';
+                $rules['upline_designation'] = 'nullable|required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
+                $rules['upline_id'] = 'nullable|required_if:designation,office_in_charge|exists:users,id';
             }
         }
 
@@ -483,8 +483,8 @@ class UserController extends Controller
 
             // Office In-Charge specific validation (only Super Admin)
             if ($currentUser->isSuperAdmin()) {
-                $rules['upline_designation'] = 'required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
-                $rules['upline_id'] = 'required_if:designation,office_in_charge|exists:users,id';
+                $rules['upline_designation'] = 'nullable|required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
+                $rules['upline_id'] = 'nullable|required_if:designation,office_in_charge|exists:users,id';
             }
         }
 

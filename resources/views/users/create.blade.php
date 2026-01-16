@@ -491,7 +491,6 @@
                             option.selected = true;
                         }
                         uplinePersonSelect.add(option);
-                        uplinePersonSelect.add(option);
                     });
                 }
                 
@@ -543,10 +542,14 @@
                     officeInChargeUplineSection.classList.remove('hidden');
                     uplineDesignationSelect.required = true;
                     uplinePersonSelect.required = true;
+                    uplineDesignationSelect.disabled = false;
+                    uplinePersonSelect.disabled = false;
                 } else {
                     officeInChargeUplineSection.classList.add('hidden');
                     uplineDesignationSelect.required = false;
                     uplinePersonSelect.required = false;
+                    uplineDesignationSelect.disabled = true;
+                    uplinePersonSelect.disabled = true;
                     uplineDesignationSelect.value = '';
                     uplinePersonSelect.innerHTML = '<option value="">Select Upline Designation First</option>';
                 }
