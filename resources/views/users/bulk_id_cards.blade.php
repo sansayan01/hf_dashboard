@@ -211,8 +211,7 @@
 
                     <div class="profile-container">
                         @if($user->profile && $user->profile->profile_picture)
-                            <img src="{{ $user->profile->getProfilePictureUrl() }}" alt="Profile"
-                                class="profile-img">
+                            <img src="{{ $user->profile->getProfilePictureUrl() }}" alt="Profile" class="profile-img">
                         @else
                             <div class="landscape">
                                 <div class="cloud cloud-1"></div>
@@ -243,7 +242,7 @@
                     </div>
 
                     <div class="footer">
-                        <p class="font-black">www.hrbardwan.in</p>
+                        <p class="font-black">www.hfburdwan.in</p>
                         <p class="font-bold opacity-90">Kendriyanagar, Keshabganj, Purba Bardhaman</p>
                         <p class="font-black">Mob : 8167364107</p>
                     </div>

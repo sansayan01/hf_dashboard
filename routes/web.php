@@ -43,8 +43,8 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
         // ID Card
         Route::get('/{user}/id-card', [UserController::class, 'idCard'])->name('id-card');
-        Route::get('/bulk/download-id-cards', [UserController::class, 'bulkDownloadIdCards'])->name('bulk-download-id-cards');
-        Route::get('/bulk/print-all', [UserController::class, 'printAllIdCards'])->name('print-all-id-cards');
+
+        Route::match(['get', 'post'], '/bulk/print-all', [UserController::class, 'printAllIdCards'])->name('print-all-id-cards');
     });
 
     // Survey Management

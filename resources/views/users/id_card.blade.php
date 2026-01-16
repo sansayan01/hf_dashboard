@@ -18,58 +18,66 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            margin: 0;
+            padding: 20px;
         }
 
-        /* ID Card Dimensions (Standard CR80 size ratio approx) */
+        /* Scaled ID Card Dimensions for Screen Display (approx 54mm x 86mm ratio) */
         #id-card {
-            width: 320px;
-            /* Scaled up for screen, standard is 85.6mm */
-            height: 480px;
-            /* Scaled aspect ratio vertical */
+            width: 54mm;
+            height: 86mm;
             background-color: white;
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
-            border-radius: 8px;
-            /* Optional rounded corners for the card itself */
+            transform: scale(2);
+            /* Make it readable on screen */
+            transform-origin: center;
+            margin: 100px 0;
         }
 
-        /* Curved Header */
         .header-curve {
             background-color: black;
-            height: 140px;
+            height: 40mm;
             width: 150%;
             margin-left: -25%;
             border-bottom-left-radius: 50%;
             border-bottom-right-radius: 50%;
             position: absolute;
-            top: -35px;
+            top: -6mm;
             left: 0;
             z-index: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding-top: 20px;
+            padding-top: 10mm;
         }
 
-        /* Profile Image Container */
+        .logo-img {
+            height: 10mm;
+            margin-top: 5mm;
+            z-index: 2;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
         .profile-container {
-            width: 150px;
-            height: 150px;
+            width: 26mm;
+            height: 26mm;
             border-radius: 50%;
             background: #e0f2fe;
-            /* Sky blue */
             position: relative;
             z-index: 10;
             margin: 0 auto;
-            margin-top: 80px;
-            /* Push down relative to header */
+            margin-top: 26mm;
             overflow: hidden;
-            border: 6px solid white;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 0.8mm solid white;
+            box-shadow: 0 1.5mm 2mm rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -80,11 +88,8 @@
             height: 100%;
             object-fit: cover;
             object-position: center;
-            border-radius: 50%;
-            /* Double safety for circularity */
         }
 
-        /* Fallback Landscape (Hills & Clouds) */
         .landscape {
             position: absolute;
             width: 100%;
@@ -96,54 +101,55 @@
 
         .landscape .hill-1 {
             position: absolute;
-            bottom: -10px;
-            left: -20px;
-            width: 120px;
-            height: 60px;
+            bottom: -2mm;
+            left: -4mm;
+            width: 22mm;
+            height: 11mm;
             background: #a3e635;
-            /* Lime green */
             border-radius: 50%;
             opacity: 0.8;
         }
 
         .landscape .hill-2 {
             position: absolute;
-            bottom: -20px;
-            right: -20px;
-            width: 140px;
-            height: 70px;
+            bottom: -4mm;
+            right: -4mm;
+            width: 26mm;
+            height: 13mm;
             background: #65a30d;
-            /* Lime 600 */
             border-radius: 50%;
         }
 
         .landscape .cloud {
             position: absolute;
             background: white;
-            border-radius: 20px;
+            border-radius: 4mm;
         }
 
         .cloud-1 {
-            top: 20px;
-            left: 30px;
-            width: 40px;
-            height: 15px;
+            top: 4mm;
+            left: 6mm;
+            width: 8mm;
+            height: 3mm;
         }
 
         .cloud-2 {
-            top: 35px;
-            right: 40px;
-            width: 30px;
-            height: 10px;
+            top: 7mm;
+            right: 8mm;
+            width: 6mm;
+            height: 2mm;
         }
 
         .details {
             text-align: center;
             width: 100%;
             position: absolute;
-            top: 245px;
+            top: 52mm;
             left: 0;
             z-index: 5;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2mm;
         }
 
         .designation-bar {
@@ -152,34 +158,34 @@
             font-weight: 900;
             text-transform: uppercase;
             width: 100%;
-            height: 40px;
+            height: 6mm;
             display: flex;
             align-items: center;
             justify-content: center;
             position: absolute;
-            top: 300px;
+            top: 61mm;
             left: 0;
-            font-size: 20px;
-            letter-spacing: 0.5px;
+            font-size: 11px;
+            letter-spacing: 0.3mm;
         }
 
         .contact-section {
             position: absolute;
-            top: 350px;
-            height: 60px;
+            top: 65.5mm;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            margin-left: 0;
+            gap: 0mm;
         }
 
         .footer {
-            background-color: black;
+            background-color: #000;
             color: white;
             width: 100%;
-            height: 45px;
+            height: 10mm;
             position: absolute;
             bottom: 0;
             left: 0;
@@ -187,15 +193,57 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 8px;
-            line-height: 1.3;
+            font-size: 6px;
+            line-height: 1.1;
+            gap: 0.8mm;
+        }
+
+        /* Controls bar stays at top of viewport */
+        .controls {
+            position: fixed;
+            top: 20px;
+            z-index: 100;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .signature-section {
+            position: absolute;
+            top: 66.5mm;
+            right: 2mm;
+            width: 22mm;
+            display: flex;
+            flex-direction: column;
+            align-items: end;
+            z-index: 10;
+        }
+
+        .signature-img {
+            width: 50%;
+            height: 6mm;
+            object-fit: contain;
+        }
+
+        .signature-text {
+            font-size: 4px;
+            font-weight: 900;
+            color: black;
+            text-transform: capitalize;
+            border-top: 0.3mm solid black;
+            width: 50%;
+            text-align: center;
+            margin-top: 0mm;
+            padding-top: 0mm;
+            line-height: 1;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="mb-6 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+    <div class="controls flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
         <div class="flex items-center space-x-3">
             <label for="format-select" class="text-sm font-bold text-gray-700">Export Format:</label>
             <select id="format-select"
@@ -219,12 +267,12 @@
     <div id="id-card">
         <!-- Curved Header -->
         <div class="header-curve">
-            <h1 class="text-yellow-400 font-black text-xl tracking-wide uppercase text-center w-2/3 leading-tight">
+            <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img">
+            <h1 class="text-yellow-400 font-black text-[13px] tracking-wide uppercase text-center w-2/3 leading-tight">
                 Humanity Foundation</h1>
-            <p class="text-white text-[10px] mt-1">Govt. Reg. : IV-190100489</p>
+            <p class="text-white text-[6px] font-bold opacity-90 mt-[-1px]">Govt. Reg. -IV-190100489</p>
         </div>
 
-        <!-- Profile Picture -->
         <div class="profile-container">
             @if($user->profile && $user->profile->profile_picture)
                 <img src="{{ $user->profile->getProfilePictureUrl() }}" alt="Profile" class="profile-img">
@@ -241,10 +289,20 @@
 
         <!-- User Details -->
         <div class="details">
-            <h2 class="text-red-600 font-extrabold text-2xl uppercase leading-none mb-1" style="font-weight: 900;">
-                {{ $user->profile->full_name }}
+            @php
+                $name = $user->profile->full_name;
+                $nameFontSize = '14px';
+                if (strlen($name) > 18)
+                    $nameFontSize = '11px';
+                if (strlen($name) > 24)
+                    $nameFontSize = '9px';
+            @endphp
+            <h2 class="text-red-600 uppercase"
+                style="font-weight: 900; font-size: {{ $nameFontSize }}; white-space: nowrap;">
+                {{ $name }}
             </h2>
-            <p class="text-xs font-bold text-gray-700">Emp. ID : {{ $user->employee_id }}</p>
+            <p class="text-[9px] font-bold text-gray-700">Emp. ID : <span
+                    class="text-red-600">{{ $user->employee_id }}</span></p>
         </div>
 
         <!-- Designation Bar -->
@@ -252,21 +310,24 @@
             {{ $user->getDesignationLabel() }}
         </div>
 
-        <!-- Contact Info manually placed between bars -->
+        <!-- Contact Info -->
         <div class="contact-section">
+            <p class="text-[8px] font-bold text-gray-800">Dist : {{ $user->profile->district ?? 'N/A' }}</p>
             <div class="flex items-center justify-center">
-                <span class="text-sm font-bold text-gray-800">{{ $user->email }}</span>
+                <span class="text-[10px] font-bold text-gray-800">{{ $user->profile->phone_number ?? 'N/A' }}</span>
             </div>
-            <div class="flex items-center justify-center">
-                <span class="text-sm font-bold text-gray-800">{{ $user->profile->phone_number ?? 'N/A' }}</span>
-            </div>
+        </div>
+
+        <div class="signature-section">
+            <img src="{{ asset('img/signature.png') }}" class="signature-img">
+            <div class="signature-text">Sig. of Authority</div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p class="font-black">www.hrbardwan.in</p>
-            <p class="font-bold opacity-90">Kendriyanagar, Keshabganj, Purba Bardhaman</p>
-            <p class="font-black">Mob : 8167364107</p>
+            <p class="font-bold text-[7px]">website : www.hfburdwan.in</p>
+            <p class="font-bold opacity-100">Head Office : Kendriyanagar, Keshabganj, Purba Bardhaman</p>
+            <p class="font-black">Mob : 9735563157</p>
         </div>
     </div>
 
@@ -301,6 +362,8 @@
                 onclone: function (clonedDoc) {
                     const clonedCard = clonedDoc.getElementById('id-card');
                     clonedCard.style.boxShadow = "none"; // Remove shadow for clean extraction
+                    clonedCard.style.transform = "none"; // Reset scale for high res capture
+                    clonedCard.style.margin = "0";
                 }
             }).then(canvas => {
                 const link = document.createElement('a');
@@ -322,14 +385,16 @@
                 onclone: function (clonedDoc) {
                     const clonedCard = clonedDoc.getElementById('id-card');
                     clonedCard.style.boxShadow = "none";
+                    clonedCard.style.transform = "none";
+                    clonedCard.style.margin = "0";
                 }
             }).then(canvas => {
                 const { jsPDF } = window.jspdf;
                 const imgData = canvas.toDataURL('image/png', 1.0);
 
                 // ID card dimensions in mm (standard CR80 size: 85.6mm x 53.98mm, but we're using vertical)
-                const cardWidth = 85.6;
-                const cardHeight = 128.4; // Vertical aspect ratio
+                const cardWidth = 54;
+                const cardHeight = 86;
 
                 const pdf = new jsPDF({
                     orientation: 'portrait',
@@ -354,6 +419,8 @@
                 onclone: function (clonedDoc) {
                     const clonedCard = clonedDoc.getElementById('id-card');
                     clonedCard.style.boxShadow = "none";
+                    clonedCard.style.transform = "none";
+                    clonedCard.style.margin = "0";
                 }
             }).then(canvas => {
                 // Convert to JPG with high quality (0.95 = 95% quality)

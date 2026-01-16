@@ -17,23 +17,25 @@
         }
 
         /* A4 Page Settings */
+        /* 12x18 Inch Page Settings */
         @page {
-            size: A4;
-            margin: 10mm;
+            size: 12in 18in;
+            margin: 0;
         }
 
         .page {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 10mm;
-            margin: 10mm auto;
+            width: 12in;
+            height: 18in;
+            padding: 0.5in;
+            margin: 0 auto;
             background: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-auto-rows: min-content;
-            gap: 15mm 10mm;
-            /* Vertical and Horizontal gap */
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 2mm;
+            justify-items: center;
+            align-items: center;
             page-break-after: always;
         }
 
@@ -71,7 +73,7 @@
 
         .header-curve {
             background-color: black;
-            height: 25mm;
+            height: 40mm;
             width: 150%;
             margin-left: -25%;
             border-bottom-left-radius: 50%;
@@ -83,22 +85,32 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding-top: 4mm;
+            padding-top: 10mm;
+        }
+
+        .logo-img {
+            height: 11mm;
+            margin-bottom: 0.1mm;
+            z-index: 2;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 100%;
+            object-fit: contain;
         }
 
         .profile-container {
-            width: 28mm;
-            height: 28mm;
+            width: 26mm;
+            height: 26mm;
             border-radius: 50%;
             background: #e0f2fe;
             position: relative;
             z-index: 10;
             margin: 0 auto;
-            margin-top: 14mm;
+            margin-top: 24.5mm;
             overflow: hidden;
-            border: 1mm solid white;
-            box-shadow: 0 2mm 3mm rgba(0, 0, 0, 0.1);
+            border: 0.8mm solid white;
+            box-shadow: 0 1.5mm 2mm rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -165,26 +177,29 @@
             text-align: center;
             width: 100%;
             position: absolute;
-            top: 44mm;
+            top: 50mm;
             left: 0;
             z-index: 5;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2mm;
         }
 
         .designation-bar {
             background-color: white;
-            color:black;
+            color: black;
             font-weight: 900;
             text-transform: uppercase;
             width: 100%;
-            height: 8mm;
+            height: 6mm;
             display: flex;
             align-items: center;
             justify-content: center;
             position: absolute;
-            top: 55mm;
+            top: 59mm;
             left: 0;
-            font-size: 13px;
-            letter-spacing: 0.2mm;
+            font-size: 11px;
+            letter-spacing: 0.3mm;
         }
 
         .contact-section {
@@ -195,14 +210,15 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 1mm;
+            margin-left: 0;
+            gap: 0mm;
         }
 
         .footer {
-            background-color: black;
+            background-color: #000;
             color: white;
             width: 100%;
-            height: 9mm;
+            height: 10mm;
             position: absolute;
             bottom: 0;
             left: 0;
@@ -210,8 +226,45 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 6.5px;
+            font-size: 6px;
             line-height: 1.1;
+            gap: 0.8mm;
+        }
+
+        .contact-icon {
+            width: 3mm;
+            margin-right: 1mm;
+        }
+
+        .signature-section {
+            position: absolute;
+            top: 67mm;
+            right: 2mm;
+            width: 22mm;
+            display: flex;
+            flex-direction: column;
+            align-items: end;
+            z-index: 10;
+        }
+
+        .signature-img {
+            width: 50%;
+            height: 6mm;
+            object-fit: contain;
+            align-items: end;
+        }
+
+        .signature-text {
+            font-size: 4.3px;
+            font-weight: 900;
+            color: black;
+            text-transform: capitalize;
+            border-top: 0.3mm solid black;
+            width: 50%;
+            text-align: end;
+            margin-top: 0mm;
+            padding-top: 0mm;
+            line-height: 1;
         }
     </style>
 </head>
@@ -240,7 +293,7 @@
         </button>
     </div>
 
-    @php $chunks = $users->chunk(9); @endphp
+    @php $chunks = $users->chunk(25); @endphp
 
     <div id="print-container">
         @foreach($chunks as $chunk)
@@ -248,16 +301,16 @@
                 @foreach($chunk as $user)
                     <div class="id-card">
                         <div class="header-curve">
+                            <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img">
                             <h1
-                                class="text-yellow-400 font-black text-[14px] tracking-wide uppercase text-center w-2/3 leading-tight">
+                                class="text-yellow-400 font-black text-[13px] tracking-wide uppercase text-center w-2/3 leading-tight">
                                 Humanity Foundation</h1>
-                            <p class="text-white text-[7px] mt-0.5">Govt. Reg. : IV-190100489</p>
+                            <p class="text-white text-[6px] font-bold opacity-100 mt-[1px]">Govt. Reg. -IV190100489</p>
                         </div>
 
                         <div class="profile-container">
                             @if($user->profile && $user->profile->profile_picture)
-                                <img src="{{ $user->profile->getProfilePictureUrl() }}" alt="Profile"
-                                    class="profile-img">
+                                <img src="{{ $user->profile->getProfilePictureUrl() }}" alt="Profile" class="profile-img">
                             @else
                                 <div class="landscape">
                                     <div class="cloud cloud-1"></div>
@@ -269,10 +322,20 @@
                         </div>
 
                         <div class="details">
-                            <h2 class="text-red-600 font-black text-[16px] uppercase leading-none mb-1"
-                                style="font-weight: 900;">
-                                {{ $user->profile->full_name }}</h2>
-                            <p class="text-[10px] font-bold text-gray-700">Emp. ID : {{ $user->employee_id }}</p>
+                            @php
+                                $p_name = $user->profile->full_name;
+                                $p_nameFontSize = '14px';
+                                if (strlen($p_name) > 18)
+                                    $p_nameFontSize = '11px';
+                                if (strlen($p_name) > 24)
+                                    $p_nameFontSize = '9px';
+                            @endphp
+                            <h2 class="text-red-600 uppercase"
+                                style="font-weight: 900; font-size: {{ $p_nameFontSize }}; white-space: nowrap;">
+                                {{ $p_name }}
+                            </h2>
+                            <p class="text-[9px] font-bold text-gray-700">Emp. ID : <span
+                                    class="text-red-600">{{ $user->employee_id }}</span></p>
                         </div>
 
                         <div class="designation-bar">
@@ -280,19 +343,22 @@
                         </div>
 
                         <div class="contact-section">
-                            <div class="flex items-center justify-center">
-                                <span class="text-[11px] font-bold text-gray-800">{{ $user->email }}</span>
-                            </div>
+                            <p class="text-[8px] font-bold text-gray-800">Dist : {{ $user->profile->district ?? 'N/A' }}</p>
                             <div class="flex items-center justify-center">
                                 <span
-                                    class="text-[11px] font-bold text-gray-800">{{ $user->profile->phone_number ?? 'N/A' }}</span>
+                                    class="text-[10px] font-bold text-gray-800">{{ $user->profile->phone_number ?? 'N/A' }}</span>
                             </div>
                         </div>
 
+                        <div class="signature-section">
+                            <img src="{{ asset('img/signature.png') }}" class="signature-img">
+                            <div class="signature-text">Sig. of Authority</div>
+                        </div>
+
                         <div class="footer">
-                            <p class="font-black">www.hrbardwan.in</p>
-                            <p class="font-bold opacity-90">Kendriyanagar, Keshabganj, Purba Bardhaman</p>
-                            <p class="font-black">Mob : 8167364107</p>
+                            <p class="font-bold text-[7px]">website : www.hfburdwan.in</p>
+                            <p class="font-bold opacity-100">Head Office : Kendriyanagar, Keshabganj, Purba Bardhaman</p>
+                            <p class="font-black">Mob : 9735563157</p>
                         </div>
                     </div>
                 @endforeach
@@ -311,27 +377,25 @@
 
             const pdf = new jsPDF({
                 orientation: 'p',
-                unit: 'mm',
-                format: 'a4'
+                unit: 'in',
+                format: [12, 18]
             });
 
             for (let i = 0; i < pages.length; i++) {
                 loadingText.textContent = `Processing Page ${i + 1} of ${pages.length}...`;
 
                 const canvas = await html2canvas(pages[i], {
-                    scale: 3, // High quality
+                    scale: 2,
                     useCORS: true,
                     logging: false,
                     allowTaint: false,
-                    backgroundColor: "#ffffff",
-                    width: 210 * 3.78, // Approximate mm to px conversion for capture
-                    height: 297 * 3.78
+                    backgroundColor: "#ffffff"
                 });
 
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
                 if (i > 0) pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                pdf.addImage(imgData, 'JPEG', 0, 0, 12, 18);
             }
 
             loadingText.textContent = "Finalizing PDF...";

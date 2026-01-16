@@ -921,24 +921,7 @@ class UserController extends Controller
         return view('users.id_card', compact('user', 'format'));
     }
 
-    /**
-     * Bulk Download All ID Cards
-     */
-    public function bulkDownloadIdCards(Request $request)
-    {
-        // Only Super Admin can bulk download
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403, 'Unauthorized. Only Super Admin can bulk download ID cards.');
-        }
 
-        // Get all active users that the admin can access
-        $users = User::with('profile')
-            ->where('status', 'active')
-            ->get();
-
-        $format = $request->get('format', 'png'); // Default to PNG, can be 'pdf' or 'svg'
-        return view('users.bulk_id_cards', compact('users', 'format'));
-    }
 
     /**
      * Print all ID cards in A4 grid
@@ -950,13 +933,15 @@ class UserController extends Controller
             abort(403, 'Unauthorized. Only Super Admin can print ID cards.');
         }
 
-        // Get all active users who HAVE a profile picture
-        $users = User::whereHas('profile', function ($query) {
-            $query->whereNotNull('profile_picture');
-        })
-            ->with('profile')
-            ->where('status', 'active')
-            ->get();
+        // Get active users with profile pictures, optionally filtered by selection
+        $query = User::with('profile')
+            ->where('status', 'active');
+
+        if ($request->has('selected_users')) {
+            $query->whereIn('id', $request->selected_users);
+        }
+
+        $users = $query->get();
 
         $format = $request->get('format', 'png'); // Default to PNG, can be 'pdf' or 'svg'
         return view('users.printable_id_cards', compact('users', 'format'));
