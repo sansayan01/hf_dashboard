@@ -440,7 +440,7 @@ class User extends Authenticatable
         }
 
         // Can access if target is in downline
-        return $this->getAllDownline()->contains('id', $targetUser->id);
+        return in_array($targetUser->id, $this->getAllDownlineIds());
     }
 
     // Check if user can edit another user's data

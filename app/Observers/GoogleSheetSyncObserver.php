@@ -66,7 +66,7 @@ class GoogleSheetSyncObserver
                 $collector = "{$collectorName} ({$collectorId})";
 
                 // Sync to PATIENTS sheet (Basic Info)
-                $this->sheetsService->syncData('Patients', [
+                \App\Jobs\SyncToGoogleSheetJob::dispatch('Patients', [
                     'Action' => $action,
                     'patientId' => $model->patient_id,
                     'fullName' => $model->full_name,
@@ -79,10 +79,10 @@ class GoogleSheetSyncObserver
                     'address' => $model->address,
                     'pin' => $model->pin,
                     'collector' => $collector,
-                ], 'patientId', $model->patient_id);
+                ], 'patientId', $model->patient_id)->afterResponse();
 
                 // Sync to SURVEYS sheet (Detailed Health Info)
-                $this->sheetsService->syncData('Surveys', [
+                \App\Jobs\SyncToGoogleSheetJob::dispatch('Surveys', [
                     'Action' => $action,
                     'patientId' => $model->patient_id,
                     'fullName' => $model->full_name,
@@ -97,13 +97,11 @@ class GoogleSheetSyncObserver
                     'insuranceLoanReq' => $model->insurance_loan_req,
                     'landmark' => $model->landmark,
                     'collector' => $collector,
-                ], 'patientId', $model->patient_id);
+                ], 'patientId', $model->patient_id)->afterResponse();
 
-
-                return; // Since we handled the sync call inside this block
+                return;
 
             } elseif ($model instanceof Appointment) {
-
                 $sheetName = 'Appointments';
                 $uniqueKey = 'appointmentId';
                 $uniqueValue = $model->appointment_id;
@@ -120,9 +118,10 @@ class GoogleSheetSyncObserver
                 ];
             }
 
-            $this->sheetsService->syncData($sheetName, $data, $uniqueKey, $uniqueValue);
+            \App\Jobs\SyncToGoogleSheetJob::dispatch($sheetName, $data, $uniqueKey, $uniqueValue)->afterResponse();
+
         } catch (\Exception $e) {
-            \Log::error('Google Sheets Sync Failed', [
+            \Log::error('Google Sheets Sync Dispatch Failed', [
                 'error' => $e->getMessage(),
                 'model' => get_class($model),
                 'id' => $model->id ?? 'N/A'

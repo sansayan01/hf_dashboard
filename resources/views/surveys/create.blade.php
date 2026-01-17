@@ -175,12 +175,26 @@
                         class="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-slate-200 transition-all">
                         Cancel
                     </a>
-                    <button type="submit"
-                        class="px-8 py-4 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">
-                        Submit Survey
+                    <button type="submit" id="submit-btn"
+                        class="px-8 py-4 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center min-w-[160px]">
+                        <span id="btn-text">Submit Survey</span>
+                        <div id="btn-loader" class="hidden ml-2 w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     </button>
                 </div>
             </form>
         </div>
     </div>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', function() {
+            const btn = document.getElementById('submit-btn');
+            const text = document.getElementById('btn-text');
+            const loader = document.getElementById('btn-loader');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+            text.innerText = 'Submitting...';
+            loader.classList.remove('hidden');
+        });
+    </script>
 @endsection
