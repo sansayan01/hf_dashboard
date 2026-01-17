@@ -77,4 +77,29 @@ The platform integrates cutting-edge AI features (Powered by OpenRouter/Mistral)
 - **Password**: `Admin@123`
 
 ---
+
+
+Project Setup & Launch Plan
+Goal Description
+Start the Laravel project HF located in c:\xampp\htdocs\HF and make it accessible at http://localhost/HF/public.
+
+User Review Required
+None currently.
+Proposed Changes
+Setup Steps
+Install PHP Dependencies: Run composer install to ensure vendor directory is up to date.
+Install Node Dependencies: Run npm install.
+Database Setup:
+Check if database hf_database exists.
+Run php artisan migrate to create tables.
+Frontend Build:
+Run npm run build to generate static assets for production/local serving.
+Verification:
+Check if the URL http://localhost/HF/public is accessible.
+
+-----
+
+
 © 2026 Humanity Foundation | *Empowering Health through Technology*
+
+

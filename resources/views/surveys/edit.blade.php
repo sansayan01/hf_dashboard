@@ -159,12 +159,28 @@
                         class="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-slate-200 transition-all">
                         Cancel
                     </a>
+                    
+                    @if(Auth::id() === $survey->created_by || Auth::user()->canAccess($survey->creator))
+                        <button type="button" 
+                            onclick="if(confirm('Are you sure you want to delete this survey record?')) document.getElementById('delete-survey-form').submit();"
+                            class="px-8 py-4 bg-red-500/10 text-red-500 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-red-500 hover:text-white transition-all">
+                            Delete Survey
+                        </button>
+                    @endif
+
                     <button type="submit"
                         class="px-8 py-4 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">
                         Update Survey
                     </button>
                 </div>
             </form>
+
+            @if(Auth::id() === $survey->created_by || Auth::user()->canAccess($survey->creator))
+                <form id="delete-survey-form" action="{{ route('surveys.destroy', $survey->id) }}" method="POST" class="hidden">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            @endif
         </div>
     </div>
 @endsection

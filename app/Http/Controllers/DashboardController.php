@@ -179,7 +179,8 @@ class DashboardController extends Controller
     private function buildTree(User $user)
     {
         $children = $user->children()
-            ->with('profile')
+            ->where('designation', '!=', 'office_in_charge')
+            ->with(['profile'])
             ->get()
             ->map(function ($child) {
                 return $this->buildTree($child);

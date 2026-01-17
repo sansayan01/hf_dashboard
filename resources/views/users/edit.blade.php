@@ -18,17 +18,18 @@
                 @method('PUT')
 
                 <!-- Section: Administrative Role Management (Admins Only) -->
+                <!-- Section: Administrative Role Management (Admins Only) -->
                 @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-8">
-                    <div class="flex items-center space-x-2 mb-6">
+                <div class="mb-8">
+                    <div class="flex items-center space-x-2 mb-6 text-accent">
                         <div class="w-1.5 h-6 bg-accent rounded-full"></div>
                         <h4 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Role & Hierarchy Management</h4>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Current Designation</label>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Role/Designation</label>
                             <select name="designation" id="designation-select"
-                                class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 @foreach($allDesignations ?? [] as $val => $label)
                                     <option value="{{ $val }}" {{ $user->designation == $val ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
@@ -37,10 +38,10 @@
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Reports To (Parent)</label>
                             <select name="parent_id" id="parent-select"
-                                class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Parent</option>
                                 @if($user->parent)
-                                    <option value="{{ $user->parent_id }}" selected>{{ $user->parent->profile->full_name ?? $user->parent->email }} (Current)</option>
+                                    <option value="{{ $user->parent_id }}" selected>{{ $user->parent->profile->full_name ?? $user->parent->employee_id }} (Current)</option>
                                 @endif
                             </select>
                         </div>
@@ -61,7 +62,7 @@
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Upline's Designation</label>
                                 <select name="upline_designation" id="upline-designation-select"
-                                    class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                     <option value="">Select Upline Designation</option>
                                     <option value="super_admin" {{ ($user->upline_designation ?? old('upline_designation')) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                                     <option value="hs" {{ ($user->upline_designation ?? old('upline_designation')) == 'hs' ? 'selected' : '' }}>Head of State (HS)</option>
@@ -73,14 +74,14 @@
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Select Upline Person</label>
                                 <select name="upline_id" id="upline-person-select"
-                                    class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                     <option value="">Select Upline Designation First</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     @endif
-                    <p class="text-[10px] text-bodydark font-bold mt-4 uppercase italic">Warning: changing designation requires re-assigning valid parent.</p>
+                    <p class="text-[10px] text-accent font-bold mt-4 uppercase italic">Warning: changing designation requires re-assigning valid parent.</p>
                 </div>
                 @endif
 
@@ -372,7 +373,7 @@
             });
             
             // Trigger initial load if set
-            if (uplineDesignationSelect.value) {
+            if (uplineDesignationSelect && uplineDesignationSelect.value) {
                 uplineDesignationSelect.dispatchEvent(new Event('change'));
             }
             @endif
