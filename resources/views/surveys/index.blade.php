@@ -224,11 +224,35 @@
                 <a href="{{ route('surveys.create') }}" class="inline-block text-accent font-black uppercase tracking-[0.2em] text-[10px] hover:underline">Begin Field Work &rarr;</a>
             </div>
         @else
+            <!-- Bulk Actions Bar -->
+            @if(Auth::user()->isSuperAdmin())
+                <div id="bulk-actions-bar" class="hidden sticky top-0 z-20 bg-accent text-white px-6 py-4 flex items-center justify-between shadow-xl">
+                    <div class="flex items-center space-x-4">
+                        <span id="selected-count" class="font-black text-sm uppercase tracking-widest">0 Records Selected</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <form id="bulk-delete-form" action="{{ route('surveys.bulk-destroy') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all selected surveys?')">
+                            @csrf
+                            <div id="bulk-ids-container"></div>
+                            <button type="submit" class="px-6 py-2 bg-white text-accent rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-50 transition-colors">
+                                Delete Selected
+                            </button>
+                        </form>
+                        <button type="button" onclick="cancelSelection()" class="text-white/70 hover:text-white text-xs font-bold uppercase tracking-widest">Cancel</button>
+                    </div>
+                </div>
+            @endif
+
             <div class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse" id="surveys-table">
                         <thead>
                             <tr class="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                                @if(Auth::user()->isSuperAdmin())
+                                    <th class="p-6 w-10">
+                                        <input type="checkbox" id="select-all" class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent transition-all cursor-pointer">
+                                    </th>
+                                @endif
                                 <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Participant</th>
                                 <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Contact Info</th>
                                 <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Health Status</th>
@@ -240,6 +264,11 @@
                         <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                             @foreach($surveys as $survey)
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
+                                    @if(Auth::user()->isSuperAdmin())
+                                        <td class="p-6 w-10">
+                                            <input type="checkbox" class="survey-checkbox w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent transition-all cursor-pointer" data-id="{{ $survey->id }}">
+                                        </td>
+                                    @endif
                                     <td class="p-6">
                                         <div class="flex items-center space-x-4">
                                             <div class="w-10 h-10 bg-accent/10 text-accent dark:text-blue-400 rounded-xl flex items-center justify-center text-sm font-black">
@@ -329,6 +358,57 @@
                     </table>
                 </div>
             </div>
+
+            @if(Auth::user()->isSuperAdmin())
+                <script>
+                    const selectAll = document.getElementById('select-all');
+                    const checkboxes = document.querySelectorAll('.survey-checkbox');
+                    const bulkBar = document.getElementById('bulk-actions-bar');
+                    const selectedCount = document.getElementById('selected-count');
+                    const bulkIdsContainer = document.getElementById('bulk-ids-container');
+
+                    function updateSelection() {
+                        const selected = Array.from(checkboxes).filter(cb => cb.checked);
+                        const count = selected.length;
+                        
+                        if (count > 0) {
+                            bulkBar.classList.remove('hidden');
+                            selectedCount.innerText = `${count} Records Selected`;
+                            
+                            // Update hidden inputs for bulk form
+                            bulkIdsContainer.innerHTML = '';
+                            selected.forEach(cb => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = 'ids[]';
+                                input.value = cb.getAttribute('data-id');
+                                bulkIdsContainer.appendChild(input);
+                            });
+                        } else {
+                            bulkBar.classList.add('hidden');
+                        }
+                    }
+
+                    selectAll.addEventListener('change', () => {
+                        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+                        updateSelection();
+                    });
+
+                    checkboxes.forEach(cb => {
+                        cb.addEventListener('change', () => {
+                            updateSelection();
+                            if (!cb.checked) selectAll.checked = false;
+                            if (Array.from(checkboxes).every(c => c.checked)) selectAll.checked = true;
+                        });
+                    });
+
+                    function cancelSelection() {
+                        selectAll.checked = false;
+                        checkboxes.forEach(cb => cb.checked = false);
+                        updateSelection();
+                    }
+                </script>
+            @endif
         @endif
     </div>
 @endsection
