@@ -77,8 +77,8 @@
         }
     </style>
     <script>
-        // Default to light theme for new users (ignore OS preference)
-        if (localStorage.getItem('color-theme') === 'dark') {
+        // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
@@ -263,7 +263,7 @@
             <header
                 class="h-20 bg-white dark:bg-darkbg/40 dark:backdrop-blur-md border-b border-slate-200 dark:border-white/5 px-6 lg:px-8 flex items-center justify-between sticky top-0 z-40 transition-colors duration-300">
                 <div class="flex items-center space-x-4">
-                    <button onclick="toggleSidebar()" class="lg:hidden text-primary">
+                    <button onclick="toggleSidebar()" class="lg:hidden text-slate-800 dark:text-white">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 6h16M4 12h16m-7 6h7"></path>
@@ -330,26 +330,90 @@
         </main>
     </div>
 
+    <!-- Global Loading Overlay -->
+    <div id="global-loader"
+        class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div
+            class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl flex flex-col items-center space-y-4 border border-white/20">
+            <div class="relative w-16 h-16">
+                <!-- Outer Ring -->
+                <div class="absolute inset-0 border-4 border-accent/20 rounded-full"></div>
+                <!-- Spinning Ring -->
+                <div class="absolute inset-0 border-4 border-transparent border-t-accent rounded-full animate-spin">
+                </div>
+            </div>
+            <div class="text-center">
+                <h3 class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-widest">Processing</h3>
+                <p
+                    class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest animate-pulse">
+                    Please wait a moment...</p>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function showGlobalLoader() {
+            const loader = document.getElementById('global-loader');
+            if (loader) {
+                loader.classList.remove('hidden');
+                setTimeout(() => {
+                    loader.classList.add('opacity-100');
+                }, 10);
+            }
+        }
+
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('show');
         }
 
-        // Theme Toggle Script
-        var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-        var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        // Global Form Loading Logic
+        document.addEventListener('submit', function (e) {
+            setTimeout(() => {
+                if (e.defaultPrevented) return;
+                if (e.target.classList.contains('no-loader')) return;
 
-        // Change the icons inside the button based on previous settings
-        if (localStorage.getItem('color-theme') === 'dark') {
+                const loader = document.getElementById('global-loader');
+                if (loader) {
+                    loader.classList.remove('hidden');
+                    setTimeout(() => {
+                        loader.classList.add('opacity-100');
+                    }, 10);
+                }
+
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    if (submitBtn.disabled) return;
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    const btnText = submitBtn.innerText.trim();
+                    if (btnText && btnText.length < 30) {
+                        const lowText = btnText.toLowerCase();
+                        if (lowText.includes('update')) submitBtn.innerText = 'Updating...';
+                        else if (lowText.includes('save')) submitBtn.innerText = 'Saving...';
+                        else if (lowText.includes('delete')) submitBtn.innerText = 'Deleting...';
+                        else if (lowText.includes('submit')) submitBtn.innerText = 'Submitting...';
+                        else submitBtn.innerText = 'Processing...';
+                    }
+                }
+            }, 0);
+        });
+
+        // Theme Toggle Script
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
+        // Initial icon state
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             themeToggleLightIcon.classList.remove('hidden');
+            document.documentElement.classList.add('dark');
         } else {
             themeToggleDarkIcon.classList.remove('hidden');
+            document.documentElement.classList.remove('dark');
         }
 
-        var themeToggleBtn = document.getElementById('theme-toggle');
-
         themeToggleBtn.addEventListener('click', function () {
-            // toggle icons inside button
+            // toggle icons
             themeToggleDarkIcon.classList.toggle('hidden');
             themeToggleLightIcon.classList.toggle('hidden');
 
@@ -362,8 +426,6 @@
                     document.documentElement.classList.remove('dark');
                     localStorage.setItem('color-theme', 'light');
                 }
-
-                // if NOT set via local storage previously
             } else {
                 if (document.documentElement.classList.contains('dark')) {
                     document.documentElement.classList.remove('dark');
@@ -373,18 +435,31 @@
                     localStorage.setItem('color-theme', 'dark');
                 }
             }
+
+            // Dispatch event for other components (like SweetAlert dynamic color check)
+            window.dispatchEvent(new Event('theme-changed'));
         });
 
-        // Global SweetAlert2 Configuration
+        // Global SweetAlert2 Theme Helper
+        function getSwalConfig() {
+            const isDark = document.documentElement.classList.contains('dark');
+            return {
+                background: isDark ? '#1E293B' : '#FFFFFF',
+                color: isDark ? '#F1F5F9' : '#1C2434',
+                confirmButtonColor: '#3C50E0'
+            };
+        }
+
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
             timer: 3000,
             timerProgressBar: true,
-            background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
-            color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
             didOpen: (toast) => {
+                const config = getSwalConfig();
+                toast.style.background = config.background;
+                toast.style.color = config.color;
                 toast.addEventListener('mouseenter', Swal.stopTimer)
                 toast.addEventListener('mouseleave', Swal.resumeTimer)
             }
@@ -395,21 +470,19 @@
                 icon: 'success',
                 title: 'Success!',
                 text: "{{ session('success') }}",
-                confirmButtonColor: '#3C50E0',
-                background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
-                color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
+                ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                    }).then((result) => {
+                                                                                        }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                    });
+                                                                                        });
         @endif
 
         @if(session('error'))
@@ -417,9 +490,8 @@
                 icon: 'error',
                 title: 'Error!',
                 text: "{{ session('error') }}",
+                ...getSwalConfig(),
                 confirmButtonColor: '#FB4848',
-                background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
-                color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
             });
         @endif
 
@@ -428,9 +500,8 @@
                 icon: 'warning',
                 title: 'Form Validation Error',
                 html: `<div class="text-left"><p class="font-bold mb-2">Check the following fields:</p><ul class="list-disc list-inside text-sm">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>`,
+                ...getSwalConfig(),
                 confirmButtonColor: '#F2994A',
-                background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
-                color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
             });
         @endif
     </script>

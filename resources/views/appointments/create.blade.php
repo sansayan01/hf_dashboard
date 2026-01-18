@@ -138,10 +138,7 @@
                     </a>
                     <button type="submit" id="submit-btn"
                         class="px-8 py-3 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all flex items-center">
-                        <span id="btn-text">Schedule Appointment</span>
-                        <div id="btn-loader"
-                            class="hidden ml-2 w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin">
-                        </div>
+                        Schedule Appointment
                     </button>
                 </div>
             </form>
@@ -202,10 +199,7 @@
                 color: document.documentElement.classList.contains('dark') ? '#F1F5F9' : '#1C2434',
             }).then((result) => {
                 if (result.isConfirmed) {
-                    btn.disabled = true;
-                    btn.classList.add('opacity-70', 'cursor-not-allowed');
-                    text.innerText = 'Scheduling...';
-                    loader.classList.remove('hidden');
+                    showGlobalLoader();
                     this.submit();
                 }
             });

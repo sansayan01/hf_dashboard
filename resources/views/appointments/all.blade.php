@@ -94,7 +94,7 @@
 
         <!-- Search & Filter Bar -->
         <div class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm">
-            <form action="{{ route('appointments.all') }}" method="GET" class="flex flex-col lg:flex-row items-center gap-4">
+            <form action="{{ route('appointments.all') }}" method="GET" class="no-loader flex flex-col lg:flex-row items-center gap-4">
                 <div class="flex-1 w-full relative">
                     <input type="text" name="search" value="{{ request('search') }}" 
                         placeholder="Search Patient Name, ID, or Clinic Type..."

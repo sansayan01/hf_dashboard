@@ -47,9 +47,8 @@
             </div>
         </div>
 
-        <!-- Filter Panel -->
         <div id="filter-panel" class="{{ request()->anyFilled(['search', 'gender', 'health_issue', 'date_from', 'date_to', 'collector_id']) ? '' : 'hidden' }} p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
-            <form action="{{ route('surveys.index') }}" method="GET" class="space-y-4">
+            <form action="{{ route('surveys.index') }}" method="GET" class="no-loader space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Search -->
                     <div class="lg:col-span-3">
