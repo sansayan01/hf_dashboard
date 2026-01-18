@@ -61,10 +61,12 @@
                         <span class="hidden lg:inline">PRINT A4</span>
                     </button>
                 @endif
-                <a href="{{ route('users.create') }}"
-                    class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
-                    + Add Member
-                </a>
+                @if(auth()->user()->canCreateUsers())
+                    <a href="{{ route('users.create') }}"
+                        class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
+                        + Add Member
+                    </a>
+                @endif
             </div>
         </div>
 

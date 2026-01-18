@@ -181,7 +181,7 @@
                     </ul>
                 </div>
 
-                @if(auth()->user()->canCreateUsers())
+                @if(auth()->user()->canViewDownline())
                     <div class="mb-4">
                         <p class="text-xs font-semibold text-bodydark uppercase tracking-widest px-4 mb-3">Management</p>
                         <ul class="space-y-1">
@@ -472,17 +472,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                            }).then((result) => {
+                                                                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                            });
+                                                                                                });
         @endif
 
         @if(session('error'))

@@ -199,6 +199,13 @@ class User extends Authenticatable
         return RolePermission::check($this->designation, 'can_create_users');
     }
 
+    public function canViewDownline()
+    {
+        if ($this->isSuperAdmin())
+            return true;
+        return RolePermission::check($this->designation, 'can_view_downline');
+    }
+
     public function canEditUserDetails()
     {
         if ($this->isSuperAdmin())
