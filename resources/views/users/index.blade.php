@@ -170,6 +170,8 @@
                         </th>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Joined On
                         </th>
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Attendance
+                        </th>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status
                         </th>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
@@ -212,6 +214,35 @@
                             </td>
                             <td class="px-6 py-4">
                                 <p class="text-xs text-slate-500 font-medium">{{ $u->created_at->format('d M, Y') }}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($u->isRO() && (auth()->user()->isSuperAdmin() || auth()->id() === $u->parent_id))
+                                    @php
+                                        $todayAtt = $u->todayAttendance;
+                                        // Debug: Check what we're getting
+                                        // dd($todayAtt); // Uncomment to debug
+                                    @endphp
+                                    <select onchange="markAttendance({{ $u->id }}, this.value, this)"
+                                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-accent/20 transition-all
+                                                                {{ is_null($todayAtt) ? 'bg-slate-100 text-slate-500' : ($todayAtt->status === 'present' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger') }}">
+                                        <option value="" {{ is_null($todayAtt) ? 'selected' : '' }}>Mark</option>
+                                        <option value="present" {{ !is_null($todayAtt) && $todayAtt->status === 'present' ? 'selected' : '' }}>
+                                            Present</option>
+                                        <option value="absent" {{ !is_null($todayAtt) && $todayAtt->status === 'absent' ? 'selected' : '' }}>
+                                            Absent</option>
+                                    </select>
+                                    {{-- Debug info (remove after testing) --}}
+                                    @if(request()->has('debug'))
+                                        <small class="text-xs text-red-500">{{ $todayAtt ? 'Has: ' . $todayAtt->status : 'NULL' }}</small>
+                                    @endif
+                                @elseif($u->isRO())
+                                    <a href="{{ route('attendance.show', $u->id) }}"
+                                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200 transition-all">
+                                        View Log
+                                    </a>
+                                @else
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">-</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 @if($u->status === 'active')
@@ -442,5 +473,48 @@
                 updateBlocks();
             }
         });
+
+        function markAttendance(userId, status, element) {
+            fetch('{{ route("attendance.store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    status: status,
+                    date: '{{ date("Y-m-d") }}'
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.attendance) {
+                        Toast.fire({
+                            icon: 'success',
+                            title: data.message
+                        });
+                        // Update dropdown color
+                        element.classList.remove('bg-slate-100', 'text-slate-500', 'bg-success/10', 'text-success', 'bg-danger/10', 'text-danger');
+                        if (status === 'present') {
+                            element.classList.add('bg-success/10', 'text-success');
+                        } else {
+                            element.classList.add('bg-danger/10', 'text-danger');
+                        }
+                    } else {
+                        Toast.fire({
+                            icon: 'error',
+                            title: data.message || 'Something went wrong'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'System Error'
+                    });
+                });
+        }
     </script>
 @endsection

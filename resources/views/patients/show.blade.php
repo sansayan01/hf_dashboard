@@ -90,8 +90,18 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Collector</p>
-                        <p class="text-sm font-bold text-slate-700 dark:text-white">
-                            {{ $patient->creator->profile->full_name ?? 'System' }}</p>
+                        @if(auth()->user()->isSuperAdmin() && $patient->creator)
+                            <a href="{{ route('users.show', $patient->creator->id) }}" class="text-sm font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
+                                <span>{{ $patient->creator->profile->full_name ?? 'System' }}</span>
+                                <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        @else
+                            <p class="text-sm font-bold text-slate-700 dark:text-white">
+                                {{ $patient->creator->profile->full_name ?? 'System' }}
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -271,8 +281,18 @@
                             class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                             <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Assigned
                                 Collector</p>
-                            <p class="text-xs font-bold text-slate-700 dark:text-white">
-                                {{ $patient->creator->profile->full_name ?? 'N/A' }}</p>
+                            @if(auth()->user()->isSuperAdmin() && $patient->creator)
+                                <a href="{{ route('users.show', $patient->creator->id) }}" class="text-xs font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
+                                    <span>{{ $patient->creator->profile->full_name ?? 'N/A' }}</span>
+                                    <svg class="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
+                            @else
+                                <p class="text-xs font-bold text-slate-700 dark:text-white">
+                                    {{ $patient->creator->profile->full_name ?? 'N/A' }}
+                                </p>
+                            @endif
                             <p class="text-[9px] text-slate-400 font-medium uppercase mt-0.5">
                                 {{ $patient->creator->employee_id }}</p>
                         </div>

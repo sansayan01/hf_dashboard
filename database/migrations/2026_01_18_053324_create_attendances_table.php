@@ -13,13 +13,11 @@ return new class extends Migration {
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('marked_by')->constrained('users')->onDelete('cascade');
+            $table->enum('status', ['present', 'absent']);
             $table->date('date');
-            $table->enum('status', ['present', 'absent', 'half_day', 'leave', 'holiday'])->default('present');
-            $table->foreignId('recorded_by')->constrained('users')->onDelete('cascade');
-            $table->text('remarks')->nullable();
             $table->timestamps();
 
-            // Unique constraint to prevent duplicate attendance for the same user on the same date
             $table->unique(['user_id', 'date']);
         });
     }

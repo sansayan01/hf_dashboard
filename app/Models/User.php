@@ -109,6 +109,18 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'upline_id');
     }
 
+    // Attendance
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    // Today's attendance
+    public function todayAttendance()
+    {
+        return $this->hasOne(Attendance::class)->whereDate('date', Carbon::today());
+    }
+
     /**
      * Scopes
      */

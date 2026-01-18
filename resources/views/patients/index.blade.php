@@ -275,7 +275,16 @@
                                                 @endif
                                             </div>
                                             <div>
-                                                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $patient->creator->profile->full_name ?? ($patient->creator->employee_id ?? 'Unknown User') }}</p>
+                                                @if(auth()->user()->isSuperAdmin() && $patient->creator)
+                                                    <a href="{{ route('users.show', $patient->creator->id) }}" class="text-xs font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
+                                                        <span>{{ $patient->creator->profile->full_name ?? ($patient->creator->employee_id ?? 'Unknown User') }}</span>
+                                                        <svg class="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                                        </svg>
+                                                    </a>
+                                                @else
+                                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $patient->creator->profile->full_name ?? ($patient->creator->employee_id ?? 'Unknown User') }}</p>
+                                                @endif
                                                 <p class="text-[10px] font-medium text-slate-400">{{ $patient->created_at->format('M d, Y') }}</p>
                                             </div>
                                         </div>

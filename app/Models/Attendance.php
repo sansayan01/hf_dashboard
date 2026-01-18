@@ -2,35 +2,31 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Attendance extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
-        'date',
+        'marked_by',
         'status',
-        'recorded_by',
-        'remarks',
+        'date',
     ];
 
     protected $casts = [
         'date' => 'date',
     ];
 
-    /**
-     * The Relationship Officer (RO) whose attendance is recorded.
-     */
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
-    /**
-     * The Manager (RM) or Admin who recorded this attendance.
-     */
-    public function recorder()
+    public function markedBy()
     {
-        return $this->belongsTo(User::class, 'recorded_by');
+        return $this->belongsTo(User::class, 'marked_by');
     }
 }

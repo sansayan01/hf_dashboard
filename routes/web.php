@@ -97,13 +97,6 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::post('/appointments/{appointment}/report-missed', [AppointmentController::class, 'reportMissed'])->name('appointments.report_missed');
     Route::post('/appointments/{appointment}/confirm-missed', [AppointmentController::class, 'confirmMissed'])->name('appointments.confirm_missed');
 
-    // Attendance Management
-    Route::prefix('attendance')->name('attendance.')->group(function () {
-        Route::get('/', [AttendanceController::class, 'index'])->name('index');
-        Route::post('/', [AttendanceController::class, 'store'])->name('store');
-        Route::get('/history', [AttendanceController::class, 'history'])->name('history');
-    });
-
     // Temporary Migration Trigger (Delete after use)
     Route::get('/setup-db', function () {
         try {
@@ -132,6 +125,12 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/password', [App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/profile/permissions', [App\Http\Controllers\ProfileController::class, 'updatePermissions'])->name('profile.permissions');
+
+    // Attendance Management
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::post('/store', [AttendanceController::class, 'store'])->name('store');
+        Route::get('/{user}', [AttendanceController::class, 'show'])->name('show');
+    });
 
     // AI Assistant
     Route::post('/ai/chat', [\App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');

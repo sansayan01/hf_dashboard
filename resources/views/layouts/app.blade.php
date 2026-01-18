@@ -197,28 +197,16 @@
                                 </a>
                             </li>
 
-                            @if(auth()->user()->isSuperAdmin() || auth()->user()->isRM())
-                                <li class="mt-2 text-xs font-semibold text-bodydark uppercase tracking-widest px-4 mb-2">
-                                    Attendance</li>
+                            @if(auth()->user()->isSuperAdmin())
                                 <li>
-                                    <a href="{{ route('attendance.index') }}"
-                                        class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('attendance.index') ? 'bg-accent text-white shadow-lg' : '' }}">
+                                    <a href="{{ route('users.bin') }}"
+                                        class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.bin') ? 'bg-accent text-white shadow-lg' : '' }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                                             </path>
                                         </svg>
-                                        <span>Mark Attendance</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('attendance.history') }}"
-                                        class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('attendance.history') ? 'bg-accent text-white shadow-lg' : '' }}">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span>History</span>
+                                        <span>BIN Recovery</span>
                                     </a>
                                 </li>
                             @endif

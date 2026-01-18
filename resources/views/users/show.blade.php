@@ -138,13 +138,27 @@
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-slate-50">
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Upline Manager</p>
-                        <p class="text-sm font-bold text-slate-700">
-                            @if($user->isOfficeInCharge())
-                                {{ $user->upline?->profile?->full_name ?? ($user->parent?->profile?->full_name ?? 'Not Assigned') }}
-                            @else
-                                {{ $user->parent?->profile?->full_name ?? 'ROOT / Super Admin' }}
-                            @endif
-                        </p>
+                        @php
+                            $uplineUser = null;
+                            if($user->isOfficeInCharge()) {
+                                $uplineUser = $user->upline ?? $user->parent;
+                            } else {
+                                $uplineUser = $user->parent;
+                            }
+                            $uplineName = $uplineUser?->profile?->full_name ?? 'ROOT / Super Admin';
+                        @endphp
+                        
+                        @if(auth()->user()->isSuperAdmin() && $uplineUser)
+                            <a href="{{ route('users.show', $uplineUser->id) }}" 
+                               class="text-sm font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
+                                <span>{{ $uplineName }}</span>
+                                <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        @else
+                            <p class="text-sm font-bold text-slate-700">{{ $uplineName }}</p>
+                        @endif
                     </div>
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Direct Downline</p>
@@ -240,6 +254,8 @@
                         </div>
                     </div>
                 </div>
+
+
             </div>
 
             <!-- Hierarchy Context -->
