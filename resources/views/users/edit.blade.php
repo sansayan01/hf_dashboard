@@ -3,6 +3,68 @@
 @section('title', 'Edit Member')
 @section('header_title', 'Edit ' . $user->profile->full_name)
 
+@section('css')
+<style>
+    /* 3D Dial Toggle Styling */
+    .dial-container {
+        display: inline-flex !important;
+        background: #f1f5f9;
+        padding: 5px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        gap: 2px !important;
+    }
+
+    .dial-label {
+        margin: 0 !important;
+        padding: 0 !important;
+        cursor: pointer;
+    }
+
+    .dial-input {
+        display: none !important;
+    }
+
+    .dial-btn {
+        width: 65px;
+        height: 36px;
+        line-height: 36px;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 900;
+        border-radius: 10px;
+        color: #64748b;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .dial-input-on:checked + .dial-btn-on {
+        background: #22c55e;
+        color: white;
+        box-shadow: 
+            0 4px 0 #15803d,
+            0 8px 20px rgba(34, 197, 94, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .dial-input-off:checked + .dial-btn-off {
+        background: #ef4444;
+        color: white;
+        box-shadow: 
+            0 4px 0 #b91c1c,
+            0 8px 20px rgba(239, 68, 68, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .dial-btn:active {
+        transform: translateY(2px) !important;
+        box-shadow: none !important;
+    }
+</style>
+@endsection
+
 @section('content')
     <div class="max-w-4xl mx-auto">
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -147,6 +209,49 @@
                         @endif
                     </div>
                 </div>
+
+                <!-- Section: Per-User Permission Overrides (Admins Only) -->
+                @if(auth()->user()->isSuperAdmin())
+                <div id="per-user-permissions-section" class="{{ in_array($user->designation, ['hs', 'dm', 'rm']) ? '' : 'hidden' }}">
+                    <div class="flex items-center space-x-2 mb-6 text-accent">
+                        <div class="w-1.5 h-6 bg-accent rounded-full"></div>
+                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Per-User Permission Overrides</h4>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                        <p class="text-xs text-blue-800">
+                            <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            These permissions take precedence even if role-level permissions are disabled.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <label class="group flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-3xl cursor-pointer hover:border-accent/30 hover:bg-white transition-all shadow-sm">
+                            <div class="flex-1 pr-4">
+                                <p class="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">CAN CREATE USERS</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Grant Access</p>
+                            </div>
+                            <x-dial-toggle 
+                                name="can_create_users" 
+                                id="can_create_users_toggle"
+                                :checked="old('can_create_users', $user->can_create_users)" 
+                            />
+                        </label>
+
+                        <label class="group flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-3xl cursor-pointer hover:border-accent/30 hover:bg-white transition-all shadow-sm">
+                            <div class="flex-1 pr-4">
+                                <p class="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">CAN EDIT USER DETAILS</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Grant Access</p>
+                            </div>
+                            <x-dial-toggle 
+                                name="can_edit_user_details" 
+                                id="can_edit_user_details_toggle"
+                                :checked="old('can_edit_user_details', $user->can_edit_user_details)" 
+                            />
+                        </label>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Section: Personal Profile -->
                 <div>
@@ -439,6 +544,18 @@
                             }
                             parentSelect.add(option);
                         });
+                    }
+                }
+
+                // Show/Hide Per-User Permissions Section
+                const perUserPermissionsSection = document.getElementById('per-user-permissions-section');
+                if (perUserPermissionsSection) {
+                    if (['hs', 'dm', 'rm'].includes(designation)) {
+                        perUserPermissionsSection.classList.remove('hidden');
+                    } else {
+                        perUserPermissionsSection.classList.add('hidden');
+                        // Uncheck when hidden to avoid accidental permissions? 
+                        // Actually, better to just hide it. The backend already handles saving only if Admin.
                     }
                 }
             }

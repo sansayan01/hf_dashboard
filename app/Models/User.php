@@ -30,6 +30,8 @@ class User extends Authenticatable
         'office_in_charge_end_date',
         'upline_id',
         'upline_designation',
+        'can_create_users',
+        'can_edit_user_details',
     ];
 
     /**
@@ -54,6 +56,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'office_in_charge_end_date' => 'date',
             'is_office_in_charge' => 'boolean',
+            'can_create_users' => 'boolean',
+            'can_edit_user_details' => 'boolean',
         ];
     }
 
@@ -194,6 +198,11 @@ class User extends Authenticatable
         if ($this->isSuperAdmin())
             return true;
 
+        // Check per-user override first
+        if ($this->can_create_users) {
+            return true;
+        }
+
         // For OIC, we check if they have permission button enabled.
         // What they can create is determined by getAllowedChildDesignation (proxied to Upline).
         return RolePermission::check($this->designation, 'can_create_users');
@@ -210,6 +219,12 @@ class User extends Authenticatable
     {
         if ($this->isSuperAdmin())
             return true;
+
+        // Check per-user override first
+        if ($this->can_edit_user_details) {
+            return true;
+        }
+
         return RolePermission::check($this->designation, 'can_edit_user_details');
     }
 

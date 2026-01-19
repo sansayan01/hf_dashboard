@@ -502,6 +502,9 @@ class UserController extends Controller
                 $rules['upline_designation'] = 'nullable|required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
                 $rules['upline_id'] = 'nullable|required_if:designation,office_in_charge|exists:users,id';
             }
+
+            $rules['can_create_users'] = 'nullable|boolean';
+            $rules['can_edit_user_details'] = 'nullable|boolean';
         }
 
         $validated = $request->validate($rules);
@@ -625,6 +628,12 @@ class UserController extends Controller
                 if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge() || $currentUser->id === $user->id) {
                     $userData['password'] = Hash::make($request->password);
                 }
+            }
+
+            // Update Per-User Permissions (Super Admin Only)
+            if ($currentUser->isSuperAdmin()) {
+                $userData['can_create_users'] = $request->has('can_create_users');
+                $userData['can_edit_user_details'] = $request->has('can_edit_user_details');
             }
 
             $user->update($userData);
