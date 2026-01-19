@@ -198,8 +198,8 @@ class User extends Authenticatable
         if ($this->isSuperAdmin())
             return true;
 
-        // Check per-user override first
-        if ($this->can_create_users) {
+        // Check per-user override first (Inherited)
+        if ($this->hasInheritedPermission('can_create_users')) {
             return true;
         }
 
@@ -208,10 +208,35 @@ class User extends Authenticatable
         return RolePermission::check($this->designation, 'can_create_users');
     }
 
+    /**
+     * Helper to check if permission is granted to self or any ancestor via override
+     */
+    public function hasInheritedPermission($column)
+    {
+        // Check self
+        if ($this->{$column}) {
+            return true;
+        }
+
+        // Check ancestors recursively
+        $parent = $this->isOfficeInCharge() ? $this->upline : $this->parent;
+        if ($parent) {
+            return $parent->hasInheritedPermission($column);
+        }
+
+        return false;
+    }
+
     public function canViewDownline()
     {
         if ($this->isSuperAdmin())
             return true;
+
+        // If they can create members, they must be able to view their team to access the button
+        if ($this->canCreateUsers()) {
+            return true;
+        }
+
         return RolePermission::check($this->designation, 'can_view_downline');
     }
 

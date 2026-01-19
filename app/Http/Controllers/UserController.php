@@ -28,7 +28,7 @@ class UserController extends Controller
         // Hierarchy scoping (only see subordinates)
         if (!$currentUser->isSuperAdmin()) {
             // Permission check: Can view downline
-            if (!\App\Models\RolePermission::check($currentUser->designation, 'can_view_downline')) {
+            if (!$currentUser->canViewDownline()) {
                 abort(403, 'Unauthorized access: You do not have permission to view the team members list.');
             }
             $downlineIds = $currentUser->getAllDownline()->pluck('id');
