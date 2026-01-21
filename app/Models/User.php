@@ -35,7 +35,6 @@ class User extends Authenticatable
         'joining_donation',
         'payment_status',
         'payment_reference',
-        'payment_screenshot',
     ];
 
     /**
