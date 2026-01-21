@@ -253,7 +253,7 @@
                 </div>
 
                 <!-- Section: Bank Account -->
-                <div>
+                <div class="mb-10">
                     <div class="flex items-center space-x-2 mb-6">
                         <div class="w-1.5 h-6 bg-accent rounded-full"></div>
                         <h4 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Banking Information</h4>
@@ -294,13 +294,54 @@
                     </div>
                 </div>
 
+                <!-- Section: Donation & Payment -->
+                <div id="donation-section" class="hidden">
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-1.5 h-6 bg-accent rounded-full"></div>
+                        <h4 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Joining Donation & Payment</h4>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-6">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Required Joining Donation</p>
+                                <h3 class="text-3xl font-black text-slate-800">₹<span id="donation-amount-display">0</span></h3>
+                                <p class="text-xs text-slate-400 mt-1">* This is a one-time joining donation based on the selected role.</p>
+                            </div>
+                            
+                            <a id="upi-pay-button" href="#" class="inline-flex items-center px-6 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all">
+                                <svg class="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
+                                    <path d="M11 7H13V13H11V7ZM11 15H13V17H11V15Z" fill="currentColor"/>
+                                </svg>
+                                Pay using UPI App
+                            </a>
+                        </div>
+                    </div>
+
+                    <div id="payment-details-section" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Upload Payment Screenshot</label>
+                            <input type="file" name="payment_screenshot" id="payment_screenshot_input" accept="image/*"
+                                class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#6739B7] file:text-white hover:file:bg-[#6739B7]/80">
+                            <p class="text-[10px] text-slate-400 mt-2">Please upload a clear screenshot of the payment success screen from your UPI app.</p>
+                        </div>
+                        <div class="flex items-end">
+                            <label class="flex items-center space-x-3 cursor-pointer p-4 bg-white border border-slate-200 rounded-xl w-full">
+                                <input type="checkbox" id="payment_confirmation_checkbox" class="w-5 h-5 text-accent rounded border-slate-300 focus:ring-accent">
+                                <span class="text-sm font-medium text-slate-600">I confirm that I have paid the specified amount.</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Submit -->
                 <div class="pt-10 border-t border-slate-100 flex items-center justify-between">
                     <button type="reset"
                         class="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition">Reset
                         Form</button>
-                    <button type="submit"
-                        class="px-10 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all">
+                    <button type="submit" id="register-button"
+                        class="px-10 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all hidden">
                         Register User to Downline
                     </button>
                 </div>
@@ -611,6 +652,65 @@
                             parentSelect.selectedIndex = 1;
                         }
                     }
+                }
+
+                // Donation Logic
+                const donationSection = document.getElementById('donation-section');
+                const donationAmountDisplay = document.getElementById('donation-amount-display');
+                const upiPayButton = document.getElementById('upi-pay-button');
+                const paymentDetailsSection = document.getElementById('payment-details-section');
+                const registerButton = document.getElementById('register-button');
+                const paymentScreenshotInput = document.getElementById('payment_screenshot_input');
+                const paymentConfirmationCheckbox = document.getElementById('payment_confirmation_checkbox');
+
+                const amounts = {
+                    'dm': 999,
+                    'bm': 999,
+                    'rm': 499,
+                    'ro': 199
+                };
+
+                // Reset visibility of additional fields and register button on role change
+                paymentDetailsSection.classList.add('hidden');
+                paymentScreenshotInput.required = false;
+                paymentConfirmationCheckbox.required = false;
+
+                if (amounts[designation]) {
+                    const amount = amounts[designation];
+                    donationSection.classList.remove('hidden');
+                    donationAmountDisplay.innerText = amount;
+                    registerButton.classList.add('hidden'); // Hide register button until payment action
+                    
+                    // Update UPI Link
+                    const pa = "9735563157-4@ybl";
+                    const pn = "Payment";
+                    const cu = "INR";
+                    const upiLink = `upi://pay?pa=${pa}&pn=${pn}&am=${amount}&cu=${cu}`;
+                    upiPayButton.href = upiLink;
+
+                    // Click listener to reveal fields after 30 seconds
+                    upiPayButton.onclick = function() {
+                        const originalContent = upiPayButton.innerHTML;
+                        upiPayButton.classList.add('opacity-50', 'pointer-events-none');
+                        
+                        let secondsLeft = 30;
+                        const timer = setInterval(() => {
+                            secondsLeft--;
+                            upiPayButton.innerHTML = `Wait ${secondsLeft}s...`;
+                            if (secondsLeft <= 0) {
+                                clearInterval(timer);
+                                upiPayButton.innerHTML = originalContent;
+                                upiPayButton.classList.remove('opacity-50', 'pointer-events-none');
+                                paymentDetailsSection.classList.remove('hidden');
+                                registerButton.classList.remove('hidden');
+                                paymentScreenshotInput.required = true;
+                                paymentConfirmationCheckbox.required = true;
+                            }
+                        }, 1000);
+                    };
+                } else {
+                    donationSection.classList.add('hidden');
+                    registerButton.classList.remove('hidden'); // Show for roles without donation
                 }
             });
 

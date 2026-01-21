@@ -32,6 +32,10 @@ class User extends Authenticatable
         'upline_designation',
         'can_create_users',
         'can_edit_user_details',
+        'joining_donation',
+        'payment_status',
+        'payment_reference',
+        'payment_screenshot',
     ];
 
     /**
@@ -58,6 +62,7 @@ class User extends Authenticatable
             'is_office_in_charge' => 'boolean',
             'can_create_users' => 'boolean',
             'can_edit_user_details' => 'boolean',
+            'joining_donation' => 'decimal:2',
         ];
     }
 
@@ -555,5 +560,20 @@ class User extends Authenticatable
         ];
 
         return $labels[$this->designation] ?? 'Unknown';
+    }
+
+    /**
+     * Get the joining donation amount for a specific designation
+     */
+    public static function getJoiningDonationAmount($designation)
+    {
+        $amounts = [
+            'dm' => 999,
+            'bm' => 999,
+            'rm' => 499,
+            'ro' => 199,
+        ];
+
+        return $amounts[$designation] ?? 0;
     }
 }

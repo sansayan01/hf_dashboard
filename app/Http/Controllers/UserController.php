@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserApproved;
+use App\Services\AIService;
 
 class UserController extends Controller
 {
@@ -226,6 +227,7 @@ class UserController extends Controller
             'account_number' => 'required|string',
             'ifsc_code' => 'required|string|max:11',
             'profile_picture' => 'nullable|image|max:10000',
+            'payment_screenshot' => 'required|image|max:10000',
         ]));
 
         \Log::info('Validation passed', ['validated' => $validated]);
@@ -309,7 +311,29 @@ class UserController extends Controller
                 'parent_id' => $parentId,
                 'status' => 'pending',
                 'is_office_in_charge' => ($designation === 'office_in_charge'),
+                'joining_donation' => User::getJoiningDonationAmount($designation),
             ];
+
+            // Handle payment screenshot
+            if ($request->hasFile('payment_screenshot')) {
+                $screenshotPath = $request->file('payment_screenshot')->store('payment_screenshots', 'public');
+                $userData['payment_screenshot'] = $screenshotPath;
+
+                // AI Verification
+                $aiService = app(AIService::class);
+                $expectedAmount = User::getJoiningDonationAmount($designation);
+                $verification = $aiService->verifyPaymentScreenshot(storage_path('app/public/' . $screenshotPath), $expectedAmount);
+
+                if (!$verification['success']) {
+                    // Delete the screenshot if verification fails to avoid clutter
+                    Storage::disk('public')->delete($screenshotPath);
+                    DB::rollBack();
+                    return back()->withInput()->with('error', 'Payment Verification Failed: ' . $verification['message']);
+                }
+
+                $userData['payment_reference'] = $verification['transaction_id'];
+                $userData['payment_status'] = 'completed'; // Mark as completed if AI verified it as a success screen
+            }
 
             // If creating Office In-Charge, add upline information
             if ($designation === 'office_in_charge' && $currentUser->isSuperAdmin()) {
