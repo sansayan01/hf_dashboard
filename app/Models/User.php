@@ -307,7 +307,7 @@ class User extends Authenticatable
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
             return self::where('designation', 'hs')
                 ->orWhereIn('parent_id', $saRoleIds)
-                ->where('designation', '!=', 'super_admin')
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->get();
         }
 
@@ -320,13 +320,13 @@ class User extends Authenticatable
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
             return self::where('designation', 'hs')
                 ->orWhereIn('parent_id', $saRoleIds)
-                ->where('designation', '!=', 'super_admin')
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->get();
         }
 
         // Standard behavior: Return children but exclude the current user if they are in the list
         return $this->children->reject(function ($child) {
-            return $child->id === auth()->id();
+            return $child->id === auth()->id() || $child->designation === 'office_in_charge';
         });
     }
 
@@ -338,7 +338,7 @@ class User extends Authenticatable
                 $q->where('designation', 'hs')
                     ->orWhereIn('parent_id', $saRoleIds);
             })
-                ->where('designation', '!=', 'super_admin')
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->count();
         }
 
@@ -346,7 +346,7 @@ class User extends Authenticatable
             return $this->upline->getDashboardChildrenCount();
         }
 
-        return $this->children()->count();
+        return $this->children()->where('designation', '!=', 'office_in_charge')->count();
     }
 
     // Get all downline users (entire tree)
