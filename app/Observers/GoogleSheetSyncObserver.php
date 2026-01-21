@@ -26,6 +26,21 @@ class GoogleSheetSyncObserver
         $this->sync($model, 'Updated');
     }
 
+    public function deleted($model)
+    {
+        // Handle SoftDeletes if used
+        if (method_exists($model, 'isForceDeleting') && $model->isForceDeleting()) {
+            $this->sync($model, 'Deleted');
+        } else {
+            $this->sync($model, 'Deleted'); // For both soft and hard delete
+        }
+    }
+
+    public function restored($model)
+    {
+        $this->sync($model, 'Restored');
+    }
+
     protected function sync($model, $action)
     {
         try {
