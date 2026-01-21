@@ -1,0 +1,192 @@
+@extends('layouts.app')
+
+@section('title', 'Camp Management')
+@section('header_title', 'NGO Pharmacy | Health Camps')
+
+@section('content')
+    <div class="space-y-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-2xl font-black text-slate-800 dark:text-white">Camp Locations</h3>
+                <p class="text-sm text-slate-500 font-bold uppercase tracking-tight">Manage active health camp sites</p>
+            </div>
+            <button onclick="openCreateModal()"
+                class="px-6 h-12 bg-accent text-white rounded-2xl flex items-center space-x-2 font-bold text-sm shadow-xl shadow-accent/20 hover:opacity-90 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Add Camp Location</span>
+            </button>
+        </div>
+
+        <div
+            class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden text-slate-800 dark:text-white">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/50 dark:bg-white/5">
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Camp Name</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Location/Area
+                            </th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Stock Count</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+                        @forelse($camps as $camp)
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                <td class="p-4">
+                                    <span class="font-bold text-sm">{{ $camp->name }}</span>
+                                </td>
+                                <td class="p-4 text-xs font-medium text-slate-500">{{ $camp->location ?? 'N/A' }}</td>
+                                <td class="p-4">
+                                    @if($camp->is_active)
+                                        <span
+                                            class="px-2 py-1 bg-emerald-100 text-emerald-600 text-[10px] font-black rounded-lg uppercase tracking-tight">Active</span>
+                                    @else
+                                        <span
+                                            class="px-2 py-1 bg-slate-100 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-tight">Inactive</span>
+                                    @endif
+                                </td>
+                                <td class="p-4">
+                                    <span class="text-xs font-bold">{{ $camp->stocks()->sum('quantity') }} Units</span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <div class="flex items-center justify-end space-x-2">
+                                        <button
+                                            onclick="openEditModal({{ $camp->id }}, '{{ addslashes($camp->name) }}', '{{ addslashes($camp->location ?? '') }}', {{ $camp->is_active }})"
+                                            class="p-2 text-slate-400 hover:text-accent transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </button>
+                                        <form action="{{ route('inventory.camps.destroy', $camp->id) }}" method="POST"
+                                            class="inline" onsubmit="return confirm('Are you sure?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="p-2 text-slate-400 hover:text-danger transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="p-20 text-center text-slate-500 font-bold">No health camps registered.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="camp-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75" aria-hidden="true"
+                onclick="closeModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div
+                class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-3xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form id="camp-form" method="POST">
+                    @csrf
+                    <div id="method-field"></div>
+                    <div class="bg-white dark:bg-slate-800 px-8 pt-8 pb-4">
+                        <h3 class="text-lg font-black text-slate-900 dark:text-white mb-6" id="modal-title">Add New Camp
+                            Site
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label
+                                    class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Camp
+                                    Name</label>
+                                <input type="text" name="name" id="name" required
+                                    class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Location/Area</label>
+                                <input type="text" name="location" id="location"
+                                    class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                            </div>
+                            <div id="status-container" class="hidden">
+                                <label class="flex items-center space-x-2 cursor-pointer mt-2">
+                                    <input type="checkbox" name="is_active" id="is_active" value="1"
+                                        class="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent">
+                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Mark as Active</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800/50 px-8 py-6 flex flex-row-reverse space-x-2 space-x-reverse">
+                        <button type="submit"
+                            class="inline-flex justify-center px-6 py-2.5 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/20 hover:opacity-90 transition">
+                            Save Site
+                        </button>
+                        <button type="button" onclick="closeModal()"
+                            class="inline-flex justify-center px-6 py-2.5 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold border border-slate-200 dark:border-slate-600 hover:bg-slate-50 transition">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@section('js')
+    <script>
+        function openCreateModal() {
+            const modal = document.getElementById('camp-modal');
+            const form = document.getElementById('camp-form');
+            const methodField = document.getElementById('method-field');
+            const statusContainer = document.getElementById('status-container');
+            const title = document.getElementById('modal-title');
+
+            form.action = "{{ route('inventory.camps.store') }}";
+            methodField.innerHTML = '';
+            document.getElementById('name').value = '';
+            document.getElementById('location').value = '';
+            statusContainer.classList.add('hidden');
+            title.innerText = 'Add New Camp Site';
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openEditModal(id, name, location, isActive) {
+            const modal = document.getElementById('camp-modal');
+            const form = document.getElementById('camp-form');
+            const methodField = document.getElementById('method-field');
+            const statusContainer = document.getElementById('status-container');
+            const title = document.getElementById('modal-title');
+
+            form.action = `/inventory/camps/${id}`;
+            methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+            document.getElementById('name').value = name;
+            document.getElementById('location').value = location;
+            document.getElementById('is_active').checked = isActive === 1;
+            statusContainer.classList.remove('hidden');
+            title.innerText = 'Edit Camp Site';
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('camp-modal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    </script>
+@endsection

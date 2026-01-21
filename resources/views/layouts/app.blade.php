@@ -178,6 +178,22 @@
                                 <span>Membership</span>
                             </a>
                         </li>
+                        @if(auth()->user()->isSuperAdmin())
+                            <li>
+                                <a href="{{ route('inventory.index') }}"
+                                    class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('inventory.*') && !request()->routeIs('inventory.camps.*') ? 'bg-accent text-white shadow-lg' : '' }}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.183.244l-.28.14a2 2 0 00-.774 2.58l.14.28a2 2 0 002.58.774l.28-.14a2 2 0 001.183-.244l2.143-.357a6 6 0 013.86-.517l.318-.158a6 6 0 003.86-.517l2.143.428a2 2 0 001.183-.244l.28-.14a2 2 0 00.774-2.58l-.14-.28z">
+                                        </path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 9.75l.136-.068a2 2 0 012.728.894l.272.544a2 2 0 01-.894 2.728L17.106 14M12 7.5l.136-.068a2 2 0 012.728.894l.272.544a2 2 0 01-.894 2.728L14.106 11.75M9 5.25l.136-.068a2 2 0 012.728.894l.272.544a2 2 0 01-.894 2.728L11.106 9.5">
+                                        </path>
+                                    </svg>
+                                    <span>Inventory</span>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </div>
 
@@ -472,17 +488,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                }).then((result) => {
+                                                                                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                });
+                                                                                                                });
         @endif
 
         @if(session('error'))

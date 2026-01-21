@@ -135,6 +135,48 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // AI Assistant
     Route::post('/ai/chat', [\App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');
 
+    // Medicine Inventory Management
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        // Stock management
+        Route::get('/', [App\Http\Controllers\InventoryController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\InventoryController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\InventoryController::class, 'store'])->name('store');
+        Route::get('/transactions', [App\Http\Controllers\InventoryController::class, 'transactions'])->name('transactions');
+        Route::put('/transactions/{transaction}', [App\Http\Controllers\InventoryController::class, 'updateTransaction'])->name('transactions.update');
+        Route::delete('/transactions/{transaction}', [App\Http\Controllers\InventoryController::class, 'destroyTransaction'])->name('transactions.destroy');
+
+        // Dispensing to patients
+        Route::get('/dispense/{patient?}', [App\Http\Controllers\InventoryController::class, 'dispense'])->name('dispense');
+        Route::post('/dispense', [App\Http\Controllers\InventoryController::class, 'processDispense'])->name('process-dispense');
+
+        // Stock Transfer
+        Route::get('/transfer', [App\Http\Controllers\InventoryController::class, 'transfer'])->name('transfer');
+        Route::post('/transfer', [App\Http\Controllers\InventoryController::class, 'processTransfer'])->name('process-transfer');
+
+        // Medicine CRUD
+        Route::prefix('medicines')->name('medicines.')->group(function () {
+            Route::get('/', [App\Http\Controllers\MedicineController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\MedicineController::class, 'create'])->name('create');
+            Route::post('/', [App\Http\Controllers\MedicineController::class, 'store'])->name('store');
+            Route::get('/{medicine}/edit', [App\Http\Controllers\MedicineController::class, 'edit'])->name('edit');
+            Route::put('/{medicine}', [App\Http\Controllers\MedicineController::class, 'update'])->name('update');
+            Route::delete('/{medicine}', [App\Http\Controllers\MedicineController::class, 'destroy'])->name('destroy');
+        });
+
+        // Warehouse, Camp and Sponsor management
+        Route::resource('warehouses', App\Http\Controllers\InventoryWarehouseController::class)->except(['create', 'show', 'edit']);
+        Route::resource('camps', App\Http\Controllers\InventoryCampController::class)->except(['create', 'show', 'edit']);
+        Route::resource('sponsors', App\Http\Controllers\InventorySponsorController::class)->except(['create', 'show', 'edit']);
+
+        // Category CRUD
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/', [App\Http\Controllers\MedicineController::class, 'categoriesIndex'])->name('index');
+            Route::post('/', [App\Http\Controllers\MedicineController::class, 'categoriesStore'])->name('store');
+            Route::put('/{category}', [App\Http\Controllers\MedicineController::class, 'categoriesUpdate'])->name('update');
+            Route::delete('/{category}', [App\Http\Controllers\MedicineController::class, 'categoriesDestroy'])->name('destroy');
+        });
+    });
+
 });
 
 // Diagnostic route - Moved outside auth for debugging
