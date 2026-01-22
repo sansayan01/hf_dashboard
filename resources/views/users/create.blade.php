@@ -724,6 +724,62 @@
                 triggerSelectChange(uplineDesignationSelect);
             }
             @endif
+            
+            @else
+            // For regular users (RM, BM, DM) who create a fixed designation
+            const allowedDesignation = '{{ $allowedDesignation }}';
+            const donationSection = document.getElementById('donation-section');
+            const donationAmountDisplay = document.getElementById('donation-amount-display');
+            const upiPayButton = document.getElementById('upi-pay-button');
+            const paymentDetailsSection = document.getElementById('payment-details-section');
+            const registerButton = document.getElementById('register-button');
+            const paymentScreenshotInput = document.getElementById('payment_screenshot_input');
+            const paymentConfirmationCheckbox = document.getElementById('payment_confirmation_checkbox');
+
+            const amounts = {
+                'dm': 999,
+                'bm': 999,
+                'rm': 499,
+                'ro': 199
+            };
+
+            if (amounts[allowedDesignation]) {
+                const amount = amounts[allowedDesignation];
+                donationSection.classList.remove('hidden');
+                donationAmountDisplay.innerText = amount;
+                registerButton.classList.add('hidden'); // Hide register button until payment action
+                
+                // Update UPI Link
+                const pa = "9735563157-4@ybl";
+                const pn = "Payment";
+                const cu = "INR";
+                const upiLink = `upi://pay?pa=${pa}&pn=${pn}&am=${amount}&cu=${cu}`;
+                upiPayButton.href = upiLink;
+
+                // Click listener to reveal fields after 30 seconds
+                upiPayButton.onclick = function() {
+                    const originalContent = upiPayButton.innerHTML;
+                    upiPayButton.classList.add('opacity-50', 'pointer-events-none');
+                    
+                    let secondsLeft = 30;
+                    const timer = setInterval(() => {
+                        secondsLeft--;
+                        upiPayButton.innerHTML = `Wait ${secondsLeft}s...`;
+                        if (secondsLeft <= 0) {
+                            clearInterval(timer);
+                            upiPayButton.innerHTML = originalContent;
+                            upiPayButton.classList.remove('opacity-50', 'pointer-events-none');
+                            paymentDetailsSection.classList.remove('hidden');
+                            registerButton.classList.remove('hidden');
+                            paymentScreenshotInput.required = true;
+                            paymentConfirmationCheckbox.required = true;
+                        }
+                    }, 1000);
+                };
+            } else {
+                donationSection.classList.add('hidden');
+                registerButton.classList.remove('hidden'); // Show for roles without donation
+            }
             @endif
 
             // PAN Validation on Submit
