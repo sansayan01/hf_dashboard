@@ -333,63 +333,107 @@
 
                     <!-- Coupon Code Toggle Link -->
                     <div class="text-center mb-6">
-                        <button type="button" onclick="toggleCouponSection()" id="coupon-toggle-btn" class="text-sm text-accent hover:text-accent/80 font-semibold inline-flex items-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                        <button type="button" onclick="toggleCouponSection()" id="coupon-toggle-btn" 
+                            class="group text-sm text-accent hover:text-accent/80 font-bold inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/5 hover:bg-accent/10 border border-accent/20 transition-all duration-300">
+                            <span class="p-1 bg-accent/10 rounded-full group-hover:bg-accent/20 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                                </svg>
+                            </span>
+                            <span>Redeem Coupon Code</span>
+                            <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
-                            Have a coupon code?
                         </button>
                     </div>
 
                     <!-- Coupon Code Section (Hidden by default) -->
-                    <div id="coupon-code-section" class="hidden bg-white border-2 border-dashed border-slate-200 rounded-2xl p-6 mb-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-2">
-                                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
-                                </svg>
-                                <h4 class="font-bold text-slate-700 text-sm">Enter Your Coupon Code</h4>
-                            </div>
-                            <button type="button" onclick="toggleCouponSection()" class="text-slate-400 hover:text-slate-600 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
+                    <div id="coupon-code-section" class="hidden relative group/coupon mb-8">
+                        <!-- Background Glow Effect -->
+                        <div class="absolute -inset-1 bg-gradient-to-r from-accent/20 to-purple-500/20 rounded-[2rem] blur-xl opacity-50 group-hover/coupon:opacity-100 transition duration-500"></div>
                         
-                        <div class="flex gap-3">
-                            <div class="flex-1">
-                                <input type="text" id="coupon_code_input" name="coupon_code" placeholder="Enter code here..." 
-                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none uppercase"
-                                    oninput="this.value = this.value.toUpperCase()">
+                        <div class="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-2xl shadow-accent/5 overflow-hidden">
+                            <!-- Background Pattern -->
+                            <div class="absolute top-0 right-0 -m-4 w-24 h-24 bg-accent/5 rounded-full blur-3xl"></div>
+                            
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-accent/10 dark:bg-accent/10 rounded-xl">
+                                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-black text-slate-800 dark:text-white text-sm uppercase tracking-wider">Coupon Redemption</h4>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Enter your unique 12-digit code</p>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="toggleCouponSection()" 
+                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-300">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
                             </div>
-                            <button type="button" onclick="validateCoupon()" id="apply-coupon-btn"
-                                class="px-6 py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-all whitespace-nowrap">
-                                Apply Code
-                            </button>
-                        </div>
-                        
-                        <!-- Success Message -->
-                        <div id="coupon-success-message" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-                            <div class="flex items-center space-x-2">
-                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <p class="text-sm font-bold text-green-700" id="coupon-success-text">Coupon applied! Payment waived.</p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <div class="relative flex-1">
+                                    <input type="text" id="coupon_code_input" name="coupon_code" placeholder="HF-CASH-XXXXX" 
+                                        class="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent dark:focus:border-accent/50 transition-all outline-none font-mono text-lg font-bold tracking-widest uppercase placeholder:opacity-30 dark:text-white"
+                                        oninput="this.value = this.value.toUpperCase()">
+                                </div>
+                                <button type="button" onclick="validateCoupon()" id="apply-coupon-btn"
+                                    class="relative group/btn px-8 py-4 bg-accent hover:bg-accent-dark text-white font-black rounded-xl shadow-lg shadow-accent/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 overflow-hidden whitespace-nowrap">
+                                    <span class="relative z-10 flex items-center justify-center gap-2">
+                                        <span>Apply Code</span>
+                                        <svg class="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                        </svg>
+                                    </span>
+                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+                                </button>
+                            </div>
+                            
+                            <!-- Success Message -->
+                            <div id="coupon-success-message" class="hidden mt-6 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500">
+                                <div class="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl p-5">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-12 h-12 flex-shrink-0 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="text-emerald-800 dark:text-emerald-400 font-black text-sm uppercase tracking-wider">Coupon Applied!</h5>
+                                            <p class="text-emerald-600/80 dark:text-emerald-400/60 text-xs font-bold" id="coupon-success-text"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Error Message -->
+                            <div id="coupon-error-message" class="hidden mt-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                                <div class="bg-rose-50 dark:bg-rose-500/5 border border-rose-200 dark:border-rose-500/20 rounded-2xl p-5">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 flex-shrink-0 bg-rose-500 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-rose-700 dark:text-rose-400 text-sm font-bold" id="coupon-error-text"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 flex items-center gap-2 px-1">
+                                <span class="flex h-2 w-2 rounded-full bg-accent animate-pulse"></span>
+                                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">
+                                    For cash payments, use the code provided by your area manager
+                                </p>
                             </div>
                         </div>
-                        
-                        <!-- Error Message -->
-                        <div id="coupon-error-message" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                            <div class="flex items-center space-x-2">
-                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <p class="text-sm font-bold text-red-700" id="coupon-error-text"></p>
-                            </div>
-                        </div>
-                        
-                        <p class="text-xs text-slate-400 mt-3">💡 If you paid in cash, use the coupon code provided to you.</p>
                     </div>
 
                     <!-- OR Divider -->
@@ -949,6 +993,7 @@
                 errorText.textContent = 'Please enter a coupon code.';
                 errorMsg.classList.remove('hidden');
                 successMsg.classList.add('hidden');
+                couponInput.focus();
                 return;
             }
             
@@ -960,8 +1005,17 @@
             }
             
             // Show loading state
+            const originalContent = applyBtn.innerHTML;
             applyBtn.disabled = true;
-            applyBtn.textContent = 'Validating...';
+            applyBtn.innerHTML = `
+                <div class="flex items-center justify-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Verifying...</span>
+                </div>
+            `;
             successMsg.classList.add('hidden');
             errorMsg.classList.add('hidden');
             
@@ -986,10 +1040,13 @@
                     successMsg.classList.remove('hidden');
                     errorMsg.classList.add('hidden');
                     
+                    // Update success text
+                    document.getElementById('coupon-success-text').textContent = data.message || 'Coupon applied! Payment has been waived.';
+                    
                     // Hide UPI payment section
                     upiSection.classList.add('hidden');
-                    orDivider.classList.add('hidden');
-                    paymentDetailsSection.classList.add('hidden');
+                    if (orDivider) orDivider.classList.add('hidden');
+                    if (paymentDetailsSection) paymentDetailsSection.classList.add('hidden');
                     
                     // Show register button immediately
                     registerButton.classList.remove('hidden');
@@ -997,27 +1054,32 @@
                     // Disable coupon input
                     couponInput.disabled = true;
                     applyBtn.disabled = true;
-                    applyBtn.textContent = 'Applied ✓';
-                    applyBtn.classList.add('bg-green-600');
                     applyBtn.classList.remove('bg-accent');
+                    applyBtn.classList.add('bg-emerald-500', 'shadow-emerald-500/25');
+                    applyBtn.innerHTML = `
+                        <div class="flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Applied ✓</span>
+                        </div>
+                    `;
                     
                 } else {
                     // Coupon is invalid
                     couponValid = false;
                     errorText.textContent = data.message || 'Invalid coupon code.';
                     errorMsg.classList.remove('hidden');
-                    successMsg.classList.add('hidden');
                     applyBtn.disabled = false;
-                    applyBtn.textContent = 'Apply Code';
+                    applyBtn.innerHTML = originalContent;
                 }
                 
             } catch (error) {
                 console.error('Coupon validation error:', error);
-                errorText.textContent = 'Failed to validate coupon. Please try again.';
+                errorText.textContent = 'Connection error. Please try again.';
                 errorMsg.classList.remove('hidden');
-                successMsg.classList.add('hidden');
                 applyBtn.disabled = false;
-                applyBtn.textContent = 'Apply Code';
+                applyBtn.innerHTML = originalContent;
             }
         };
         

@@ -33,7 +33,11 @@ class CouponCodeController extends Controller
         }
 
         if ($request->filled('designation')) {
-            $query->where('designation', $request->designation);
+            if ($request->designation === 'any') {
+                $query->whereNull('designation');
+            } else {
+                $query->where('designation', $request->designation);
+            }
         }
 
         if ($request->filled('search')) {
@@ -87,16 +91,19 @@ class CouponCodeController extends Controller
         }
 
         $validated = $request->validate([
-            'designation' => 'nullable|in:dm,bm,rm,ro',
+            'designation' => 'required|in:dm,bm,rm,ro,any',
             'quantity' => 'required|integer|min:1|max:100',
             'expires_at' => 'nullable|date|after:today',
             'notes' => 'nullable|string|max:500',
         ]);
 
+        // Convert "any" to null for universal coupons
+        $designation = ($validated['designation'] === 'any') ? null : $validated['designation'];
+
         try {
             $coupons = CouponCode::generateBatch(
                 $validated['quantity'],
-                $validated['designation'] ?? null,
+                $designation,
                 $currentUser->id,
                 $validated['expires_at'] ?? null,
                 $validated['notes'] ?? null
