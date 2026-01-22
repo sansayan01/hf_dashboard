@@ -313,8 +313,8 @@ class User extends Authenticatable
 
         if ($this->isOfficeInCharge()) {
             if ($this->upline_id && $this->upline) {
-                // For the TREE VIEW structure, OIC sees their Upline as the root node.
-                return collect([$this->upline]);
+                // OIC sees their upline's direct children (same downtree as upline)
+                return $this->upline->getDirectChildren();
             }
             // Fallback for OIC without upline: see HS and direct SA children
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
@@ -324,7 +324,7 @@ class User extends Authenticatable
                 ->get();
         }
 
-        // Standard behavior: Return children but exclude the current user if they are in the list
+        // Standard behavior: Return children but exclude the current user and office_in_charge if they are in the list
         return $this->children->reject(function ($child) {
             return $child->id === auth()->id() || $child->designation === 'office_in_charge';
         });
@@ -343,6 +343,7 @@ class User extends Authenticatable
         }
 
         if ($this->isOfficeInCharge() && $this->upline) {
+            // OIC sees their upline's children count (same as upline)
             return $this->upline->getDashboardChildrenCount();
         }
 
