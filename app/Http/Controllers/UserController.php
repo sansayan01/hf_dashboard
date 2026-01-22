@@ -226,7 +226,8 @@ class UserController extends Controller
             'account_number' => 'required|string',
             'ifsc_code' => 'required|string|max:11',
             'profile_picture' => 'nullable|image|max:10000',
-            'payment_screenshot' => 'required|image|max:10000',
+            'coupon_code' => 'nullable|string|max:50',
+            'payment_screenshot' => 'required_without:coupon_code|nullable|image|max:10000',
         ]));
 
         \Log::info('Validation passed', ['validated' => $validated]);
@@ -313,8 +314,32 @@ class UserController extends Controller
                 'joining_donation' => User::getJoiningDonationAmount($designation),
             ];
 
-            // Handle payment screenshot
-            if ($request->hasFile('payment_screenshot')) {
+            // Handle coupon code or payment screenshot
+            $couponUsed = false;
+
+            if ($request->filled('coupon_code')) {
+                // Validate coupon code
+                $coupon = \App\Models\CouponCode::where('code', $request->coupon_code)
+                    ->where('is_used', false)
+                    ->first();
+
+                if (!$coupon) {
+                    DB::rollBack();
+                    return back()->withInput()->with('error', 'Invalid coupon code. Please check and try again.');
+                }
+
+                if (!$coupon->isValid($designation)) {
+                    DB::rollBack();
+                    return back()->withInput()->with('error', $coupon->getValidationError($designation));
+                }
+
+                // Coupon is valid - bypass payment screenshot
+                $userData['payment_reference'] = 'COUPON-' . $coupon->code;
+                $userData['payment_status'] = 'completed';
+                $couponUsed = true;
+
+            } elseif ($request->hasFile('payment_screenshot')) {
+                // Handle payment screenshot
                 $screenshotPath = $request->file('payment_screenshot')->store('payment_screenshots', 'public');
                 $userData['payment_screenshot'] = $screenshotPath;
 

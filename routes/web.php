@@ -177,7 +177,19 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         });
     });
 
+    // Coupon Code Management (Super Admin Only)
+    Route::prefix('coupons')->name('coupons.')->group(function () {
+        Route::get('/', [App\Http\Controllers\CouponCodeController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\CouponCodeController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\CouponCodeController::class, 'store'])->name('store');
+        Route::delete('/{coupon}', [App\Http\Controllers\CouponCodeController::class, 'destroy'])->name('destroy');
+        Route::get('/export', [App\Http\Controllers\CouponCodeController::class, 'export'])->name('export');
+    });
+
 });
+
+// AJAX Coupon Validation (accessible during registration)
+Route::post('/coupons/validate', [App\Http\Controllers\CouponCodeController::class, 'validateAjax'])->name('coupons.validate');
 
 // Diagnostic route - Moved outside auth for debugging
 Route::get('/diag/oic', function () {

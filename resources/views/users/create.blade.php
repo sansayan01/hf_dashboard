@@ -308,14 +308,97 @@
                                 <h3 class="text-3xl font-black text-slate-800">₹<span id="donation-amount-display">0</span></h3>
                                 <p class="text-xs text-slate-400 mt-1">* This is a one-time joining donation based on the selected role.</p>
                             </div>
-                            
-                            <a id="upi-pay-button" href="#" class="inline-flex items-center px-6 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                                <svg class="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
-                                    <path d="M11 7H13V13H11V7ZM11 15H13V17H11V15Z" fill="currentColor"/>
+                        </div>
+                    </div>
+
+                    <!-- UPI Payment Section (Primary) -->
+                    <div id="upi-payment-section">
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-6">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Pay via UPI</p>
+                                    <p class="text-xs text-slate-400 mt-1">Click the button below to open your UPI app</p>
+                                </div>
+                                
+                                <a id="upi-pay-button" href="#" class="inline-flex items-center px-6 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all">
+                                    <svg class="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
+                                        <path d="M11 7H13V13H11V7ZM11 15H13V17H11V15Z" fill="currentColor"/>
+                                    </svg>
+                                    Pay using UPI App
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coupon Code Toggle Link -->
+                    <div class="text-center mb-6">
+                        <button type="button" onclick="toggleCouponSection()" id="coupon-toggle-btn" class="text-sm text-accent hover:text-accent/80 font-semibold inline-flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                            </svg>
+                            Have a coupon code?
+                        </button>
+                    </div>
+
+                    <!-- Coupon Code Section (Hidden by default) -->
+                    <div id="coupon-code-section" class="hidden bg-white border-2 border-dashed border-slate-200 rounded-2xl p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
                                 </svg>
-                                Pay using UPI App
-                            </a>
+                                <h4 class="font-bold text-slate-700 text-sm">Enter Your Coupon Code</h4>
+                            </div>
+                            <button type="button" onclick="toggleCouponSection()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <div class="flex-1">
+                                <input type="text" id="coupon_code_input" name="coupon_code" placeholder="Enter code here..." 
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none uppercase"
+                                    oninput="this.value = this.value.toUpperCase()">
+                            </div>
+                            <button type="button" onclick="validateCoupon()" id="apply-coupon-btn"
+                                class="px-6 py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-all whitespace-nowrap">
+                                Apply Code
+                            </button>
+                        </div>
+                        
+                        <!-- Success Message -->
+                        <div id="coupon-success-message" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-sm font-bold text-green-700" id="coupon-success-text">Coupon applied! Payment waived.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Error Message -->
+                        <div id="coupon-error-message" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-sm font-bold text-red-700" id="coupon-error-text"></p>
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-slate-400 mt-3">💡 If you paid in cash, use the coupon code provided to you.</p>
+                    </div>
+
+                    <!-- OR Divider -->
+                    <div class="relative mb-6" id="payment-or-divider">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-slate-200"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-4 bg-white text-slate-500 font-bold uppercase tracking-wider">OR</span>
                         </div>
                     </div>
 
@@ -818,6 +901,132 @@
                     return false;
                 }
             });
+        });
+
+        // Toggle Coupon Code Section
+        window.toggleCouponSection = function() {
+            const couponSection = document.getElementById('coupon-code-section');
+            const toggleBtn = document.getElementById('coupon-toggle-btn');
+            
+            if (couponSection.classList.contains('hidden')) {
+                couponSection.classList.remove('hidden');
+                toggleBtn.classList.add('hidden');
+            } else {
+                couponSection.classList.add('hidden');
+                toggleBtn.classList.remove('hidden');
+                
+                // Clear coupon input and messages when closing
+                document.getElementById('coupon_code_input').value = '';
+                document.getElementById('coupon-success-message').classList.add('hidden');
+                document.getElementById('coupon-error-message').classList.add('hidden');
+            }
+        };
+
+        // Coupon Code Validation
+        let couponValid = false;
+        
+        window.validateCoupon = async function() {
+            const couponInput = document.getElementById('coupon_code_input');
+            const couponCode = couponInput.value.trim();
+            const applyBtn = document.getElementById('apply-coupon-btn');
+            const successMsg = document.getElementById('coupon-success-message');
+            const errorMsg = document.getElementById('coupon-error-message');
+            const errorText = document.getElementById('coupon-error-text');
+            const upiSection = document.getElementById('upi-payment-section');
+            const paymentDetailsSection = document.getElementById('payment-details-section');
+            const registerButton = document.getElementById('register-button');
+            const orDivider = document.getElementById('payment-or-divider');
+            
+            // Get designation
+            let designation;
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+                designation = document.getElementById('designation-select').value;
+            @else
+                designation = '{{ $allowedDesignation }}';
+            @endif
+            
+            if (!couponCode) {
+                errorText.textContent = 'Please enter a coupon code.';
+                errorMsg.classList.remove('hidden');
+                successMsg.classList.add('hidden');
+                return;
+            }
+            
+            if (!designation) {
+                errorText.textContent = 'Please select a designation first.';
+                errorMsg.classList.remove('hidden');
+                successMsg.classList.add('hidden');
+                return;
+            }
+            
+            // Show loading state
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Validating...';
+            successMsg.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+            
+            try {
+                const response = await fetch('{{ route("coupons.validate") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        code: couponCode,
+                        designation: designation
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.valid) {
+                    // Coupon is valid
+                    couponValid = true;
+                    successMsg.classList.remove('hidden');
+                    errorMsg.classList.add('hidden');
+                    
+                    // Hide UPI payment section
+                    upiSection.classList.add('hidden');
+                    orDivider.classList.add('hidden');
+                    paymentDetailsSection.classList.add('hidden');
+                    
+                    // Show register button immediately
+                    registerButton.classList.remove('hidden');
+                    
+                    // Disable coupon input
+                    couponInput.disabled = true;
+                    applyBtn.disabled = true;
+                    applyBtn.textContent = 'Applied ✓';
+                    applyBtn.classList.add('bg-green-600');
+                    applyBtn.classList.remove('bg-accent');
+                    
+                } else {
+                    // Coupon is invalid
+                    couponValid = false;
+                    errorText.textContent = data.message || 'Invalid coupon code.';
+                    errorMsg.classList.remove('hidden');
+                    successMsg.classList.add('hidden');
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Apply Code';
+                }
+                
+            } catch (error) {
+                console.error('Coupon validation error:', error);
+                errorText.textContent = 'Failed to validate coupon. Please try again.';
+                errorMsg.classList.remove('hidden');
+                successMsg.classList.add('hidden');
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Apply Code';
+            }
+        };
+        
+        // Allow Enter key to validate coupon
+        document.getElementById('coupon_code_input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                validateCoupon();
+            }
         });
     </script>
 @endsection
