@@ -21,6 +21,9 @@ class CouponCodeController extends Controller
             abort(403, 'Unauthorized access: Only Super Admin can manage coupon codes.');
         }
 
+        // Automatic cleanup of used coupons older than 7 days
+        \Illuminate\Support\Facades\Artisan::call('hf:cleanup-coupons');
+
         $query = CouponCode::with(['generatedBy.profile', 'usedBy.profile']);
 
         // Apply filters

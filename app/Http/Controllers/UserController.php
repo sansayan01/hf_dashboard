@@ -215,6 +215,21 @@ class UserController extends Controller
             }
         }
 
+        // Determine effective designation for validation
+        $designation = $request->designation;
+        if (!$designation && !($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge())) {
+            $designation = $currentUser->getAllowedChildDesignation();
+        }
+
+        // Only require payment screenshot for paid roles (DM, BM, RM, RO)
+        $isPaidRole = in_array($designation, ['dm', 'bm', 'rm', 'ro']);
+        if ($isPaidRole) {
+            $rules['payment_screenshot'] = 'required_without:coupon_code|nullable|image|max:10000';
+        } else {
+            $rules['payment_screenshot'] = 'nullable|image|max:10000';
+        }
+        $rules['coupon_code'] = 'nullable|string|max:50';
+
         $validated = $request->validate(array_merge($rules, [
             'address' => 'required|string',
             'state' => 'required|string',
@@ -226,8 +241,6 @@ class UserController extends Controller
             'account_number' => 'required|string',
             'ifsc_code' => 'required|string|max:11',
             'profile_picture' => 'nullable|image|max:10000',
-            'coupon_code' => 'nullable|string|max:50',
-            'payment_screenshot' => 'required_without:coupon_code|nullable|image|max:10000',
         ]));
 
         \Log::info('Validation passed', ['validated' => $validated]);
@@ -373,6 +386,11 @@ class UserController extends Controller
             }
 
             $newUser = User::create($userData);
+
+            // Mark coupon as used if applied
+            if (isset($couponUsed) && $couponUsed && isset($coupon)) {
+                $coupon->markAsUsed($newUser->id);
+            }
 
             // Create profile
             UserProfile::create([

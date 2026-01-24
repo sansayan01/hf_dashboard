@@ -906,6 +906,8 @@
             } else {
                 donationSection.classList.add('hidden');
                 registerButton.classList.remove('hidden'); // Show for roles without donation
+                paymentScreenshotInput.required = false;
+                paymentConfirmationCheckbox.required = false;
             }
             @endif
 
@@ -1051,8 +1053,14 @@
                     // Show register button immediately
                     registerButton.classList.remove('hidden');
                     
-                    // Disable coupon input
-                    couponInput.disabled = true;
+                    // Disable requirements since coupon is used
+                    const screenInput = document.getElementById('payment_screenshot_input');
+                    const confirmCheck = document.getElementById('payment_confirmation_checkbox');
+                    if (screenInput) screenInput.required = false;
+                    if (confirmCheck) confirmCheck.required = false;
+                    
+                    // Make coupon input read-only (so it still submits)
+                    couponInput.readOnly = true;
                     applyBtn.disabled = true;
                     applyBtn.classList.remove('bg-accent');
                     applyBtn.classList.add('bg-emerald-500', 'shadow-emerald-500/25');

@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withSchedule(function ($schedule) {
         $schedule->command('hf:cleanup-bin')->daily();
+        $schedule->command('hf:cleanup-coupons')->daily();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
