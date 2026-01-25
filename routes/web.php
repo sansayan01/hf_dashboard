@@ -126,7 +126,54 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // AI Assistant
     Route::post('/ai/chat', [\App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');
 
-    // Future Office-In-Charge routes can go here
+    // Diagnostic route
+    Route::get('/diag/oic', function () {
+        try {
+            $oics = \App\Models\User::where('designation', 'office_in_charge')
+                ->orWhere('is_office_in_charge', true)
+                ->get();
+            $out = "<div style='font-family: sans-serif; padding: 20px;'>";
+            $out .= "<h1 style='color: #3C50E0;'>OIC Diagnostic</h1>";
+            $out .= "Found " . $oics->count() . " OIC users.<br><br>";
+            foreach ($oics as $u) {
+                $out .= "<b>ID:</b> {$u->id}, <b>EmpID:</b> {$u->employee_id}, <b>Status:</b> {$u->status}, <b>IsOIC:</b> " . ($u->is_office_in_charge ? 'Yes' : 'No') . ", <b>Expired:</b> " . ($u->isOfficeInChargeExpired() ? 'Yes' : 'No') . "<br>";
+            }
+
+            $out .= "<h2>System Environment</h2>";
+            $out .= "<b>APP_URL:</b> " . env('APP_URL') . "<br>";
+            $out .= "<b>Current URL:</b> " . url()->current() . "<br>";
+            $out .= "<b>PHP Version:</b> " . PHP_VERSION . "<br>";
+            $out .= "<b>Server Software:</b> " . ($_SERVER['SERVER_SOFTWARE'] ?? "N/A") . "<br>";
+
+            $out .= "<h2>Extensions Check</h2>";
+            $extensions = ['pdo_mysql', 'mysqli', 'openssl', 'mbstring', 'gd'];
+            foreach ($extensions as $ext) {
+                $status = extension_loaded($ext) ? "<span style='color: green;'>LOADED</span>" : "<span style='color: red;'>MISSING</span>";
+                $out .= "<b>$ext:</b> $status<br>";
+            }
+
+            $out .= "<h2>Session Check</h2>";
+            $out .= "<b>Session Driver:</b> " . config('session.driver') . "<br>";
+            $out .= "<b>Is Writable:</b> " . (is_writable(storage_path('framework/sessions')) ? "<span style='color: green;'>YES</span>" : "<span style='color: red;'>NO</span>") . "<br>";
+
+            $out .= "</div>";
+
+            return $out;
+        } catch (\Exception $e) {
+            return "Error: " . $e->getMessage();
+        }
+    });
+
+    Route::get('/diag/clear', function () {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            \Illuminate\Support\Facades\Artisan::call('route:clear');
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            return "Caches cleared successfully!";
+        } catch (\Exception $e) {
+            return "Error clearing caches: " . $e->getMessage();
+        }
+    });
 });
 
 

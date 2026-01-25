@@ -24,55 +24,51 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $request->validate([
-            'login' => 'required|string',
-            'password' => 'required|string',
-        ]);
-
-        $loginInput = trim($request->login);
-
-        // Determine if login is email or employee_id
-        $loginType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'employee_id';
-
-        // Attempt to find user
-        $user = User::where($loginType, $loginInput)->first();
-
-        // Check if user exists
-        if (!$user) {
-            throw ValidationException::withMessages([
-                'login' => ['The provided credentials do not match our records.'],
+        try {
+            $request->validate([
+                'login' => 'required|string',
+                'password' => 'required|string',
             ]);
-        }
 
-        // Check if user is approved
-        if ($user->status !== 'active') {
-            throw ValidationException::withMessages([
-                'login' => ['Your account is pending approval. Please contact your upline.'],
+            $loginInput = trim($request->login);
+            $loginType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'employee_id';
+
+            $user = User::where($loginType, $loginInput)->first();
+
+            if (!$user) {
+                \Log::warning('Login failed: User not found', ['login' => $loginInput]);
+                throw ValidationException::withMessages(['login' => ['The provided credentials do not match our records.']]);
+            }
+
+            if ($user->status !== 'active') {
+                \Log::warning('Login failed: User not approved', ['id' => $user->id]);
+                throw ValidationException::withMessages(['login' => ['Your account is pending approval. Please contact your upline.']]);
+            }
+
+            if (!Hash::check($request->password, $user->password)) {
+                \Log::warning('Login failed: Incorrect password', ['id' => $user->id]);
+                throw ValidationException::withMessages(['login' => ['The provided credentials do not match our records.']]);
+            }
+
+            Auth::login($user, $request->filled('remember'));
+
+            ActivityLog::logActivity('login', $user->id, $user->id, 'User logged in');
+
+            $request->session()->regenerate();
+
+            \Log::info('Login successful', ['id' => $user->id, 'designation' => $user->designation]);
+
+            return redirect()->intended(route('dashboard'));
+
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('Critical login error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
+            return back()->withInput()->with('error', 'A system error occurred during login. Please contact support.');
         }
-
-        // Verify password
-        if (!Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'login' => ['The provided credentials do not match our records.'],
-            ]);
-        }
-
-        // Log the user in
-        Auth::login($user, $request->filled('remember'));
-
-        // Log activity
-        ActivityLog::logActivity(
-            'login',
-            $user->id,
-            $user->id,
-            'User logged in'
-        );
-
-        // Regenerate session
-        $request->session()->regenerate();
-
-        return redirect()->intended(route('dashboard'));
     }
 
     /**
