@@ -89,22 +89,32 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
                             <label class="block text-sm font-bold text-slate-700">Employee ID Generation</label>
-                            <div class="flex space-x-4">
-                                <label class="flex items-center space-x-2 cursor-pointer">
-                                    <input type="radio" name="employee_id_option" value="auto" {{ old('employee_id_option', 'auto') === 'auto' ? 'checked' : '' }}
-                                        onchange="toggleEmployeeId(false)" class="w-4 h-4 text-accent focus:ring-accent">
-                                    <span class="text-sm font-medium text-slate-600">Auto-generate</span>
-                                </label>
-                                <label class="flex items-center space-x-2 cursor-pointer">
-                                    <input type="radio" name="employee_id_option" value="manual" {{ old('employee_id_option') === 'manual' ? 'checked' : '' }}
-                                        onchange="toggleEmployeeId(true)" class="w-4 h-4 text-accent focus:ring-accent">
-                                    <span class="text-sm font-medium text-slate-600">Manual Entry</span>
-                                </label>
-                            </div>
-                            <div id="manual_id_container" class="{{ old('employee_id_option') === 'manual' ? '' : 'hidden' }}">
-                                <input type="text" name="employee_id" value="{{ old('employee_id') }}" placeholder="Enter custom ID"
-                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
-                            </div>
+                            
+                            @if(auth()->user()->isSuperAdmin())
+                                <div class="flex space-x-4">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" name="employee_id_option" value="auto" {{ old('employee_id_option', 'auto') === 'auto' ? 'checked' : '' }}
+                                            onchange="toggleEmployeeId(false)" class="w-4 h-4 text-accent focus:ring-accent">
+                                        <span class="text-sm font-medium text-slate-600">Auto-generate</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" name="employee_id_option" value="manual" {{ old('employee_id_option') === 'manual' ? 'checked' : '' }}
+                                            onchange="toggleEmployeeId(true)" class="w-4 h-4 text-accent focus:ring-accent">
+                                        <span class="text-sm font-medium text-slate-600">Manual Entry</span>
+                                    </label>
+                                </div>
+                                <div id="manual_id_container" class="{{ old('employee_id_option') === 'manual' ? '' : 'hidden' }}">
+                                    <input type="text" name="employee_id" value="{{ old('employee_id') }}" placeholder="Enter custom ID"
+                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                </div>
+                            @else
+                                <input type="hidden" name="employee_id_option" value="auto">
+                                <div class="bg-blue-50/50 text-blue-700 px-4 py-3 rounded-xl border border-blue-100/50 flex items-center space-x-3">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                    <span class="text-xs font-bold uppercase tracking-wide">Automatic ID Generation Enabled</span>
+                                </div>
+                            @endif
+
                             <p id="auto_id_hint" class="text-[10px] text-bodydark font-bold italic uppercase">System will
                                 generate: HF<span id="hint-designation">{{ $allowedDesignation ? strtoupper($allowedDesignation) : 'XX' }}</span>000001</p>
                         </div>

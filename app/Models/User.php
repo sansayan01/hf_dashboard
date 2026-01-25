@@ -244,7 +244,7 @@ class User extends Authenticatable
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
             return self::where('designation', 'hs')
                 ->orWhereIn('parent_id', $saRoleIds)
-                ->where('designation', '!=', 'super_admin')
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->get();
         }
 
@@ -257,13 +257,13 @@ class User extends Authenticatable
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
             return self::where('designation', 'hs')
                 ->orWhereIn('parent_id', $saRoleIds)
-                ->where('designation', '!=', 'super_admin')
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->get();
         }
 
         // Standard behavior: Return children but exclude the current user if they are in the list
         return $this->children->reject(function ($child) {
-            return $child->id === auth()->id();
+            return $child->id === auth()->id() || $child->designation === 'office_in_charge';
         });
     }
 
@@ -271,9 +271,11 @@ class User extends Authenticatable
     {
         if ($this->isSuperAdmin() || ($this->isOfficeInCharge() && !$this->upline)) {
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
-            return self::where('designation', 'hs')
-                ->orWhereIn('parent_id', $saRoleIds)
-                ->where('designation', '!=', 'super_admin')
+            return self::where(function ($q) use ($saRoleIds) {
+                $q->where('designation', 'hs')
+                    ->orWhereIn('parent_id', $saRoleIds);
+            })
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->count();
         }
 
@@ -288,10 +290,8 @@ class User extends Authenticatable
     public function getAllDownline()
     {
         if ($this->isSuperAdmin()) {
-            // Super Admin sees everyone except other SAs in downline list (usually)
-            // But technically SA has access to everyone. 
-            // For the purpose of "Downline", we usually mean people below.
-            return User::where('designation', '!=', 'super_admin')->get();
+            // Super Admin sees everyone except other SAs and Office In-Charges
+            return User::whereNotIn('designation', ['super_admin', 'office_in_charge'])->get();
         }
 
         if ($this->isOfficeInCharge()) {
@@ -301,10 +301,8 @@ class User extends Authenticatable
                 return $this->upline->getAllDownline();
             }
 
-            // Fallback: Office In-Charge without upline sees everyone EXCEPT Super Admins
-            // They can see other Office In-Charges if they exist (though usually only 1)
-            // But per requirement "can't see super user", so we exclude SA.
-            return User::where('designation', '!=', 'super_admin')->get();
+            // Fallback: Office In-Charge without upline sees everyone EXCEPT Super Admins and other OICs
+            return User::whereNotIn('designation', ['super_admin', 'office_in_charge'])->get();
         }
 
         $ids = $this->getAllDownlineIds();
@@ -315,7 +313,7 @@ class User extends Authenticatable
     public function getAllDownlineIds()
     {
         if ($this->isSuperAdmin()) {
-            return self::where('designation', '!=', 'super_admin')->pluck('id')->toArray();
+            return self::whereNotIn('designation', ['super_admin', 'office_in_charge'])->pluck('id')->toArray();
         }
 
         if ($this->isOfficeInCharge() && $this->upline_id) {
@@ -345,7 +343,7 @@ class User extends Authenticatable
         }
 
         if ($this->isSuperAdmin()) {
-            return self::where('designation', '!=', 'super_admin')->count();
+            return self::whereNotIn('designation', ['super_admin', 'office_in_charge'])->count();
         }
 
         $ids = $this->getAllDownlineIds();
