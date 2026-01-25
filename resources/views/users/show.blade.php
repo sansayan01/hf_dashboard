@@ -138,13 +138,28 @@
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-slate-50">
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Upline Manager</p>
-                        <p class="text-sm font-bold text-slate-700">
-                            @if($user->isOfficeInCharge())
-                                {{ $user->upline?->profile?->full_name ?? ($user->parent?->profile?->full_name ?? 'Not Assigned') }}
-                            @else
-                                {{ $user->parent?->profile?->full_name ?? 'ROOT / Super Admin' }}
-                            @endif
-                        </p>
+                        @php
+                            $uplineUser = null;
+                            if ($user->isOfficeInCharge()) {
+                                $uplineUser = $user->upline ?? $user->parent;
+                            } else {
+                                $uplineUser = $user->parent;
+                            }
+                            $uplineName = $uplineUser?->profile?->full_name ?? 'ROOT / Super Admin';
+                        @endphp
+
+                        @if(auth()->user()->isSuperAdmin() && $uplineUser)
+                            <a href="{{ route('users.show', $uplineUser->id) }}"
+                                class="text-sm font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
+                                <span>{{ $uplineName }}</span>
+                                <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
+                        @else
+                            <p class="text-sm font-bold text-slate-700">{{ $uplineName }}</p>
+                        @endif
                     </div>
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Direct Downline</p>
@@ -210,36 +225,100 @@
 
                 <!-- Banking Section -->
                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-success/5 rounded-full -mr-16 -mt-16"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <div class="flex items-center space-x-3 mb-8">
+                                <div
+                                    class="w-10 h-10 bg-success/10 text-success rounded-xl flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <h3 class="font-bold text-lg text-slate-800">Financial Records</h3>
+                            </div>
 
-                    <div class="flex items-center space-x-3 mb-8">
-                        <div class="w-10 h-10 bg-success/10 text-success rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                                </path>
-                            </svg>
+                            <div class="grid grid-cols-1 gap-4">
+                                <div class="p-4 bg-slate-50 rounded-2xl">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Bank
+                                        Name</p>
+                                    <p class="font-bold text-slate-700">{{ $user->bankDetails?->bank_name ?? 'N/A' }}</p>
+                                </div>
+                                <div class="p-4 bg-slate-50 rounded-2xl">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">A/C
+                                        Number</p>
+                                    <p class="font-bold text-slate-700 italic">••••
+                                        {{ substr($user->bankDetails?->account_number ?? '0000', -4) }}
+                                    </p>
+                                </div>
+                                <div class="p-4 bg-slate-50 rounded-2xl">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">IFSC
+                                        Code</p>
+                                    <p class="font-bold text-slate-700">{{ $user->bankDetails?->ifsc_code ?? 'N/A' }}</p>
+                                </div>
+                            </div>
                         </div>
-                        <h3 class="font-bold text-lg text-slate-800">Financial Records</h3>
-                    </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="p-4 bg-slate-50 rounded-2xl">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Bank Name</p>
-                            <p class="font-bold text-slate-700">{{ $user->bankDetails?->bank_name ?? 'N/A' }}</p>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-2xl">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">A/C Number</p>
-                            <p class="font-bold text-slate-700 italic">••••
-                                {{ substr($user->bankDetails?->account_number ?? '0000', -4) }}
-                            </p>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-2xl">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">IFSC Code</p>
-                            <p class="font-bold text-slate-700">{{ $user->bankDetails?->ifsc_code ?? 'N/A' }}</p>
+                        <!-- Donation Column -->
+                        <div>
+                            <div class="flex items-center space-x-3 mb-8">
+                                <div
+                                    class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <h3 class="font-bold text-lg text-slate-800">Joining Donation</h3>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4">
+                                <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Donation
+                                        Amount</p>
+                                    <p class="text-2xl font-black text-indigo-700">
+                                        ₹{{ number_format($user->joining_donation, 0) }}</p>
+                                </div>
+                                <div class="p-4 bg-slate-50 rounded-2xl">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Payment
+                                        Status</p>
+                                    @if($user->payment_status === 'completed')
+                                        <span
+                                            class="inline-flex mt-1 px-3 py-1 bg-success/10 text-success text-[10px] font-black uppercase tracking-widest rounded-full">Completed</span>
+                                    @else
+                                        <span
+                                            class="inline-flex mt-1 px-3 py-1 bg-warning/10 text-warning text-[10px] font-black uppercase tracking-widest rounded-full">Verification
+                                            Pending</span>
+                                    @endif
+                                </div>
+                                <div class="p-4 bg-slate-50 rounded-2xl">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                                        Transaction Ref ID</p>
+                                    <p class="font-bold text-slate-700">{{ $user->payment_reference ?? 'N/A' }}</p>
+                                </div>
+                                @if($user->payment_screenshot)
+                                    <div class="p-4 bg-slate-50 rounded-2xl">
+                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Payment
+                                            Screenshot</p>
+                                        <a href="{{ asset('storage/' . $user->payment_screenshot) }}" target="_blank"
+                                            class="mt-2 inline-flex items-center text-xs font-bold text-accent hover:underline">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            View Screenshot
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
+
+
             </div>
 
             <!-- Hierarchy Context -->

@@ -47,9 +47,8 @@
             </div>
         </div>
 
-        <!-- Filter Panel -->
         <div id="filter-panel" class="{{ request()->anyFilled(['search', 'gender', 'health_issue', 'date_from', 'date_to', 'collector_id']) ? '' : 'hidden' }} p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
-            <form action="{{ route('surveys.index') }}" method="GET" class="space-y-4">
+            <form action="{{ route('surveys.index') }}" method="GET" class="no-loader space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Search -->
                     <div class="lg:col-span-3">
@@ -199,8 +198,14 @@
         </script>
 
         @if(session('success'))
-            <div class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 px-6 py-4 rounded-2xl font-bold text-sm">
+            <div class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 px-6 py-4 rounded-2xl font-bold text-sm mb-4">
                 {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="bg-red-500/10 border border-red-500/20 text-red-500 px-6 py-4 rounded-2xl font-bold text-sm mb-4">
+                {{ session('error') }}
             </div>
         @endif
 
@@ -218,11 +223,35 @@
                 <a href="{{ route('surveys.create') }}" class="inline-block text-accent font-black uppercase tracking-[0.2em] text-[10px] hover:underline">Begin Field Work &rarr;</a>
             </div>
         @else
+            <!-- Bulk Actions Bar -->
+            @if(Auth::user()->isSuperAdmin())
+                <div id="bulk-actions-bar" class="hidden sticky top-0 z-20 bg-accent text-white px-6 py-4 flex items-center justify-between shadow-xl">
+                    <div class="flex items-center space-x-4">
+                        <span id="selected-count" class="font-black text-sm uppercase tracking-widest">0 Records Selected</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <form id="bulk-delete-form" action="{{ route('surveys.bulk-destroy') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all selected surveys?')">
+                            @csrf
+                            <div id="bulk-ids-container"></div>
+                            <button type="submit" class="px-6 py-2 bg-white text-accent rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-50 transition-colors">
+                                Delete Selected
+                            </button>
+                        </form>
+                        <button type="button" onclick="cancelSelection()" class="text-white/70 hover:text-white text-xs font-bold uppercase tracking-widest">Cancel</button>
+                    </div>
+                </div>
+            @endif
+
             <div class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse" id="surveys-table">
                         <thead>
                             <tr class="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
+                                @if(Auth::user()->isSuperAdmin())
+                                    <th class="p-6 w-10">
+                                        <input type="checkbox" id="select-all" class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent transition-all cursor-pointer">
+                                    </th>
+                                @endif
                                 <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Participant</th>
                                 <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Contact Info</th>
                                 <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Health Status</th>
@@ -234,6 +263,11 @@
                         <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                             @foreach($surveys as $survey)
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
+                                    @if(Auth::user()->isSuperAdmin())
+                                        <td class="p-6 w-10">
+                                            <input type="checkbox" class="survey-checkbox w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent transition-all cursor-pointer" data-id="{{ $survey->id }}">
+                                        </td>
+                                    @endif
                                     <td class="p-6">
                                         <div class="flex items-center space-x-4">
                                             <div class="w-10 h-10 bg-accent/10 text-accent dark:text-blue-400 rounded-xl flex items-center justify-center text-sm font-black">
@@ -292,18 +326,38 @@
                                                 @endif
                                             </div>
                                             <div>
-                                                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $survey->creator->profile->full_name ?? 'Unknown' }}</p>
+                                                @if(auth()->user()->isSuperAdmin())
+                                                    <a href="{{ route('users.show', $survey->creator->id) }}" class="text-xs font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
+                                                        <span>{{ $survey->creator->profile->full_name ?? 'Unknown' }}</span>
+                                                        <svg class="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                                        </svg>
+                                                    </a>
+                                                @else
+                                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $survey->creator->profile->full_name ?? 'Unknown' }}</p>
+                                                @endif
                                                 <p class="text-[10px] font-medium text-slate-400">{{ $survey->created_at->format('M d, Y') }}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="p-6 text-right">
                                         @if(Auth::id() === $survey->created_by || Auth::user()->canAccess($survey->creator))
-                                            <a href="{{ route('surveys.edit', $survey->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 hover:bg-accent hover:text-white dark:bg-slate-800 dark:hover:bg-accent text-slate-400 transition-all">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                </svg>
-                                            </a>
+                                            <div class="flex items-center justify-end space-x-2">
+                                                <a href="{{ route('surveys.edit', $survey->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 hover:bg-accent hover:text-white dark:bg-slate-800 dark:hover:bg-accent text-slate-400 transition-all">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </a>
+                                                <form action="{{ route('surveys.destroy', $survey->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this survey?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-500 hover:text-white dark:bg-slate-800 dark:hover:bg-red-500 text-slate-400 transition-all">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         @endif
                                     </td>
                                 </tr>
@@ -312,6 +366,57 @@
                     </table>
                 </div>
             </div>
+
+            @if(Auth::user()->isSuperAdmin())
+                <script>
+                    const selectAll = document.getElementById('select-all');
+                    const checkboxes = document.querySelectorAll('.survey-checkbox');
+                    const bulkBar = document.getElementById('bulk-actions-bar');
+                    const selectedCount = document.getElementById('selected-count');
+                    const bulkIdsContainer = document.getElementById('bulk-ids-container');
+
+                    function updateSelection() {
+                        const selected = Array.from(checkboxes).filter(cb => cb.checked);
+                        const count = selected.length;
+                        
+                        if (count > 0) {
+                            bulkBar.classList.remove('hidden');
+                            selectedCount.innerText = `${count} Records Selected`;
+                            
+                            // Update hidden inputs for bulk form
+                            bulkIdsContainer.innerHTML = '';
+                            selected.forEach(cb => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = 'ids[]';
+                                input.value = cb.getAttribute('data-id');
+                                bulkIdsContainer.appendChild(input);
+                            });
+                        } else {
+                            bulkBar.classList.add('hidden');
+                        }
+                    }
+
+                    selectAll.addEventListener('change', () => {
+                        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+                        updateSelection();
+                    });
+
+                    checkboxes.forEach(cb => {
+                        cb.addEventListener('change', () => {
+                            updateSelection();
+                            if (!cb.checked) selectAll.checked = false;
+                            if (Array.from(checkboxes).every(c => c.checked)) selectAll.checked = true;
+                        });
+                    });
+
+                    function cancelSelection() {
+                        selectAll.checked = false;
+                        checkboxes.forEach(cb => cb.checked = false);
+                        updateSelection();
+                    }
+                </script>
+            @endif
         @endif
     </div>
 @endsection

@@ -72,9 +72,8 @@
             </div>
         </div>
 
-        <!-- Filter Panel -->
         <div id="filter-panel" class="{{ request()->anyFilled(['search', 'gender', 'health_issue', 'date_from', 'date_to', 'collector_id']) ? '' : 'hidden' }} p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 bg-white dark:bg-darkbg/40 shadow-sm mb-8 transition-all">
-            <form action="{{ route('patients.index') }}" method="GET" class="space-y-4">
+            <form action="{{ route('patients.index') }}" method="GET" class="no-loader space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Search -->
                     <div class="lg:col-span-3">
@@ -276,7 +275,16 @@
                                                 @endif
                                             </div>
                                             <div>
-                                                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $patient->creator->profile->full_name ?? ($patient->creator->employee_id ?? 'Unknown User') }}</p>
+                                                @if(auth()->user()->isSuperAdmin() && $patient->creator)
+                                                    <a href="{{ route('users.show', $patient->creator->id) }}" class="text-xs font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
+                                                        <span>{{ $patient->creator->profile->full_name ?? ($patient->creator->employee_id ?? 'Unknown User') }}</span>
+                                                        <svg class="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                                        </svg>
+                                                    </a>
+                                                @else
+                                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $patient->creator->profile->full_name ?? ($patient->creator->employee_id ?? 'Unknown User') }}</p>
+                                                @endif
                                                 <p class="text-[10px] font-medium text-slate-400">{{ $patient->created_at->format('M d, Y') }}</p>
                                             </div>
                                         </div>

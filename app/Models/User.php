@@ -30,6 +30,11 @@ class User extends Authenticatable
         'office_in_charge_end_date',
         'upline_id',
         'upline_designation',
+        'can_create_users',
+        'can_edit_user_details',
+        'joining_donation',
+        'payment_status',
+        'payment_reference',
     ];
 
     /**
@@ -54,6 +59,9 @@ class User extends Authenticatable
             'password' => 'hashed',
             'office_in_charge_end_date' => 'date',
             'is_office_in_charge' => 'boolean',
+            'can_create_users' => 'boolean',
+            'can_edit_user_details' => 'boolean',
+            'joining_donation' => 'decimal:2',
         ];
     }
 
@@ -107,6 +115,18 @@ class User extends Authenticatable
     public function upline()
     {
         return $this->belongsTo(User::class, 'upline_id');
+    }
+
+    // Attendance
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    // Today's attendance
+    public function todayAttendance()
+    {
+        return $this->hasOne(Attendance::class)->whereDate('date', Carbon::today());
     }
 
     /**
@@ -182,15 +202,58 @@ class User extends Authenticatable
         if ($this->isSuperAdmin())
             return true;
 
+        // Check per-user override first (Inherited)
+        if ($this->hasInheritedPermission('can_create_users')) {
+            return true;
+        }
+
         // For OIC, we check if they have permission button enabled.
         // What they can create is determined by getAllowedChildDesignation (proxied to Upline).
         return RolePermission::check($this->designation, 'can_create_users');
+    }
+
+    /**
+     * Helper to check if permission is granted to self or any ancestor via override
+     */
+    public function hasInheritedPermission($column)
+    {
+        // Check self
+        if ($this->{$column}) {
+            return true;
+        }
+
+        // Check ancestors recursively
+        $parent = $this->isOfficeInCharge() ? $this->upline : $this->parent;
+        if ($parent) {
+            return $parent->hasInheritedPermission($column);
+        }
+
+        return false;
+    }
+
+    public function canViewDownline()
+    {
+        if ($this->isSuperAdmin())
+            return true;
+
+        // If they can create members, they must be able to view their team to access the button
+        if ($this->canCreateUsers()) {
+            return true;
+        }
+
+        return RolePermission::check($this->designation, 'can_view_downline');
     }
 
     public function canEditUserDetails()
     {
         if ($this->isSuperAdmin())
             return true;
+
+        // Check per-user override first
+        if ($this->can_edit_user_details) {
+            return true;
+        }
+
         return RolePermission::check($this->designation, 'can_edit_user_details');
     }
 
@@ -244,26 +307,26 @@ class User extends Authenticatable
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
             return self::where('designation', 'hs')
                 ->orWhereIn('parent_id', $saRoleIds)
-                ->where('designation', '!=', 'super_admin')
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->get();
         }
 
         if ($this->isOfficeInCharge()) {
             if ($this->upline_id && $this->upline) {
-                // For the TREE VIEW structure, OIC sees their Upline as the root node.
-                return collect([$this->upline]);
+                // OIC sees their upline's direct children (same downtree as upline)
+                return $this->upline->getDirectChildren();
             }
             // Fallback for OIC without upline: see HS and direct SA children
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
             return self::where('designation', 'hs')
                 ->orWhereIn('parent_id', $saRoleIds)
-                ->where('designation', '!=', 'super_admin')
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->get();
         }
 
-        // Standard behavior: Return children but exclude the current user if they are in the list
+        // Standard behavior: Return children but exclude the current user and office_in_charge if they are in the list
         return $this->children->reject(function ($child) {
-            return $child->id === auth()->id();
+            return $child->id === auth()->id() || $child->designation === 'office_in_charge';
         });
     }
 
@@ -271,26 +334,27 @@ class User extends Authenticatable
     {
         if ($this->isSuperAdmin() || ($this->isOfficeInCharge() && !$this->upline)) {
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
-            return self::where('designation', 'hs')
-                ->orWhereIn('parent_id', $saRoleIds)
-                ->where('designation', '!=', 'super_admin')
+            return self::where(function ($q) use ($saRoleIds) {
+                $q->where('designation', 'hs')
+                    ->orWhereIn('parent_id', $saRoleIds);
+            })
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->count();
         }
 
         if ($this->isOfficeInCharge() && $this->upline) {
+            // OIC sees their upline's children count (same as upline)
             return $this->upline->getDashboardChildrenCount();
         }
 
-        return $this->children()->count();
+        return $this->children()->where('designation', '!=', 'office_in_charge')->count();
     }
 
     // Get all downline users (entire tree)
     public function getAllDownline()
     {
         if ($this->isSuperAdmin()) {
-            // Super Admin sees everyone except other SAs in downline list (usually)
-            // But technically SA has access to everyone. 
-            // For the purpose of "Downline", we usually mean people below.
+            // Super Admin sees everyone except other SAs
             return User::where('designation', '!=', 'super_admin')->get();
         }
 
@@ -302,8 +366,6 @@ class User extends Authenticatable
             }
 
             // Fallback: Office In-Charge without upline sees everyone EXCEPT Super Admins
-            // They can see other Office In-Charges if they exist (though usually only 1)
-            // But per requirement "can't see super user", so we exclude SA.
             return User::where('designation', '!=', 'super_admin')->get();
         }
 
@@ -442,7 +504,7 @@ class User extends Authenticatable
         }
 
         // Can access if target is in downline
-        return $this->getAllDownline()->contains('id', $targetUser->id);
+        return in_array($targetUser->id, $this->getAllDownlineIds());
     }
 
     // Check if user can edit another user's data
@@ -498,5 +560,20 @@ class User extends Authenticatable
         ];
 
         return $labels[$this->designation] ?? 'Unknown';
+    }
+
+    /**
+     * Get the joining donation amount for a specific designation
+     */
+    public static function getJoiningDonationAmount($designation)
+    {
+        $amounts = [
+            'dm' => 999,
+            'bm' => 999,
+            'rm' => 499,
+            'ro' => 199,
+        ];
+
+        return $amounts[$designation] ?? 0;
     }
 }

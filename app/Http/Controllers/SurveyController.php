@@ -230,4 +230,77 @@ class SurveyController extends Controller
 
         return redirect()->route('surveys.index')->with('success', 'Survey updated successfully!');
     }
+    /**
+     * Remove the specified survey from storage.
+     */
+    public function destroy(Survey $survey)
+    {
+        // Authorization Check: Only creator or their upline can delete
+        $user = Auth::user();
+        if ($user->id !== $survey->created_by && !$user->canAccess($survey->creator)) {
+            abort(403);
+        }
+
+        // Check if survey has appointments - if so, we might not want to delete it or handle it specifically
+        if ($survey->appointments()->count() > 0) {
+            return redirect()->back()->with('error', 'Cannot delete survey that has associated clinic appointments.');
+        }
+
+        $patientName = $survey->full_name;
+        $patientId = $survey->patient_id;
+
+        $survey->delete();
+
+        \App\Models\ActivityLog::logActivity(
+            action: 'survey_deleted',
+            description: "Health survey deleted for {$patientName} ({$patientId})",
+            modelType: 'App\Models\Survey',
+            modelId: $survey->id
+        );
+
+        return redirect()->route('surveys.index')->with('success', 'Survey deleted successfully.');
+    }
+
+    /**
+     * Bulk delete surveys.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Only Super Admins can perform bulk deletions.');
+        }
+
+        $ids = $request->input('ids', []);
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'No surveys selected.');
+        }
+
+        // Filter out surveys that have appointments
+        $surveysToDelete = Survey::whereIn('id', $ids)->get();
+        $count = 0;
+        $skipped = 0;
+
+        foreach ($surveysToDelete as $survey) {
+            if ($survey->appointments()->count() === 0) {
+                $survey->delete();
+                $count++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        $message = "Successfully deleted {$count} surveys.";
+        if ($skipped > 0) {
+            $message .= " Skipped {$skipped} surveys because they have associated appointments.";
+        }
+
+        \App\Models\ActivityLog::logActivity(
+            action: 'bulk_survey_deleted',
+            description: "Bulk deleted {$count} health surveys. Skipped {$skipped}.",
+            modelType: 'App\Models\Survey'
+        );
+
+        return redirect()->route('surveys.index')->with('success', $message);
+    }
 }

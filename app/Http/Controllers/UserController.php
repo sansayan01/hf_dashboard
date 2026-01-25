@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserApproved;
+use App\Services\AIService;
 
 class UserController extends Controller
 {
@@ -28,7 +29,7 @@ class UserController extends Controller
         // Hierarchy scoping (only see subordinates)
         if (!$currentUser->isSuperAdmin()) {
             // Permission check: Can view downline
-            if (!\App\Models\RolePermission::check($currentUser->designation, 'can_view_downline')) {
+            if (!$currentUser->canViewDownline()) {
                 abort(403, 'Unauthorized access: You do not have permission to view the team members list.');
             }
             $downlineIds = $currentUser->getAllDownline()->pluck('id');
@@ -214,6 +215,21 @@ class UserController extends Controller
             }
         }
 
+        // Determine effective designation for validation
+        $designation = $request->designation;
+        if (!$designation && !($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge())) {
+            $designation = $currentUser->getAllowedChildDesignation();
+        }
+
+        // Only require payment screenshot for paid roles (DM, BM, RM, RO)
+        $isPaidRole = in_array($designation, ['dm', 'bm', 'rm', 'ro']);
+        if ($isPaidRole) {
+            $rules['payment_screenshot'] = 'required_without:coupon_code|nullable|image|max:10000';
+        } else {
+            $rules['payment_screenshot'] = 'nullable|image|max:10000';
+        }
+        $rules['coupon_code'] = 'nullable|string|max:50';
+
         $validated = $request->validate(array_merge($rules, [
             'address' => 'required|string',
             'state' => 'required|string',
@@ -308,7 +324,53 @@ class UserController extends Controller
                 'parent_id' => $parentId,
                 'status' => 'pending',
                 'is_office_in_charge' => ($designation === 'office_in_charge'),
+                'joining_donation' => User::getJoiningDonationAmount($designation),
             ];
+
+            // Handle coupon code or payment screenshot
+            $couponUsed = false;
+
+            if ($request->filled('coupon_code')) {
+                // Validate coupon code
+                $coupon = \App\Models\CouponCode::where('code', $request->coupon_code)
+                    ->where('is_used', false)
+                    ->first();
+
+                if (!$coupon) {
+                    DB::rollBack();
+                    return back()->withInput()->with('error', 'Invalid coupon code. Please check and try again.');
+                }
+
+                if (!$coupon->isValid($designation)) {
+                    DB::rollBack();
+                    return back()->withInput()->with('error', $coupon->getValidationError($designation));
+                }
+
+                // Coupon is valid - bypass payment screenshot
+                $userData['payment_reference'] = 'COUPON-' . $coupon->code;
+                $userData['payment_status'] = 'completed';
+                $couponUsed = true;
+
+            } elseif ($request->hasFile('payment_screenshot')) {
+                // Handle payment screenshot
+                $screenshotPath = $request->file('payment_screenshot')->store('payment_screenshots', 'public');
+                $userData['payment_screenshot'] = $screenshotPath;
+
+                // AI Verification
+                $aiService = app(AIService::class);
+                $expectedAmount = User::getJoiningDonationAmount($designation);
+                $verification = $aiService->verifyPaymentScreenshot(storage_path('app/public/' . $screenshotPath), $expectedAmount);
+
+                if (!$verification['success']) {
+                    // Delete the screenshot if verification fails to avoid clutter
+                    Storage::disk('public')->delete($screenshotPath);
+                    DB::rollBack();
+                    return back()->withInput()->with('error', 'Payment Verification Failed: ' . $verification['message']);
+                }
+
+                $userData['payment_reference'] = $verification['transaction_id'];
+                $userData['payment_status'] = 'completed'; // Mark as completed if AI verified it as a success screen
+            }
 
             // If creating Office In-Charge, add upline information
             if ($designation === 'office_in_charge' && $currentUser->isSuperAdmin()) {
@@ -324,6 +386,11 @@ class UserController extends Controller
             }
 
             $newUser = User::create($userData);
+
+            // Mark coupon as used if applied
+            if (isset($couponUsed) && $couponUsed && isset($coupon)) {
+                $coupon->markAsUsed($newUser->id);
+            }
 
             // Create profile
             UserProfile::create([
@@ -394,7 +461,22 @@ class UserController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        return view('users.show', compact('user', 'currentUser'));
+        $attendances = collect();
+        if ($user->isRO() && ($currentUser->isSuperAdmin() || $currentUser->isRM())) {
+            $month = request('month', date('Y-m'));
+            try {
+                $targetDate = \Carbon\Carbon::createFromFormat('Y-m', $month);
+            } catch (\Exception $e) {
+                $targetDate = now();
+            }
+
+            $attendances = $user->attendances()
+                ->where('date', '>=', $targetDate->copy()->startOfMonth())
+                ->where('date', '<=', $targetDate->copy()->endOfMonth())
+                ->get();
+        }
+
+        return view('users.show', compact('user', 'currentUser', 'attendances'));
     }
 
     /**
@@ -486,6 +568,9 @@ class UserController extends Controller
                 $rules['upline_designation'] = 'nullable|required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
                 $rules['upline_id'] = 'nullable|required_if:designation,office_in_charge|exists:users,id';
             }
+
+            $rules['can_create_users'] = 'nullable|boolean';
+            $rules['can_edit_user_details'] = 'nullable|boolean';
         }
 
         $validated = $request->validate($rules);
@@ -609,6 +694,12 @@ class UserController extends Controller
                 if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge() || $currentUser->id === $user->id) {
                     $userData['password'] = Hash::make($request->password);
                 }
+            }
+
+            // Update Per-User Permissions (Super Admin Only)
+            if ($currentUser->isSuperAdmin()) {
+                $userData['can_create_users'] = $request->has('can_create_users');
+                $userData['can_edit_user_details'] = $request->has('can_edit_user_details');
             }
 
             $user->update($userData);

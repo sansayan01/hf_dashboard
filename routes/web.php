@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AttendanceController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication Routes
@@ -54,6 +55,8 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::post('/', [App\Http\Controllers\SurveyController::class, 'store'])->name('store');
         Route::get('/{survey}/edit', [App\Http\Controllers\SurveyController::class, 'edit'])->name('edit');
         Route::put('/{survey}', [App\Http\Controllers\SurveyController::class, 'update'])->name('update');
+        Route::delete('/{survey}', [App\Http\Controllers\SurveyController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-delete', [App\Http\Controllers\SurveyController::class, 'bulkDestroy'])->name('bulk-destroy');
     });
 
     // Patient Management (using Survey model with 'patient' parameter name)
@@ -123,58 +126,148 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::post('/profile/password', [App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/profile/permissions', [App\Http\Controllers\ProfileController::class, 'updatePermissions'])->name('profile.permissions');
 
+    // Attendance Management
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::post('/store', [AttendanceController::class, 'store'])->name('store');
+        Route::get('/{user}', [AttendanceController::class, 'show'])->name('show');
+    });
+
     // AI Assistant
     Route::post('/ai/chat', [\App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');
 
-    // Diagnostic route
-    Route::get('/diag/oic', function () {
+    // Medicine Inventory Management
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        // Stock management
+        Route::get('/', [App\Http\Controllers\InventoryController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\InventoryController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\InventoryController::class, 'store'])->name('store');
+        Route::get('/transactions', [App\Http\Controllers\InventoryController::class, 'transactions'])->name('transactions');
+        Route::put('/transactions/{transaction}', [App\Http\Controllers\InventoryController::class, 'updateTransaction'])->name('transactions.update');
+        Route::delete('/transactions/{transaction}', [App\Http\Controllers\InventoryController::class, 'destroyTransaction'])->name('transactions.destroy');
+
+        // Dispensing to patients
+        Route::get('/dispense/{patient?}', [App\Http\Controllers\InventoryController::class, 'dispense'])->name('dispense');
+        Route::post('/dispense', [App\Http\Controllers\InventoryController::class, 'processDispense'])->name('process-dispense');
+
+        // Stock Transfer
+        Route::get('/transfer', [App\Http\Controllers\InventoryController::class, 'transfer'])->name('transfer');
+        Route::post('/transfer', [App\Http\Controllers\InventoryController::class, 'processTransfer'])->name('process-transfer');
+
+        // Medicine CRUD
+        Route::prefix('medicines')->name('medicines.')->group(function () {
+            Route::get('/', [App\Http\Controllers\MedicineController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\MedicineController::class, 'create'])->name('create');
+            Route::post('/', [App\Http\Controllers\MedicineController::class, 'store'])->name('store');
+            Route::get('/{medicine}/edit', [App\Http\Controllers\MedicineController::class, 'edit'])->name('edit');
+            Route::put('/{medicine}', [App\Http\Controllers\MedicineController::class, 'update'])->name('update');
+            Route::delete('/{medicine}', [App\Http\Controllers\MedicineController::class, 'destroy'])->name('destroy');
+        });
+
+        // Warehouse, Camp and Sponsor management
+        Route::resource('warehouses', App\Http\Controllers\InventoryWarehouseController::class)->except(['create', 'show', 'edit']);
+        Route::resource('camps', App\Http\Controllers\InventoryCampController::class)->except(['create', 'show', 'edit']);
+        Route::resource('sponsors', App\Http\Controllers\InventorySponsorController::class)->except(['create', 'show', 'edit']);
+
+        // Category CRUD
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/', [App\Http\Controllers\MedicineController::class, 'categoriesIndex'])->name('index');
+            Route::post('/', [App\Http\Controllers\MedicineController::class, 'categoriesStore'])->name('store');
+            Route::put('/{category}', [App\Http\Controllers\MedicineController::class, 'categoriesUpdate'])->name('update');
+            Route::delete('/{category}', [App\Http\Controllers\MedicineController::class, 'categoriesDestroy'])->name('destroy');
+        });
+    });
+
+    // Coupon Code Management (Super Admin Only)
+    Route::prefix('coupons')->name('coupons.')->group(function () {
+        Route::get('/', [App\Http\Controllers\CouponCodeController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\CouponCodeController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\CouponCodeController::class, 'store'])->name('store');
+        Route::delete('/{coupon}', [App\Http\Controllers\CouponCodeController::class, 'destroy'])->name('destroy');
+        Route::get('/export', [App\Http\Controllers\CouponCodeController::class, 'export'])->name('export');
+    });
+
+});
+
+// AJAX Coupon Validation (accessible during registration)
+Route::post('/coupons/validate', [App\Http\Controllers\CouponCodeController::class, 'validateAjax'])->name('coupons.validate');
+
+// Diagnostic route - Moved outside auth for debugging
+Route::get('/diag/oic', function () {
+    try {
+        $out = "<div style='font-family: sans-serif; padding: 20px;'>";
+        $out .= "<h1 style='color: #3C50E0;'>System Diagnostic</h1>";
+
+        $out .= "<h2>Office In Charge Accounts</h2>";
         try {
             $oics = \App\Models\User::where('designation', 'office_in_charge')
                 ->orWhere('is_office_in_charge', true)
                 ->get();
-            $out = "<div style='font-family: sans-serif; padding: 20px;'>";
-            $out .= "<h1 style='color: #3C50E0;'>OIC Diagnostic</h1>";
             $out .= "Found " . $oics->count() . " OIC users.<br><br>";
             foreach ($oics as $u) {
-                $out .= "<b>ID:</b> {$u->id}, <b>EmpID:</b> {$u->employee_id}, <b>Status:</b> {$u->status}, <b>IsOIC:</b> " . ($u->is_office_in_charge ? 'Yes' : 'No') . ", <b>Expired:</b> " . ($u->isOfficeInChargeExpired() ? 'Yes' : 'No') . "<br>";
+                // Ensure helper methods exist or use properties
+                $isExpired = method_exists($u, 'isOfficeInChargeExpired') ? ($u->isOfficeInChargeExpired() ? 'Yes' : 'No') : 'N/A';
+                $out .= "<b>ID:</b> {$u->id}, <b>EmpID:</b> {$u->employee_id}, <b>Status:</b> {$u->status}, <b>IsOIC:</b> " . ($u->is_office_in_charge ? 'Yes' : 'No') . ", <b>Expired:</b> $isExpired<br>";
             }
-
-            $out .= "<h2>System Environment</h2>";
-            $out .= "<b>APP_URL:</b> " . env('APP_URL') . "<br>";
-            $out .= "<b>Current URL:</b> " . url()->current() . "<br>";
-            $out .= "<b>PHP Version:</b> " . PHP_VERSION . "<br>";
-            $out .= "<b>Server Software:</b> " . ($_SERVER['SERVER_SOFTWARE'] ?? "N/A") . "<br>";
-
-            $out .= "<h2>Extensions Check</h2>";
-            $extensions = ['pdo_mysql', 'mysqli', 'openssl', 'mbstring', 'gd'];
-            foreach ($extensions as $ext) {
-                $status = extension_loaded($ext) ? "<span style='color: green;'>LOADED</span>" : "<span style='color: red;'>MISSING</span>";
-                $out .= "<b>$ext:</b> $status<br>";
-            }
-
-            $out .= "<h2>Session Check</h2>";
-            $out .= "<b>Session Driver:</b> " . config('session.driver') . "<br>";
-            $out .= "<b>Is Writable:</b> " . (is_writable(storage_path('framework/sessions')) ? "<span style='color: green;'>YES</span>" : "<span style='color: red;'>NO</span>") . "<br>";
-
-            $out .= "</div>";
-
-            return $out;
         } catch (\Exception $e) {
-            return "Error: " . $e->getMessage();
+            $out .= "Error fetching OICs: " . $e->getMessage() . "<br>";
         }
-    });
 
-    Route::get('/diag/clear', function () {
+        $out .= "<h2>Session & Cookies</h2>";
+        $out .= "<b>Session Driver:</b> " . config('session.driver') . "<br>";
+        $out .= "<b>Is Writable:</b> " . (is_writable(storage_path('framework/sessions')) ? "<span style='color: green;'>YES</span>" : "<span style='color: red;'>NO</span>") . "<br>";
+        $out .= "<b>Session Secure Cookie:</b> " . (config('session.secure') ? "True" : "False") . "<br>";
+        $out .= "<b>Session SameSite:</b> " . config('session.same_site', 'lax') . "<br>";
+
+        $out .= "<h2>URL/Domain Check</h2>";
+        $out .= "<b>APP_URL (env):</b> " . env('APP_URL') . "<br>";
+        $out .= "<b>Current URL:</b> " . url()->current() . "<br>";
+        $out .= "<b>URL Host match:</b> " . (str_contains(env('APP_URL'), request()->getHost()) ? "<span style='color: green;'>MATCH</span>" : "<span style='color: orange;'>MISMATCH</span>") . "<br>";
+
+        $out .= "<h2>Database Connection</h2>";
         try {
-            \Illuminate\Support\Facades\Artisan::call('config:clear');
-            \Illuminate\Support\Facades\Artisan::call('route:clear');
-            \Illuminate\Support\Facades\Artisan::call('view:clear');
-            return "Caches cleared successfully!";
+            \Illuminate\Support\Facades\DB::connection()->getPdo();
+            $out .= "<span style='color: green;'>Database Connected Successfully</span><br>";
         } catch (\Exception $e) {
-            return "Error clearing caches: " . $e->getMessage();
+            $out .= "<span style='color: red;'>Database Failed: " . $e->getMessage() . "</span><br>";
         }
-    });
+
+        $out .= "<h2>PHP Extensions</h2>";
+        $extensions = ['pdo_mysql', 'mysqli', 'openssl', 'mbstring', 'gd', 'curl'];
+        foreach ($extensions as $ext) {
+            $status = extension_loaded($ext) ? "<span style='color: green;'>LOADED</span>" : "<span style='color: red;'>MISSING</span>";
+            $out .= "<b>$ext:</b> $status<br>";
+        }
+
+        $out .= "<h2>Accounts Summary</h2>";
+        try {
+            $counts = \App\Models\User::select('designation', \DB::raw('count(*) as total'))
+                ->groupBy('designation')
+                ->get();
+            foreach ($counts as $c) {
+                $out .= "<b>{$c->designation}:</b> {$c->total}<br>";
+            }
+        } catch (\Exception $e) {
+            $out .= "Error counting: " . $e->getMessage();
+        }
+
+        $out .= "</div>";
+        return $out;
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
 });
+
+Route::get('/diag/clear', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        return "Caches cleared successfully! Try logging in again.";
+    } catch (\Exception $e) {
+        return "Error clearing caches: " . $e->getMessage();
+    }
+});
+
 
 
 // Route to Fix Storage Link and provide diagnostic info
@@ -386,3 +479,124 @@ Route::get('/fix-storage', function () {
     }
 });
 
+// Profile Picture Diagnostic Route
+Route::get('/diag/profile-pictures', function () {
+    $html = '<div style="font-family: sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
+    $html .= '<h1 style="color: #3C50E0;">Profile Picture Diagnostic</h1>';
+
+    // Get recent profiles with pictures
+    $profiles = \App\Models\UserProfile::whereNotNull('profile_picture')
+        ->with('user')
+        ->latest()
+        ->take(10)
+        ->get();
+
+    $html .= '<h2>Recent Profiles with Pictures (Last 10)</h2>';
+    $html .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
+    $html .= '<thead><tr style="background: #f1f5f9;">';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">User</th>';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">DB Path</th>';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">File Exists?</th>';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Checked Paths</th>';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">URL</th>';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Preview</th>';
+    $html .= '</tr></thead><tbody>';
+
+    foreach ($profiles as $profile) {
+        $path = $profile->profile_picture;
+        $possiblePaths = [
+            'storage_path' => storage_path('app/public/' . $path),
+            'base_path' => base_path('storage/app/public/' . $path),
+            'public_path' => public_path('storage/' . $path),
+            'external' => base_path('../storage/app/public/' . $path),
+        ];
+
+        $foundPath = null;
+        $existsChecks = [];
+        foreach ($possiblePaths as $label => $fullPath) {
+            $exists = file_exists($fullPath) && !is_dir($fullPath);
+            $existsChecks[] = "<b>$label:</b> " . ($exists ? '<span style="color: green;">✓ YES</span>' : '<span style="color: red;">✗ NO</span>') . "<br><small style='color: #666;'>$fullPath</small>";
+            if ($exists && !$foundPath) {
+                $foundPath = $fullPath;
+            }
+        }
+
+        $url = $profile->getProfilePictureUrl();
+        $urlDisplay = $url ? "<a href='$url' target='_blank' style='color: #3C50E0;'>View</a>" : '<span style="color: red;">NULL</span>';
+
+        $preview = $url ? "<img src='$url' style='width: 50px; height: 50px; object-fit: cover; border-radius: 8px;' onerror='this.style.border=\"2px solid red\"'>" : '❌';
+
+        $html .= '<tr>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($profile->full_name ?? 'N/A') . '<br><small>' . ($profile->user->employee_id ?? 'N/A') . '</small></td>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd;"><code>' . $path . '</code></td>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($foundPath ? '<span style="color: green;">✓ YES</span>' : '<span style="color: red;">✗ NO</span>') . '</td>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd; font-size: 11px;">' . implode('<br><br>', $existsChecks) . '</td>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . $urlDisplay . '</td>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' . $preview . '</td>';
+        $html .= '</tr>';
+    }
+
+    $html .= '</tbody></table>';
+
+    // Storage directory permissions
+    $html .= '<h2>Storage Directory Information</h2>';
+    $html .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
+    $html .= '<thead><tr style="background: #f1f5f9;">';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Path Type</th>';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Full Path</th>';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Exists?</th>';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Writable?</th>';
+    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Files Count</th>';
+    $html .= '</tr></thead><tbody>';
+
+    $storageDirs = [
+        'storage_path' => storage_path('app/public/profile_pictures'),
+        'base_path' => base_path('storage/app/public/profile_pictures'),
+        'public_path' => public_path('storage/profile_pictures'),
+        'external' => base_path('../storage/app/public/profile_pictures'),
+    ];
+
+    foreach ($storageDirs as $label => $dir) {
+        $exists = is_dir($dir);
+        $writable = $exists && is_writable($dir);
+        $count = 0;
+        if ($exists) {
+            $files = glob($dir . '/*');
+            $count = count(array_filter($files, 'is_file'));
+        }
+
+        $html .= '<tr>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd;"><b>' . $label . '</b></td>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd;"><code>' . $dir . '</code></td>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($exists ? '<span style="color: green;">✓ YES</span>' : '<span style="color: red;">✗ NO</span>') . '</td>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($writable ? '<span style="color: green;">✓ YES</span>' : '<span style="color: red;">✗ NO</span>') . '</td>';
+        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . $count . ' files</td>';
+        $html .= '</tr>';
+    }
+
+    $html .= '</tbody></table>';
+
+    // Environment info
+    $html .= '<h2>Environment Information</h2>';
+    $html .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
+    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>APP_ENV</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . env('APP_ENV') . '</td></tr>';
+    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>APP_URL</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . env('APP_URL') . '</td></tr>';
+    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>Base Path</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . base_path() . '</td></tr>';
+    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>Storage Path</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . storage_path() . '</td></tr>';
+    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>Public Path</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . public_path() . '</td></tr>';
+    $html .= '</table>';
+
+    $html .= '<div style="margin-top: 40px; padding: 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">';
+    $html .= '<h3 style="color: #166534; margin-top: 0;">Recommendations</h3>';
+    $html .= '<ol style="color: #166534;">';
+    $html .= '<li>If files exist locally but not on live server, you need to upload the <code>storage/app/public/profile_pictures</code> folder to your live server.</li>';
+    $html .= '<li>Make sure the storage directory has proper write permissions (755 or 775).</li>';
+    $html .= '<li>If using FTP/SFTP, ensure you upload the storage folder after each deployment.</li>';
+    $html .= '<li>Consider setting up automated deployment or using rsync to sync files.</li>';
+    $html .= '</ol>';
+    $html .= '</div>';
+
+    $html .= '</div>';
+
+    return $html;
+})->middleware('auth');

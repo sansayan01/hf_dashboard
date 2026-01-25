@@ -26,7 +26,7 @@ class DashboardController extends Controller
         }
 
         // Check Permissions
-        $canViewDownline = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_view_downline');
+        $canViewDownline = $currentUser->canViewDownline();
         $canViewReports = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_view_reports');
         $canApprove = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_approve_users');
 
@@ -179,7 +179,8 @@ class DashboardController extends Controller
     private function buildTree(User $user)
     {
         $children = $user->children()
-            ->with('profile')
+            ->where('designation', '!=', 'office_in_charge')
+            ->with(['profile'])
             ->get()
             ->map(function ($child) {
                 return $this->buildTree($child);

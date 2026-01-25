@@ -187,8 +187,16 @@
                                     class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
                                     {{ substr($appointment->creator->profile->full_name ?? 'U', 0, 1) }}
                                 </div>
-                                <span
-                                    class="text-xs font-bold text-slate-600 dark:text-slate-300">{{ $appointment->creator->profile->full_name ?? 'Unknown' }}</span>
+                                @if(auth()->user()->isSuperAdmin())
+                                    <a href="{{ route('users.show', $appointment->creator->id) }}" class="text-xs font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
+                                        <span>{{ $appointment->creator->profile->full_name ?? 'Unknown' }}</span>
+                                        <svg class="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                @else
+                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">{{ $appointment->creator->profile->full_name ?? 'Unknown' }}</span>
+                                @endif
                             </div>
                             <span class="text-[10px] text-slate-400">{{ $appointment->created_at->diffForHumans() }}</span>
                         </div>

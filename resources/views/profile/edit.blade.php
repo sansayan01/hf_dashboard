@@ -140,6 +140,29 @@
         @endif
 
         @if(auth()->user()->isSuperAdmin())
+            <!-- Admin Quick Access Shortcuts -->
+            <div class="mb-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <a href="{{ route('coupons.index') }}" class="group relative block p-8 bg-white dark:bg-darkcard border border-slate-100 dark:border-white/5 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 overflow-hidden">
+                    <!-- Glow Decoration -->
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-accent/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+                    
+                    <div class="relative z-10 flex items-center space-x-6">
+                        <div class="w-20 h-20 bg-accent/10 rounded-3xl flex items-center justify-center text-accent group-hover:scale-110 transition-transform duration-500">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black text-slate-800 dark:text-white uppercase tracking-tighter">Coupon System</h3>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Registry • Minter • CSV</p>
+                        </div>
+                        <div class="ml-auto flex items-center justify-center w-10 h-10 rounded-full bg-slate-50 dark:bg-white/5 text-slate-300 group-hover:text-accent group-hover:bg-accent/10 transition-all duration-300">
+                            <i class="fas fa-arrow-right scale-75 rotate-45 group-hover:rotate-0 transition-transform"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
             <!-- Admin Permissions Interface -->
             <div class="bg-white dark:bg-darkcard rounded-[2rem] shadow-xl border border-slate-100 dark:border-white/5 overflow-hidden">
                 <div class="flex flex-col lg:flex-row">
