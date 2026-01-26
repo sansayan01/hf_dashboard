@@ -222,6 +222,38 @@ Route::get('/clear-all-cache', function () {
     }
 });
 
+// Temporary File Checker Route
+Route::get('/diag/file-check', function () {
+    $files = [
+        'Controller' => app_path('Http/Controllers/MedicineDistributionController.php'),
+        'View Distribute' => resource_path('views/medicine/distribute.blade.php'),
+        'View Invoice' => resource_path('views/medicine/invoice.blade.php'),
+    ];
+
+    $html = "<h1>File Existence Checker</h1><ul>";
+    foreach ($files as $name => $path) {
+        $exists = file_exists($path);
+        $color = $exists ? 'green' : 'red';
+        $status = $exists ? 'FOUND' : 'MISSING';
+        $html .= "<li><strong>{$name}:</strong> <span style='color: {$color}'>{$status}</span><br><small>{$path}</small></li>";
+    }
+
+    // Check directory casing
+    $html .= "</ul><h2>Directory Casing Check</h2><ul>";
+    $controllerDir = app_path('Http/Controllers');
+    if (is_dir($controllerDir)) {
+        $contents = scandir($controllerDir);
+        foreach ($contents as $item) {
+            if (stripos($item, 'MedicineDistributionController') !== false) {
+                $html .= "<li>Found in directory: <code>{$item}</code></li>";
+            }
+        }
+    }
+
+    $html .= "</ul>";
+    return $html;
+});
+
 // Diagnostic route - Moved outside auth for debugging
 Route::get('/diag/oic', function () {
     try {
@@ -537,9 +569,11 @@ Route::get('/diag/profile-pictures', function () {
         $path = $profile->profile_picture;
         $possiblePaths = [
             'storage_path' => storage_path('app/public/' . $path),
+            'app_blade' => resource_path('views/layouts/app.blade.php'),
+            'dist_controller' => app_path('Http/Controllers/MedicineDistributionController.php'),
             'base_path' => base_path('storage/app/public/' . $path),
-            'public_path' => public_path('storage/' . $path),
-            'external' => base_path('../storage/app/public/' . $path),
+            'public_path' => public_path('storage/' . $path), // Check if it's a real folder in public
+            'external' => base_path('../storage/app/public/' . $path), // External storage check
         ];
 
         $foundPath = null;
