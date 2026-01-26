@@ -107,7 +107,7 @@
             position: relative;
             z-index: 10;
             margin: 0 auto;
-            margin-top: 20mm;
+            margin-top: 22mm;
             overflow: hidden;
             border: 0.8mm solid white;
             box-shadow: 0 1.5mm 2mm rgba(0, 0, 0, 0.1);
@@ -177,7 +177,7 @@
             text-align: center;
             width: 100%;
             position: absolute;
-            top: 45.5mm;
+            top: 46.5mm;
             left: 0;
             z-index: 5;
             display: flex;
@@ -208,15 +208,13 @@
 
         .phone-section {
             position: absolute;
-            bottom: 12.5mm;
+            bottom: 13.5mm;
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 1.5mm;
+            gap: 1mm;
             z-index: 10;
-            padding-right: 12mm;
-            /* Give some breathing room for the right-aligned signature */
         }
 
         .phone-circle {
@@ -253,9 +251,9 @@
 
         .signature-section {
             position: absolute;
-            bottom: 10.5mm;
-            right: 2.5mm;
-            width: 18mm;
+            bottom: 11mm;
+            right: 0.5mm;
+            width: 12mm;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -278,7 +276,7 @@
             font-weight: 900;
             color: black;
             text-transform: uppercase;
-            width: 100%;
+            width: 60%;
             text-align: center;
             margin-top: 0.3mm;
         }
@@ -321,7 +319,7 @@
                             <h1
                                 class="text-yellow-400 font-black text-[13px] tracking-wide uppercase text-center w-2/3 leading-tight mt-[-2px]">
                                 Humanity Foundation</h1>
-                            <p class="text-white text-[6px] font-bold opacity-100 mt-[1px]">Govt. Reg. : IV-190100489</p>
+                            <p class="text-white text-[8px] font-bold opacity-100 mt-[1px]">Govt. Reg. : IV-190100489</p>
                         </div>
 
                         <div class="profile-container">
