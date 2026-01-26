@@ -39,6 +39,10 @@ class UserController extends Controller
             $query->where('id', '!=', $currentUser->id);
         }
 
+        // Exclude Staff and Office In-Charge from My Team view (managed in Staff section)
+        $query->whereNotIn('designation', ['staff', 'office_in_charge'])
+            ->where('is_office_in_charge', false);
+
         // Apply filters
         if ($request->filled('district')) {
             $query->whereHas('profile', function ($q) use ($request) {
@@ -122,6 +126,34 @@ class UserController extends Controller
         return view('users.index', compact('users', 'allowedFilters', 'stats'));
     }
 
+    public function staffIndex(Request $request)
+    {
+        $currentUser = auth()->user();
+        if (!$currentUser->isSuperAdmin()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $query = User::with('profile')->where(function ($q) {
+            $q->whereIn('designation', ['staff', 'office_in_charge'])
+                ->orWhere('is_office_in_charge', true);
+        });
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('employee_id', 'like', "%{$search}%")
+                    ->orWhereHas('profile', function ($pq) use ($search) {
+                        $pq->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('phone_number', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $users = $query->latest()->paginate(20)->withQueryString();
+
+        return view('users.staff_index', compact('users'));
+    }
+
     /**
      * Show the form for creating a new user
      */
@@ -142,12 +174,39 @@ class UserController extends Controller
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
             'ro' => 'Relationship Officer',
+            'staff' => 'Staff',
         ];
 
         if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
             // Super Admin can create any role
             // Office In-Charge can create any role except SA and OI
             $allowedDesignation = null; // Let the view handle dropdown
+
+            // Context check: Are we adding via Staffs section or standard User section?
+            // We can infer this from previous url or a request parameter, but simpler is to pass 'type' in route or request.
+            // However, since we use same route, let's filter based on logic request.
+            // User requested: "at the my team section keep only HS, DM, BM, RM and RO registration."
+            // "and at the staffs section keep the super admin, office in charge and the staffs registration"
+
+            // We will add a 'type' parameter to the Create button in views.
+            $type = request('type', 'team'); // Default to team
+
+            if ($type === 'staff') {
+                $allDesignations = [
+                    'super_admin' => 'Super Admin',
+                    'office_in_charge' => 'Office In-Charge',
+                    'staff' => 'Staff',
+                ];
+            } else {
+                // My Team
+                $allDesignations = [
+                    'hs' => 'Head of State',
+                    'dm' => 'District Manager',
+                    'bm' => 'Block Manager',
+                    'rm' => 'Relationship Manager',
+                    'ro' => 'Relationship Officer',
+                ];
+            }
 
             if ($currentUser->isOfficeInCharge()) {
                 unset($allDesignations['super_admin']);
@@ -210,12 +269,12 @@ class UserController extends Controller
         if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
             $allowed = 'hs,dm,bm,rm,ro';
             if ($currentUser->isSuperAdmin()) {
-                $allowed .= ',super_admin,office_in_charge';
+                $allowed .= ',super_admin,office_in_charge,staff';
             }
             $rules['designation'] = "required|in:$allowed";
 
-            // Parent ID required unless creating SA, Office In-Charge, or HS (if top level)
-            $rules['parent_id'] = 'required_unless:designation,super_admin,office_in_charge,hs|nullable|exists:users,id';
+            // Parent ID required unless creating SA, Office In-Charge, or HS (if top level) or Staff
+            $rules['parent_id'] = 'required_unless:designation,super_admin,office_in_charge,hs,staff|nullable|exists:users,id';
 
             // Office In-Charge specific validation (only Super Admin can create)
             if ($currentUser->isSuperAdmin()) {
@@ -303,6 +362,8 @@ class UserController extends Controller
                     }
                 } elseif ($designation === 'hs') {
                     // Safety check if not caught by previous block
+                    $parentId = $currentUser->id;
+                } elseif ($designation === 'staff') {
                     $parentId = $currentUser->id;
                 } else {
                     // Fallback for any other future roles, though strictness implies we handled all.
@@ -510,6 +571,7 @@ class UserController extends Controller
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
             'ro' => 'Relationship Officer',
+            'staff' => 'Staff',
         ];
 
         $potentialParents = [];
@@ -610,6 +672,8 @@ class UserController extends Controller
                 // Validate Logic
                 if ($designation === 'super_admin') {
                     $parentId = null;
+                } elseif ($designation === 'staff') {
+                    $parentId = $currentUser->id;
                 } elseif ($designation === 'office_in_charge') {
                     // Office In-Charge reports to Upline
                     $parentId = $request->upline_id ?? $user->parent_id; // Use new upline or keep current if not provided? 

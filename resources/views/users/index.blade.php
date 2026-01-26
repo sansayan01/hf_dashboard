@@ -122,7 +122,7 @@
                     </button>
                 @endif
                 @if(auth()->user()->canCreateUsers())
-                    <a href="{{ route('users.create') }}"
+                    <a href="{{ route('users.create', ['type' => 'team']) }}"
                         class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
                         + Add Member
                     </a>

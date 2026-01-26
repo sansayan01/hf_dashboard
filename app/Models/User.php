@@ -445,6 +445,7 @@ class User extends Authenticatable
             'bm' => 'BM',
             'rm' => 'RM',
             'ro' => 'RO',
+            'staff' => 'ST',
         ];
 
         $code = $designationCodes[$designation] ?? 'XX';
@@ -560,6 +561,7 @@ class User extends Authenticatable
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
             'ro' => 'Relationship Officer',
+            'staff' => 'Staff',
         ];
 
         return $labels[$this->designation] ?? 'Unknown';
@@ -575,6 +577,7 @@ class User extends Authenticatable
             'bm' => 999,
             'rm' => 499,
             'ro' => 199,
+            'staff' => 0,
         ];
 
         return $amounts[$designation] ?? 0;

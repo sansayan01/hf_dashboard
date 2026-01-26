@@ -710,7 +710,8 @@
                     'dm': 'DM',
                     'bm': 'BM',
                     'rm': 'RM',
-                    'ro': 'RO'
+                    'ro': 'RO',
+                    'staff': 'ST'
                 };
                 hintDesignation.innerText = hintMap[designation] || 'XX';
 
@@ -734,7 +735,7 @@
                 @endif
 
                 // Roles that don't need manual parent selection (Top Level)
-                if (designation === 'super_admin' || designation === 'hs') {
+                if (designation === 'super_admin' || designation === 'hs' || designation === 'staff') {
                     parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
                     parentSelect.required = false;
                     parentSelect.closest('div').classList.add('opacity-50');

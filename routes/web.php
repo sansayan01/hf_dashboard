@@ -31,6 +31,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
     // User Management
     Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/staffs', [UserController::class, 'staffIndex'])->name('staffIndex');
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/create', [UserController::class, 'create'])->name('create');
         Route::post('/', [UserController::class, 'store'])->name('store');
