@@ -33,12 +33,29 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div>
+                        <div id="parent-selection-wrapper">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Assign Parent (Manager)</label>
                             <select name="parent_id" id="parent-select" required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Role First</option>
                             </select>
+                        </div>
+                        
+                        <!-- Camp Selection (Pharmacist Only) -->
+                        <div id="camp-selection-wrapper" class="hidden">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Assign Camp Location</label>
+                            <select name="camp_id" id="camp-select"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                <option value="">Select Camp</option>
+                                @if(isset($camps))
+                                    @foreach($camps as $camp)
+                                        <option value="{{ $camp->id }}" {{ old('camp_id') == $camp->id ? 'selected' : '' }}>
+                                            {{ $camp->name }} {{ $camp->location ? '('.$camp->location.')' : '' }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <p class="text-xs text-slate-500 mt-1">Pharmacist will be assigned to this camp location.</p>
                         </div>
                     </div>
 
@@ -711,7 +728,7 @@
                     'bm': 'BM',
                     'rm': 'RM',
                     'ro': 'RO',
-                    'staff': 'ST'
+                    'staff': 'PH'
                 };
                 hintDesignation.innerText = hintMap[designation] || 'XX';
 
@@ -738,9 +755,23 @@
                 if (designation === 'super_admin' || designation === 'hs' || designation === 'staff') {
                     parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
                     parentSelect.required = false;
-                    parentSelect.closest('div').classList.add('opacity-50');
-                    parentSelect.disabled = true;
+                    // Dont hide, just disable or auto-fill
+                    // For Staff (Pharmacist), we completely hide Parent select and Show Camp Select
+                    if (designation === 'staff') {
+                        document.getElementById('parent-selection-wrapper').classList.add('hidden');
+                        document.getElementById('camp-selection-wrapper').classList.remove('hidden');
+                        document.getElementById('camp-select').required = true;
+                    } else {
+                        document.getElementById('parent-selection-wrapper').classList.remove('hidden');
+                        document.getElementById('camp-selection-wrapper').classList.add('hidden');
+                        document.getElementById('camp-select').required = false;
+                        
+                        parentSelect.closest('div').classList.add('opacity-50');
+                        parentSelect.disabled = true;
+                    }
                 } else if (designation === 'office_in_charge') {
+                    document.getElementById('parent-selection-wrapper').classList.remove('hidden');
+                    document.getElementById('camp-selection-wrapper').classList.add('hidden');
                     // Office In-Charge gets parent from Upline
                     parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
                     parentSelect.required = false;

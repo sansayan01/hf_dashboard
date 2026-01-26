@@ -174,7 +174,7 @@ class UserController extends Controller
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
             'ro' => 'Relationship Officer',
-            'staff' => 'Staff',
+            'staff' => 'Pharmacist',
         ];
 
         if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
@@ -191,14 +191,15 @@ class UserController extends Controller
             // We will add a 'type' parameter to the Create button in views.
             $type = request('type', 'team'); // Default to team
 
-            if ($type === 'staff') {
+            // Only Super Admin can access Staff creation section
+            if ($type === 'staff' && $currentUser->isSuperAdmin()) {
                 $allDesignations = [
                     'super_admin' => 'Super Admin',
                     'office_in_charge' => 'Office In-Charge',
-                    'staff' => 'Staff',
+                    'staff' => 'Pharmacist',
                 ];
             } else {
-                // My Team
+                // My Team (Available to SA and OIC)
                 $allDesignations = [
                     'hs' => 'Head of State',
                     'dm' => 'District Manager',
@@ -230,7 +231,12 @@ class UserController extends Controller
                     ->groupBy('designation');
             }
 
-            return view('users.create', compact('allowedDesignation', 'allDesignations', 'potentialParents', 'potentialUplines'));
+
+
+            // Get Camps for Pharmacist assignment
+            $camps = \App\Models\InventoryWarehouse::where('type', 'camp')->where('is_active', true)->get();
+
+            return view('users.create', compact('allowedDesignation', 'allDesignations', 'potentialParents', 'potentialUplines', 'camps'));
         }
 
         // Regular users only create their specific child role
@@ -309,7 +315,12 @@ class UserController extends Controller
             'account_number' => 'required|string',
             'ifsc_code' => 'required|string|max:11',
             'profile_picture' => 'nullable|image|max:10000',
+            'camp_id' => 'nullable|exists:inventory_warehouses,id',
         ]));
+
+        if ($request->designation === 'staff' && empty($request->camp_id)) {
+            return back()->withInput()->with('error', 'Please select a Camp Location for the Pharmacist.');
+        }
 
         \Log::info('Validation passed', ['validated' => $validated]);
 
@@ -395,6 +406,7 @@ class UserController extends Controller
                 'status' => 'pending',
                 'is_office_in_charge' => ($designation === 'office_in_charge'),
                 'joining_donation' => User::getJoiningDonationAmount($designation),
+                'camp_id' => $request->camp_id,
             ];
 
             // Handle coupon code or payment screenshot
@@ -571,7 +583,7 @@ class UserController extends Controller
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
             'ro' => 'Relationship Officer',
-            'staff' => 'Staff',
+            'staff' => 'Pharmacist',
         ];
 
         $potentialParents = [];

@@ -35,6 +35,7 @@ class User extends Authenticatable
         'joining_donation',
         'payment_status',
         'payment_reference',
+        'camp_id',
     ];
 
     /**
@@ -63,6 +64,16 @@ class User extends Authenticatable
             'can_edit_user_details' => 'boolean',
             'joining_donation' => 'decimal:2',
         ];
+    }
+
+    // Add camp_id to fillable in the model property definition, but since it's guarded usually, 
+    // I should check $fillable property. 
+    // Assuming $fillable is defined at top, I will use a separate tool call to check/update it 
+    // or just add the relationship method here first.
+
+    public function camp()
+    {
+        return $this->belongsTo(InventoryWarehouse::class, 'camp_id');
     }
 
     /**
@@ -445,7 +456,7 @@ class User extends Authenticatable
             'bm' => 'BM',
             'rm' => 'RM',
             'ro' => 'RO',
-            'staff' => 'ST',
+            'staff' => 'PH',
         ];
 
         $code = $designationCodes[$designation] ?? 'XX';
@@ -561,7 +572,7 @@ class User extends Authenticatable
             'bm' => 'Block Manager',
             'rm' => 'Relationship Manager',
             'ro' => 'Relationship Officer',
-            'staff' => 'Staff',
+            'staff' => 'Pharmacist',
         ];
 
         return $labels[$this->designation] ?? 'Unknown';

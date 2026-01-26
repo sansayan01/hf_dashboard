@@ -1,20 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'Staff & Office In-Charge')
-@section('header_title', 'Staff Management')
+@section('title', 'Pharmacist & Office In-Charge')
+@section('header_title', 'Pharmacist Management')
 
 @section('content')
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <div class="flex items-center space-x-3">
-                    <h3 class="font-bold text-lg text-slate-800">Staff & Office In-Charge</h3>
+                    <h3 class="font-bold text-lg text-slate-800">Pharmacist & Office In-Charge</h3>
                     <span
                         class="px-2 py-0.5 bg-accent/10 text-accent text-[10px] font-black rounded-full border border-accent/20">
                         {{ $users->total() }} Total
                     </span>
                 </div>
-                <p class="text-sm text-slate-500">Manage your office staff and in-charges.</p>
+                <p class="text-sm text-slate-500">Manage your pharmacists and in-charges.</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button type="button" onclick="toggleFilters()"
@@ -199,7 +199,7 @@
                                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
                                         </path>
                                     </svg>
-                                    <p class="font-bold">No staff or office in-charge members found.</p>
+                                    <p class="font-bold">No pharmacist or office in-charge members found.</p>
                                     <p class="text-xs mt-1">Start by adding a new member.</p>
                                 </div>
                             </td>
