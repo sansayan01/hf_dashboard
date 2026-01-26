@@ -207,6 +207,8 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 // AJAX Coupon Validation (accessible during registration)
 Route::post('/coupons/validate', [App\Http\Controllers\CouponCodeController::class, 'validateAjax'])->name('coupons.validate');
 
+
+
 // Diagnostic route - Moved outside auth for debugging
 Route::get('/diag/oic', function () {
     try {
