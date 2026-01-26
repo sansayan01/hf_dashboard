@@ -74,7 +74,7 @@
             position: relative;
             z-index: 10;
             margin: 0 auto;
-            margin-top: 23mm;
+            margin-top: 20mm;
             overflow: hidden;
             border: 0.8mm solid white;
             box-shadow: 0 1.5mm 2mm rgba(0, 0, 0, 0.1);
@@ -144,7 +144,7 @@
             text-align: center;
             width: 100%;
             position: absolute;
-            top: 48.5mm;
+            top: 45.5mm;
             left: 0;
             z-index: 5;
             display: flex;
@@ -175,7 +175,7 @@
 
         .phone-section {
             position: absolute;
-            bottom: 10.5mm;
+            bottom: 12.5mm;
             width: 100%;
             display: flex;
             align-items: center;
@@ -332,13 +332,6 @@
         </div>
 
         <div class="phone-section">
-            <div class="phone-circle">
-                <svg class="w-3 h-3 text-white fill-current" viewBox="0 0 24 24">
-                    <path
-                        d="M18.48 22.926c-1.12.818-2.61.446-3.83.18-2.82-.6-5.83-2.31-8.24-4.72-2.41-2.41-4.12-5.42-4.72-8.24-.266-1.22-.638-2.71.18-3.83l.91-1.25a2.536 2.536 0 0 1 3.51-.7l1.79 1.13c.89.56 1.34 1.51 1.14 2.54l-.45 2.14c-.16.8.12 1.63.75 2.21l1.52 1.52c.58.63 1.41.91 2.21.75l2.14-.45c1.03-.2 1.98.25 2.54 1.14l1.13 1.79c.92 1.47.41 3.2-.7 3.51l-1.25.91z">
-                    </path>
-                </svg>
-            </div>
             <span class="phone-number">{{ $user->profile->phone_number ?? 'N/A' }}</span>
         </div>
 
