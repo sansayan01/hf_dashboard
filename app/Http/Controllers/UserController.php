@@ -80,6 +80,15 @@ class UserController extends Controller
         $limit = $request->has('view_all') ? 5000 : 20;
         $users = $query->latest()->paginate($limit)->withQueryString();
 
+        // Calculate Stats for the top bar (matches Dashboard)
+        $allDownlineIds = $currentUser->getAllDownlineIds();
+        $stats = [
+            'total_downline' => count($allDownlineIds),
+            'pending_approvals' => $currentUser->getPendingApprovalsCount(),
+            'direct_children' => $currentUser->getDashboardChildrenCount(),
+            'active_downline' => count($allDownlineIds) > 0 ? User::whereIn('id', $allDownlineIds)->where('status', 'active')->count() : 0,
+        ];
+
         // Get allowed designations for filtering based on hierarchy
         // super_admin > dm > bm > rm > ro
         $hierarchyLevels = [
@@ -110,7 +119,7 @@ class UserController extends Controller
             }
         }
 
-        return view('users.index', compact('users', 'allowedFilters'));
+        return view('users.index', compact('users', 'allowedFilters', 'stats'));
     }
 
     /**

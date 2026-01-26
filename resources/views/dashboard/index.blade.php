@@ -4,6 +4,16 @@
 @section('header_title', 'Dashboard Overview')
 
 @section('content')
+    @php
+        $user = $user ?? auth()->user();
+        $isViewAs = $isViewAs ?? false;
+        $stats = $stats ?? [
+            'total_downline' => 0,
+            'active_downline' => 0,
+            'pending_approvals' => 0,
+            'direct_children' => 0
+        ];
+    @endphp
     @if(isset($isViewAs) && $isViewAs)
         <div
             class="bg-indigo-600 text-white rounded-2xl p-4 mb-8 shadow-lg shadow-indigo-600/20 flex items-center justify-between">

@@ -6,7 +6,59 @@
 @section('content')
     @php
         $canBulkApprove = auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_approve_users');
+        $stats = $stats ?? [
+            'total_downline' => 0,
+            'active_downline' => 0,
+            'pending_approvals' => 0,
+            'direct_children' => 0
+        ];
     @endphp
+
+    <!-- Stats Grid -->
+    @if(!auth()->user()->isRO())
+        <div class="grid {{ auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2' }} gap-4 mb-6">
+            <!-- Total Downline -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 bg-accent/10 text-accent rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Total Team</h3>
+                <p class="text-2xl font-black text-slate-800">{{ number_format($stats['total_downline']) }}</p>
+            </div>
+
+            <!-- Active Members -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Active Members</h3>
+                <p class="text-2xl font-black text-slate-800">{{ number_format($stats['active_downline']) }}</p>
+            </div>
+
+            @if(auth()->user()->isSuperAdmin())
+                <!-- Pending Approvals -->
+                <div onclick="window.location.href='{{ route('users.index', ['status' => 'pending']) }}'" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Pending Approvals</h3>
+                    <p class="text-2xl font-black text-slate-800">{{ number_format($stats['pending_approvals']) }}</p>
+                </div>
+            @endif
+        </div>
+    @endif
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
