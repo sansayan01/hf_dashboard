@@ -440,6 +440,7 @@ class InventoryController extends Controller
                         InventoryTransaction::create([
                             'stock_id' => $stock->id,
                             'warehouse_id' => $validated['warehouse_id'],
+                            'sponsor_id' => $stock->sponsor_id,
                             'type' => 'dispense',
                             'quantity' => $decrement,
                             'user_id' => auth()->id(),
@@ -604,6 +605,7 @@ class InventoryController extends Controller
                             ->where('warehouse_id', $validated['to_warehouse_id'])
                             ->where('batch_number', $sourceStock->batch_number)
                             ->where('expiry_date', $sourceStock->expiry_date)
+                            ->where('sponsor_id', $sourceStock->sponsor_id)
                             ->first();
 
                         if ($destStock) {
@@ -614,6 +616,7 @@ class InventoryController extends Controller
                                 'warehouse_id' => $validated['to_warehouse_id'],
                                 'batch_number' => $sourceStock->batch_number,
                                 'expiry_date' => $sourceStock->expiry_date,
+                                'sponsor_id' => $sourceStock->sponsor_id,
                                 'quantity' => $transferQty,
                             ]);
                         }
@@ -622,6 +625,7 @@ class InventoryController extends Controller
                         InventoryTransaction::create([
                             'stock_id' => $sourceStock->id,
                             'warehouse_id' => $validated['from_warehouse_id'],
+                            'sponsor_id' => $sourceStock->sponsor_id,
                             'type' => 'out',
                             'quantity' => $transferQty,
                             'user_id' => auth()->id(),
@@ -631,6 +635,7 @@ class InventoryController extends Controller
                         InventoryTransaction::create([
                             'stock_id' => $destStock->id,
                             'warehouse_id' => $validated['to_warehouse_id'],
+                            'sponsor_id' => $sourceStock->sponsor_id,
                             'type' => 'in',
                             'quantity' => $transferQty,
                             'user_id' => auth()->id(),
@@ -662,6 +667,7 @@ class InventoryController extends Controller
                             ->where('warehouse_id', $validated['to_warehouse_id'])
                             ->where('batch_number', $sourceStock->batch_number)
                             ->where('expiry_date', $sourceStock->expiry_date)
+                            ->where('sponsor_id', $sourceStock->sponsor_id)
                             ->first();
 
                         if ($destStock) {
@@ -672,6 +678,7 @@ class InventoryController extends Controller
                                 'warehouse_id' => $validated['to_warehouse_id'],
                                 'batch_number' => $sourceStock->batch_number,
                                 'expiry_date' => $sourceStock->expiry_date,
+                                'sponsor_id' => $sourceStock->sponsor_id,
                                 'quantity' => $item['quantity'],
                             ]);
                         }
@@ -680,6 +687,7 @@ class InventoryController extends Controller
                         InventoryTransaction::create([
                             'stock_id' => $sourceStock->id,
                             'warehouse_id' => $validated['from_warehouse_id'],
+                            'sponsor_id' => $sourceStock->sponsor_id,
                             'type' => 'out',
                             'quantity' => $item['quantity'],
                             'user_id' => auth()->id(),
@@ -689,6 +697,7 @@ class InventoryController extends Controller
                         InventoryTransaction::create([
                             'stock_id' => $destStock->id,
                             'warehouse_id' => $validated['to_warehouse_id'],
+                            'sponsor_id' => $sourceStock->sponsor_id,
                             'type' => 'in',
                             'quantity' => $item['quantity'],
                             'user_id' => auth()->id(),
@@ -719,6 +728,7 @@ class InventoryController extends Controller
                         ->where('warehouse_id', $validated['to_warehouse_id'])
                         ->where('batch_number', $sourceStock->batch_number)
                         ->where('expiry_date', $sourceStock->expiry_date)
+                        ->where('sponsor_id', $sourceStock->sponsor_id)
                         ->first();
 
                     if ($destStock) {
@@ -729,6 +739,7 @@ class InventoryController extends Controller
                             'warehouse_id' => $validated['to_warehouse_id'],
                             'batch_number' => $sourceStock->batch_number,
                             'expiry_date' => $sourceStock->expiry_date,
+                            'sponsor_id' => $sourceStock->sponsor_id,
                             'quantity' => $validated['quantity'],
                         ]);
                     }
@@ -737,6 +748,7 @@ class InventoryController extends Controller
                     InventoryTransaction::create([
                         'stock_id' => $sourceStock->id,
                         'warehouse_id' => $validated['from_warehouse_id'],
+                        'sponsor_id' => $sourceStock->sponsor_id,
                         'type' => 'out',
                         'quantity' => $validated['quantity'],
                         'user_id' => auth()->id(),
@@ -746,6 +758,7 @@ class InventoryController extends Controller
                     InventoryTransaction::create([
                         'stock_id' => $destStock->id,
                         'warehouse_id' => $validated['to_warehouse_id'],
+                        'sponsor_id' => $sourceStock->sponsor_id,
                         'type' => 'in',
                         'quantity' => $validated['quantity'],
                         'user_id' => auth()->id(),
