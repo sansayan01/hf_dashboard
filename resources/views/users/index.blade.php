@@ -50,6 +50,14 @@
                     <span class="hidden lg:inline uppercase tracking-widest">Filter</span>
                 </button>
                 @if(auth()->user()->isSuperAdmin())
+                    <button type="submit" form="bulk-actions-form" id="bulk-approve-header-btn"
+                        class="bulk-approve-btn hidden px-2 sm:px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-600/20 hover:bg-emerald-600 transition-all flex items-center space-x-2 border border-emerald-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="hidden lg:inline">APPROVE SELECTED</span>
+                    </button>
 
                     <button type="submit" form="bulk-actions-form" formaction="{{ route('users.print-all-id-cards') }}"
                         formtarget="_blank" style="background-color: #e11d48; color: white; border-color: #be185d;"
@@ -159,9 +167,10 @@
                 <thead>
                     <tr class="bg-slate-50">
                         @if($canBulkApprove)
-                            <th class="px-6 py-4 w-10">
+                            <th class="px-6 py-4 w-10 text-center">
                                 <input type="checkbox" id="user-select-all" form="bulk-actions-form"
-                                    class="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent">
+                                    class="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent"
+                                    title="Select All">
                             </th>
                         @endif
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Member
@@ -186,6 +195,7 @@
                             @if($canBulkApprove)
                                 <td class="px-6 py-4">
                                     <input type="checkbox" name="selected_users[]" value="{{ $u->id }}" form="bulk-actions-form"
+                                        data-status="{{ $u->status }}"
                                         class="user-checkbox w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent">
                                 </td>
                             @endif
@@ -260,56 +270,60 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <div
-                                    class="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <a href="{{ route('users.show', $u->id) }}"
-                                        class="p-2 text-slate-400 hover:text-accent transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-                                            </path>
-                                        </svg>
-                                    </a>
-
+                                <div class="flex items-center justify-end space-x-2">
                                     @if($u->status === 'pending' && auth()->user()->canApprove($u))
-                                        <form action="{{ route('users.approve', $u->id) }}" method="POST">
+                                        <form action="{{ route('users.approve', $u->id) }}" method="POST" class="inline">
                                             @csrf
-                                            <button type="submit" class="p-2 text-success hover:bg-success/10 rounded-lg transition"
+                                            <button type="submit"
+                                                class="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all text-[10px] font-black uppercase tracking-widest flex items-center space-x-1"
                                                 title="Approve Member">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
                                                         d="M5 13l4 4L19 7"></path>
                                                 </svg>
+                                                <span>Approve</span>
                                             </button>
                                         </form>
                                     @endif
 
-                                    @if(auth()->user()->isSuperAdmin())
-                                        <a href="{{ route('users.id-card', $u->id) }}" target="_blank"
-                                            class="p-2 text-violet-500 hover:bg-violet-500/10 rounded-lg transition"
-                                            title="Generate ID Card">
+                                    <div
+                                        class="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <a href="{{ route('users.show', $u->id) }}"
+                                            class="p-2 text-slate-400 hover:text-accent transition">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                                </path>
                                             </svg>
                                         </a>
 
-                                        <form action="{{ route('users.destroy', $u->id) }}" method="POST"
-                                            onsubmit="return confirm('Move to BIN?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-2 text-danger hover:bg-danger/10 rounded-lg transition"
-                                                title="Delete User">
+                                        @if(auth()->user()->isSuperAdmin())
+                                            <a href="{{ route('users.id-card', $u->id) }}" target="_blank"
+                                                class="p-2 text-violet-500 hover:bg-violet-500/10 rounded-lg transition"
+                                                title="Generate ID Card">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                    </path>
+                                                        d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
                                                 </svg>
-                                            </button>
-                                        </form>
-                                    @endif
+                                            </a>
+
+                                            <form action="{{ route('users.destroy', $u->id) }}" method="POST"
+                                                onsubmit="return confirm('Move to BIN?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-2 text-danger hover:bg-danger/10 rounded-lg transition"
+                                                    title="Delete User">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                        </path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -343,7 +357,7 @@
                 </div>
                 <div class="flex items-center space-x-3">
                     <button type="submit" form="bulk-actions-form"
-                        class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center space-x-2">
+                        class="bulk-approve-btn px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                         </svg>
@@ -393,12 +407,34 @@
             const selectedCount = document.getElementById('selected-count');
 
             function updateBulkBar() {
-                const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+                const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+                const checkedCount = checkedBoxes.length;
                 selectedCount.textContent = checkedCount;
+
                 if (checkedCount > 0) {
                     bulkBar.classList.remove('hidden');
+
+                    // Check if any active user is selected
+                    let hasActive = false;
+                    checkedBoxes.forEach(cb => {
+                        if (cb.getAttribute('data-status') === 'active') {
+                            hasActive = true;
+                        }
+                    });
+
+                    const approveButtons = document.querySelectorAll('.bulk-approve-btn');
+                    approveButtons.forEach(btn => {
+                        if (hasActive) {
+                            btn.classList.add('hidden');
+                        } else {
+                            btn.classList.remove('hidden');
+                        }
+                    });
                 } else {
                     bulkBar.classList.add('hidden');
+                    // Also hide header button if nothing selected
+                    const headerBtn = document.getElementById('bulk-approve-header-btn');
+                    if (headerBtn) headerBtn.classList.add('hidden');
                 }
             }
 

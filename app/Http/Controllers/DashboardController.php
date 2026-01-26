@@ -42,7 +42,7 @@ class DashboardController extends Controller
         // Optimized Stats
         $stats = [
             'total_downline' => count($downlineIds),
-            'pending_approvals' => $user->getPendingApprovalsCount(), // This handles its own permission logic in User model
+            'pending_approvals' => $user->getPendingApprovalsCount(),
             'direct_children' => $canViewDownline ? $user->getDashboardChildrenCount() : 0,
             'active_downline' => count($downlineIds) > 0 ? User::whereIn('id', $downlineIds)->where('status', 'active')->count() : 0,
         ];
@@ -100,9 +100,6 @@ class DashboardController extends Controller
             ->limit(50)
             ->get();
 
-        $pendingApprovals = ($user->isSuperAdmin() || ($user->isOfficeInCharge() && $user->upline && $user->upline->isSuperAdmin()))
-            ? User::pending()->with('profile')->latest()->get()
-            : collect();
 
         $isViewAs = $currentUser->id !== $user->id;
 
@@ -111,7 +108,7 @@ class DashboardController extends Controller
             $user->load(['children.profile']);
         }
 
-        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'pendingApprovals', 'isViewAs', 'canApprove'));
+        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove'));
     }
 
     /**
