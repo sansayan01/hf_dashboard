@@ -593,4 +593,9 @@ class User extends Authenticatable
 
         return $amounts[$designation] ?? 0;
     }
+
+    public function medicineDistributions()
+    {
+        return $this->hasMany(MedicineDistribution::class, 'pharmacist_id');
+    }
 }

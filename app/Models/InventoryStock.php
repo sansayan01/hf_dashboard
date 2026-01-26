@@ -9,6 +9,7 @@ class InventoryStock extends Model
     protected $fillable = [
         'medicine_id',
         'warehouse_id',
+        'sponsor_id',
         'batch_number',
         'expiry_date',
         'quantity',
@@ -37,6 +38,11 @@ class InventoryStock extends Model
     public function warehouse()
     {
         return $this->belongsTo(InventoryWarehouse::class, 'warehouse_id');
+    }
+
+    public function sponsor()
+    {
+        return $this->belongsTo(InventorySponsor::class, 'sponsor_id');
     }
 
     public function transactions()

@@ -76,4 +76,9 @@ class Survey extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+
+    public function medicineDistributions()
+    {
+        return $this->hasMany(MedicineDistribution::class, 'patient_id');
+    }
 }

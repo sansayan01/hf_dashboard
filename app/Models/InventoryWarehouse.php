@@ -20,4 +20,9 @@ class InventoryWarehouse extends Model
     {
         return $this->hasMany(InventoryTransaction::class, 'warehouse_id');
     }
+
+    public function medicineDistributions()
+    {
+        return $this->hasMany(MedicineDistribution::class, 'camp_id');
+    }
 }

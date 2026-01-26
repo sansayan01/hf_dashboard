@@ -149,6 +149,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/create', [App\Http\Controllers\InventoryController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\InventoryController::class, 'store'])->name('store');
         Route::get('/transactions', [App\Http\Controllers\InventoryController::class, 'transactions'])->name('transactions');
+        Route::get('/transactions/export', [App\Http\Controllers\InventoryController::class, 'exportTransactions'])->name('transactions.export');
         Route::put('/transactions/{transaction}', [App\Http\Controllers\InventoryController::class, 'updateTransaction'])->name('transactions.update');
         Route::delete('/transactions/{transaction}', [App\Http\Controllers\InventoryController::class, 'destroyTransaction'])->name('transactions.destroy');
 
@@ -182,6 +183,14 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
             Route::put('/{category}', [App\Http\Controllers\MedicineController::class, 'categoriesUpdate'])->name('update');
             Route::delete('/{category}', [App\Http\Controllers\MedicineController::class, 'categoriesDestroy'])->name('destroy');
         });
+    });
+
+    // Medicine Distribution
+    Route::prefix('medicine')->name('medicine.')->group(function () {
+        Route::get('/distribute/{patient}', [App\Http\Controllers\MedicineDistributionController::class, 'create'])->name('distribute');
+        Route::get('/search', [App\Http\Controllers\MedicineDistributionController::class, 'searchMedicine'])->name('search');
+        Route::post('/distribute', [App\Http\Controllers\MedicineDistributionController::class, 'store'])->name('distribute.store');
+        Route::get('/invoice/{id}', [App\Http\Controllers\MedicineDistributionController::class, 'show'])->name('invoice');
     });
 
     // Coupon Code Management (Super Admin Only)

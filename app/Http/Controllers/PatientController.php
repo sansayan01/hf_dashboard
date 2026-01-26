@@ -15,14 +15,26 @@ class PatientController extends Controller
     {
         $user = Auth::user();
 
-        // Permission check
-        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_create_surveys')) {
+        // Permission check (Allow Super Admin, users with survey permission, and Pharmacists)
+        if (
+            !$user->isSuperAdmin() &&
+            !\App\Models\RolePermission::check($user->designation, 'can_create_surveys') &&
+            $user->designation !== 'staff'
+        ) {
             abort(403, 'Unauthorized access.');
         }
 
-        // Get all members this user is allowed to see data for (Self + All Downline)
-        $downline = $user->getAllDownline();
-        $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
+
+        // Get all members this user is allowed to see data for
+        // Pharmacists can see all patients (they need to dispense medicine to anyone)
+        if ($user->designation === 'staff') {
+            $allowedIds = Survey::pluck('created_by')->unique()->toArray();
+        } else {
+            // For other users: Self + All Downline
+            $downline = $user->getAllDownline();
+            $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
+        }
+
 
         $query = Survey::with('creator.profile')
             ->whereIn('created_by', $allowedIds)
@@ -70,7 +82,12 @@ class PatientController extends Controller
         $patients = $query->latest()->paginate($limit)->withQueryString();
 
         // Get list of potential collectors for the filter dropdown
-        $collectors = collect([$user])->merge($downline);
+        if ($user->designation === 'staff') {
+            // Pharmacists see all users who have created patients
+            $collectors = \App\Models\User::whereIn('id', $allowedIds)->with('profile')->get();
+        } else {
+            $collectors = collect([$user])->merge($downline);
+        }
 
         return view('patients.index', compact('patients', 'collectors'));
     }

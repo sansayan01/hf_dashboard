@@ -14,6 +14,12 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $currentUser = auth()->user();
+
+        // Pharmacist (Staff) Specific Dashboard Redirection
+        if ($currentUser->designation === 'staff') {
+            return redirect()->route('inventory.index');
+        }
+
         $targetUserId = $request->get('as_user', $currentUser->id);
 
         if ($targetUserId != $currentUser->id) {

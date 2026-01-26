@@ -1,0 +1,391 @@
+@extends('layouts.app')
+
+@section('title', 'Dispense Medicine')
+@section('header_title', 'Farmasi & Stock')
+
+@section('content')
+    <div class="max-w-4xl mx-auto space-y-6">
+        <!-- Patient Info Card -->
+        <div
+            class="glass bg-white dark:bg-darkbg/40 rounded-3xl p-6 border border-slate-200/10 dark:border-white/5 shadow-xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-6 opacity-10">
+                <svg class="w-32 h-32 text-accent" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a1 1 0 011 1v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H7a1 1 0 110-2h4V7a1 1 0 011-1z" />
+                </svg>
+            </div>
+            <div class="relative z-10 flex items-start gap-6">
+                <div
+                    class="w-16 h-16 bg-accent text-white rounded-2xl flex items-center justify-center text-2xl font-black">
+                    {{ substr($patient->full_name, 0, 1) }}
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Dispensing For</p>
+                    <h2 class="text-3xl font-black text-slate-800 dark:text-white leading-none mb-2">
+                        {{ $patient->full_name }}
+                    </h2>
+                    <div class="flex items-center gap-3 text-sm font-bold text-slate-500">
+                        <span class="bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded">{{ $patient->patient_id }}</span>
+                        <span>•</span>
+                        <span>{{ ucfirst($patient->gender) }}</span>
+                        <span>•</span>
+                        <span>{{ $patient->age }} Years</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dispense Form -->
+        <div
+            class="glass bg-white dark:bg-darkbg/40 rounded-3xl p-8 border border-slate-200/10 dark:border-white/5 shadow-xl">
+            <form id="dispenseForm" action="{{ route('medicine.distribute.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="patient_id" value="{{ $patient->id }}">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Select Camp -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Dispensing
+                            From Camp / Warehouse</label>
+                        <div class="relative">
+                            @if($camps->count() === 1)
+                                <input type="hidden" name="camp_id" value="{{ $camps->first()->id }}" id="camp_id">
+                                <div
+                                    class="w-full h-12 px-4 rounded-xl border border-slate-200/50 dark:border-white/10 bg-slate-100/50 dark:bg-white/5 text-slate-500 flex items-center text-sm font-bold opacity-80 cursor-not-allowed">
+                                    {{ $camps->first()->name }} ({{ $camps->first()->location ?? 'No Loc' }})
+                                </div>
+                            @else
+                                <select name="camp_id" id="camp_id" required
+                                    class="w-full h-12 pl-4 pr-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-white/5 text-sm font-bold focus:ring-2 focus:ring-accent/50 outline-none transition appearance-none">
+                                    <option value="" disabled selected>Select Camp...</option>
+                                    @foreach($camps as $camp)
+                                        <option value="{{ $camp->id }}">
+                                            {{ $camp->name }} ({{ $camp->location ?? 'No Loc' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @endif
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pharmacist (Read Only) -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Dispensing
+                            Pharmacist</label>
+                        <div
+                            class="w-full h-12 px-4 rounded-xl border border-slate-200/50 dark:border-white/10 bg-slate-100/50 dark:bg-white/5 text-slate-500 flex items-center text-sm font-bold">
+                            {{ Auth::user()->profile->full_name ?? Auth::user()->employee_id }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medicine Search & Add -->
+                <div class="mb-8 p-6 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5"
+                    id="search-container" style="display:none;">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Search & Add
+                        Medicine</label>
+                    <div class="relative">
+                        <input type="text" id="medicine_search"
+                            class="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold focus:ring-2 focus:ring-accent/50 outline-none transition shadow-sm placeholder:font-medium"
+                            placeholder="Type medicine name (e.g. Paracetamol)..." autocomplete="off">
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+
+                        <!-- Dropdown Results -->
+                        <div id="search_results"
+                            class="absolute z-50 left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 max-h-60 overflow-y-auto hidden">
+                            <!-- Items injected by JS -->
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2 pl-1">* Only medicines with stock in selected camp will
+                        appear.</p>
+                </div>
+
+                <div id="select-camp-msg"
+                    class="text-center p-8 bg-amber-500/10 rounded-2xl border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold mb-8">
+                    Please select a camp to start dispensing.
+                </div>
+
+                <!-- Items Table -->
+                <div class="mb-8">
+                    <table class="w-full text-left border-collapse" id="itemsTable">
+                        <thead>
+                            <tr
+                                class="border-b border-slate-200 dark:border-white/10 text-[10px] uppercase font-black text-slate-400 tracking-widest">
+                                <th class="py-4 pl-2">Medicine Name</th>
+                                <th class="py-4 w-32 text-center">Unit Price</th>
+                                <th class="py-4 w-32 text-center">Stock</th>
+                                <th class="py-4 w-32 text-center">Quantity</th>
+                                <th class="py-4 w-32 text-right pr-2">Total</th>
+                                <th class="py-4 w-12"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody" class="text-sm font-bold text-slate-700 dark:text-slate-300">
+                            <!-- Rows -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="border-t border-slate-200 dark:border-white/10">
+                                <td colspan="4"
+                                    class="py-4 text-right font-black uppercase tracking-widest text-[10px] text-slate-400">
+                                    Subtotal</td>
+                                <td colspan="1" class="py-4 text-right font-bold text-slate-700 dark:text-slate-300 pr-2">
+                                    ₹<span id="subTotal">0.00</span></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4"
+                                    class="py-2 text-right font-black uppercase tracking-widest text-[10px] text-emerald-500">
+                                    Discount (<span id="discountPerc">0</span>%)</td>
+                                <td colspan="1" class="py-2 text-right font-bold text-emerald-500 pr-2">-₹<span
+                                        id="discountAmt">0.00</span></td>
+                                <td></td>
+                            </tr>
+                            <tr class="border-t-2 border-slate-200 dark:border-white/10">
+                                <td colspan="4"
+                                    class="py-6 text-right font-black uppercase tracking-widest text-xs text-slate-500">
+                                    Final Total</td>
+                                <td colspan="1" class="py-6 text-right font-black text-2xl text-accent pr-2">₹<span
+                                        id="grandTotal">0.00</span></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div id="empty-cart-msg" class="text-center py-10 text-slate-400 text-sm font-medium italic">
+                        No medicines added yet.
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-4">
+                    <a href="{{ route('patients.index') }}"
+                        class="px-6 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500 font-bold hover:bg-slate-200 transition">Cancel</a>
+                    <button type="submit" id="submitBtn" disabled
+                        class="px-8 py-3 rounded-xl bg-accent text-white font-black uppercase tracking-widest shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed">
+                        Complete Dispense
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let addedItems = {}; // { medId: {price: x, qty: y, name: 'z'} }
+        let selectedCamp = null;
+
+        const campSelect = document.getElementById('camp_id');
+
+        campSelect.addEventListener('change', function () {
+            selectedCamp = this.value;
+            if (selectedCamp) {
+                document.getElementById('search-container').style.display = 'block';
+                document.getElementById('select-camp-msg').style.display = 'none';
+                // Clear cart when camp changes to avoid stock mismatch
+                addedItems = {};
+                renderCart();
+            } else {
+                document.getElementById('search-container').style.display = 'none';
+            }
+        });
+
+        // Auto-trigger if camp is already selected (for pharmacists with only one camp)
+        if (campSelect.value) {
+            campSelect.dispatchEvent(new Event('change'));
+        }
+
+        const searchInput = document.getElementById('medicine_search');
+        const resultsBox = document.getElementById('search_results');
+        let debounceTimer;
+
+        searchInput.addEventListener('input', function (e) {
+            clearTimeout(debounceTimer);
+            const query = e.target.value.trim();
+
+            if (query.length < 2 || !selectedCamp) {
+                resultsBox.classList.add('hidden');
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetch(`{{ route('medicine.search') }}?q=${encodeURIComponent(query)}&camp_id=${selectedCamp}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        resultsBox.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach(item => {
+                                const div = document.createElement('div');
+                                div.className = 'p-3 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer border-b border-slate-100 dark:border-white/5 last:border-0 transition-colors';
+
+                                // Check if already in cart
+                                const alreadyAdded = addedItems[item.id] ? addedItems[item.id].qty : 0;
+                                const available = item.available_stock - alreadyAdded;
+                                const disabled = available <= 0;
+
+                                div.innerHTML = `
+                                        <div class="flex items-center justify-between ${disabled ? 'opacity-50' : ''}">
+                                            <div>
+                                                <div class="font-bold text-slate-700 dark:text-slate-200">${item.text.split(' - ')[0]}</div>
+                                                <div class="text-[10px] text-slate-400 uppercase font-black tracking-wider">Rate: ₹${item.market_price} / unit • Stock: ${item.available_stock}</div>
+                                            </div>
+                                            <div class="${available > 0 ? 'text-emerald-500' : 'text-rose-500'} font-black text-xs">
+                                                ${available > 0 ? 'Add +' : 'Out of Stock'}
+                                            </div>
+                                        </div>
+                                    `;
+
+                                if (!disabled) {
+                                    div.addEventListener('click', () => {
+                                        addItemToCart(item);
+                                        searchInput.value = '';
+                                        resultsBox.classList.add('hidden');
+                                        searchInput.focus();
+                                    });
+                                }
+                                resultsBox.appendChild(div);
+                            });
+                            resultsBox.classList.remove('hidden');
+                        } else {
+                            resultsBox.innerHTML = '<div class="p-4 text-center text-slate-400 font-bold italic text-sm">No medicines found in this camp matching your search.</div>';
+                            resultsBox.classList.remove('hidden');
+                        }
+                    });
+            }, 300);
+        });
+
+        // Close search when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+                resultsBox.classList.add('hidden');
+            }
+        });
+
+        function addItemToCart(item) {
+            if (addedItems[item.id]) {
+                addedItems[item.id].qty++;
+            } else {
+                addedItems[item.id] = {
+                    id: item.id,
+                    name: item.text.split(' - ')[0],
+                    price: parseFloat(item.market_price),
+                    stock: parseInt(item.available_stock),
+                    qty: 1
+                };
+            }
+            renderCart();
+        }
+
+        function removeItem(id) {
+            delete addedItems[id];
+            renderCart();
+        }
+
+        function updateQty(id, newQty) {
+            const item = addedItems[id];
+            if (newQty > item.stock) {
+                alert(`Only ${item.stock} available in stock.`);
+                return;
+            }
+            if (newQty < 1) newQty = 1;
+            item.qty = parseInt(newQty);
+            renderCart();
+        }
+
+        function renderCart() {
+            const tbody = document.getElementById('itemsBody');
+            tbody.innerHTML = '';
+            let grandTotal = 0;
+            let count = 0;
+
+            Object.values(addedItems).forEach(item => {
+                count++;
+                const total = item.price * item.qty;
+                grandTotal += total;
+
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group';
+                tr.innerHTML = `
+                                <td class="py-4 pl-2">
+                                    <input type="hidden" name="medicines[${count}][id]" value="${item.id}">
+                                    <div class="font-bold">${item.name}</div>
+                                </td>
+                                <td class="py-4 text-center text-slate-500">${item.price.toFixed(2)}</td>
+                                <td class="py-4 text-center text-xs text-slate-400 font-mono bg-slate-100 dark:bg-white/5 rounded-lg py-1">${item.stock}</td>
+                                <td class="py-4 text-center">
+                                    <input type="number" name="medicines[${count}][quantity]" value="${item.qty}" min="1" max="${item.stock}"
+                                        onchange="updateQty(${item.id}, this.value)"
+                                        class="w-16 h-8 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-accent/50 outline-none font-bold text-sm">
+                                </td>
+                                <td class="py-4 text-right pr-2 font-mono">${total.toFixed(2)}</td>
+                                <td class="py-4 text-right">
+                                    <button type="button" onclick="removeItem(${item.id})" class="text-slate-400 hover:text-rose-500 transition px-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </td>
+                            `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('subTotal').innerText = grandTotal.toFixed(2);
+            
+            const perc = grandTotal > 300 ? 20 : 18;
+            const discount = (grandTotal * perc) / 100;
+            const finalTotal = grandTotal - discount;
+
+            document.getElementById('discountPerc').innerText = perc;
+            document.getElementById('discountAmt').innerText = discount.toFixed(2);
+            document.getElementById('grandTotal').innerText = finalTotal.toFixed(2);
+
+            const emptyMsg = document.getElementById('empty-cart-msg');
+            if (count === 0) {
+                emptyMsg.style.display = 'block';
+                document.getElementById('submitBtn').disabled = true;
+            } else {
+                emptyMsg.style.display = 'none';
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        // Handle form submission via AJAX to manage potential errors better
+        document.getElementById('dispenseForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const form = this;
+
+            btn.disabled = true;
+            btn.innerText = 'Processing...';
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        alert('Error: ' + (data.message || 'Unknown error occurred'));
+                        btn.disabled = false;
+                        btn.innerText = 'Complete Dispense';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('System Error. Please try again.');
+                    btn.disabled = false;
+                    btn.innerText = 'Complete Dispense';
+                });
+        });
+    </script>
+@endsection

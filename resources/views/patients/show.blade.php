@@ -58,6 +58,7 @@
                                 class="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 text-slate-700 dark:text-white font-bold rounded-xl text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition">
                                 Edit Record
                             </a>
+                            @if(auth()->user()->designation !== 'staff')
                             <form action="{{ route('patients.destroy', $patient->id) }}" method="POST" id="delete-patient-form">
                                 @csrf
                                 @method('DELETE')
@@ -66,6 +67,7 @@
                                     Delete Record
                                 </button>
                             </form>
+                            @endif
                         @endif
                     </div>
                 </div>

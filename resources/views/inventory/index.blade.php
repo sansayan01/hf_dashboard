@@ -7,15 +7,17 @@
     <div class="space-y-8">
         <!-- Navigation Links -->
         <div class="flex flex-wrap items-center gap-4 justify-center">
-            <a href="{{ route('inventory.warehouses.index') }}"
-                class="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-accent transition">Warehouses</a>
-            <a href="{{ route('inventory.camps.index') }}"
-                class="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-accent transition">Camps</a>
-            <a href="{{ route('inventory.sponsors.index') }}"
-                class="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-accent transition">Sponsors</a>
-            <a href="{{ route('inventory.medicines.index') }}"
-                class="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-accent transition">Medicine
-                Registry</a>
+            @if(auth()->user()->designation !== 'staff')
+                <a href="{{ route('inventory.warehouses.index') }}"
+                    class="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-accent transition">Warehouses</a>
+                <a href="{{ route('inventory.camps.index') }}"
+                    class="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-accent transition">Camps</a>
+                <a href="{{ route('inventory.sponsors.index') }}"
+                    class="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-accent transition">Sponsors</a>
+                <a href="{{ route('inventory.medicines.index') }}"
+                    class="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-accent transition">Medicine
+                    Registry</a>
+            @endif
             <a href="{{ route('inventory.transactions') }}"
                 class="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-accent transition">Transaction
                 Logs</a>
@@ -109,66 +111,80 @@
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Expiry</th>
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Quantity</th>
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Sponsor</th>
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
                                 Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                         @forelse($stocks as $stock)
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                                <td class="p-4">
-                                    <div class="flex flex-col">
-                                        <span
-                                            class="font-bold text-sm">{{ $stock->medicine?->name ?? 'Unknown Medicine' }}</span>
-                                        <div class="flex items-center space-x-2">
-                                            <span
-                                                class="text-[10px] text-slate-700 dark:text-slate-300 font-bold">{{ $stock->medicine?->generic_name ?? 'N/A' }}</span>
-                                            <span class="text-slate-200 dark:text-white/10 text-[10px]">•</span>
-                                            <span
-                                                class="text-[10px] text-accent font-black uppercase tracking-widest">{{ $stock->warehouse?->name ?? 'Main Warehouse' }}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="p-4">
-                                    <code
-                                        class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded text-[10px] font-bold">
-                                                                                        #{{ $stock->batch_number }}
-                                                                                    </code>
-                                </td>
-                                <td class="p-4">
-                                    <span
-                                        class="text-xs font-bold {{ $stock->expiry_date->isPast() ? 'text-red-500' : ($stock->expiry_date->diffInMonths(now()) < 3 ? 'text-amber-500' : 'text-slate-600 dark:text-slate-300') }}">
-                                        {{ $stock->expiry_date->format('M d, Y') }}
-                                    </span>
-                                </td>
-                                <td class="p-4">
-                                    <span class="text-sm font-black text-slate-800 dark:text-white">{{ $stock->quantity }}
-                                        {{ $stock->medicine?->unit ?? 'Units' }}</span>
-                                </td>
-                                <td class="p-4">
-                                    @if($stock->expiry_date->isPast())
-                                        <span
-                                            class="px-2 py-1 bg-red-100 text-red-600 text-[10px] font-black rounded-lg uppercase tracking-tight">Expired</span>
-                                    @elseif($stock->expiry_date->diffInMonths(now()) < 3)
-                                        <span
-                                            class="px-2 py-1 bg-amber-100 text-amber-600 text-[10px] font-black rounded-lg uppercase tracking-tight">Expiring
-                                            Soon</span>
-                                    @else
-                                        <span
-                                            class="px-2 py-1 bg-emerald-100 text-emerald-600 text-[10px] font-black rounded-lg uppercase tracking-tight">Good</span>
-                                    @endif
-                                </td>
-                                <td class="p-4 text-right">
-                                    <a href="{{ route('inventory.transfer', ['stock_id' => $stock->id]) }}"
-                                        class="p-2 text-slate-400 hover:text-amber-500 transition inline-block"
-                                        title="Move stock to another warehouse">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                        </svg>
-                                    </a>
-                                </td>
-                            </tr>
+                                        <tr class="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                            <td class="p-4">
+                                                <div class="flex flex-col">
+                                                    <span
+                                                        class="font-bold text-sm">{{ $stock->medicine?->name ?? 'Unknown Medicine' }}</span>
+                                                    <div class="flex items-center space-x-2">
+                                                        <span
+                                                            class="text-[10px] text-slate-700 dark:text-slate-300 font-bold">{{ $stock->medicine?->generic_name ?? 'N/A' }}</span>
+                                                        <span class="text-slate-200 dark:text-white/10 text-[10px]">•</span>
+                                                        <span
+                                                            class="text-[10px] text-accent font-black uppercase tracking-widest">{{ $stock->warehouse?->name ?? 'Main Warehouse' }}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="p-4">
+                                                <code
+                                                    class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded text-[10px] font-bold">
+                                                                                                                    #{{ $stock->batch_number }}
+                                                                                                                </code>
+                                            </td>
+                                            <td class="p-4">
+                                                <span
+                                                    class="text-xs font-bold {{ $stock->expiry_date->isPast() ? 'text-red-500' : ($stock->expiry_date->diffInMonths(now()) < 3 ? 'text-amber-500' : 'text-slate-600 dark:text-slate-300') }}">
+                                                    {{ $stock->expiry_date->format('M d, Y') }}
+                                                </span>
+                                            </td>
+                                            <td class="p-4">
+                                                <span class="text-sm font-black text-slate-800 dark:text-white">{{ $stock->quantity }}
+                                                    {{ $stock->medicine?->unit ?? 'Units' }}</span>
+                                            </td>
+                                            <td class="p-4">
+                                                @php
+                                                    $stockSponsor = $stock->sponsor;
+                                                    if (!$stockSponsor) {
+                                                        $inTx = $stock->transactions->where('type', 'in')->first();
+                                                        $stockSponsor = $inTx?->sponsor;
+                                                    }
+                                                @endphp
+                            <span
+                                                    class="px-2 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-500 text-[10px] font-bold rounded uppercase border border-blue-500/20">
+                                                    {{ $stockSponsor->name ?? 'N/A' }}
+                                                </span>
+                                            </td>
+                                            <td class="p-4">
+                                                @if($stock->expiry_date->isPast())
+                                                    <span
+                                                        class="px-2 py-1 bg-red-100 text-red-600 text-[10px] font-black rounded-lg uppercase tracking-tight">Expired</span>
+                                                @elseif($stock->expiry_date->diffInMonths(now()) < 3)
+                                                    <span
+                                                        class="px-2 py-1 bg-amber-100 text-amber-600 text-[10px] font-black rounded-lg uppercase tracking-tight">Expiring
+                                                        Soon</span>
+                                                @else
+                                                    <span
+                                                        class="px-2 py-1 bg-emerald-100 text-emerald-600 text-[10px] font-black rounded-lg uppercase tracking-tight">Good</span>
+                                                @endif
+                                            </td>
+                                            <td class="p-4 text-right">
+                                                <a href="{{ route('inventory.transfer', ['stock_id' => $stock->id]) }}"
+                                                    class="p-2 text-slate-400 hover:text-amber-500 transition inline-block"
+                                                    title="Move stock to another warehouse">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                                    </svg>
+                                                </a>
+                                            </td>
+                                        </tr>
                         @empty
                             <tr>
                                 <td colspan="5" class="p-20 text-center">

@@ -15,9 +15,20 @@ class SurveyController extends Controller
     {
         $user = Auth::user();
 
-        // Get all members this user is allowed to see data for (Self + All Downline)
-        $downline = $user->getAllDownline();
-        $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
+
+        // Get all members this user is allowed to see data for
+        // Pharmacists can see all surveys (they need to access patient information)
+        $downline = collect(); // Initialize to prevent undefined variable error
+
+        if ($user->designation === 'staff') {
+            $allowedIds = Survey::pluck('created_by')->unique()->toArray();
+        } else {
+            // For other users: Self + All Downline
+            $downline = $user->getAllDownline();
+            $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
+        }
+
+
 
         $query = Survey::with('creator.profile')
             ->whereIn('created_by', $allowedIds)
@@ -77,10 +88,12 @@ class SurveyController extends Controller
         $surveys = $query->latest()->paginate($limit)->withQueryString();
 
         // Get list of potential collectors for the filter dropdown
-        // This includes the user themselves and their downline members who have submitted surveys or are capable of it
-        // To be efficient, we can just grab users from the $allowedIds list who actually have surveys, or just all of them.
-        // Let's pass the $downline + self as "collectors"
-        $collectors = collect([$user])->merge($downline);
+        if ($user->designation === 'staff') {
+            // Pharmacists see all users who have created surveys
+            $collectors = \App\Models\User::whereIn('id', $allowedIds)->with('profile')->get();
+        } else {
+            $collectors = collect([$user])->merge($downline);
+        }
 
         return view('surveys.index', compact('surveys', 'collectors'));
     }

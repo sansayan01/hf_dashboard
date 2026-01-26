@@ -18,30 +18,55 @@ class InventoryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = InventoryStock::with(['medicine.category', 'warehouse'])
+        $user = auth()->user();
+
+        $query = InventoryStock::with(['medicine.category', 'warehouse', 'sponsor'])
             ->where('quantity', '>', 0);
 
-        if ($request->has('warehouse_id') && $request->warehouse_id != '') {
+        // Pharmacists can only see stock from their assigned camp
+        if ($user->designation === 'staff' && $user->camp_id) {
+            $query->where('warehouse_id', $user->camp_id);
+        } elseif ($request->has('warehouse_id') && $request->warehouse_id != '') {
             $query->where('warehouse_id', $request->warehouse_id);
         }
 
         $stocks = $query->orderBy('expiry_date')->get();
 
-        $lowStockMedicines = Medicine::with('category')
-            ->get()
-            ->filter(function ($medicine) {
+        // Low stock medicines - filter by camp for pharmacists
+        $lowStockQuery = Medicine::with('category');
+        if ($user->designation === 'staff' && $user->camp_id) {
+            // For pharmacists, only show low stock for their camp
+            $lowStockMedicines = $lowStockQuery->get()->filter(function ($medicine) use ($user) {
+                $campStock = $medicine->stocks()->where('warehouse_id', $user->camp_id)->sum('quantity');
+                return $campStock <= $medicine->min_stock_level;
+            });
+        } else {
+            $lowStockMedicines = $lowStockQuery->get()->filter(function ($medicine) {
                 return $medicine->totalStock <= $medicine->min_stock_level;
             });
+        }
 
-        $warehouses = InventoryWarehouse::where('is_active', true)->get();
+        // Warehouses - pharmacists only see their camp
+        if ($user->designation === 'staff' && $user->camp_id) {
+            $warehouses = InventoryWarehouse::where('id', $user->camp_id)->where('is_active', true)->get();
+        } else {
+            $warehouses = InventoryWarehouse::where('is_active', true)->get();
+        }
 
-        // Get medicine quantities for chart
+        // Get medicine quantities for chart - filter by camp for pharmacists
         $medicineData = Medicine::with('category')
             ->get()
-            ->map(function ($medicine) {
+            ->map(function ($medicine) use ($user) {
+                if ($user->designation === 'staff' && $user->camp_id) {
+                    // For pharmacists, only show stock from their camp
+                    $quantity = $medicine->stocks()->where('warehouse_id', $user->camp_id)->sum('quantity');
+                } else {
+                    $quantity = $medicine->totalStock;
+                }
+
                 return [
                     'name' => $medicine->name,
-                    'quantity' => $medicine->totalStock,
+                    'quantity' => $quantity,
                     'unit' => $medicine->unit
                 ];
             })
@@ -86,6 +111,7 @@ class InventoryController extends Controller
             $stock = InventoryStock::create([
                 'medicine_id' => $validated['medicine_id'],
                 'warehouse_id' => $validated['warehouse_id'],
+                'sponsor_id' => $validated['sponsor_id'] ?? null,
                 'batch_number' => $validated['batch_number'],
                 'expiry_date' => $validated['expiry_date'],
                 'quantity' => $validated['quantity'],
@@ -109,13 +135,235 @@ class InventoryController extends Controller
     /**
      * Display transaction history.
      */
+    public function exportTransactions()
+    {
+        $query = InventoryTransaction::with(['stock.medicine', 'user', 'patient', 'warehouse', 'sponsor'])
+            ->latest();
+
+        $isStaff = auth()->user()->designation === 'staff';
+        $defaultView = $isStaff ? 'dispenses' : 'movements';
+        $view = request('view', $defaultView);
+
+        // Prevent staff from viewing 'movements'
+        if ($isStaff && $view === 'movements') {
+            $view = 'dispenses';
+        }
+
+        if ($view === 'dispenses') {
+            $query->where('type', 'dispense');
+        } else {
+            $query->where('type', '!=', 'dispense');
+        }
+
+        // Apply filters
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('patient', function ($pq) use ($search) {
+                    $pq->where('full_name', 'like', '%' . $search . '%')
+                        ->orWhere('patient_id', 'like', '%' . $search . '%');
+                })->orWhereHas('stock.medicine', function ($mq) use ($search) {
+                    $mq->where('name', 'like', '%' . $search . '%');
+                })->orWhereHas('warehouse', function ($wq) use ($search) {
+                    $wq->where('name', 'like', '%' . $search . '%');
+                });
+            });
+        }
+
+        if (request('date_from')) {
+            $query->whereDate('created_at', '>=', request('date_from'));
+        }
+
+        if (request('date_to')) {
+            $query->whereDate('created_at', '<=', request('date_to'));
+        }
+
+        $transactions = $query->get();
+
+        $filename = "transactions_" . $view . "_" . date('Ymd_His') . ".csv";
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function () use ($transactions, $view) {
+            $file = fopen('php://output', 'w');
+
+            if ($view === 'dispenses') {
+                fputcsv($file, ['Date', 'Time', 'Patient', 'Medicine', 'Batch', 'QTY', 'Grand Total', 'Performed By', 'Camp/Warehouse']);
+
+                foreach ($transactions as $transaction) {
+                    $distId = filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
+                    $distribution = \App\Models\MedicineDistribution::find($distId);
+                    $grandTotal = $distribution ? '₹' . number_format($distribution->final_amount, 2) : 'N/A';
+
+                    fputcsv($file, [
+                        $transaction->created_at->format('Y-m-d'),
+                        $transaction->created_at->format('h:i A'),
+                        $transaction->patient->full_name ?? 'System',
+                        $transaction->stock->medicine->name ?? 'N/A',
+                        $transaction->stock->batch_number ?? 'N/A',
+                        $transaction->quantity,
+                        $grandTotal,
+                        $transaction->user->profile->full_name ?? $transaction->user->employee_id,
+                        $transaction->warehouse->name ?? 'N/A'
+                    ]);
+                }
+            } elseif ($view === 'sponsors') {
+                fputcsv($file, ['Date', 'Sponsor', 'Medicine', 'Batch', 'QTY', 'Medicine Value']);
+
+                foreach ($transactions as $transaction) {
+                    $distId = filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
+                    $lineValue = 0;
+
+                    if ($distId) {
+                        $distItem = \App\Models\MedicineDistributionItem::where('distribution_id', $distId)
+                            ->where('medicine_id', $transaction->stock?->medicine_id)
+                            ->first();
+
+                        if ($distItem) {
+                            $lineValue = $distItem->unit_price * $transaction->quantity;
+                        }
+                    }
+
+                    fputcsv($file, [
+                        $transaction->created_at->format('Y-m-d'),
+                        $transaction->sponsor->name ?? 'N/A',
+                        $transaction->stock->medicine->name ?? 'N/A',
+                        $transaction->stock->batch_number ?? 'N/A',
+                        $transaction->quantity,
+                        '₹' . number_format($lineValue, 2)
+                    ]);
+                }
+            } else {
+                fputcsv($file, ['Date', 'Time', 'Medicine', 'Location', 'Batch', 'Type', 'Qty', 'Performed By']);
+
+                foreach ($transactions as $transaction) {
+                    fputcsv($file, [
+                        $transaction->created_at->format('Y-m-d'),
+                        $transaction->created_at->format('h:i A'),
+                        $transaction->stock->medicine->name ?? 'N/A',
+                        $transaction->warehouse->name ?? 'N/A',
+                        $transaction->stock->batch_number ?? 'N/A',
+                        ucfirst($transaction->type),
+                        $transaction->quantity,
+                        $transaction->user->profile->full_name ?? $transaction->user->employee_id
+                    ]);
+                }
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function transactions()
     {
-        $transactions = InventoryTransaction::with(['stock.medicine', 'user', 'patient', 'warehouse', 'sponsor'])
-            ->latest()
-            ->paginate(20);
+        $query = InventoryTransaction::with(['stock.medicine', 'user', 'patient', 'warehouse', 'sponsor'])
+            ->latest();
 
-        return view('inventory.transactions', compact('transactions'));
+        $isStaff = auth()->user()->designation === 'staff';
+        $defaultView = $isStaff ? 'dispenses' : 'movements';
+        $view = request('view', $defaultView);
+
+        // Prevent staff from viewing 'movements'
+        if ($isStaff && $view === 'movements') {
+            $view = 'dispenses';
+        }
+
+        if ($view === 'dispenses') {
+            $query->where('type', 'dispense');
+        } elseif ($view === 'sponsors') {
+            // Retroactive fix: Ensure dispense transactions have sponsor_id if missing
+            InventoryTransaction::where('type', 'dispense')
+                ->whereNull('sponsor_id')
+                ->chunk(100, function ($txs) {
+                    foreach ($txs as $tx) {
+                        if ($tx->stock) {
+                            $inTx = $tx->stock->transactions()->where('type', 'in')->first();
+                            if ($inTx && $inTx->sponsor_id) {
+                                $tx->update(['sponsor_id' => $inTx->sponsor_id]);
+                            }
+                        }
+                    }
+                });
+
+            $query->where('type', 'dispense')
+                ->where(function ($q) {
+                    $q->whereNotNull('sponsor_id')
+                        ->orWhereHas('stock', function ($sq) {
+                            $sq->whereNotNull('sponsor_id');
+                        });
+                });
+        } else {
+            $query->where('type', '!=', 'dispense');
+        }
+
+        // Apply filters
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('patient', function ($pq) use ($search) {
+                    $pq->where('full_name', 'like', '%' . $search . '%')
+                        ->orWhere('patient_id', 'like', '%' . $search . '%');
+                })->orWhereHas('stock.medicine', function ($mq) use ($search) {
+                    $mq->where('name', 'like', '%' . $search . '%');
+                })->orWhereHas('warehouse', function ($wq) use ($search) {
+                    $wq->where('name', 'like', '%' . $search . '%');
+                });
+            });
+        }
+
+        if (request('sponsor_id')) {
+            $query->where('sponsor_id', request('sponsor_id'));
+        }
+
+        if (request('date_from')) {
+            $query->whereDate('created_at', '>=', request('date_from'));
+        }
+
+        if (request('date_to')) {
+            $query->whereDate('created_at', '<=', request('date_to'));
+        }
+
+        $perPage = request('per_page', 20);
+        $transactions = request('view_all') ? $query->get() : $query->paginate($perPage)->withQueryString();
+
+        $totalGrandSum = 0;
+        if ($view === 'dispenses') {
+            // Get unique distribution IDs from all matching transactions to calculate correct sum
+            $distIds = (clone $query)->where('notes', 'LIKE', 'Dispensed via Distribution #%')
+                ->select('notes')
+                ->get()
+                ->pluck('notes')
+                ->map(fn($n) => (int) filter_var($n, FILTER_SANITIZE_NUMBER_INT))
+                ->filter()
+                ->unique();
+
+            $totalGrandSum = \App\Models\MedicineDistribution::whereIn('id', $distIds)->get()->sum('final_amount');
+        } elseif ($view === 'sponsors') {
+            // Calculate sum based on individual line items (unit_price * quantity)
+            $allTransactions = (clone $query)->get();
+            foreach ($allTransactions as $transaction) {
+                $distId = filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
+                if ($distId) {
+                    $distItem = \App\Models\MedicineDistributionItem::where('distribution_id', $distId)
+                        ->where('medicine_id', $transaction->stock->medicine_id)
+                        ->first();
+                    if ($distItem) {
+                        $totalGrandSum += ($distItem->unit_price * $transaction->quantity);
+                    }
+                }
+            }
+        }
+
+        $sponsors = \App\Models\InventorySponsor::all();
+
+        return view('inventory.transactions', compact('transactions', 'totalGrandSum', 'sponsors', 'view'));
     }
 
     /**
@@ -123,16 +371,31 @@ class InventoryController extends Controller
      */
     public function dispense($patientId = null)
     {
+        $user = auth()->user();
         $patient = $patientId ? Survey::findOrFail($patientId) : null;
         $patients = Survey::orderBy('full_name')->get();
-        $warehouses = InventoryWarehouse::where('is_active', true)->get();
-        $medicines = Medicine::whereHas('stocks', function ($q) {
-            $q->where('quantity', '>', 0);
-        })->with([
-                    'stocks' => function ($q) {
-                        $q->where('quantity', '>', 0)->orderBy('expiry_date');
-                    }
-                ])->get();
+
+        // Pharmacists can only see their assigned camp
+        if ($user->designation === 'staff' && $user->camp_id) {
+            $warehouses = InventoryWarehouse::where('id', $user->camp_id)->where('is_active', true)->get();
+            // Only show medicines available in their camp
+            $medicines = Medicine::whereHas('stocks', function ($q) use ($user) {
+                $q->where('quantity', '>', 0)->where('warehouse_id', $user->camp_id);
+            })->with([
+                        'stocks' => function ($q) use ($user) {
+                            $q->where('quantity', '>', 0)->where('warehouse_id', $user->camp_id)->orderBy('expiry_date');
+                        }
+                    ])->get();
+        } else {
+            $warehouses = InventoryWarehouse::where('is_active', true)->get();
+            $medicines = Medicine::whereHas('stocks', function ($q) {
+                $q->where('quantity', '>', 0);
+            })->with([
+                        'stocks' => function ($q) {
+                            $q->where('quantity', '>', 0)->orderBy('expiry_date');
+                        }
+                    ])->get();
+        }
 
         return view('inventory.dispense', compact('patient', 'patients', 'medicines', 'warehouses'));
     }
@@ -266,14 +529,29 @@ class InventoryController extends Controller
      */
     public function transfer(Request $request)
     {
-        $warehouses = InventoryWarehouse::where('is_active', true)->get();
-        $medicines = Medicine::whereHas('stocks', function ($q) {
-            $q->where('quantity', '>', 0);
-        })->with([
-                    'stocks' => function ($q) {
-                        $q->where('quantity', '>', 0)->orderBy('expiry_date');
-                    }
-                ])->get();
+        $user = auth()->user();
+
+        // Pharmacists can only see their assigned camp
+        if ($user->designation === 'staff' && $user->camp_id) {
+            $warehouses = InventoryWarehouse::where('id', $user->camp_id)->where('is_active', true)->get();
+            // Only show medicines available in their camp
+            $medicines = Medicine::whereHas('stocks', function ($q) use ($user) {
+                $q->where('quantity', '>', 0)->where('warehouse_id', $user->camp_id);
+            })->with([
+                        'stocks' => function ($q) use ($user) {
+                            $q->where('quantity', '>', 0)->where('warehouse_id', $user->camp_id)->orderBy('expiry_date');
+                        }
+                    ])->get();
+        } else {
+            $warehouses = InventoryWarehouse::where('is_active', true)->get();
+            $medicines = Medicine::whereHas('stocks', function ($q) {
+                $q->where('quantity', '>', 0);
+            })->with([
+                        'stocks' => function ($q) {
+                            $q->where('quantity', '>', 0)->orderBy('expiry_date');
+                        }
+                    ])->get();
+        }
 
         $preSelectedStock = null;
         if ($request->has('stock_id')) {
