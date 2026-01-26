@@ -28,13 +28,12 @@
         </div>
     @endif
     <!-- Stats Grid -->
-    <!-- Stats Grid -->
     @if(!$user->isRO())
         <div
-            class="grid {{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'grid-cols-3' : 'grid-cols-2' }} md:grid-cols-{{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? '3' : '2' }} lg:grid-cols-{{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? '3' : '2' }} gap-2 md:gap-6 mb-2">
+            class="grid {{ auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2' }} md:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} lg:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} gap-2 md:gap-6 mb-2">
             <!-- Total Downline -->
             <div
-                class="glass bg-white dark:bg-darkbg/40 {{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+                class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-accent/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                     <div
@@ -58,7 +57,7 @@
 
             <!-- Active Members -->
             <div
-                class="glass bg-white dark:bg-darkbg/40 {{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+                class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-success/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                     <div
@@ -77,10 +76,10 @@
                 </p>
             </div>
 
-            @if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_approve_users'))
+            @if(auth()->user()->isSuperAdmin())
                 <!-- Pending Approvals -->
                 <div onclick="window.location.href='{{ route('users.index', ['status' => 'pending']) }}'"
-                    class="glass bg-white dark:bg-darkbg/40 {{ (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative cursor-pointer">
+                    class="glass bg-white dark:bg-darkbg/40 p-1.5 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative cursor-pointer">
                     <div class="absolute top-0 right-0 w-12 h-12 bg-pink-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                     <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                         <div
@@ -673,6 +672,7 @@
             // Set default zoom to 100% for all devices
             currentZoom = 1.0;
             updateZoom();
+        });
 
     </script>
 @endsection

@@ -302,32 +302,35 @@ class User extends Authenticatable
     public function getDirectChildren()
     {
         if ($this->isSuperAdmin()) {
-            // For Super Admins, the tree should show everyone who reports to ANY Super Admin, 
-            // plus any 'hs' users (who are top-level by design).
+            // SA sees all HS users plus everyone reporting to ANY SA
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
-            return self::where('designation', 'hs')
-                ->orWhereIn('parent_id', $saRoleIds)
+            return self::where(function ($q) use ($saRoleIds) {
+                $q->where('designation', 'hs')
+                    ->orWhereIn('parent_id', $saRoleIds);
+            })
                 ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->get();
         }
 
         if ($this->isOfficeInCharge()) {
             if ($this->upline_id && $this->upline) {
-                // OIC sees their upline's direct children (same downtree as upline)
+                // OIC sees their upline's direct children
                 return $this->upline->getDirectChildren();
             }
             // Fallback for OIC without upline: see HS and direct SA children
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
-            return self::where('designation', 'hs')
-                ->orWhereIn('parent_id', $saRoleIds)
+            return self::where(function ($q) use ($saRoleIds) {
+                $q->where('designation', 'hs')
+                    ->orWhereIn('parent_id', $saRoleIds);
+            })
                 ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
                 ->get();
         }
 
-        // Standard behavior: Return children but exclude the current user and office_in_charge if they are in the list
-        return $this->children->reject(function ($child) {
-            return $child->id === auth()->id() || $child->designation === 'office_in_charge';
-        });
+        // Standard behavior: Return direct children but exclude admins
+        return $this->children()
+            ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
+            ->get();
     }
 
     public function getDashboardChildrenCount()
