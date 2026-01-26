@@ -17,35 +17,27 @@
                 extend: {
                     colors: {
                         primary: '#0F172A',
-                        accent: '#3C50E0',
-                        brand: {
-                            50: '#EEF2FF',
-                            100: '#E0E7FF',
-                            200: '#C7D2FE',
-                            300: '#A5B4FC',
-                            400: '#818CF8',
-                            500: '#6366F1',
-                            600: '#4F46E5',
-                            700: '#4338CA',
-                            800: '#3730A3',
-                            900: '#312E81',
-                        }
+                        accent: '#2563EB',
                     },
                     fontFamily: {
                         sans: ['Outfit', 'sans-serif'],
                     },
                     animation: {
-                        'gradient': 'gradient 8s linear infinite',
-                        'float': 'float 6s ease-in-out infinite',
+                        'blob': 'blob 25s infinite alternate',
+                        'blob-reverse': 'blob-reverse 20s infinite alternate',
                     },
                     keyframes: {
-                        gradient: {
-                            '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
-                            '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.2)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.8)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
                         },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-20px)' },
+                        'blob-reverse': {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(-30px, 50px) scale(0.8)' },
+                            '66%': { transform: 'translate(20px, -20px) scale(1.2)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
                         }
                     }
                 }
@@ -53,89 +45,110 @@
         }
     </script>
     <style>
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        /* User's Custom Blob Background CSS */
+        .blob-outer-container {
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            z-index: 0;
+            inset: 0;
+            margin: auto;
+            filter: blur(100px);
         }
 
-        .dark .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .blob-inner-container {
+            border-radius: 9999px;
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 100vw;
+            height: 100vh;
+            min-width: 1000px;
+            overflow: hidden;
+            background-color: #fff;
+            /* Kept from snippet, acts as a base */
+            transform: scale(0.8);
+        }
+
+        .blob {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            inset: 0;
+            margin: auto;
+            background: conic-gradient(from 0deg, #08f, #f60, #bbffa1, #4c00ff, #ab2666, #09f);
+            animation: spinBlob 8s linear infinite;
+        }
+
+        @keyframes spinBlob {
+            0% {
+                transform: rotate(0deg) scale(2);
+            }
+
+            100% {
+                transform: rotate(1turn) scale(2);
+            }
+        }
+
+        /* Glass Panel - iOS Mirror Glossy Style */
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(40px) saturate(130%);
+            -webkit-backdrop-filter: blur(40px) saturate(130%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow:
+                0 25px 45px rgba(0, 0, 0, 0.5),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+                /* Inner rim */
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+            /* Mirror top reflection */
         }
 
         .auth-input {
-            @apply w-full px-4 py-4 bg-white/50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-accent/10 focus:bg-white focus:border-accent transition-all duration-300;
-        }
-
-        .floating-shape {
-            position: absolute;
-            background: linear-gradient(135deg, #3C50E0 0%, #6366F1 100%);
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.4;
-            z-index: 0;
+            @apply w-full px-4 py-4 bg-white/5 border border-white/10 text-white rounded-2xl focus:outline-none focus:ring-4 focus:ring-accent/20 focus:bg-white/10 focus:border-accent transition-all duration-300 placeholder-slate-500;
         }
     </style>
 </head>
 
-<body class="font-sans antialiased bg-slate-950 overflow-y-auto">
-    <!-- Premium Mesh Gradient Background -->
-    <div id="bg-canvas" class="fixed inset-0 z-0 overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-[#0F172A] to-[#1e1b4b]"></div>
-        <div
-            class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-amber-100/50 to-orange-200/30 blur-[120px] animate-pulse">
-        </div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-rose-100/40 to-indigo-100/30 blur-[120px] animate-pulse"
-            style="animation-delay: 2s;"></div>
-        <div
-            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] rounded-full bg-accent/5 blur-[100px]">
-        </div>
-
-        <!-- Faded Image Overlay -->
-        <div class="absolute inset-0 z-0 opacity-[0.05] grayscale mix-blend-multiply pointer-events-none">
-            <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=2070"
-                class="w-full h-full object-cover">
-        </div>
-
-        <!-- Subtle Grid Pattern Overlay -->
-        <div class="absolute inset-0 opacity-[0.03]"
-            style="background-image: radial-gradient(#3C50E0 0.5px, transparent 0.5px); background-size: 24px 24px;">
+<body class="font-sans antialiased bg-black overflow-y-auto text-slate-200">
+    <!-- Custom Background Structure -->
+    <div class="blob-outer-container">
+        <div class="blob-inner-container">
+            <div class="blob"></div>
         </div>
     </div>
 
     <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
         <!-- Main Container -->
         <div
-            class="w-full max-w-6xl grid lg:grid-cols-2 gap-0 overflow-hidden rounded-[2.5rem] shadow-[0_32px_128px_-16px_rgba(0,0,0,0.6)] ring-1 ring-white/10">
+            class="w-full max-w-6xl grid lg:grid-cols-2 gap-0 overflow-hidden rounded-[2.5rem] shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] glass-panel ring-1 ring-white/10">
 
             <!-- Left Side: Interactive Branding -->
-            <div class="hidden lg:flex flex-col justify-between p-16 bg-primary relative overflow-hidden">
-                <div class="absolute inset-0 z-0">
-                    <img src="https://images.unsplash.com/photo-1576091160550-217359f4ecf8?auto=format&fit=crop&q=80&w=2070"
-                        class="w-full h-full object-cover opacity-40 mix-blend-soft-light scale-110 active-zoom"
-                        id="hero-img">
-                </div>
-                <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent"></div>
+            <div class="hidden lg:flex flex-col justify-between p-16 relative overflow-hidden group">
+                <!-- content background -->
+                <div class="absolute inset-0 bg-black/20 backdrop-blur-sm z-0"></div>
 
                 <div class="relative z-10">
                     <div class="flex items-center space-x-4 mb-12" id="logo-anim">
                         <div
-                            class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl shadow-black/10 transition-transform hover:scale-105">
-                            <img src="{{ asset('img/logo.png') }}" class="w-12 h-12 object-contain"
+                            class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 border border-white/20">
+                            <img src="{{ asset('img/logo.png') }}"
+                                class="w-12 h-12 object-contain brightness-200 contrast-200"
                                 alt="Humanity Foundation Logo">
                         </div>
-                        <span class="text-2xl font-black text-white tracking-tight">Humanity Foundation</span>
+                        <span class="text-2xl font-black text-white tracking-tight drop-shadow-md">Humanity
+                            Foundation</span>
                     </div>
 
                     <div id="title-anim">
                         <span
-                            class="inline-block px-4 py-1.5 bg-accent/20 text-accent text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-6 border border-accent/30 backdrop-blur-md">Secure
+                            class="inline-block px-4 py-1.5 bg-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-6 border border-white/20 backdrop-blur-md shadow-lg">Secure
                             Portal v2.0</span>
-                        <h2 class="text-6xl font-black text-white leading-[1.1] mb-8">Empower Your <br><span
-                                class="text-accent">Mission.</span></h2>
-                        <p class="text-xl text-slate-400 font-medium leading-relaxed max-w-sm">
+                        <h2 class="text-6xl font-black text-white leading-[1.1] mb-8 drop-shadow-lg">Empower Your
+                            <br><span
+                                class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Mission.</span>
+                        </h2>
+                        <p class="text-xl text-slate-100 font-medium leading-relaxed max-w-sm drop-shadow-md">
                             Access the foundation's core management systems and lead your team towards impact.
                         </p>
                     </div>
@@ -145,53 +158,56 @@
                     <div class="flex items-center space-x-4 mb-8">
                         <div class="flex -space-x-3">
                             <img src="https://i.pravatar.cc/100?u=1"
-                                class="w-10 h-10 rounded-full border-2 border-primary">
+                                class="w-10 h-10 rounded-full border-2 border-white/50 shadow-sm">
                             <img src="https://i.pravatar.cc/100?u=2"
-                                class="w-10 h-10 rounded-full border-2 border-primary">
+                                class="w-10 h-10 rounded-full border-2 border-white/50 shadow-sm">
                             <img src="https://i.pravatar.cc/100?u=3"
-                                class="w-10 h-10 rounded-full border-2 border-primary">
+                                class="w-10 h-10 rounded-full border-2 border-white/50 shadow-sm">
                         </div>
-                        <p class="text-slate-500 text-sm font-bold uppercase tracking-widest">Active Volunteers Network
-                        </p>
+                        <p class="text-white text-sm font-bold uppercase tracking-widest drop-shadow-md">Active
+                            Volunteers Network</p>
                     </div>
                 </div>
             </div>
 
             <!-- Right Side: Login Form -->
-            <div class="bg-gradient-to-br from-white via-slate-50/95 to-indigo-50/90 backdrop-blur-2xl p-8 lg:p-16 flex flex-col justify-center relative shadow-[inset_0_0_100px_rgba(60,80,224,0.03)] overflow-hidden group/form"
+            <div class="bg-white/5 backdrop-blur-sm p-8 lg:p-16 flex flex-col justify-center relative shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden group/form"
                 id="login-container">
                 <!-- Faded Logo Watermark Background -->
                 <div
                     class="absolute inset-0 opacity-[0.04] pointer-events-none flex items-center justify-center overflow-hidden">
                     <img src="{{ asset('img/logo.png') }}"
-                        class="w-[120%] h-auto grayscale opacity-50 rotate-[-15deg] scale-110">
+                        class="w-[120%] h-auto grayscale invert opacity-50 rotate-[-15deg] scale-110">
                 </div>
                 <!-- NGO-themed Decorative Pattern -->
                 <div class="absolute inset-0 opacity-[0.05] pointer-events-none z-0">
                     <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg" width="100" height="100"
                         viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="1"
-                            class="text-accent" />
-                        <path d="M50 10v80M10 50h80" stroke="currentColor" stroke-width="0.5" class="text-accent" />
+                            class="text-white" />
+                        <path d="M50 10v80M10 50h80" stroke="currentColor" stroke-width="0.5" class="text-white" />
                     </svg>
                 </div>
                 <!-- Dynamic Glow Overlay -->
                 <div id="form-glow"
-                    class="absolute pointer-events-none opacity-0 group-hover/form:opacity-100 transition-opacity duration-500 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2 z-0">
+                    class="absolute pointer-events-none opacity-0 group-hover/form:opacity-100 transition-opacity duration-500 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[80px] -translate-x-1/2 -translate-y-1/2 z-0">
                 </div>
 
                 <div class="max-w-md mx-auto w-full relative z-10 py-6">
                     <div id="form-header" class="mb-8 text-center lg:text-left">
                         <div
-                            class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 mb-4 scale-90 lg:scale-100 origin-left">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">System
+                            class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 mb-4 scale-90 lg:scale-100 origin-left shadow-lg">
+                            <span
+                                class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse box-shadow-glow-green"></span>
+                            <span
+                                class="text-[10px] font-black uppercase tracking-widest text-white drop-shadow-sm">System
                                 Online</span>
                         </div>
-                        <h3 class="text-4xl lg:text-5xl font-black text-slate-900 mb-4 tracking-tighter leading-none">
+                        <h3
+                            class="text-4xl lg:text-5xl font-black text-white mb-4 tracking-tighter leading-none drop-shadow-xl">
                             Account Sign In</h3>
-                        <p class="text-slate-500 font-medium leading-relaxed">Secure authentication required for
-                            Humanity Foundation MIS access.</p>
+                        <p class="text-slate-200 font-medium leading-relaxed drop-shadow-md">Secure authentication
+                            required for Humanity Foundation MIS access.</p>
                     </div>
 
                     <form action="{{ url('/login') }}" method="POST" class="space-y-6" id="login-form">

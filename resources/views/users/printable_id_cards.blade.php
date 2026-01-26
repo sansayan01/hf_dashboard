@@ -85,7 +85,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 10mm;
+            padding-top: 7mm;
         }
 
         .logo-img {
@@ -320,7 +320,7 @@
                         <div class="header-curve">
                             <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img">
                             <h1
-                                class="text-yellow-400 font-black text-[13px] tracking-wide uppercase text-center w-2/3 leading-tight">
+                                class="text-yellow-400 font-black text-[13px] tracking-wide uppercase text-center w-2/3 leading-tight mt-[-2px]">
                                 Humanity Foundation</h1>
                             <p class="text-white text-[6px] font-bold opacity-100 mt-[1px]">Govt. Reg. : IV-190100489</p>
                         </div>
