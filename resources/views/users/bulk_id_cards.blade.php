@@ -37,14 +37,19 @@
             border-bottom-left-radius: 50%;
             border-bottom-right-radius: 50%;
             position: absolute;
-            top: -35px;
+            top: -30px;
             left: 0;
             z-index: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding-top: 20px;
+            padding-top: 35px;
+        }
+
+        .logo-img {
+            height: 50px;
+            margin-bottom: 2px;
+            z-index: 2;
         }
 
         .profile-container {
@@ -55,7 +60,7 @@
             position: relative;
             z-index: 10;
             margin: 0 auto;
-            margin-top: 80px;
+            margin-top: 75px;
             overflow: hidden;
             border: 6px solid white;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -126,45 +131,68 @@
             text-align: center;
             width: 100%;
             position: absolute;
-            top: 245px;
+            top: 250px;
             left: 0;
             z-index: 5;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
         }
 
-        .designation-bar {
-            background-color: black;
-            color: white;
+        .designation-text {
+            color: black;
             font-weight: 900;
             text-transform: uppercase;
-            width: 100%;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            top: 300px;
-            left: 0;
-            font-size: 20px;
-            letter-spacing: 0.5px;
+            font-size: 22px;
+            line-height: 1.1;
+            margin-top: 3px;
         }
 
-        .contact-section {
-            position: absolute;
-            top: 350px;
-            height: 60px;
-            width: 100%;
+        .geo-details {
             display: flex;
             flex-direction: column;
             align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #1f2937;
+            gap: 1px;
+            line-height: 1.1;
+            margin-top: 3px;
+        }
+
+        .phone-section {
+            position: absolute;
+            bottom: 62px;
+            width: 100%;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 10px;
+            z-index: 10;
+            padding-right: 50px;
+        }
+
+        .phone-circle {
+            width: 22px;
+            height: 22px;
+            background-color: #f59e0b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .phone-number {
+            font-size: 16px;
+            font-weight: 900;
+            color: black;
         }
 
         .footer {
-            background-color: black;
+            background-color: #000;
             color: white;
             width: 100%;
-            height: 60px;
+            height: 55px;
             position: absolute;
             bottom: 0;
             left: 0;
@@ -173,7 +201,40 @@
             align-items: center;
             justify-content: center;
             font-size: 10px;
-            line-height: 1.4;
+            line-height: 1.1;
+        }
+
+        .signature-section {
+            position: absolute;
+            bottom: 62px;
+            right: 15px;
+            width: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 11;
+        }
+
+        .signature-img {
+            width: 70px;
+            height: 25px;
+            object-fit: contain;
+        }
+
+        .signature-line {
+            width: 100%;
+            border-top: 1px solid black;
+            margin-top: -2px;
+        }
+
+        .signature-text {
+            font-size: 7px;
+            font-weight: 900;
+            color: black;
+            text-transform: uppercase;
+            width: 100%;
+            text-align: center;
+            margin-top: 2px;
         }
     </style>
 </head>
@@ -203,6 +264,7 @@
             @foreach($users as $user)
                 <div class="id-card" id="card-{{ $user->id }}" data-filename="ID_Card_{{ $user->employee_id }}.png">
                     <div class="header-curve">
+                        <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img">
                         <h1
                             class="text-yellow-400 font-black text-xl tracking-wide uppercase text-center w-2/3 leading-tight">
                             Humanity Foundation</h1>
@@ -223,28 +285,53 @@
                     </div>
 
                     <div class="details">
-                        <h2 class="text-red-600 font-extrabold text-2xl uppercase leading-none mb-1"
-                            style="font-weight: 900;">{{ $user->profile->full_name }}</h2>
-                        <p class="text-xs font-bold text-gray-700">Emp. ID : {{ $user->employee_id }}</p>
+                        @php
+                            $c_name = $user->profile->full_name;
+                            $c_nameFontSize = '24px';
+                            if (strlen($c_name) > 18)
+                                $c_nameFontSize = '20px';
+                            if (strlen($c_name) > 24)
+                                $c_nameFontSize = '16px';
+                        @endphp
+                        <h2 class="text-red-600 uppercase leading-none mb-1"
+                            style="font-weight: 900; font-size: {{ $c_nameFontSize }}; white-space: nowrap;">{{ $c_name }}
+                        </h2>
+                        <p class="text-sm font-bold text-gray-800" style="margin-top: 2px;">
+                            Emp. ID : <span class="text-red-500 font-black">{{ $user->employee_id }}</span>
+                        </p>
+
+                        <div class="designation-text">
+                            {{ $user->getDesignationLabel() }}
+                        </div>
+
+                        <div class="geo-details">
+                            <span>G.P : {{ $user->profile->gram_panchayat ?? 'N/A' }}</span>
+                            <span>Block : {{ $user->profile->block ?? 'N/A' }}</span>
+                            <span>District : {{ $user->profile->district ?? 'N/A' }}</span>
+                        </div>
                     </div>
 
-                    <div class="designation-bar">
-                        {{ $user->getDesignationLabel() }}
+                    <div class="phone-section">
+                        <div class="phone-circle">
+                            <svg class="w-4 h-4 text-white fill-current" viewBox="0 0 24 24">
+                                <path
+                                    d="M18.48 22.926c-1.12.818-2.61.446-3.83.18-2.82-.6-5.83-2.31-8.24-4.72-2.41-2.41-4.12-5.42-4.72-8.24-.266-1.22-.638-2.71.18-3.83l.91-1.25a2.536 2.536 0 0 1 3.51-.7l1.79 1.13c.89.56 1.34 1.51 1.14 2.54l-.45 2.14c-.16.8.12 1.63.75 2.21l1.52 1.52c.58.63 1.41.91 2.21.75l2.14-.45c1.03-.2 1.98.25 2.54 1.14l1.13 1.79c.92 1.47.41 3.2-.7 3.51l-1.25.91z">
+                                </path>
+                            </svg>
+                        </div>
+                        <span class="phone-number">{{ $user->profile->phone_number ?? 'N/A' }}</span>
                     </div>
 
-                    <div class="contact-section">
-                        <div class="flex items-center justify-center">
-                            <span class="text-sm font-bold text-gray-800">{{ $user->email }}</span>
-                        </div>
-                        <div class="flex items-center justify-center">
-                            <span class="text-sm font-bold text-gray-800">{{ $user->profile->phone_number ?? 'N/A' }}</span>
-                        </div>
+                    <div class="signature-section">
+                        <img src="{{ asset('img/signature.png') }}" class="signature-img">
+                        <div class="signature-line"></div>
+                        <div class="signature-text">Sig. of Authority</div>
                     </div>
 
                     <div class="footer">
-                        <p class="font-black">www.hfburdwan.in</p>
+                        <p class="font-black">www.hrbardwan.in</p>
                         <p class="font-bold opacity-90">Kendriyanagar, Keshabganj, Purba Bardhaman</p>
-                        <p class="font-black">Mob : 8167364107</p>
+                        <p class="font-black">Mob : 9735563157</p>
                     </div>
                 </div>
             @endforeach
