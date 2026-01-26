@@ -95,14 +95,14 @@
             class="sidebar fixed inset-y-0 left-0 z-50 w-72 bg-primary/95 dark:bg-darkbg/40 backdrop-blur-xl text-white lg:static lg:block overflow-y-auto flex flex-col border-r border-slate-200/10 dark:border-white/5 sidebar-scroll">
             <!-- Sidebar Header -->
             <div class="p-6 flex items-center justify-between border-b border-secondary">
-                <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-4">
                     <div
-                        class="w-10 h-10 bg-accent rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
-                        <span class="text-xl font-bold">HF</span>
+                        class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/10 transition-transform hover:scale-105 p-1">
+                        <img src="{{ asset('img/logo.png') }}" class="w-10 h-10 object-contain" alt="Logo">
                     </div>
                     <div>
-                        <h1 class="font-bold text-lg tracking-tight">Humanity</h1>
-                        <p class="text-[10px] text-bodydark uppercase tracking-widest font-semibold">Foundation</p>
+                        <h1 class="font-bold text-lg tracking-tight text-white leading-none">Humanity</h1>
+                        <p class="text-[10px] text-bodydark uppercase tracking-widest font-semibold mt-1">Foundation</p>
                     </div>
                 </div>
                 <button onclick="toggleSidebar()" class="lg:hidden text-bodydark hover:text-white transition">
@@ -489,17 +489,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                }).then((result) => {
+                                                                                                                    }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                });
+                                                                                                                    });
         @endif
 
         @if(session('error'))
