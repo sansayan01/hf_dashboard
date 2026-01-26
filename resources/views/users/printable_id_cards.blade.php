@@ -269,7 +269,6 @@
         }
 
         .signature-line {
-            width: 100%;
             border-top: 0.15mm solid black;
             margin-top: -0.3mm;
         }
