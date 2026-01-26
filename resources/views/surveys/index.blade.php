@@ -13,13 +13,33 @@
                         {{ request('show_nia') ? 'NIA Records (Not Interested)' : 'Active Surveys' }}
                     </h3>
                     <span class="px-2 py-0.5 bg-accent/10 text-accent text-[10px] font-black rounded-full border border-accent/20">
-                        {{ $surveys->count() }} Total
+                        {{ $surveys->total() }} Total
                     </span>
                 </div>
                 <p class="text-sm text-slate-500 dark:text-slate-400">Monitoring field data and records.</p>
             </div>
             
             <div class="flex items-center space-x-3">
+                @if(request('view_all'))
+                    <a href="{{ route('surveys.index', request()->except('view_all')) }}"
+                        class="px-2 sm:px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        <span class="hidden lg:inline uppercase tracking-widest">Paginate</span>
+                    </a>
+                @else
+                    <a href="{{ route('surveys.index', array_merge(request()->all(), ['view_all' => 1])) }}"
+                        class="px-2 sm:px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                        <span class="hidden lg:inline uppercase tracking-widest">View All</span>
+                    </a>
+                @endif
                 <a href="{{ route('surveys.index', array_merge(request()->query(), ['show_nia' => request('show_nia') ? 0 : 1])) }}"
                     class="px-4 py-2 {{ request('show_nia') ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} rounded-xl text-sm font-bold hover:opacity-80 transition flex items-center space-x-2">
                     @if(request('show_nia'))
@@ -366,6 +386,12 @@
                     </table>
                 </div>
             </div>
+
+            @if($surveys instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                <div class="p-6 border-t border-slate-100 italic">
+                    {{ $surveys->links() }}
+                </div>
+            @endif
 
             @if(Auth::user()->isSuperAdmin())
                 <script>

@@ -73,7 +73,8 @@ class SurveyController extends Controller
             });
         }
 
-        $surveys = $query->latest()->get();
+        $limit = $request->has('view_all') ? 5000 : 20;
+        $surveys = $query->latest()->paginate($limit)->withQueryString();
 
         // Get list of potential collectors for the filter dropdown
         // This includes the user themselves and their downline members who have submitted surveys or are capable of it

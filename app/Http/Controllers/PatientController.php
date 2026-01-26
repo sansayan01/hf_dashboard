@@ -66,7 +66,8 @@ class PatientController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $patients = $query->latest()->get();
+        $limit = $request->has('view_all') ? 5000 : 20;
+        $patients = $query->latest()->paginate($limit)->withQueryString();
 
         // Get list of potential collectors for the filter dropdown
         $collectors = collect([$user])->merge($downline);
