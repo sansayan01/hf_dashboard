@@ -209,6 +209,19 @@ Route::post('/coupons/validate', [App\Http\Controllers\CouponCodeController::cla
 
 
 
+// Cache clearing route
+Route::get('/clear-all-cache', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        return "<h1 style='color:green'>All caches cleared successfully!</h1><p><a href='/'>Go to Dashboard</a></p>";
+    } catch (\Exception $e) {
+        return "<h1 style='color:red'>Error clearing caches:</h1><p>" . $e->getMessage() . "</p>";
+    }
+});
+
 // Diagnostic route - Moved outside auth for debugging
 Route::get('/diag/oic', function () {
     try {
