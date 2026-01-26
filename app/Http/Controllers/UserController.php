@@ -828,7 +828,7 @@ class UserController extends Controller
     }
 
     /**
-     * Approve multiple users at once
+     * Approve multiple users at once (Optimized for bulk operations)
      */
     public function bulkApprove(Request $request)
     {
@@ -844,38 +844,73 @@ class UserController extends Controller
             return back()->with('error', 'No members selected for approval.');
         }
 
-        $users = User::whereIn('id', $userIds)->where('status', 'pending')->get();
-        $count = 0;
+        // Fetch all pending users with their profiles (eager loading for performance)
+        $users = User::with('profile')
+            ->whereIn('id', $userIds)
+            ->where('status', 'pending')
+            ->get();
 
-        foreach ($users as $user) {
-            // Strict Downline Check for each user
-            if (!$currentUser->canAccess($user)) {
-                continue; // Skip users not in downline
-            }
+        // Filter users based on access permissions
+        $accessibleUsers = $users->filter(function ($user) use ($currentUser) {
+            return $currentUser->canAccess($user);
+        });
 
-            $user->update(['status' => 'active']);
-
-            ActivityLog::logActivity(
-                'approved',
-                $user->id,
-                $currentUser->id,
-                "Approved user (Bulk): {$user->profile->full_name}",
-                'User',
-                $user->id
-            );
-
-            // Send Approval Email
-            try {
-                Mail::to($user->email)->send(new UserApproved($user, $currentUser));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send bulk approval email for user ' . $user->id . ': ' . $e->getMessage());
-            }
-            $count++;
+        if ($accessibleUsers->isEmpty()) {
+            return back()->with('error', 'No accessible members found for approval.');
         }
 
-        return back()->with('success', "{$count} members approved successfully.");
-    }
+        $approvedCount = 0;
+        $activityLogs = [];
+        $now = now();
 
+        // Use database transaction for data consistency
+        \DB::beginTransaction();
+        try {
+            // Bulk update all users to active status (single query instead of N queries)
+            User::whereIn('id', $accessibleUsers->pluck('id'))
+                ->update([
+                    'status' => 'active',
+                    'updated_at' => $now
+                ]);
+
+            // Prepare bulk activity logs (insert all at once)
+            foreach ($accessibleUsers as $user) {
+                $activityLogs[] = [
+                    'action' => 'approved',
+                    'user_id' => $user->id,
+                    'performed_by' => $currentUser->id,
+                    'description' => "Approved user (Bulk): {$user->profile->full_name}",
+                    'model_type' => 'User',
+                    'model_id' => $user->id,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+
+                // Queue approval emails (non-blocking, processed in background)
+                try {
+                    \Mail::to($user->email)->queue(new \App\Mail\UserApproved($user, $currentUser));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to queue bulk approval email for user ' . $user->id . ': ' . $e->getMessage());
+                }
+
+                $approvedCount++;
+            }
+
+            // Bulk insert all activity logs (single query)
+            if (!empty($activityLogs)) {
+                \App\Models\ActivityLog::insert($activityLogs);
+            }
+
+            \DB::commit();
+
+            return back()->with('success', "{$approvedCount} members approved successfully and notifications queued.");
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Bulk approval failed: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred during bulk approval. Please try again.');
+        }
+    }
     /**
      * Soft delete a user (move to BIN)
      */
