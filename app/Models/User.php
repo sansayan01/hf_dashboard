@@ -12,6 +12,23 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleted(function ($user) {
+            // When soft-deleted, change employee_id to free up the original ID for gap-filling
+            // We use a prefix that won't conflict with regular IDs
+            $user->employee_id = 'TRASH_' . $user->employee_id . '_' . now()->timestamp;
+            $user->save();
+        });
+
+        static::restoring(function ($user) {
+            // When restored, assign the latest available serial number as requested
+            $user->employee_id = self::generateEmployeeId($user->designation, true);
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -446,7 +463,7 @@ class User extends Authenticatable
         return 0;
     }
 
-    public static function generateEmployeeId($designation)
+    public static function generateEmployeeId($designation, $latestOnly = false)
     {
         $designationCodes = [
             'super_admin' => 'SA',
@@ -462,18 +479,42 @@ class User extends Authenticatable
         $code = $designationCodes[$designation] ?? 'XX';
         $prefix = 'HF' . $code;
 
-        // Find the last used sequence for this specific designation prefix
-        $lastUser = self::where('employee_id', 'like', $prefix . '%')
-            ->orderBy('employee_id', 'desc')
-            ->first();
+        if ($latestOnly) {
+            // Find max sequence among active users to get the "latest"
+            $lastUser = self::where('employee_id', 'like', $prefix . '%')
+                ->where('employee_id', 'not like', 'TRASH_%')
+                ->orderBy('employee_id', 'desc')
+                ->first();
 
-        if ($lastUser) {
-            // Extract the numeric part (last 6 digits)
-            $lastId = $lastUser->employee_id;
-            $lastSequence = (int) substr($lastId, strlen($prefix));
-            $newSequence = str_pad($lastSequence + 1, 6, '0', STR_PAD_LEFT);
+            if ($lastUser) {
+                $lastSequence = (int) substr($lastUser->employee_id, strlen($prefix));
+                $newSequence = str_pad($lastSequence + 1, 6, '0', STR_PAD_LEFT);
+            } else {
+                $newSequence = '000001';
+            }
         } else {
-            $newSequence = '000001';
+            // Find first gap among active users
+            $existingIds = self::where('employee_id', 'like', $prefix . '%')
+                ->where('employee_id', 'not like', 'TRASH_%')
+                ->pluck('employee_id')
+                ->map(function ($id) use ($prefix) {
+                    $seqPart = substr($id, strlen($prefix));
+                    return is_numeric($seqPart) ? (int) $seqPart : null;
+                })
+                ->filter()
+                ->toArray();
+
+            sort($existingIds);
+
+            $next = 1;
+            foreach ($existingIds as $id) {
+                if ($id == $next) {
+                    $next++;
+                } elseif ($id > $next) {
+                    break;
+                }
+            }
+            $newSequence = str_pad($next, 6, '0', STR_PAD_LEFT);
         }
 
         return $prefix . $newSequence;

@@ -45,48 +45,78 @@ class Survey extends Model
 
         static::creating(function ($model) {
             if (!$model->patient_id) {
-                $model->patient_id = static::generatePatientId();
+                if ($model->is_member) {
+                    $model->patient_id = static::generateMembershipId();
+                } else {
+                    $model->patient_id = static::generatePatientId();
+                }
+            }
+        });
+
+        static::deleted(function ($survey) {
+            // When soft-deleted, change patient_id to free up the original ID for gap-filling
+            $survey->patient_id = 'TRASH_' . $survey->patient_id . '_' . now()->timestamp;
+            $survey->save();
+        });
+
+        static::restoring(function ($survey) {
+            // When restored, assign the latest available serial number as requested
+            if ($survey->is_member) {
+                $survey->patient_id = self::generateMembershipId(true);
+            } else {
+                $survey->patient_id = self::generatePatientId(true);
             }
         });
     }
 
-    public static function generatePatientId()
+    public static function generatePatientId($latestOnly = false)
     {
-        $prefix = 'HFP';
-
-        // Find the last patient ID with this prefix (including deleted ones)
-        $lastPatient = self::withTrashed()
-            ->where('patient_id', 'like', $prefix . '%')
-            ->orderBy('id', 'desc')
-            ->first();
-
-        if ($lastPatient) {
-            $lastId = $lastPatient->patient_id;
-            $lastSequence = (int) substr($lastId, strlen($prefix));
-            $newSequence = str_pad($lastSequence + 1, 7, '0', STR_PAD_LEFT);
-        } else {
-            $newSequence = '0000001';
-        }
-
-        return $prefix . $newSequence;
+        return self::generateSequenceId('HFP', 7, $latestOnly);
     }
 
-    public static function generateMembershipId()
+    public static function generateMembershipId($latestOnly = false)
     {
-        $prefix = 'HFM';
+        return self::generateSequenceId('HFM', 7, $latestOnly);
+    }
 
-        // Find the last membership ID with this prefix (including deleted ones)
-        $lastMember = self::withTrashed()
-            ->where('patient_id', 'like', $prefix . '%')
-            ->orderBy('id', 'desc')
-            ->first();
+    private static function generateSequenceId($prefix, $length, $latestOnly)
+    {
+        if ($latestOnly) {
+            // Find max sequence among active users to get the "latest"
+            $last = self::where('patient_id', 'like', $prefix . '%')
+                ->where('patient_id', 'not like', 'TRASH_%')
+                ->orderBy('patient_id', 'desc')
+                ->first();
 
-        if ($lastMember) {
-            $lastId = $lastMember->patient_id;
-            $lastSequence = (int) substr($lastId, strlen($prefix));
-            $newSequence = str_pad($lastSequence + 1, 7, '0', STR_PAD_LEFT);
+            if ($last) {
+                $lastSequence = (int) substr($last->patient_id, strlen($prefix));
+                $newSequence = str_pad($lastSequence + 1, $length, '0', STR_PAD_LEFT);
+            } else {
+                $newSequence = str_pad(1, $length, '0', STR_PAD_LEFT);
+            }
         } else {
-            $newSequence = '0000001';
+            // Find first gap among active users
+            $existingIds = self::where('patient_id', 'like', $prefix . '%')
+                ->where('patient_id', 'not like', 'TRASH_%')
+                ->pluck('patient_id')
+                ->map(function ($id) use ($prefix) {
+                    $seqPart = substr($id, strlen($prefix));
+                    return is_numeric($seqPart) ? (int) $seqPart : null;
+                })
+                ->filter()
+                ->toArray();
+
+            sort($existingIds);
+
+            $next = 1;
+            foreach ($existingIds as $id) {
+                if ($id == $next) {
+                    $next++;
+                } elseif ($id > $next) {
+                    break;
+                }
+            }
+            $newSequence = str_pad($next, $length, '0', STR_PAD_LEFT);
         }
 
         return $prefix . $newSequence;
