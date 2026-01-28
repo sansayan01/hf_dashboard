@@ -116,13 +116,7 @@ class SurveyController extends Controller
             $collectors = collect([$user])->merge($downline);
         }
 
-        // Get Geographic Data for Dropdowns based on allowed users
-        $geoProfiles = \App\Models\UserProfile::whereIn('user_id', $allowedIds)->get();
-        $districts = $geoProfiles->pluck('district')->filter()->unique()->values();
-        $blocks = $geoProfiles->pluck('block')->filter()->unique()->values();
-        $gps = $geoProfiles->pluck('gram_panchayat')->filter()->unique()->values();
-
-        return view('surveys.index', compact('surveys', 'collectors', 'districts', 'blocks', 'gps'));
+        return view('surveys.index', compact('surveys', 'collectors'));
     }
 
     /**

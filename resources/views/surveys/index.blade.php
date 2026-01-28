@@ -122,35 +122,116 @@
                     <!-- District -->
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">District</label>
-                        <select name="district" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                        <select name="district" id="district-select" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                             <option value="">All Districts</option>
-                            @foreach($districts as $district)
-                                <option value="{{ $district }}" {{ request('district') == $district ? 'selected' : '' }}>{{ $district }}</option>
-                            @endforeach
+                            <!-- Populated by JS -->
                         </select>
                     </div>
 
                     <!-- Block -->
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Block</label>
-                        <select name="block" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                        <select name="block" id="block-select" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                             <option value="">All Blocks</option>
-                            @foreach($blocks as $block)
-                                <option value="{{ $block }}" {{ request('block') == $block ? 'selected' : '' }}>{{ $block }}</option>
-                            @endforeach
+                            <!-- Populated by JS -->
                         </select>
                     </div>
 
                     <!-- Gram Panchayat -->
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Gram Panchayat</label>
-                        <select name="gp" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                        <select name="gp" id="gp-select" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                             <option value="">All GPs</option>
-                            @foreach($gps as $gp)
-                                <option value="{{ $gp }}" {{ request('gp') == $gp ? 'selected' : '' }}>{{ $gp }}</option>
-                            @endforeach
+                            <!-- Populated by JS -->
                         </select>
                     </div>
+
+                    <script src="{{ asset('js/locations.js') }}"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const districtSelect = document.getElementById('district-select');
+                            const blockSelect = document.getElementById('block-select');
+                            const gpSelect = document.getElementById('gp-select');
+                            
+                            const currentDistrict = "{{ request('district') }}";
+                            const currentBlock = "{{ request('block') }}";
+                            const currentGp = "{{ request('gp') }}";
+
+                            // 1. Populate Districts from all States
+                            if (window.locationData) {
+                                let allDistricts = [];
+                                for (const state in window.locationData) {
+                                    allDistricts = allDistricts.concat(Object.keys(window.locationData[state]));
+                                }
+                                allDistricts = [...new Set(allDistricts)].sort(); // Deduplicate and sort
+
+                                allDistricts.forEach(district => {
+                                    const option = new Option(district, district);
+                                    if (district === currentDistrict) option.selected = true;
+                                    districtSelect.add(option);
+                                });
+                            }
+
+                            // 2. Cascading Logic
+                            function updateBlocks() {
+                                const selectedDistrict = districtSelect.value;
+                                blockSelect.innerHTML = '<option value="">All Blocks</option>';
+                                gpSelect.innerHTML = '<option value="">All GPs</option>';
+
+                                if (selectedDistrict && window.locationData) {
+                                    // Find which state this district belongs to
+                                    let selectedState = null;
+                                    for (const state in window.locationData) {
+                                        if (window.locationData[state][selectedDistrict]) {
+                                            selectedState = state;
+                                            break;
+                                        }
+                                    }
+
+                                    if (selectedState) {
+                                        const blocks = Object.keys(window.locationData[selectedState][selectedDistrict]).sort();
+                                        blocks.forEach(block => {
+                                            const option = new Option(block, block);
+                                            if (block === currentBlock) option.selected = true;
+                                            blockSelect.add(option);
+                                        });
+                                    }
+                                } 
+                                updateGps(); 
+                            }
+
+                            function updateGps() {
+                                const selectedDistrict = districtSelect.value;
+                                const selectedBlock = blockSelect.value;
+                                gpSelect.innerHTML = '<option value="">All GPs</option>';
+
+                                if (selectedDistrict && selectedBlock && window.locationData) {
+                                    let selectedState = null;
+                                    for (const state in window.locationData) {
+                                        if (window.locationData[state][selectedDistrict]) {
+                                            selectedState = state;
+                                            break;
+                                        }
+                                    }
+
+                                    if (selectedState && window.locationData[selectedState][selectedDistrict][selectedBlock]) {
+                                        const gps = window.locationData[selectedState][selectedDistrict][selectedBlock].sort();
+                                        gps.forEach(gp => {
+                                            const option = new Option(gp, gp);
+                                            if (gp === currentGp) option.selected = true;
+                                            gpSelect.add(option);
+                                        });
+                                    }
+                                }
+                            }
+
+                            districtSelect.addEventListener('change', updateBlocks);
+                            blockSelect.addEventListener('change', updateGps);
+
+                            // Initial Call to set lists if values are pre-selected
+                            updateBlocks();
+                        });
+                    </script>
 
                     <!-- Gender -->
                     <div>

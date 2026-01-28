@@ -101,13 +101,7 @@ class AppointmentController extends Controller
 
         $appointments = $query->latest('appointment_date')->latest('appointment_time')->paginate(20);
 
-        // Get Geographic Data for Dropdowns based on allowed users
-        $geoProfiles = \App\Models\UserProfile::whereIn('user_id', $allowedIds)->get();
-        $districts = $geoProfiles->pluck('district')->filter()->unique()->values();
-        $blocks = $geoProfiles->pluck('block')->filter()->unique()->values();
-        $gps = $geoProfiles->pluck('gram_panchayat')->filter()->unique()->values();
-
-        return view('appointments.all', compact('appointments', 'districts', 'blocks', 'gps'));
+        return view('appointments.all', compact('appointments'));
     }
 
     /**
