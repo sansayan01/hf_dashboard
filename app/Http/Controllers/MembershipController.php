@@ -47,10 +47,8 @@ class MembershipController extends Controller
     /**
      * Show the membership registration form or details for a specific patient.
      */
-    public function show($id)
+    public function show(Survey $patient)
     {
-        $patient = Survey::findOrFail($id);
-
         // Check access
         $user = auth()->user();
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
@@ -67,10 +65,8 @@ class MembershipController extends Controller
     /**
      * Register a patient as a member.
      */
-    public function register(Request $request, $id)
+    public function register(Request $request, Survey $patient)
     {
-        $patient = Survey::findOrFail($id);
-
         // Check access
         $user = auth()->user();
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
@@ -79,24 +75,68 @@ class MembershipController extends Controller
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'relative_name' => 'nullable|string|max:255',
+            'relative_name' => 'required|string|max:255',
             'age' => 'required|integer|min:1|max:120',
             'gender' => 'required|in:male,female,other',
             'phone_number' => 'required|string|size:10',
             'address' => 'required|string',
             'pin' => 'required|string|size:6',
-            'aadhar_number' => 'nullable|string|size:12',
+            'aadhar_number' => 'required|string|size:12',
             'pan_number' => 'nullable|string|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
-            'blood_group' => 'nullable|string|max:5',
-            'district' => 'nullable|string|max:255',
-            'block' => 'nullable|string|max:255',
-            'gp' => 'nullable|string|max:255',
+            'blood_group' => 'required|string|max:5',
+            'district' => 'required|string|max:255',
+            'block' => 'required|string|max:255',
+            'gp' => 'required|string|max:255',
             'landmark' => 'nullable|string|max:255',
             'past_diseases' => 'nullable|string',
             'health_issue_category' => 'nullable|array',
             'health_issue_other' => 'nullable|string',
             'insurance_loan_req' => 'nullable|string',
+            'membership_fee' => 'required|numeric',
+            'payment_method' => 'required|string|max:255',
+            'payment_screenshot' => 'required_without:coupon_code|nullable|image|max:5120',
+            'coupon_code' => 'nullable|string|exists:coupon_codes,code',
         ]);
+
+        $couponUsed = false;
+        $coupon = null;
+
+        if ($request->filled('coupon_code')) {
+            $coupon = \App\Models\CouponCode::where('code', $request->coupon_code)->first();
+            if ($coupon && $coupon->isValid('membership')) {
+                $couponUsed = true;
+                $patient->payment_method = 'Coupon: ' . $coupon->code;
+                $patient->membership_fee = 0;
+            } else {
+                return back()->withInput()->with('error', 'Invalid or expired coupon code.');
+            }
+        }
+
+        // Handle Screenshot Upload (if not coupon)
+        if (!$couponUsed && $request->hasFile('payment_screenshot')) {
+            $path = $request->file('payment_screenshot')->store('payments', 'public');
+
+            // AI Verification for UPI Payments
+            if ($request->payment_method === 'UPI') {
+                $aiService = app(\App\Services\AIService::class);
+                $expectedAmount = (float) $request->membership_fee;
+
+                $verification = $aiService->verifyPaymentScreenshot(storage_path('app/public/' . $path), $expectedAmount);
+
+                if (!$verification['success']) {
+                    // Delete the screenshot if verification fails
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+                    return back()->withInput()->with('error', 'AI Payment Verification Failed: ' . $verification['message'] . '. Please ensure you uploaded a clear success screenshot of the ₹' . $expectedAmount . ' payment.');
+                }
+
+                // Store transaction ID if available
+                if (!empty($verification['transaction_id'])) {
+                    $patient->payment_method = 'UPI (Ref: ' . $verification['transaction_id'] . ')';
+                }
+            }
+
+            $patient->payment_screenshot = $path;
+        }
 
         // Combine health issues
         $healthIssuesArr = $validated['health_issue_category'] ?? [];
@@ -108,6 +148,11 @@ class MembershipController extends Controller
 
         // Update record and upgrade to member
         $patient->fill($validated);
+        if ($couponUsed) {
+            $patient->membership_fee = 0;
+            $patient->payment_method = 'Coupon: ' . $coupon->code;
+            $coupon->markAsUsed(auth()->id());
+        }
         $patient->health_issues = $healthIssues;
         $patient->is_member = true;
 

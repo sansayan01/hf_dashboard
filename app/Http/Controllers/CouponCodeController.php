@@ -94,7 +94,7 @@ class CouponCodeController extends Controller
         }
 
         $validated = $request->validate([
-            'designation' => 'required|in:dm,bm,rm,ro,any',
+            'designation' => 'required|in:dm,bm,rm,ro,membership,any',
             'quantity' => 'required|integer|min:1|max:100',
             'expires_at' => 'nullable|date|after:today',
             'notes' => 'nullable|string|max:500',
@@ -151,7 +151,7 @@ class CouponCodeController extends Controller
     {
         $request->validate([
             'code' => 'required|string',
-            'designation' => 'required|in:dm,bm,rm,ro',
+            'designation' => 'required|in:dm,bm,rm,ro,membership',
         ]);
 
         $coupon = CouponCode::where('code', $request->code)->first();

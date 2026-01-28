@@ -76,6 +76,11 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/', [PatientController::class, 'index'])->name('index');
         Route::get('/create', [PatientController::class, 'create'])->name('create');
         Route::post('/', [PatientController::class, 'store'])->name('store');
+
+        // Membership Management
+        Route::get('/{patient}/membership', [App\Http\Controllers\MembershipController::class, 'show'])->name('membership');
+        Route::post('/{patient}/membership/register', [App\Http\Controllers\MembershipController::class, 'register'])->name('membership.register');
+
         Route::get('/{patient}', [PatientController::class, 'show'])->name('show');
         Route::get('/{patient}/edit', [PatientController::class, 'edit'])->name('edit');
         Route::put('/{patient}', [PatientController::class, 'update'])->name('update');
@@ -95,10 +100,8 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
     });
 
-    // Membership Management
+    // Membership Registry
     Route::get('/membership', [App\Http\Controllers\MembershipController::class, 'index'])->name('membership.index');
-    Route::get('/patients/{patient}/membership', [App\Http\Controllers\MembershipController::class, 'show'])->name('patients.membership');
-    Route::post('/patients/{patient}/membership/register', [App\Http\Controllers\MembershipController::class, 'register'])->name('membership.register');
 
     // Global Appointments (Accessible from Sidebar)
     Route::get('/appointments', [AppointmentController::class, 'all'])->name('appointments.all');

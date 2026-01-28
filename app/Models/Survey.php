@@ -29,6 +29,10 @@ class Survey extends Model
         'past_diseases',
         'health_issues',
         'insurance_loan_req',
+        'is_member',
+        'membership_fee',
+        'payment_method',
+        'payment_screenshot',
         'created_by'
     ];
 

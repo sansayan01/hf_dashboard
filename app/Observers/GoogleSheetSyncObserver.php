@@ -112,6 +112,9 @@ class GoogleSheetSyncObserver
                     'pastDiseases' => $model->past_diseases,
                     'healthIssues' => $model->health_issues,
                     'insuranceLoanReq' => $model->insurance_loan_req,
+                    'membershipFee' => $model->membership_fee,
+                    'paymentMethod' => $model->payment_method,
+                    'paymentScreenshot' => $model->payment_screenshot ? asset('storage/' . $model->payment_screenshot) : '',
                     'landmark' => $model->landmark,
                     'collector' => $collector,
                 ], 'patientId', $lookupId)->afterResponse();
