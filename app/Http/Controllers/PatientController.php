@@ -203,7 +203,13 @@ class PatientController extends Controller
             abort(403);
         }
 
-        $patient->load('creator.profile', 'appointments');
+        $patient->load([
+            'creator.profile',
+            'appointments',
+            'medicineDistributions' => function ($q) {
+                $q->with(['items.medicine', 'camp', 'pharmacist.profile'])->latest();
+            }
+        ]);
 
         return view('patients.show', compact('patient'));
     }

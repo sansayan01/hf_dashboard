@@ -8,8 +8,11 @@ use App\Models\Medicine;
 use App\Models\Survey;
 use App\Models\InventoryWarehouse;
 use App\Models\InventorySponsor;
+use App\Models\MedicineDistribution;
+use App\Models\MedicineDistributionItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class InventoryController extends Controller
 {
@@ -19,6 +22,35 @@ class InventoryController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+
+        // Retroactive fix: Ensure all active stocks have a sponsor_id
+        if (Schema::hasColumn('inventory_stocks', 'sponsor_id') && Schema::hasColumn('inventory_transactions', 'sponsor_id')) {
+            InventoryStock::where('quantity', '>', 0)
+                ->whereNull('sponsor_id')
+                ->chunk(50, function ($stocks) {
+                    foreach ($stocks as $stock) {
+                        // Try immediate 'in' transaction first
+                        $inTx = $stock->transactions()->where('type', 'in')->first();
+                        if ($inTx && $inTx->sponsor_id) {
+                            $stock->update(['sponsor_id' => $inTx->sponsor_id]);
+                            continue;
+                        }
+
+                        // Try finding any 'in' transaction for the same medicine and batch that has a sponsor
+                        $rootSponsorId = InventoryTransaction::where('type', 'in')
+                            ->whereNotNull('sponsor_id')
+                            ->whereHas('stock', function ($q) use ($stock) {
+                            $q->where('medicine_id', $stock->medicine_id)
+                                ->where('batch_number', $stock->batch_number);
+                        })
+                            ->value('sponsor_id');
+
+                        if ($rootSponsorId) {
+                            $stock->update(['sponsor_id' => $rootSponsorId]);
+                        }
+                    }
+                });
+        }
 
         $query = InventoryStock::with(['medicine.category', 'warehouse', 'sponsor'])
             ->where('quantity', '>', 0);
@@ -137,37 +169,51 @@ class InventoryController extends Controller
      */
     public function exportTransactions()
     {
-        $query = InventoryTransaction::with(['stock.medicine', 'user', 'patient', 'warehouse', 'sponsor'])
-            ->latest();
-
         $isStaff = auth()->user()->designation === 'staff';
         $defaultView = $isStaff ? 'dispenses' : 'movements';
         $view = request('view', $defaultView);
 
-        // Prevent staff from viewing 'movements'
         if ($isStaff && $view === 'movements') {
             $view = 'dispenses';
         }
 
         if ($view === 'dispenses') {
-            $query->where('type', 'dispense');
+            $query = MedicineDistribution::with(['patient', 'camp', 'pharmacist', 'items.medicine'])->latest();
         } else {
-            $query->where('type', '!=', 'dispense');
+            $query = InventoryTransaction::with(['stock.medicine', 'user', 'patient', 'warehouse', 'sponsor'])->latest();
+            if ($view === 'sponsors') {
+                $query->where('type', 'dispense')->whereNotNull('sponsor_id');
+            } else {
+                $query->where('type', '!=', 'dispense');
+            }
         }
 
         // Apply filters
         if (request('search')) {
             $search = request('search');
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('patient', function ($pq) use ($search) {
-                    $pq->where('full_name', 'like', '%' . $search . '%')
-                        ->orWhere('patient_id', 'like', '%' . $search . '%');
-                })->orWhereHas('stock.medicine', function ($mq) use ($search) {
-                    $mq->where('name', 'like', '%' . $search . '%');
-                })->orWhereHas('warehouse', function ($wq) use ($search) {
-                    $wq->where('name', 'like', '%' . $search . '%');
+            if ($view === 'dispenses') {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('patient', function ($pq) use ($search) {
+                        $pq->where('full_name', 'like', '%' . $search . '%')
+                            ->orWhere('patient_id', 'like', '%' . $search . '%');
+                    })->orWhereHas('items.medicine', function ($mq) use ($search) {
+                        $mq->where('name', 'like', '%' . $search . '%');
+                    })->orWhereHas('camp', function ($wq) use ($search) {
+                        $wq->where('name', 'like', '%' . $search . '%');
+                    });
                 });
-            });
+            } else {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('patient', function ($pq) use ($search) {
+                        $pq->where('full_name', 'like', '%' . $search . '%')
+                            ->orWhere('patient_id', 'like', '%' . $search . '%');
+                    })->orWhereHas('stock.medicine', function ($mq) use ($search) {
+                        $mq->where('name', 'like', '%' . $search . '%');
+                    })->orWhereHas('warehouse', function ($wq) use ($search) {
+                        $wq->where('name', 'like', '%' . $search . '%');
+                    });
+                });
+            }
         }
 
         if (request('date_from')) {
@@ -195,32 +241,50 @@ class InventoryController extends Controller
             if ($view === 'dispenses') {
                 fputcsv($file, ['Date', 'Time', 'Patient', 'Medicine', 'Batch', 'QTY', 'Grand Total', 'Performed By', 'Camp/Warehouse']);
 
+                $hasDistIdColumn = Schema::hasColumn('inventory_transactions', 'distribution_id');
+                $distributionTransactions = collect();
+
+                if ($hasDistIdColumn) {
+                    $distIds = $transactions->pluck('id');
+                    $distributionTransactions = InventoryTransaction::whereIn('distribution_id', $distIds)
+                        ->with('stock')
+                        ->get()
+                        ->groupBy('distribution_id');
+                }
+
                 foreach ($transactions as $transaction) {
-                    $distId = filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
-                    $distribution = \App\Models\MedicineDistribution::find($distId);
-                    $grandTotal = $distribution ? '₹' . number_format($distribution->final_amount, 2) : 'N/A';
+                    /** @var MedicineDistribution $transaction */
+                    $medicines = $transaction->items->map(function ($i) {
+                        return $i->medicine->name . ' (x' . $i->quantity . ')';
+                    })->implode(', ');
+
+                    $batches = isset($distributionTransactions[$transaction->id])
+                        ? $distributionTransactions[$transaction->id]->pluck('stock.batch_number')->unique()->filter()->implode(', ')
+                        : 'N/A';
 
                     fputcsv($file, [
                         $transaction->created_at->format('Y-m-d'),
                         $transaction->created_at->format('h:i A'),
                         $transaction->patient->full_name ?? 'System',
-                        $transaction->stock->medicine->name ?? 'N/A',
-                        $transaction->stock->batch_number ?? 'N/A',
-                        $transaction->quantity,
-                        $grandTotal,
-                        $transaction->user->profile->full_name ?? $transaction->user->employee_id,
-                        $transaction->warehouse->name ?? 'N/A'
+                        $medicines,
+                        $batches,
+                        $transaction->items->count(),
+                        '₹' . number_format($transaction->final_amount, 2),
+                        $transaction->pharmacist->profile->full_name ?? $transaction->pharmacist->employee_id,
+                        $transaction->camp->name ?? 'N/A'
                     ]);
                 }
             } elseif ($view === 'sponsors') {
                 fputcsv($file, ['Date', 'Sponsor', 'Medicine', 'Batch', 'QTY', 'Medicine Value']);
 
                 foreach ($transactions as $transaction) {
-                    $distId = filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
+                    /** @var InventoryTransaction $transaction */
+                    $distribution = $transaction->distribution;
+                    $distId = $distribution ? $distribution->id : filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
                     $lineValue = 0;
 
                     if ($distId) {
-                        $distItem = \App\Models\MedicineDistributionItem::where('distribution_id', $distId)
+                        $distItem = MedicineDistributionItem::where('distribution_id', $distId)
                             ->where('medicine_id', $transaction->stock?->medicine_id)
                             ->first();
 
@@ -242,6 +306,7 @@ class InventoryController extends Controller
                 fputcsv($file, ['Date', 'Time', 'Medicine', 'Location', 'Batch', 'Type', 'Qty', 'Performed By']);
 
                 foreach ($transactions as $transaction) {
+                    /** @var InventoryTransaction $transaction */
                     fputcsv($file, [
                         $transaction->created_at->format('Y-m-d'),
                         $transaction->created_at->format('h:i A'),
@@ -263,9 +328,6 @@ class InventoryController extends Controller
 
     public function transactions()
     {
-        $query = InventoryTransaction::with(['stock.medicine', 'user', 'patient', 'warehouse', 'sponsor'])
-            ->latest();
-
         $isStaff = auth()->user()->designation === 'staff';
         $defaultView = $isStaff ? 'dispenses' : 'movements';
         $view = request('view', $defaultView);
@@ -275,51 +337,158 @@ class InventoryController extends Controller
             $view = 'dispenses';
         }
 
-        if ($view === 'dispenses') {
-            $query->where('type', 'dispense');
-        } elseif ($view === 'sponsors') {
-            // Retroactive fix: Ensure dispense transactions have sponsor_id if missing
-            InventoryTransaction::where('type', 'dispense')
-                ->whereNull('sponsor_id')
-                ->chunk(100, function ($txs) {
-                    foreach ($txs as $tx) {
-                        if ($tx->stock) {
-                            $inTx = $tx->stock->transactions()->where('type', 'in')->first();
-                            if ($inTx && $inTx->sponsor_id) {
-                                $tx->update(['sponsor_id' => $inTx->sponsor_id]);
-                            }
+        if ($view === 'dispenses' || $view === 'sponsors') {
+            // Retroactive fix: Ensure all stocks have a sponsor_id
+            if (Schema::hasColumn('inventory_stocks', 'sponsor_id') && Schema::hasColumn('inventory_transactions', 'sponsor_id')) {
+                InventoryStock::whereNull('sponsor_id')->chunk(100, function ($stocks) {
+                    foreach ($stocks as $stock) {
+                        $inTx = $stock->transactions()->where('type', 'in')->first();
+                        if ($inTx && $inTx->sponsor_id) {
+                            $stock->update(['sponsor_id' => $inTx->sponsor_id]);
+                            continue;
+                        }
+
+                        // Trace by batch
+                        $rootSponsorId = InventoryTransaction::where('type', 'in')
+                            ->whereNotNull('sponsor_id')
+                            ->whereHas('stock', function ($q) use ($stock) {
+                                $q->where('medicine_id', $stock->medicine_id)
+                                    ->where('batch_number', $stock->batch_number);
+                            })
+                            ->value('sponsor_id');
+
+                        if ($rootSponsorId) {
+                            $stock->update(['sponsor_id' => $rootSponsorId]);
                         }
                     }
                 });
 
-            $query->where('type', 'dispense')
-                ->where(function ($q) {
-                    $q->whereNotNull('sponsor_id')
-                        ->orWhereHas('stock', function ($sq) {
-                            $sq->whereNotNull('sponsor_id');
-                        });
+                // Retroactive fix: Ensure all transactions have sponsor_id if missing
+                InventoryTransaction::whereNull('sponsor_id')->chunk(200, function ($txs) {
+                    foreach ($txs as $tx) {
+                        $sponsorId = null;
+                        if ($tx->stock && $tx->stock->sponsor_id) {
+                            $sponsorId = $tx->stock->sponsor_id;
+                        } else if ($tx->stock) {
+                            $inTx = $tx->stock->transactions()->where('type', 'in')->first();
+                            $sponsorId = $inTx?->sponsor_id;
+
+                            if (!$sponsorId) {
+                                // Trace by batch
+                                $sponsorId = InventoryTransaction::where('type', 'in')
+                                    ->whereNotNull('sponsor_id')
+                                    ->whereHas('stock', function ($q) use ($tx) {
+                                        $q->where('medicine_id', $tx->stock->medicine_id)
+                                            ->where('batch_number', $tx->stock->batch_number);
+                                    })
+                                    ->value('sponsor_id');
+                            }
+                        }
+
+                        if ($sponsorId) {
+                            $tx->update(['sponsor_id' => $sponsorId]);
+                        }
+                    }
                 });
+            }
+
+            // Retroactive fix: Link dispense transactions to distributions if missing
+            if (Schema::hasColumn('inventory_transactions', 'distribution_id')) {
+                InventoryTransaction::where('type', 'dispense')
+                    ->whereNull('distribution_id')
+                    ->chunk(100, function ($txs) {
+                        foreach ($txs as $tx) {
+                            $distId = filter_var($tx->notes, FILTER_SANITIZE_NUMBER_INT);
+                            if ($distId && MedicineDistribution::where('id', $distId)->exists()) {
+                                $tx->update(['distribution_id' => $distId]);
+                            }
+                        }
+                    });
+            }
+
+            // Retroactive fix: Ensure old distributions have final_amount and discount fields
+            if (Schema::hasColumn('medicine_distributions', 'final_amount')) {
+                MedicineDistribution::where('final_amount', 0)
+                    ->where('total_amount', '>', 0)
+                    ->chunk(50, function ($distributions) {
+                        foreach ($distributions as $dist) {
+                            $perc = $dist->total_amount > 300 ? 20 : 18;
+                            $amt = round(($dist->total_amount * $perc) / 100, 2);
+                            $dist->update([
+                                'discount_percentage' => $perc,
+                                'discount_amount' => $amt,
+                                'final_amount' => $dist->total_amount - $amt
+                            ]);
+                        }
+                    });
+            }
+        }
+
+        if ($view === 'dispenses') {
+            $query = MedicineDistribution::with(['patient', 'camp', 'pharmacist', 'items.medicine'])->latest();
         } else {
-            $query->where('type', '!=', 'dispense');
+            $query = InventoryTransaction::with(['stock.medicine', 'user', 'patient', 'warehouse', 'sponsor'])->latest();
+            if ($view === 'sponsors') {
+                $query->where('type', 'dispense')
+                    ->where(function ($q) {
+                        $q->whereNotNull('sponsor_id')
+                            ->orWhereHas('stock', function ($sq) {
+                                $sq->whereNotNull('sponsor_id');
+                            });
+                    });
+            } else {
+                $query->where('type', '!=', 'dispense');
+            }
         }
 
         // Apply filters
         if (request('search')) {
             $search = request('search');
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('patient', function ($pq) use ($search) {
-                    $pq->where('full_name', 'like', '%' . $search . '%')
-                        ->orWhere('patient_id', 'like', '%' . $search . '%');
-                })->orWhereHas('stock.medicine', function ($mq) use ($search) {
-                    $mq->where('name', 'like', '%' . $search . '%');
-                })->orWhereHas('warehouse', function ($wq) use ($search) {
-                    $wq->where('name', 'like', '%' . $search . '%');
+            if ($view === 'dispenses') {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('patient', function ($pq) use ($search) {
+                        $pq->where('full_name', 'like', '%' . $search . '%')
+                            ->orWhere('patient_id', 'like', '%' . $search . '%');
+                    })->orWhereHas('items.medicine', function ($mq) use ($search) {
+                        $mq->where('name', 'like', '%' . $search . '%');
+                    })->orWhereHas('camp', function ($wq) use ($search) {
+                        $wq->where('name', 'like', '%' . $search . '%');
+                    });
                 });
-            });
+            } else {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('patient', function ($pq) use ($search) {
+                        $pq->where('full_name', 'like', '%' . $search . '%')
+                            ->orWhere('patient_id', 'like', '%' . $search . '%');
+                    })->orWhereHas('stock.medicine', function ($mq) use ($search) {
+                        $mq->where('name', 'like', '%' . $search . '%');
+                    })->orWhereHas('warehouse', function ($wq) use ($search) {
+                        $wq->where('name', 'like', '%' . $search . '%');
+                    });
+                });
+            }
         }
 
         if (request('sponsor_id')) {
-            $query->where('sponsor_id', request('sponsor_id'));
+            if ($view === 'dispenses') {
+                if (Schema::hasColumn('inventory_transactions', 'distribution_id')) {
+                    $query->whereIn('id', function ($q) {
+                        $q->select('distribution_id')
+                            ->from('inventory_transactions')
+                            ->where('sponsor_id', request('sponsor_id'))
+                            ->whereNotNull('distribution_id');
+                    });
+                } else {
+                    // Fallback to searching in notes if column doesn't exist
+                    $query->whereIn('id', function ($q) {
+                        $q->select('id')->from('medicine_distributions');
+                        // Sponsor filtering without distribution_id is complex via notes, 
+                        // so we might skip filtering or do a basic search if possible.
+                    });
+                }
+            } else {
+                $query->where('sponsor_id', request('sponsor_id'));
+            }
         }
 
         if (request('date_from')) {
@@ -335,23 +504,17 @@ class InventoryController extends Controller
 
         $totalGrandSum = 0;
         if ($view === 'dispenses') {
-            // Get unique distribution IDs from all matching transactions to calculate correct sum
-            $distIds = (clone $query)->where('notes', 'LIKE', 'Dispensed via Distribution #%')
-                ->select('notes')
-                ->get()
-                ->pluck('notes')
-                ->map(fn($n) => (int) filter_var($n, FILTER_SANITIZE_NUMBER_INT))
-                ->filter()
-                ->unique();
-
-            $totalGrandSum = \App\Models\MedicineDistribution::whereIn('id', $distIds)->get()->sum('final_amount');
+            $totalGrandSum = (clone $query)->sum('final_amount');
         } elseif ($view === 'sponsors') {
             // Calculate sum based on individual line items (unit_price * quantity)
             $allTransactions = (clone $query)->get();
+            $hasDistIdColumn = Schema::hasColumn('inventory_transactions', 'distribution_id');
+
             foreach ($allTransactions as $transaction) {
-                $distId = filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
+                $distId = ($hasDistIdColumn ? $transaction->distribution_id : null)
+                    ?: filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
                 if ($distId) {
-                    $distItem = \App\Models\MedicineDistributionItem::where('distribution_id', $distId)
+                    $distItem = MedicineDistributionItem::where('distribution_id', $distId)
                         ->where('medicine_id', $transaction->stock->medicine_id)
                         ->first();
                     if ($distItem) {
@@ -361,9 +524,9 @@ class InventoryController extends Controller
             }
         }
 
-        $sponsors = \App\Models\InventorySponsor::all();
+        $sponsors = InventorySponsor::all();
 
-        return view('inventory.transactions', compact('transactions', 'totalGrandSum', 'sponsors', 'view'));
+        return view('inventory.transactions', compact('transactions', 'totalGrandSum', 'sponsors', 'view', 'isStaff'));
     }
 
     /**
@@ -430,6 +593,7 @@ class InventoryController extends Controller
                         throw new \Exception("Insufficient stock in the selected warehouse for medicine ID: " . $item['medicine_id']);
                     }
 
+                    /** @var InventoryStock $stock */
                     foreach ($stocks as $stock) {
                         if ($qtyToDispense <= 0)
                             break;
@@ -462,11 +626,14 @@ class InventoryController extends Controller
     }
     /**
      * Delete a transaction and revert stock changes.
+     * @param InventoryTransaction $transaction
      */
     public function destroyTransaction(InventoryTransaction $transaction)
     {
         try {
             DB::transaction(function () use ($transaction) {
+                /** @var InventoryTransaction $transaction */
+                /** @var InventoryStock $stock */
                 $stock = $transaction->stock;
 
                 if ($transaction->type === 'in') {
@@ -489,6 +656,8 @@ class InventoryController extends Controller
 
     /**
      * Update transaction notes or quantity (adjusts stock).
+     * @param Request $request
+     * @param InventoryTransaction $transaction
      */
     public function updateTransaction(Request $request, InventoryTransaction $transaction)
     {
@@ -499,6 +668,8 @@ class InventoryController extends Controller
 
         try {
             DB::transaction(function () use ($transaction, $validated) {
+                /** @var InventoryTransaction $transaction */
+                /** @var InventoryStock $stock */
                 $stock = $transaction->stock;
                 $diff = $validated['quantity'] - $transaction->quantity;
 
@@ -594,8 +765,19 @@ class InventoryController extends Controller
                         throw new \Exception("No stock available to transfer from this location.");
                     }
 
+                    /** @var InventoryStock $sourceStock */
                     foreach ($allStocks as $sourceStock) {
                         $transferQty = $sourceStock->quantity;
+
+                        // Ensure we have a sponsor ID
+                        $effectiveSponsorId = $sourceStock->sponsor_id;
+                        if (!$effectiveSponsorId) {
+                            $inTx = $sourceStock->transactions()->where('type', 'in')->first();
+                            $effectiveSponsorId = $inTx?->sponsor_id;
+                            if ($effectiveSponsorId) {
+                                $sourceStock->update(['sponsor_id' => $effectiveSponsorId]);
+                            }
+                        }
 
                         // Deduct from source
                         $sourceStock->decrement('quantity', $transferQty);
@@ -605,7 +787,7 @@ class InventoryController extends Controller
                             ->where('warehouse_id', $validated['to_warehouse_id'])
                             ->where('batch_number', $sourceStock->batch_number)
                             ->where('expiry_date', $sourceStock->expiry_date)
-                            ->where('sponsor_id', $sourceStock->sponsor_id)
+                            ->where('sponsor_id', $effectiveSponsorId)
                             ->first();
 
                         if ($destStock) {
@@ -616,7 +798,7 @@ class InventoryController extends Controller
                                 'warehouse_id' => $validated['to_warehouse_id'],
                                 'batch_number' => $sourceStock->batch_number,
                                 'expiry_date' => $sourceStock->expiry_date,
-                                'sponsor_id' => $sourceStock->sponsor_id,
+                                'sponsor_id' => $effectiveSponsorId,
                                 'quantity' => $transferQty,
                             ]);
                         }
@@ -625,7 +807,7 @@ class InventoryController extends Controller
                         InventoryTransaction::create([
                             'stock_id' => $sourceStock->id,
                             'warehouse_id' => $validated['from_warehouse_id'],
-                            'sponsor_id' => $sourceStock->sponsor_id,
+                            'sponsor_id' => $effectiveSponsorId,
                             'type' => 'out',
                             'quantity' => $transferQty,
                             'user_id' => auth()->id(),
@@ -635,7 +817,7 @@ class InventoryController extends Controller
                         InventoryTransaction::create([
                             'stock_id' => $destStock->id,
                             'warehouse_id' => $validated['to_warehouse_id'],
-                            'sponsor_id' => $sourceStock->sponsor_id,
+                            'sponsor_id' => $effectiveSponsorId,
                             'type' => 'in',
                             'quantity' => $transferQty,
                             'user_id' => auth()->id(),
@@ -649,6 +831,7 @@ class InventoryController extends Controller
                     $itemCount = 0;
 
                     foreach ($validated['items'] as $item) {
+                        /** @var InventoryStock $sourceStock */
                         $sourceStock = InventoryStock::findOrFail($item['stock_id']);
 
                         if ($sourceStock->warehouse_id != $validated['from_warehouse_id']) {
@@ -659,6 +842,16 @@ class InventoryController extends Controller
                             throw new \Exception("Insufficient stock for transfer (Stock ID: {$sourceStock->id}).");
                         }
 
+                        // Determine effective sponsor
+                        $effectiveSponsorId = $sourceStock->sponsor_id;
+                        if (!$effectiveSponsorId) {
+                            $inTx = $sourceStock->transactions()->where('type', 'in')->first();
+                            $effectiveSponsorId = $inTx?->sponsor_id;
+                            if ($effectiveSponsorId) {
+                                $sourceStock->update(['sponsor_id' => $effectiveSponsorId]);
+                            }
+                        }
+
                         // Deduct from source
                         $sourceStock->decrement('quantity', $item['quantity']);
 
@@ -667,7 +860,7 @@ class InventoryController extends Controller
                             ->where('warehouse_id', $validated['to_warehouse_id'])
                             ->where('batch_number', $sourceStock->batch_number)
                             ->where('expiry_date', $sourceStock->expiry_date)
-                            ->where('sponsor_id', $sourceStock->sponsor_id)
+                            ->where('sponsor_id', $effectiveSponsorId)
                             ->first();
 
                         if ($destStock) {
@@ -678,7 +871,7 @@ class InventoryController extends Controller
                                 'warehouse_id' => $validated['to_warehouse_id'],
                                 'batch_number' => $sourceStock->batch_number,
                                 'expiry_date' => $sourceStock->expiry_date,
-                                'sponsor_id' => $sourceStock->sponsor_id,
+                                'sponsor_id' => $effectiveSponsorId,
                                 'quantity' => $item['quantity'],
                             ]);
                         }
@@ -687,7 +880,7 @@ class InventoryController extends Controller
                         InventoryTransaction::create([
                             'stock_id' => $sourceStock->id,
                             'warehouse_id' => $validated['from_warehouse_id'],
-                            'sponsor_id' => $sourceStock->sponsor_id,
+                            'sponsor_id' => $effectiveSponsorId,
                             'type' => 'out',
                             'quantity' => $item['quantity'],
                             'user_id' => auth()->id(),
@@ -697,7 +890,7 @@ class InventoryController extends Controller
                         InventoryTransaction::create([
                             'stock_id' => $destStock->id,
                             'warehouse_id' => $validated['to_warehouse_id'],
-                            'sponsor_id' => $sourceStock->sponsor_id,
+                            'sponsor_id' => $effectiveSponsorId,
                             'type' => 'in',
                             'quantity' => $item['quantity'],
                             'user_id' => auth()->id(),
@@ -720,6 +913,16 @@ class InventoryController extends Controller
                         throw new \Exception("Insufficient stock for transfer.");
                     }
 
+                    // Ensure we have a sponsor ID
+                    $effectiveSponsorId = $sourceStock->sponsor_id;
+                    if (!$effectiveSponsorId) {
+                        $inTx = $sourceStock->transactions()->where('type', 'in')->first();
+                        $effectiveSponsorId = $inTx?->sponsor_id;
+                        if ($effectiveSponsorId) {
+                            $sourceStock->update(['sponsor_id' => $effectiveSponsorId]);
+                        }
+                    }
+
                     // 1. Deduct from source
                     $sourceStock->decrement('quantity', $validated['quantity']);
 
@@ -728,7 +931,7 @@ class InventoryController extends Controller
                         ->where('warehouse_id', $validated['to_warehouse_id'])
                         ->where('batch_number', $sourceStock->batch_number)
                         ->where('expiry_date', $sourceStock->expiry_date)
-                        ->where('sponsor_id', $sourceStock->sponsor_id)
+                        ->where('sponsor_id', $effectiveSponsorId)
                         ->first();
 
                     if ($destStock) {
@@ -739,7 +942,7 @@ class InventoryController extends Controller
                             'warehouse_id' => $validated['to_warehouse_id'],
                             'batch_number' => $sourceStock->batch_number,
                             'expiry_date' => $sourceStock->expiry_date,
-                            'sponsor_id' => $sourceStock->sponsor_id,
+                            'sponsor_id' => $effectiveSponsorId,
                             'quantity' => $validated['quantity'],
                         ]);
                     }
@@ -748,7 +951,7 @@ class InventoryController extends Controller
                     InventoryTransaction::create([
                         'stock_id' => $sourceStock->id,
                         'warehouse_id' => $validated['from_warehouse_id'],
-                        'sponsor_id' => $sourceStock->sponsor_id,
+                        'sponsor_id' => $effectiveSponsorId,
                         'type' => 'out',
                         'quantity' => $validated['quantity'],
                         'user_id' => auth()->id(),
@@ -758,7 +961,7 @@ class InventoryController extends Controller
                     InventoryTransaction::create([
                         'stock_id' => $destStock->id,
                         'warehouse_id' => $validated['to_warehouse_id'],
-                        'sponsor_id' => $sourceStock->sponsor_id,
+                        'sponsor_id' => $effectiveSponsorId,
                         'type' => 'in',
                         'quantity' => $validated['quantity'],
                         'user_id' => auth()->id(),

@@ -4,6 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $medicine_id
+ * @property int|null $warehouse_id
+ * @property int|null $sponsor_id
+ * @property string $batch_number
+ * @property \Illuminate\Support\Carbon $expiry_date
+ * @property int $quantity
+ * @property float|null $purchase_price
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class InventoryStock extends Model
 {
     protected $fillable = [

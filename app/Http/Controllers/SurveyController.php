@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Survey;
+use App\Models\User;
+use App\Models\RolePermission;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -90,7 +93,7 @@ class SurveyController extends Controller
         // Get list of potential collectors for the filter dropdown
         if ($user->designation === 'staff') {
             // Pharmacists see all users who have created surveys
-            $collectors = \App\Models\User::whereIn('id', $allowedIds)->with('profile')->get();
+            $collectors = User::whereIn('id', $allowedIds)->with('profile')->get();
         } else {
             $collectors = collect([$user])->merge($downline);
         }
@@ -106,7 +109,7 @@ class SurveyController extends Controller
         $user = Auth::user();
 
         // Permission check
-        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_create_surveys')) {
+        if (!$user->isSuperAdmin() && !RolePermission::check($user->designation, 'can_create_surveys')) {
             abort(403, 'Unauthorized: You do not have permission to create surveys.');
         }
 
@@ -124,7 +127,7 @@ class SurveyController extends Controller
         $currentUser = Auth::user();
 
         // Permission check
-        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_create_surveys')) {
+        if (!$currentUser->isSuperAdmin() && !RolePermission::check($currentUser->designation, 'can_create_surveys')) {
             abort(403, 'Unauthorized: You do not have permission to create surveys.');
         }
 
@@ -152,7 +155,7 @@ class SurveyController extends Controller
 
         $createdBy = $currentUser->id;
         if ($request->filled('created_by_user')) {
-            $targetUser = \App\Models\User::findOrFail($request->created_by_user);
+            $targetUser = User::findOrFail($request->created_by_user);
 
             // Authorization Check: Target must be in requester's downline or be themselves
             if ($targetUser->id !== $currentUser->id && !$currentUser->canAccess($targetUser)) {
@@ -172,7 +175,7 @@ class SurveyController extends Controller
         $survey->created_by = $createdBy;
         $survey->save();
 
-        \App\Models\ActivityLog::logActivity(
+        ActivityLog::logActivity(
             action: 'survey_created',
             description: "New health survey created for {$survey->full_name} ({$survey->patient_id})",
             modelType: 'App\Models\Survey',
@@ -235,7 +238,7 @@ class SurveyController extends Controller
         $survey->health_issues = $healthIssues;
         $survey->save();
 
-        \App\Models\ActivityLog::logActivity(
+        ActivityLog::logActivity(
             action: 'survey_updated',
             description: "Health survey updated for {$survey->full_name} ({$survey->patient_id})",
             modelType: 'App\Models\Survey',
@@ -265,7 +268,7 @@ class SurveyController extends Controller
 
         $survey->delete();
 
-        \App\Models\ActivityLog::logActivity(
+        ActivityLog::logActivity(
             action: 'survey_deleted',
             description: "Health survey deleted for {$patientName} ({$patientId})",
             modelType: 'App\Models\Survey',
@@ -296,6 +299,7 @@ class SurveyController extends Controller
         $skipped = 0;
 
         foreach ($surveysToDelete as $survey) {
+            /** @var Survey $survey */
             if ($survey->appointments()->count() === 0) {
                 $survey->delete();
                 $count++;
@@ -309,7 +313,7 @@ class SurveyController extends Controller
             $message .= " Skipped {$skipped} surveys because they have associated appointments.";
         }
 
-        \App\Models\ActivityLog::logActivity(
+        ActivityLog::logActivity(
             action: 'bulk_survey_deleted',
             description: "Bulk deleted {$count} health surveys. Skipped {$skipped}.",
             modelType: 'App\Models\Survey'

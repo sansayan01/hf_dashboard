@@ -188,6 +188,7 @@
                                 <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Performed By
                                 </th>
                             @endunless
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Location</th>
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
                                 Actions</th>
                         </tr>
@@ -204,6 +205,7 @@
                                             <td class="p-4">
                                                 @if($view === 'sponsors')
                                                     @php
+                                                        /** @var \App\Models\InventoryTransaction $transaction */
                                                         $sponsor = $transaction->sponsor;
                                                         if (!$sponsor && $transaction->stock) {
                                                             // Fallback to the 'in' transaction of this stock
@@ -226,115 +228,134 @@
                                             </td>
                                             <td class="p-4">
                                                 <div class="flex flex-col">
-                                                    <span
-                                                        class="font-black text-sm {{ $view === 'sponsors' ? 'text-accent' : '' }}">{{ $transaction->stock?->medicine?->name ?? 'Deleted Medicine' }}</span>
-                                                    <div class="flex items-center flex-wrap gap-x-2 gap-y-1 text-slate-400 font-medium">
-                                                        <span class="text-[10px]">Batch:
-                                                            #{{ $transaction->stock?->batch_number ?? 'N/A' }}</span>
-                                                        <span class="text-slate-200 dark:text-white/10 text-[10px]">•</span>
+                                                    @if($view === 'dispenses')
+                                                        @php /** @var \App\Models\MedicineDistribution $transaction */ @endphp
+                                                        <div class="flex flex-wrap gap-2">
+                                                            @foreach($transaction->items as $item)
+                                                                <div class="group relative flex items-center gap-1.5 bg-slate-50 dark:bg-white/5 pr-2 pl-1 py-1 rounded-lg border border-slate-100 dark:border-white/10">
+                                                                    <span class="font-black text-[11px] text-slate-700 dark:text-slate-200">{{ $item->medicine->name }}</span>
+                                                                    <span class="text-[9px] font-black text-accent bg-accent/10 px-1 rounded">x{{ $item->quantity }}</span>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @else
+                                                        @php /** @var \App\Models\InventoryTransaction $transaction */ @endphp
                                                         <span
-                                                            class="text-[10px] text-accent font-black uppercase tracking-widest">{{ $transaction->warehouse?->name ?? 'Main Warehouse' }}</span>
-                                                    </div>
+                                                            class="font-black text-sm {{ $view === 'sponsors' ? 'text-accent' : '' }}">{{ $transaction->stock?->medicine?->name ?? 'Deleted Medicine' }}</span>
+                                                        <div class="flex items-center flex-wrap gap-x-2 gap-y-1 text-slate-400 font-medium">
+                                                            <span class="text-[10px]">Batch:
+                                                                #{{ $transaction->stock?->batch_number ?? 'N/A' }}</span>
+                                                            <span class="text-slate-200 dark:text-white/10 text-[10px]">•</span>
+                                                            <span
+                                                                class="text-[10px] text-accent font-black uppercase tracking-widest">{{ $transaction->warehouse?->name ?? 'Main Warehouse' }}</span>
+                                                        </div>
+                                                    @endif
                                                 </div>
-                            </div>
-                            </td>
-                            <td class="p-4">
-                                <span
-                                    class="text-sm font-black {{ in_array($transaction->type, ['in', 'adjustment', 'in']) ? 'text-emerald-500' : 'text-red-500' }}">
-                                    {{ in_array($transaction->type, ['in', 'adjustment', 'in']) ? '+' : '-' }}{{ $transaction->quantity }}
-                                </span>
-                            </td>
-                            <td class="p-4">
-                                @if($view === 'dispenses')
-                                    @php
-                                        $distId = filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
-                                        $distribution = \App\Models\MedicineDistribution::find($distId);
-                                    @endphp
-                                    @if($distribution)
-                                        <span class="text-sm font-black text-slate-800 dark:text-white">
-                                            ₹{{ number_format($distribution->final_amount, 2) }}
-                                        </span>
-                                    @else
-                                        <span class="text-[10px] font-bold text-slate-400">N/A</span>
-                                    @endif
-                                @elseif($view === 'sponsors')
-                                    @php
-                                        $distId = filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
-                                        $lineValue = 0;
-                                        if ($distId) {
-                                            $distItem = \App\Models\MedicineDistributionItem::where('distribution_id', $distId)
-                                                ->where('medicine_id', $transaction->stock?->medicine_id)
-                                                ->first();
-                                            if ($distItem) {
-                                                $lineValue = $distItem->unit_price * $transaction->quantity;
-                                            }
-                                        }
-                                    @endphp
-                                    <span class="text-sm font-black text-accent">
-                                        ₹{{ number_format($lineValue, 2) }}
-                                    </span>
-                                @else
-                                    @php
-                                        $colors = [
-                                            'in' => 'bg-emerald-100 text-emerald-600',
-                                            'out' => 'bg-red-100 text-red-600',
-                                            'dispense' => 'bg-blue-100 text-blue-600',
-                                            'adjustment' => 'bg-slate-100 text-slate-600',
-                                            'expired' => 'bg-amber-100 text-amber-600',
-                                            'damaged' => 'bg-red-100 text-red-600',
-                                        ];
-                                        $color = $colors[$transaction->type] ?? 'bg-slate-100 text-slate-600';
-                                    @endphp
-                                    <span class="px-2 py-1 {{ $color }} text-[10px] font-black rounded-lg uppercase tracking-tight">
-                                        {{ ucfirst($transaction->type) }}
-                                    </span>
-                                @endif
-                            </td>
-                            @unless($view === 'sponsors')
-                                <td class="p-4">
-                                    <span
-                                        class="text-xs font-bold text-slate-600 dark:text-slate-300">{{ $transaction->user->profile->full_name ?? $transaction->user->employee_id }}</span>
-                                </td>
-                            @endunless
-                            <td class="p-4">
-                                <span
-                                    class="text-[10px] text-accent font-black uppercase tracking-widest">{{ $transaction->warehouse?->name ?? 'N/A' }}</span>
-                            </td>
-                            <td class="p-4 text-right">
-                                @if(auth()->user()->isSuperAdmin())
-                                    <div class="flex items-center justify-end space-x-2">
-                                        <button
-                                            onclick="openEditModal({{ $transaction->id }}, {{ $transaction->quantity }}, '{{ addslashes($transaction->notes ?? '') }}')"
-                                            class="p-2 text-slate-400 hover:text-accent transition">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                            </svg>
-                                        </button>
-                                        <form action="{{ route('inventory.transactions.destroy', $transaction->id) }}" method="POST"
-                                            class="inline"
-                                            onsubmit="return confirm('Are you sure? This will revert the stock levels based on this record.')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="p-2 text-slate-400 hover:text-danger transition">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                @else
-                                    <span class="text-[10px] font-bold text-slate-400">Locked</span>
-                                @endif
-                            </td>
-                            </tr>
-                        @empty
-                <tr>
-                    <td colspan="7" class="p-10 text-center text-slate-500 font-medium">No transactions recorded
-                        yet.
-                    </td>
-                </tr>
-            @endforelse
+                                            </td>
+                                            <td class="p-4">
+                                                @if($view === 'dispenses')
+                                                    <span class="text-xs font-bold text-slate-500">{{ $transaction->items->count() }} Medicine(s)</span>
+                                                @else
+                                                    <span
+                                                        class="text-sm font-black {{ in_array($transaction->type, ['in', 'adjustment', 'in']) ? 'text-emerald-500' : 'text-red-500' }}">
+                                                        {{ in_array($transaction->type, ['in', 'adjustment', 'in']) ? '+' : '-' }}{{ $transaction->quantity }}
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="p-4">
+                                                @if($view === 'dispenses')
+                                                    <div class="flex flex-col">
+                                                        <span class="text-sm font-black text-slate-800 dark:text-white">
+                                                            ₹{{ number_format($transaction->final_amount, 2) }}
+                                                        </span>
+                                                        <a href="{{ route('medicine.invoice', $transaction->id) }}" target="_blank" class="text-[9px] font-black text-accent uppercase hover:underline">Invoice #{{ $transaction->id }}</a>
+                                                    </div>
+                                                @elseif($view === 'sponsors')
+                                                    @php
+                                                        /** @var \App\Models\InventoryTransaction $transaction */
+                                                        $distId = filter_var($transaction->notes, FILTER_SANITIZE_NUMBER_INT);
+                                                        $lineValue = 0;
+                                                        if ($distId) {
+                                                            $distItem = \App\Models\MedicineDistributionItem::where('distribution_id', $distId)
+                                                                ->where('medicine_id', $transaction->stock?->medicine_id)
+                                                                ->first();
+                                                            if ($distItem) {
+                                                                $lineValue = $distItem->unit_price * $transaction->quantity;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    <span class="text-sm font-black text-accent">
+                                                        ₹{{ number_format($lineValue, 2) }}
+                                                    </span>
+                                                @else
+                                                    @php
+                                                        /** @var \App\Models\InventoryTransaction $transaction */
+                                                        $colors = [
+                                                            'in' => 'bg-emerald-100 text-emerald-600',
+                                                            'out' => 'bg-red-100 text-red-600',
+                                                            'dispense' => 'bg-blue-100 text-blue-600',
+                                                            'adjustment' => 'bg-slate-100 text-slate-600',
+                                                            'expired' => 'bg-amber-100 text-amber-600',
+                                                            'damaged' => 'bg-red-100 text-red-600',
+                                                        ];
+                                                        $color = $colors[$transaction->type] ?? 'bg-slate-100 text-slate-600';
+                                                    @endphp
+                                                    <span class="px-2 py-1 {{ $color }} text-[10px] font-black rounded-lg uppercase tracking-tight">
+                                                        {{ ucfirst($transaction->type) }}
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            @unless($view === 'sponsors')
+                                                <td class="p-4">
+                                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">
+                                                        @if($view === 'dispenses')
+                                                            {{ $transaction->pharmacist->profile->full_name ?? $transaction->pharmacist->employee_id }}
+                                                        @else
+                                                            {{ $transaction->user->profile->full_name ?? $transaction->user->employee_id }}
+                                                        @endif
+                                                    </span>
+                                                </td>
+                                            @endunless
+                                            <td class="p-4">
+                                                <span class="text-xs font-medium text-slate-500">
+                                                    @if($view === 'dispenses')
+                                                        {{ $transaction->camp->name ?? 'N/A' }}
+                                                    @else
+                                                        {{ $transaction->warehouse->name ?? 'Main Warehouse' }}
+                                                    @endif
+                                                </span>
+                                            </td>
+                                            <td class="p-4 text-right">
+                                                <div class="flex justify-end items-center space-x-2">
+                                                    @if($view === 'dispenses')
+                                                        <a href="{{ route('medicine.invoice', $transaction->id) }}" target="_blank"
+                                                            class="p-2 text-slate-400 hover:text-accent transition" title="Download Invoice">
+                                                            <i class="fas fa-file-pdf text-sm"></i>
+                                                        </a>
+                                                    @else
+                                                        @if(!$isStaff)
+                                                            <button type="button" onclick="openEditModal('{{ $transaction->id }}', '{{ $transaction->quantity }}', '{{ addslashes($transaction->notes) }}')"
+                                                                class="p-2 text-slate-400 hover:text-accent transition">
+                                                                <i class="fas fa-edit text-sm"></i>
+                                                            </button>
+                                                        @endif
+                                                        <form action="{{ route('inventory.transactions.destroy', $transaction->id) }}"
+                                                            method="POST" class="inline"
+                                                            onsubmit="return confirm('Are you sure you want to delete this transaction? Stock will be reverted.')">
+                                                            @csrf @method('DELETE')
+                                                            <button type="submit" class="p-2 text-slate-400 hover:text-red-500 transition">
+                                                                <i class="fas fa-trash text-sm"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="8" class="p-10 text-center text-slate-500 font-medium">No transactions recorded yet.</td>
+                                        </tr>
+                                    @endforelse
             </tbody>
             </table>
         </div>

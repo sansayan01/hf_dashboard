@@ -10,7 +10,10 @@ class MedicineDistribution extends Model
         'patient_id',
         'camp_id',
         'pharmacist_id',
-        'total_amount'
+        'total_amount',
+        'discount_percentage',
+        'discount_amount',
+        'final_amount'
     ];
 
     public function patient()
@@ -31,20 +34,5 @@ class MedicineDistribution extends Model
     public function items()
     {
         return $this->hasMany(MedicineDistributionItem::class, 'distribution_id');
-    }
-
-    public function getDiscountPercentageAttribute()
-    {
-        return $this->total_amount > 300 ? 20 : 18;
-    }
-
-    public function getDiscountAmountAttribute()
-    {
-        return round(($this->total_amount * $this->discount_percentage) / 100, 2);
-    }
-
-    public function getFinalAmountAttribute()
-    {
-        return $this->total_amount - $this->discount_amount;
     }
 }

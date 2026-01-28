@@ -145,6 +145,7 @@ class MedicineDistributionController extends Controller
                         'quantity' => $deduct,
                         'user_id' => $user->id,
                         'patient_id' => $validated['patient_id'],
+                        'distribution_id' => $distribution->id,
                         'notes' => 'Dispensed via Distribution #' . $distribution->id,
                     ]);
                 }
@@ -167,7 +168,14 @@ class MedicineDistributionController extends Controller
                 $totalAmount += $lineTotal;
             }
 
+            $discountPercentage = $totalAmount > 300 ? 20 : 18;
+            $discountAmount = round(($totalAmount * $discountPercentage) / 100, 2);
+            $finalAmount = $totalAmount - $discountAmount;
+
             $distribution->total_amount = $totalAmount;
+            $distribution->discount_percentage = $discountPercentage;
+            $distribution->discount_amount = $discountAmount;
+            $distribution->final_amount = $finalAmount;
             $distribution->save();
 
             DB::commit();

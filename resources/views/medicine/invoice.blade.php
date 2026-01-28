@@ -13,18 +13,20 @@
                 </svg>
                 <span>Back to Registry</span>
             </a>
-            <button onclick="window.print()"
+            <button id="download-pdf"
                 class="px-6 py-2.5 bg-accent text-white font-black uppercase tracking-widest rounded-xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition flex items-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <span>Print Invoice</span>
+                <span>Download PDF</span>
             </button>
         </div>
 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
         <!-- Invoice Card -->
-        <div class="bg-white py-12 px-10 md:px-16 rounded-3xl shadow-xl border border-slate-100 print:shadow-none print:border-0 print:p-0">
+        <div id="invoice-card" class="bg-white py-12 px-10 md:px-16 rounded-3xl shadow-xl border border-slate-100 print:shadow-none print:border-0 print:p-0">
             <!-- Header -->
             <div class="flex justify-between items-start mb-12 border-b border-slate-100 pb-8">
                 <div>
@@ -162,4 +164,20 @@
             }
         }
     </style>
+
+    <script>
+        document.getElementById('download-pdf').addEventListener('click', function() {
+            const element = document.getElementById('invoice-card');
+            const opt = {
+                margin: 0.5,
+                filename: 'Invoice_{{ str_pad($distribution->id, 6, "0", STR_PAD_LEFT) }}.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            // New Promise-based usage:
+            html2pdf().set(opt).from(element).save();
+        });
+    </script>
 @endsection
