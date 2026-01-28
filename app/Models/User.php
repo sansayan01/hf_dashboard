@@ -639,4 +639,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(MedicineDistribution::class, 'pharmacist_id');
     }
+
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_user')
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
+
 }

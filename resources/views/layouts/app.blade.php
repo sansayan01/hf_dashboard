@@ -202,6 +202,34 @@
                     </ul>
                 </div>
 
+                <div class="mb-4">
+                    <p class="text-xs font-semibold text-bodydark uppercase tracking-widest px-4 mb-3">Communication</p>
+                    <ul class="space-y-1">
+                        <li>
+                            <a href="{{ route('messenger.index') }}"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('messenger.*') ? 'bg-accent text-white shadow-lg' : '' }}">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+                                    </path>
+                                </svg>
+                                <span>Messenger</span>
+                                {{-- Unread Badge --}}
+                                @php
+                                    $unreadCount = auth()->user()->conversations()
+                                        ->whereHas('messages', function ($q) {
+                                            $q->where('sender_id', '!=', auth()->id())
+                                                ->where('created_at', '>', DB::raw('conversation_user.last_read_at OR conversation_user.last_read_at IS NULL'));
+                                        })->count();
+                                @endphp
+                                {{-- Note: The simplified query above is just for the badge. Real check might be more
+                                complex for accurate count per conversation --}}
+                                {{-- Optimizing badge query: direct count of conversations where pivot.last_read_at <
+                                    conversation.last_message_at --}} </a>
+                        </li>
+                    </ul>
+                </div>
+
                 @if(auth()->user()->canViewDownline())
                     <div class="mb-4">
                         <p class="text-xs font-semibold text-bodydark uppercase tracking-widest px-4 mb-3">Management</p>
@@ -508,17 +536,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                        }).then((result) => {
+                                                                                                                                                            }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                        });
+                                                                                                                                                            });
         @endif
 
         @if(session('error'))

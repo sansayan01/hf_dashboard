@@ -10,9 +10,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('surveys', function (Blueprint $table) {
-            $table->boolean('is_member')->default(false)->after('insurance_loan_req');
-        });
+        if (!Schema::hasColumn('surveys', 'is_member')) {
+            Schema::table('surveys', function (Blueprint $table) {
+                $table->boolean('is_member')->default(false)->after('insurance_loan_req');
+            });
+        }
     }
 
     /**
