@@ -481,7 +481,8 @@ class User extends Authenticatable
 
         if ($latestOnly) {
             // Find max sequence among active users to get the "latest"
-            $lastUser = self::where('employee_id', 'like', $prefix . '%')
+            $lastUser = self::withTrashed()
+                ->where('employee_id', 'like', $prefix . '%')
                 ->where('employee_id', 'not like', 'TRASH_%')
                 ->orderBy('employee_id', 'desc')
                 ->first();
@@ -494,7 +495,8 @@ class User extends Authenticatable
             }
         } else {
             // Find first gap among active users
-            $existingIds = self::where('employee_id', 'like', $prefix . '%')
+            $existingIds = self::withTrashed()
+                ->where('employee_id', 'like', $prefix . '%')
                 ->where('employee_id', 'not like', 'TRASH_%')
                 ->pluck('employee_id')
                 ->map(function ($id) use ($prefix) {
@@ -517,7 +519,20 @@ class User extends Authenticatable
             $newSequence = str_pad($next, 6, '0', STR_PAD_LEFT);
         }
 
-        return $prefix . $newSequence;
+        // Final verification to ensure we don't return a duplicate
+        try {
+            $candidateId = $prefix . $newSequence;
+            while (\Illuminate\Support\Facades\DB::table('users')->where('employee_id', $candidateId)->exists()) {
+                $seq = (int) substr($candidateId, strlen($prefix));
+                $seq++;
+                $newSequence = str_pad($seq, 6, '0', STR_PAD_LEFT);
+                $candidateId = $prefix . $newSequence;
+            }
+        } catch (\Exception $e) {
+            // Fallback
+        }
+
+        return $candidateId;
     }
 
     // Check if user can access another user's data

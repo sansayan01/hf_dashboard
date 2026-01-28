@@ -82,8 +82,9 @@ class Survey extends Model
     private static function generateSequenceId($prefix, $length, $latestOnly)
     {
         if ($latestOnly) {
-            // Find max sequence among active users to get the "latest"
-            $last = self::where('patient_id', 'like', $prefix . '%')
+            // Find max sequence among all users (including trashed but not renamed ones) to avoid collision
+            $last = self::withTrashed()
+                ->where('patient_id', 'like', $prefix . '%')
                 ->where('patient_id', 'not like', 'TRASH_%')
                 ->orderBy('patient_id', 'desc')
                 ->first();
@@ -96,7 +97,8 @@ class Survey extends Model
             }
         } else {
             // Find first gap among active users
-            $existingIds = self::where('patient_id', 'like', $prefix . '%')
+            $existingIds = self::withTrashed()
+                ->where('patient_id', 'like', $prefix . '%')
                 ->where('patient_id', 'not like', 'TRASH_%')
                 ->pluck('patient_id')
                 ->map(function ($id) use ($prefix) {
@@ -119,7 +121,17 @@ class Survey extends Model
             $newSequence = str_pad($next, $length, '0', STR_PAD_LEFT);
         }
 
-        return $prefix . $newSequence;
+        // Final verification to ensure we don't return a duplicate
+        // Use DB table directly to bypass any model scopes/soft delete filters that might hide the record
+        $candidateId = $prefix . $newSequence;
+        while (\Illuminate\Support\Facades\DB::table('surveys')->where('patient_id', $candidateId)->exists()) {
+            $seq = (int) substr($candidateId, strlen($prefix));
+            $seq++;
+            $newSequence = str_pad($seq, $length, '0', STR_PAD_LEFT);
+            $candidateId = $prefix . $newSequence;
+        }
+
+        return $candidateId;
     }
 
     public function creator()

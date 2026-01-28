@@ -173,7 +173,25 @@ class SurveyController extends Controller
         $survey->pin = $validated['pin'];
         $survey->health_issues = $healthIssues;
         $survey->created_by = $createdBy;
-        $survey->save();
+
+        // Retry logic for duplicate ID
+        $maxRetries = 3;
+        $attempt = 0;
+        while ($attempt < $maxRetries) {
+            try {
+                $survey->save();
+                break;
+            } catch (\Illuminate\Database\QueryException $e) {
+                if ($e->errorInfo[1] === 1062) {
+                    $attempt++;
+                    if ($attempt >= $maxRetries)
+                        throw $e;
+                    $survey->patient_id = null;
+                    continue;
+                }
+                throw $e;
+            }
+        }
 
         ActivityLog::logActivity(
             action: 'survey_created',

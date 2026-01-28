@@ -181,7 +181,28 @@ class PatientController extends Controller
         $patient->health_issues = $healthIssues;
         $patient->insurance_loan_req = $validated['insurance_loan_req'] ?? 'No';
         $patient->created_by = $createdBy;
-        $patient->save();
+
+        // Retry logic for handling duplicate ID race conditions
+        $maxRetries = 3;
+        $attempt = 0;
+
+        while ($attempt < $maxRetries) {
+            try {
+                $patient->save();
+                break; // Success
+            } catch (\Illuminate\Database\QueryException $e) {
+                if ($e->errorInfo[1] === 1062) { // Duplicate entry
+                    $attempt++;
+                    if ($attempt >= $maxRetries) {
+                        throw $e; // Give up after max retries
+                    }
+                    // Reset patient_id to trigger regeneration in the boot event
+                    $patient->patient_id = null;
+                    continue;
+                }
+                throw $e; // Rethrow other errors
+            }
+        }
 
         \App\Models\ActivityLog::logActivity(
             action: 'patient_registered',
