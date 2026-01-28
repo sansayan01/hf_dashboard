@@ -82,13 +82,6 @@
                     </svg>
                     <span>Filter</span>
                 </button>
-                <a href="{{ route('patients.create') }}" 
-                   class="inline-flex items-center justify-center px-8 py-4 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-xl shadow-accent/20 hover:scale-105 active:scale-95 transition-all space-x-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>New Patient Record</span>
-                </a>
             </div>
         </div>
 
@@ -217,7 +210,7 @@
                 <p class="text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-10 font-medium leading-relaxed">
                     Start collecting field data by creating your first patient record. All submissions will appear here for management review.
                 </p>
-                <a href="{{ route('patients.create') }}" class="inline-block text-accent font-black uppercase tracking-[0.2em] text-[10px] hover:underline">Begin Field Work &rarr;</a>
+                <a href="{{ route('membership.index') }}" class="inline-block text-accent font-black uppercase tracking-[0.2em] text-[10px] hover:underline">Register via Membership &rarr;</a>
             </div>
         @else
             <div class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden">

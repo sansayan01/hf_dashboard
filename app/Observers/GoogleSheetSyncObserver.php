@@ -80,6 +80,8 @@ class GoogleSheetSyncObserver
                 $collectorId = $model->creator?->employee_id ?? 'N/A';
                 $collector = "{$collectorName} ({$collectorId})";
 
+                $lookupId = $model->isDirty('patient_id') ? $model->getOriginal('patient_id') : $model->patient_id;
+
                 // Sync to PATIENTS sheet (Basic Info)
                 \App\Jobs\SyncToGoogleSheetJob::dispatch('Patients', [
                     'Action' => $action,
@@ -94,7 +96,7 @@ class GoogleSheetSyncObserver
                     'address' => $model->address,
                     'pin' => $model->pin,
                     'collector' => $collector,
-                ], 'patientId', $model->patient_id)->afterResponse();
+                ], 'patientId', $lookupId)->afterResponse();
 
                 // Sync to SURVEYS sheet (Detailed Health Info)
                 \App\Jobs\SyncToGoogleSheetJob::dispatch('Surveys', [
@@ -112,7 +114,7 @@ class GoogleSheetSyncObserver
                     'insuranceLoanReq' => $model->insurance_loan_req,
                     'landmark' => $model->landmark,
                     'collector' => $collector,
-                ], 'patientId', $model->patient_id)->afterResponse();
+                ], 'patientId', $lookupId)->afterResponse();
 
                 return;
 

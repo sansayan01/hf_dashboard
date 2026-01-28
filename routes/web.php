@@ -8,6 +8,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AttendanceController;
 use Illuminate\Support\Facades\Route;
 
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -97,6 +98,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // Membership Management
     Route::get('/membership', [App\Http\Controllers\MembershipController::class, 'index'])->name('membership.index');
     Route::get('/patients/{patient}/membership', [App\Http\Controllers\MembershipController::class, 'show'])->name('patients.membership');
+    Route::post('/patients/{patient}/membership/register', [App\Http\Controllers\MembershipController::class, 'register'])->name('membership.register');
 
     // Global Appointments (Accessible from Sidebar)
     Route::get('/appointments', [AppointmentController::class, 'all'])->name('appointments.all');

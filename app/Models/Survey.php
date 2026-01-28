@@ -53,11 +53,32 @@ class Survey extends Model
         // Find the last patient ID with this prefix (including deleted ones)
         $lastPatient = self::withTrashed()
             ->where('patient_id', 'like', $prefix . '%')
-            ->orderBy('patient_id', 'desc')
+            ->orderBy('id', 'desc')
             ->first();
 
         if ($lastPatient) {
             $lastId = $lastPatient->patient_id;
+            $lastSequence = (int) substr($lastId, strlen($prefix));
+            $newSequence = str_pad($lastSequence + 1, 7, '0', STR_PAD_LEFT);
+        } else {
+            $newSequence = '0000001';
+        }
+
+        return $prefix . $newSequence;
+    }
+
+    public static function generateMembershipId()
+    {
+        $prefix = 'HFM';
+
+        // Find the last membership ID with this prefix (including deleted ones)
+        $lastMember = self::withTrashed()
+            ->where('patient_id', 'like', $prefix . '%')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($lastMember) {
+            $lastId = $lastMember->patient_id;
             $lastSequence = (int) substr($lastId, strlen($prefix));
             $newSequence = str_pad($lastSequence + 1, 7, '0', STR_PAD_LEFT);
         } else {

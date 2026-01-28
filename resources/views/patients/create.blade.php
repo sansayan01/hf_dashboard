@@ -1,35 +1,39 @@
 @extends('layouts.app')
 
-@section('title', 'Register Patient')
-@section('header_title', 'New Patient Registration')
+@section('title', 'Membership Registration')
+@section('header_title', 'New Member Registration')
 
 @section('content')
     <div class="max-w-4xl mx-auto pb-20">
         <div
             class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden">
             <div class="p-8 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                <h3 class="font-black text-xl text-slate-800 dark:text-white">Patient Registration</h3>
-                <p class="text-sm text-slate-500 mt-1 font-medium">Please provide the patient details below.</p>
+                <h3 class="font-black text-xl text-slate-800 dark:text-white">New Member Registration</h3>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Please provide the member/patient details below.</p>
             </div>
 
             <form action="{{ route('patients.store') }}" method="POST" class="p-8 space-y-8">
                 @csrf
 
                 @if(count($users) > 0)
-                    <div class="p-6 bg-indigo-50/50 dark:bg-indigo-500/5 rounded-2xl border-2 border-indigo-100 dark:border-indigo-500/20 space-y-4">
+                    <div
+                        class="p-6 bg-indigo-50/50 dark:bg-indigo-500/5 rounded-2xl border-2 border-indigo-100 dark:border-indigo-500/20 space-y-4">
                         <div class="flex items-center space-x-3 text-indigo-600 dark:text-indigo-400">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            <h4 class="text-sm font-black uppercase tracking-widest">{{ auth()->user()->isSuperAdmin() ? 'Register Behalf Of' : 'Register for Team Member' }}</h4>
+                            <h4 class="text-sm font-black uppercase tracking-widest">
+                                {{ auth()->user()->isSuperAdmin() ? 'Register Behalf Of' : 'Register for Team Member' }}</h4>
                         </div>
                         <div class="space-y-2">
-                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Team Member (Search by Name or ID)</label>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Team
+                                Member (Search by Name or ID)</label>
                             <input list="team_members" name="created_by_user_search" id="created_by_user_search"
                                 class="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none text-sm font-bold text-slate-700 dark:text-white transition-all focus:border-indigo-500"
-                                placeholder="Start typing name or employee ID..."
-                                oninput="updateUserId(this.value)">
-                            <input type="hidden" name="created_by_user" id="created_by_user" value="{{ old('created_by_user') }}">
+                                placeholder="Start typing name or employee ID..." oninput="updateUserId(this.value)">
+                            <input type="hidden" name="created_by_user" id="created_by_user"
+                                value="{{ old('created_by_user') }}">
                             <datalist id="team_members">
                                 @foreach($users as $u)
                                     <option value="{{ $u->employee_id }} - {{ $u->profile->full_name }}" data-id="{{ $u->id }}">
@@ -47,7 +51,8 @@
                                     document.getElementById('created_by_user').value = foundId;
                                 }
                             </script>
-                            <p class="text-[10px] text-slate-400 font-medium italic">If left empty, the patient will be registered under your name.</p>
+                            <p class="text-[10px] text-slate-400 font-medium italic">If left empty, the patient will be
+                                registered under your name.</p>
                         </div>
                     </div>
                 @endif
@@ -139,26 +144,30 @@
                     <!-- Health Issues -->
                     <div class="space-y-4">
                         <div class="space-y-4">
-                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Health Issues (Category)</label>
-                            
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Health Issues
+                                (Category)</label>
+
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 @php
                                     $standardIssues = ['Gas', 'Sugar', 'Pressure', 'Thyroid', 'Uric Acid', 'Skin/Hair', 'Heart', 'Eye', 'ENT', 'Dental'];
                                 @endphp
                                 @foreach($standardIssues as $index => $issue)
-                                    <label for="health_issue_{{ $index }}" class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-accent/30 cursor-pointer transition-all has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5">
-                                        <input type="checkbox" name="health_issue_category[]" value="{{ $issue }}" id="health_issue_{{ $index }}"
+                                    <label for="health_issue_{{ $index }}"
+                                        class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-accent/30 cursor-pointer transition-all has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5">
+                                        <input type="checkbox" name="health_issue_category[]" value="{{ $issue }}"
+                                            id="health_issue_{{ $index }}"
                                             class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent"
                                             {{ is_array(old('health_issue_category')) && in_array($issue, old('health_issue_category')) ? 'checked' : '' }}>
                                         <span class="text-sm font-bold text-slate-700 dark:text-white">{{ $issue }}</span>
                                     </label>
                                 @endforeach
-                                
-                                <label for="health_any_other" class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-accent/30 cursor-pointer transition-all has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5">
-                                    <input type="checkbox" name="health_issue_category[]" value="Any other" id="health_any_other"
+
+                                <label for="health_any_other"
+                                    class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-accent/30 cursor-pointer transition-all has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5">
+                                    <input type="checkbox" name="health_issue_category[]" value="Any other"
+                                        id="health_any_other"
                                         class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent"
-                                        onchange="toggleHealthOther(this.checked)"
-                                        {{ is_array(old('health_issue_category')) && in_array('Any other', old('health_issue_category')) ? 'checked' : '' }}>
+                                        onchange="toggleHealthOther(this.checked)" {{ is_array(old('health_issue_category')) && in_array('Any other', old('health_issue_category')) ? 'checked' : '' }}>
                                     <span class="text-sm font-bold text-slate-700 dark:text-white">Any other</span>
                                 </label>
                             </div>
@@ -317,8 +326,8 @@
                         Cancel
                     </a>
                     <button type="submit"
-                        class="px-8 py-4 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">
-                        Register Patient
+                        class="px-8 py-4 bg-amber-500 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all">
+                        Register Member
                     </button>
                 </div>
             </form>
