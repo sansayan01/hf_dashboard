@@ -67,6 +67,25 @@ class AppointmentController extends Controller
             $query->whereDate('appointment_date', $request->date);
         }
 
+        // Apply Geographic Filters
+        if ($request->filled('district')) {
+            $query->whereHas('creator.profile', function ($q) use ($request) {
+                $q->where('district', $request->district);
+            });
+        }
+
+        if ($request->filled('block')) {
+            $query->whereHas('creator.profile', function ($q) use ($request) {
+                $q->where('block', $request->block);
+            });
+        }
+
+        if ($request->filled('gp')) {
+            $query->whereHas('creator.profile', function ($q) use ($request) {
+                $q->where('gram_panchayat', $request->gp);
+            });
+        }
+
         // Filter by Doctor Type / Search
         if ($request->filled('search')) {
             $search = $request->search;
@@ -82,7 +101,13 @@ class AppointmentController extends Controller
 
         $appointments = $query->latest('appointment_date')->latest('appointment_time')->paginate(20);
 
-        return view('appointments.all', compact('appointments'));
+        // Get Geographic Data for Dropdowns based on allowed users
+        $geoProfiles = \App\Models\UserProfile::whereIn('user_id', $allowedIds)->get();
+        $districts = $geoProfiles->pluck('district')->filter()->unique()->values();
+        $blocks = $geoProfiles->pluck('block')->filter()->unique()->values();
+        $gps = $geoProfiles->pluck('gram_panchayat')->filter()->unique()->values();
+
+        return view('appointments.all', compact('appointments', 'districts', 'blocks', 'gps'));
     }
 
     /**

@@ -94,33 +94,75 @@
 
         <!-- Search & Filter Bar -->
         <div class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm">
-            <form action="{{ route('appointments.all') }}" method="GET" class="no-loader flex flex-col lg:flex-row items-center gap-4">
-                <div class="flex-1 w-full relative">
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                        placeholder="Search Patient Name, ID, or Clinic Type..."
-                        class="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-accent focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white">
-                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+            <form action="{{ route('appointments.all') }}" method="GET" class="no-loader flex flex-col gap-4">
+                <div class="flex flex-col lg:flex-row items-center gap-4 w-full">
+                    <div class="flex-1 w-full relative">
+                        <input type="text" name="search" value="{{ request('search') }}" 
+                            placeholder="Search Patient Name, ID, or Clinic Type..."
+                            class="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-accent focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white">
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="w-full lg:w-48 relative">
+                        <input type="date" name="date" value="{{ request('date') }}"
+                            class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-accent focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white">
+                    </div>
+                    
+                    <div class="flex items-center space-x-3 w-full lg:w-auto">
+                        <input type="hidden" name="view" value="{{ request('view', 'scheduled') }}">
+                        <button type="button" onclick="document.getElementById('advanced-filters').classList.toggle('hidden')" 
+                            class="px-4 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                        </button>
+                        <button type="submit" class="flex-1 lg:flex-none px-8 py-4 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">
+                            Filter
+                        </button>
+                        @if(request()->anyFilled(['search', 'date', 'district', 'block', 'gp']))
+                            <a href="{{ route('appointments.all', ['view' => request('view', 'scheduled')]) }}" class="px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-danger rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest border border-transparent hover:border-danger/20">
+                                Reset
+                            </a>
+                        @endif
                     </div>
                 </div>
 
-                <div class="w-full lg:w-48 relative">
-                    <input type="date" name="date" value="{{ request('date') }}"
-                        class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-accent focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white">
-                </div>
-                
-                <div class="flex items-center space-x-3 w-full lg:w-auto">
-                    <input type="hidden" name="view" value="{{ request('view', 'scheduled') }}">
-                    <button type="submit" class="flex-1 lg:flex-none px-8 py-4 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">
-                        Filter
-                    </button>
-                    @if(request()->anyFilled(['search', 'date']))
-                        <a href="{{ route('appointments.all', ['view' => request('view', 'scheduled')]) }}" class="px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-danger rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest border border-transparent hover:border-danger/20">
-                            Reset
-                        </a>
-                    @endif
+                <!-- Advanced Filters -->
+                <div id="advanced-filters" class="{{ request()->anyFilled(['district', 'block', 'gp']) ? '' : 'hidden' }} grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 dark:border-white/5 pt-4">
+                    <!-- District -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">District</label>
+                        <select name="district" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                            <option value="">All Districts</option>
+                            @foreach($districts as $district)
+                                <option value="{{ $district }}" {{ request('district') == $district ? 'selected' : '' }}>{{ $district }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Block -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Block</label>
+                        <select name="block" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                            <option value="">All Blocks</option>
+                            @foreach($blocks as $block)
+                                <option value="{{ $block }}" {{ request('block') == $block ? 'selected' : '' }}>{{ $block }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Gram Panchayat -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Gram Panchayat</label>
+                        <select name="gp" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                            <option value="">All GPs</option>
+                            @foreach($gps as $gp)
+                                <option value="{{ $gp }}" {{ request('gp') == $gp ? 'selected' : '' }}>{{ $gp }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
             </form>
         </div>

@@ -51,6 +51,24 @@ class SurveyController extends Controller
             $query->where('created_by', $request->collector_id);
         }
 
+        if ($request->filled('district')) {
+            $query->whereHas('creator.profile', function ($q) use ($request) {
+                $q->where('district', $request->district);
+            });
+        }
+
+        if ($request->filled('block')) {
+            $query->whereHas('creator.profile', function ($q) use ($request) {
+                $q->where('block', $request->block);
+            });
+        }
+
+        if ($request->filled('gp')) {
+            $query->whereHas('creator.profile', function ($q) use ($request) {
+                $q->where('gram_panchayat', $request->gp);
+            });
+        }
+
         if ($request->filled('gender')) {
             $query->where('gender', $request->gender);
         }
@@ -98,7 +116,13 @@ class SurveyController extends Controller
             $collectors = collect([$user])->merge($downline);
         }
 
-        return view('surveys.index', compact('surveys', 'collectors'));
+        // Get Geographic Data for Dropdowns based on allowed users
+        $geoProfiles = \App\Models\UserProfile::whereIn('user_id', $allowedIds)->get();
+        $districts = $geoProfiles->pluck('district')->filter()->unique()->values();
+        $blocks = $geoProfiles->pluck('block')->filter()->unique()->values();
+        $gps = $geoProfiles->pluck('gram_panchayat')->filter()->unique()->values();
+
+        return view('surveys.index', compact('surveys', 'collectors', 'districts', 'blocks', 'gps'));
     }
 
     /**

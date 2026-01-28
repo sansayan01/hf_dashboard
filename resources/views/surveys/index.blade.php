@@ -119,6 +119,39 @@
                         </div>
                     </div>
 
+                    <!-- District -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">District</label>
+                        <select name="district" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                            <option value="">All Districts</option>
+                            @foreach($districts as $district)
+                                <option value="{{ $district }}" {{ request('district') == $district ? 'selected' : '' }}>{{ $district }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Block -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Block</label>
+                        <select name="block" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                            <option value="">All Blocks</option>
+                            @foreach($blocks as $block)
+                                <option value="{{ $block }}" {{ request('block') == $block ? 'selected' : '' }}>{{ $block }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Gram Panchayat -->
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Gram Panchayat</label>
+                        <select name="gp" class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                            <option value="">All GPs</option>
+                            @foreach($gps as $gp)
+                                <option value="{{ $gp }}" {{ request('gp') == $gp ? 'selected' : '' }}>{{ $gp }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <!-- Gender -->
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Gender</label>
@@ -166,7 +199,7 @@
                     <div class="lg:col-span-3 flex items-end justify-end space-x-2 pt-2">
                         <button type="submit"
                             class="h-10 px-6 bg-accent text-white rounded-xl text-sm font-bold hover:opacity-90 transition shadow-lg shadow-accent/10">Apply Filters</button>
-                        @if(request()->anyFilled(['search', 'gender', 'health_issue', 'date_from', 'date_to', 'collector_id']))
+                        @if(request()->anyFilled(['search', 'gender', 'health_issue', 'date_from', 'date_to', 'collector_id', 'district', 'block', 'gp']))
                             <a href="{{ route('surveys.index') }}"
                                 class="h-10 px-6 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold flex items-center justify-center hover:opacity-90 transition">Reset</a>
                         @endif
