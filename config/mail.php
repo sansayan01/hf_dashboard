@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'failover'),
 
     /*
     |--------------------------------------------------------------------------
@@ -79,11 +79,36 @@ return [
             'transport' => 'array',
         ],
 
+        'quota_primary' => [
+            'transport' => 'quota',
+            'daily_limit' => 100, // Limit for primary email
+            'url' => env('MAIL_URL'),
+            'host' => env('MAIL_HOST', '127.0.0.1'),
+            'port' => env('MAIL_PORT', 2525),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
+            'timeout' => null,
+            'local_domain' => env('MAIL_EHLO_DOMAIN'),
+        ],
+
+        'smtp_secondary' => [
+            'transport' => 'smtp',
+            'url' => env('MAIL_URL'),
+            'host' => env('MAIL_SECONDARY_HOST', '127.0.0.1'),
+            'port' => env('MAIL_SECONDARY_PORT', 2525),
+            'encryption' => env('MAIL_SECONDARY_ENCRYPTION', 'tls'),
+            'username' => env('MAIL_SECONDARY_USERNAME'),
+            'password' => env('MAIL_SECONDARY_PASSWORD'),
+            'timeout' => null,
+            'local_domain' => env('MAIL_EHLO_DOMAIN'),
+        ],
+
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
-                'smtp',
-                'log',
+                'quota_primary',
+                'smtp_secondary',
             ],
         ],
 
