@@ -348,8 +348,8 @@
                     </button>
                 </div>
 
-                <div class="overflow-hidden rounded-2xl border border-slate-100 dark:border-white/5">
-                    <table class="w-full text-left border-collapse">
+                <div class="overflow-auto max-h-[60vh] rounded-2xl border border-slate-100 dark:border-white/5">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr class="bg-slate-50 dark:bg-white/5">
                                 <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap">Date & Time</th>
