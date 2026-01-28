@@ -138,14 +138,6 @@ class MembershipController extends Controller
             $patient->payment_screenshot = $path;
         }
 
-        // Combine health issues
-        $healthIssuesArr = $validated['health_issue_category'] ?? [];
-        $healthIssuesArr = array_filter($healthIssuesArr, fn($val) => $val !== 'Any other');
-        if ($request->filled('health_issue_other')) {
-            $healthIssuesArr[] = $request->health_issue_other;
-        }
-        $healthIssues = implode(', ', $healthIssuesArr);
-
         // Update record and upgrade to member
         $patient->fill($validated);
         if ($couponUsed) {
@@ -153,7 +145,6 @@ class MembershipController extends Controller
             $patient->payment_method = 'Coupon: ' . $coupon->code;
             $coupon->markAsUsed(auth()->id());
         }
-        $patient->health_issues = $healthIssues;
         $patient->is_member = true;
 
         // Generate and assign new Membership ID

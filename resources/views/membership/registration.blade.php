@@ -211,39 +211,6 @@
                         </div>
                     </div>
 
-                    <!-- Health Issues -->
-                    <div class="space-y-4">
-                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Update Health
-                            Issues</label>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            @php
-                                $standardIssues = ['Gas', 'Sugar', 'Pressure', 'Thyroid', 'Uric Acid', 'Skin/Hair', 'Heart', 'Eye', 'ENT', 'Dental'];
-                                $currentIssues = explode(', ', $patient->health_issues);
-                            @endphp
-                            @foreach($standardIssues as $index => $issue)
-                                <label
-                                    class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-amber-500/30 cursor-pointer transition-all has-[:checked]:border-amber-500/50 has-[:checked]:bg-amber-500/5">
-                                    <input type="checkbox" name="health_issue_category[]" value="{{ $issue }}"
-                                        class="w-5 h-5 rounded border-slate-300 text-amber-500 focus:ring-amber-500 accent-amber-500"
-                                        {{ in_array($issue, $currentIssues) ? 'checked' : '' }}>
-                                    <span class="text-xs font-bold text-slate-700 dark:text-white">{{ $issue }}</span>
-                                </label>
-                            @endforeach
-                            <label
-                                class="flex items-center space-x-3 p-4 bg-slate-100/50 dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-amber-500/30 cursor-pointer transition-all has-[:checked]:border-amber-500/50 has-[:checked]:bg-amber-500/5">
-                                <input type="checkbox" name="health_issue_category[]" value="Any other"
-                                    id="health_any_other"
-                                    class="w-5 h-5 rounded border-slate-300 text-amber-500 focus:ring-amber-500 accent-amber-500"
-                                    onchange="toggleHealthOther(this.checked)">
-                                <span class="text-xs font-bold text-slate-700 dark:text-white">Any other</span>
-                            </label>
-                        </div>
-                        <div id="health-other-container" class="space-y-2 hidden">
-                            <textarea name="health_issue_other" rows="2"
-                                class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white"
-                                placeholder="Describe other health issues...">{{ old('health_issue_other') }}</textarea>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Section: Payment Details (Matching User Registration Design) -->
@@ -620,10 +587,7 @@
             });
         });
 
-        function toggleHealthOther(isChecked) {
-            const container = document.getElementById('health-other-container');
-            container.classList.toggle('hidden', !isChecked);
-        }
+
 
         window.validatePAN = function (input) {
             let val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
