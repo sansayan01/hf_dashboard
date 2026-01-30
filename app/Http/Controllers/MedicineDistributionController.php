@@ -19,8 +19,8 @@ class MedicineDistributionController extends Controller
     {
         $user = Auth::user();
 
-        // Pharmacists can only see their assigned camp
-        if ($user->designation === 'staff' && $user->camp_id) {
+        // Pharmacists and Office In-Charges can only see their assigned camp
+        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
             $camps = InventoryWarehouse::where('id', $user->camp_id)
                 ->where('type', InventoryWarehouse::TYPE_CAMP)
                 ->where('is_active', true)

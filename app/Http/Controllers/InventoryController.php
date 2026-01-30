@@ -55,8 +55,8 @@ class InventoryController extends Controller
         $query = InventoryStock::with(['medicine.category', 'warehouse', 'sponsor'])
             ->where('quantity', '>', 0);
 
-        // Pharmacists can only see stock from their assigned camp
-        if ($user->designation === 'staff' && $user->camp_id) {
+        // Pharmacists and Office In-Charges can only see stock from their assigned camp
+        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
             $query->where('warehouse_id', $user->camp_id);
         } elseif ($request->has('warehouse_id') && $request->warehouse_id != '') {
             $query->where('warehouse_id', $request->warehouse_id);
@@ -66,8 +66,8 @@ class InventoryController extends Controller
 
         // Low stock medicines - filter by camp for pharmacists
         $lowStockQuery = Medicine::with('category');
-        if ($user->designation === 'staff' && $user->camp_id) {
-            // For pharmacists, only show low stock for their camp
+        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
+            // For pharmacists and OICs, only show low stock for their camp
             $lowStockMedicines = $lowStockQuery->get()->filter(function ($medicine) use ($user) {
                 $campStock = $medicine->stocks()->where('warehouse_id', $user->camp_id)->sum('quantity');
                 return $campStock <= $medicine->min_stock_level;
@@ -78,8 +78,8 @@ class InventoryController extends Controller
             });
         }
 
-        // Warehouses - pharmacists only see their camp
-        if ($user->designation === 'staff' && $user->camp_id) {
+        // Warehouses - pharmacists/OICs only see their camp
+        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
             $warehouses = InventoryWarehouse::where('id', $user->camp_id)->where('is_active', true)->get();
         } else {
             $warehouses = InventoryWarehouse::where('is_active', true)->get();
@@ -89,8 +89,8 @@ class InventoryController extends Controller
         $medicineData = Medicine::with('category')
             ->get()
             ->map(function ($medicine) use ($user) {
-                if ($user->designation === 'staff' && $user->camp_id) {
-                    // For pharmacists, only show stock from their camp
+                if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
+                    // For pharmacists and OICs, only show stock from their camp
                     $quantity = $medicine->stocks()->where('warehouse_id', $user->camp_id)->sum('quantity');
                 } else {
                     $quantity = $medicine->totalStock;
@@ -169,11 +169,12 @@ class InventoryController extends Controller
      */
     public function exportTransactions()
     {
-        $isStaff = auth()->user()->designation === 'staff';
-        $defaultView = $isStaff ? 'dispenses' : 'movements';
+        $isStaff = auth()->user()->designation === 'staff' || auth()->user()->isOfficeInCharge();
+        $isRestricted = $isStaff && auth()->user()->camp_id;
+        $defaultView = $isRestricted ? 'dispenses' : 'movements';
         $view = request('view', $defaultView);
 
-        if ($isStaff && $view === 'movements') {
+        if ($isRestricted && $view === 'movements') {
             $view = 'dispenses';
         }
 
@@ -328,12 +329,13 @@ class InventoryController extends Controller
 
     public function transactions()
     {
-        $isStaff = auth()->user()->designation === 'staff';
-        $defaultView = $isStaff ? 'dispenses' : 'movements';
+        $isStaff = auth()->user()->designation === 'staff' || auth()->user()->isOfficeInCharge();
+        $isRestricted = $isStaff && auth()->user()->camp_id;
+        $defaultView = $isRestricted ? 'dispenses' : 'movements';
         $view = request('view', $defaultView);
 
-        // Prevent staff from viewing 'movements'
-        if ($isStaff && $view === 'movements') {
+        // Prevent restricted users from viewing 'movements'
+        if ($isRestricted && $view === 'movements') {
             $view = 'dispenses';
         }
 
@@ -539,7 +541,7 @@ class InventoryController extends Controller
         $patients = Survey::orderBy('full_name')->get();
 
         // Pharmacists can only see their assigned camp
-        if ($user->designation === 'staff' && $user->camp_id) {
+        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
             $warehouses = InventoryWarehouse::where('id', $user->camp_id)->where('is_active', true)->get();
             // Only show medicines available in their camp
             $medicines = Medicine::whereHas('stocks', function ($q) use ($user) {
@@ -704,7 +706,7 @@ class InventoryController extends Controller
         $user = auth()->user();
 
         // Pharmacists can only see their assigned camp
-        if ($user->designation === 'staff' && $user->camp_id) {
+        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
             $warehouses = InventoryWarehouse::where('id', $user->camp_id)->where('is_active', true)->get();
             // Only show medicines available in their camp
             $medicines = Medicine::whereHas('stocks', function ($q) use ($user) {

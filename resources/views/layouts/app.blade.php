@@ -183,7 +183,7 @@
                                 </a>
                             </li>
                         @endif
-                        @if(auth()->user()->isSuperAdmin() || auth()->user()->designation === 'staff')
+                        @if(auth()->user()->isSuperAdmin() || auth()->user()->designation === 'staff' || auth()->user()->isOfficeInCharge())
                             <li>
                                 <a href="{{ route('inventory.index') }}"
                                     class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('inventory.*') && !request()->routeIs('inventory.camps.*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -536,17 +536,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                            }).then((result) => {
+                                                                                                                                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                            });
+                                                                                                                                                                });
         @endif
 
         @if(session('error'))

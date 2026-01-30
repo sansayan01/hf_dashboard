@@ -224,6 +224,12 @@ class User extends Authenticatable
         return $this->designation === 'office_in_charge' || $this->is_office_in_charge;
     }
 
+    // Check if user is strictly a regular Staff (Pharmacist)
+    public function isRegularStaff()
+    {
+        return $this->designation === 'staff' && !$this->is_office_in_charge;
+    }
+
     // Check if user can create users
     public function canCreateUsers()
     {
