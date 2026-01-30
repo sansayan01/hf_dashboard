@@ -209,13 +209,14 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/export', [App\Http\Controllers\CouponCodeController::class, 'export'])->name('export');
     });
 
-    // Messenger
-    Route::prefix('messenger')->name('messenger.')->group(function () {
-        Route::get('/', [App\Http\Controllers\MessengerController::class, 'index'])->name('index');
-        Route::get('/start/{user}', [App\Http\Controllers\MessengerController::class, 'start'])->name('start');
-        Route::get('/{conversation}', [App\Http\Controllers\MessengerController::class, 'show'])->name('show');
-        Route::post('/{conversation}/messages', [App\Http\Controllers\MessengerController::class, 'store'])->name('messages.store');
-    });
+    // Messenger (Disabled)
+    // Route::prefix('messenger')->name('messenger.')->group(function () {
+    //     Route::get('/', [App\Http\Controllers\MessengerController::class, 'index'])->name('index');
+    //     Route::get('/start/{user}', [App\Http\Controllers\MessengerController::class, 'start'])->name('start');
+    //     Route::get('/{conversation}', [App\Http\Controllers\MessengerController::class, 'show'])->name('show');
+    //     Route::post('/{conversation}/messages', [App\Http\Controllers\MessengerController::class, 'store'])->name('messages.store');
+    // });
+
 
 });
 
