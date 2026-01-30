@@ -33,6 +33,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // User Management
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/staffs', [UserController::class, 'staffIndex'])->name('staffIndex');
+        Route::get('/export', [UserController::class, 'export'])->name('export');
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/create', [UserController::class, 'create'])->name('create');
         Route::post('/', [UserController::class, 'store'])->name('store');
@@ -73,6 +74,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     });
 
     Route::prefix('patients')->name('patients.')->group(function () {
+        Route::get('/export', [PatientController::class, 'export'])->name('export');
         Route::get('/', [PatientController::class, 'index'])->name('index');
         Route::get('/create', [PatientController::class, 'create'])->name('create');
         Route::post('/', [PatientController::class, 'store'])->name('store');

@@ -154,6 +154,152 @@ class UserController extends Controller
         return view('users.staff_index', compact('users'));
     }
 
+    public function export(Request $request)
+    {
+        $currentUser = auth()->user();
+        $type = $request->get('type', 'team'); // 'team' or 'staff'
+
+        $query = User::with(['profile', 'parent.profile', 'upline.profile', 'bankDetails', 'camp']);
+
+        if ($type === 'staff') {
+            if (!$currentUser->isSuperAdmin()) {
+                abort(403, 'Unauthorized access');
+            }
+            $query->where(function ($q) {
+                $q->whereIn('designation', ['staff', 'office_in_charge'])
+                    ->orWhere('is_office_in_charge', true);
+            });
+        } else {
+            // My Team logic
+            if (!$currentUser->isSuperAdmin()) {
+                if (!$currentUser->canViewDownline()) {
+                    abort(403, 'Unauthorized access');
+                }
+                $downlineIds = $currentUser->getAllDownline()->pluck('id');
+                $query->whereIn('id', $downlineIds);
+            } else {
+                $query->where('id', '!=', $currentUser->id);
+            }
+            $query->whereNotIn('designation', ['staff', 'office_in_charge'])
+                ->where('is_office_in_charge', false);
+        }
+
+        // Apply filters (same as index/staffIndex)
+        if ($request->filled('district')) {
+            $query->whereHas('profile', function ($q) use ($request) {
+                $q->where('district', $request->district);
+            });
+        }
+        if ($request->filled('block')) {
+            $query->whereHas('profile', function ($q) use ($request) {
+                $q->where('block', $request->block);
+            });
+        }
+        if ($request->filled('gram_panchayat')) {
+            $query->whereHas('profile', function ($q) use ($request) {
+                $q->where('gram_panchayat', $request->gram_panchayat);
+            });
+        }
+        if ($request->filled('designation')) {
+            $query->where('designation', $request->designation);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('employee_id', 'like', "%{$search}%")
+                    ->orWhereHas('profile', function ($pq) use ($search) {
+                        $pq->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('phone_number', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $users = $query->latest()->get();
+
+        $filename = ($type === 'staff' ? "staffs_" : "team_") . date('Ymd_His') . ".csv";
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function () use ($users, $type) {
+            // Clear any previous output to prevent ERR_INVALID_RESPONSE
+            if (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            $file = fopen('php://output', 'w');
+
+            // Header Row
+            fputcsv($file, [
+                'Designation',                       // A
+                'Employee ID',                       // B
+                'Full Name',                         // C
+                $type === 'staff' ? 'Upline' : 'Parent', // D
+                'Phone Number',                      // E
+                'Email',                             // F
+                'Blood Group',
+                'Aadhaar Number',
+                'PAN Number',
+                'Address',
+                'State',
+                'District',
+                'Block',
+                'GP',
+                'Pin Code',
+                'Bank Name',
+                'Account Number',
+                'IFSC Code',
+                'Joining Date'
+            ]);
+
+            foreach ($users as $user) {
+                $parentName = 'N/A';
+                if ($type === 'staff' && ($user->designation === 'office_in_charge' || $user->is_office_in_charge)) {
+                    $parentName = $user->upline->profile->full_name ?? $user->upline->employee_id ?? 'N/A';
+                } else {
+                    $parentName = $user->parent->profile->full_name ?? $user->parent->employee_id ?? 'N/A';
+                }
+
+                // Relationship data with safeguards
+                $profile = $user->profile;
+                $bank = $user->bankDetails;
+
+                fputcsv($file, [
+                    $user->getDesignationLabel(),      // A
+                    $user->employee_id,               // B
+                    $profile->full_name ?? 'N/A',      // C
+                    $parentName,                       // D
+                    ($profile && $profile->phone_number) ? "\t" . $profile->phone_number : 'N/A', // E
+                    $user->email,                      // F
+                    $profile->blood_group ?? 'N/A',
+                    ($profile && $profile->aadhaar_number) ? "\t" . $profile->aadhaar_number : 'N/A',
+                    $profile->pan_number ?? 'N/A',
+                    $profile->address ?? 'N/A',
+                    $profile->state ?? 'N/A',
+                    $profile->district ?? 'N/A',
+                    $profile->block ?? 'N/A',
+                    $profile->gram_panchayat ?? 'N/A',
+                    $profile->pin_code ?? 'N/A',
+                    $bank->bank_name ?? 'N/A',
+                    ($bank && $bank->account_number) ? "\t" . $bank->account_number : 'N/A',
+                    $bank->ifsc_code ?? 'N/A',
+                    $user->created_at->format('Y-m-d')
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     /**
      * Show the form for creating a new user
      */

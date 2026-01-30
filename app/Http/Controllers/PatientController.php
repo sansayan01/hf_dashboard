@@ -11,6 +11,125 @@ class PatientController extends Controller
     /**
      * Display a listing of the patients.
      */
+    public function export(Request $request)
+    {
+        $user = Auth::user();
+
+        // Permission check
+        if (
+            !$user->isSuperAdmin() &&
+            !\App\Models\RolePermission::check($user->designation, 'can_create_surveys') &&
+            $user->designation !== 'staff'
+        ) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        if ($user->designation === 'staff') {
+            $allowedIds = Survey::pluck('created_by')->unique()->toArray();
+        } else {
+            $downline = $user->getAllDownline();
+            $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
+        }
+
+        $query = Survey::with('creator.profile')
+            ->whereIn('created_by', $allowedIds)
+            ->where('is_member', false);
+
+        // Apply filters (same as index)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('patient_id', 'like', "%{$search}%")
+                    ->orWhere('phone_number', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('collector_id')) {
+            $query->where('created_by', $request->collector_id);
+        }
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+        if ($request->filled('health_issue')) {
+            $query->where('health_issues', 'like', "%{$request->health_issue}%");
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $patients = $query->latest()->get();
+
+        $filename = "patients_" . date('Ymd_His') . ".csv";
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function () use ($patients) {
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, [
+                'Patient ID',
+                'Full Name',
+                'Relative Name',
+                'Age',
+                'Gender',
+                'Phone',
+                'Address',
+                'Landmark',
+                'PIN',
+                'Blood Group',
+                'Aadhaar Number',
+                'PAN Number',
+                'District',
+                'Block',
+                'GP',
+                'Past Diseases',
+                'Current Health Issues',
+                'Insurance/Loan Req',
+                'Collector Name',
+                'Collector ID',
+                'Registration Date'
+            ]);
+
+            foreach ($patients as $p) {
+                fputcsv($file, [
+                    $p->patient_id,
+                    $p->full_name,
+                    $p->relative_name ?? 'N/A',
+                    $p->age,
+                    ucfirst($p->gender),
+                    $p->phone_number,
+                    $p->address,
+                    $p->landmark ?? 'N/A',
+                    $p->pin,
+                    $p->blood_group ?? 'N/A',
+                    $p->aadhar_number ?? 'N/A',
+                    $p->pan_number ?? 'N/A',
+                    $p->district ?? 'N/A',
+                    $p->block ?? 'N/A',
+                    $p->gp ?? 'N/A',
+                    $p->past_diseases ?? 'None',
+                    $p->health_issues ?? 'None',
+                    $p->insurance_loan_req ?? 'No',
+                    $p->creator->profile->full_name ?? 'N/A',
+                    $p->creator->employee_id ?? 'N/A',
+                    $p->created_at->format('Y-m-d')
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
