@@ -4,6 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $patient_id
+ * @property int $camp_id
+ * @property int $pharmacist_id
+ * @property float $total_amount
+ * @property float $discount_percentage
+ * @property float $discount_amount
+ * @property float $final_amount
+ * @property \Illuminate\Support\Carbon $created_at
+ * @property \Illuminate\Support\Carbon $updated_at
+ */
 class MedicineDistribution extends Model
 {
     protected $fillable = [

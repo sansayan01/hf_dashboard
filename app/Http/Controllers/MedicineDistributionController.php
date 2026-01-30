@@ -45,10 +45,16 @@ class MedicineDistributionController extends Controller
         }
 
         // Search medicines that have stock in the selected camp
-        $medicines = Medicine::where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-                ->orWhere('generic_name', 'like', "%{$search}%");
-        })
+        $medicines = Medicine::with([
+            'stocks' => function ($q) use ($campId) {
+                $q->where('warehouse_id', $campId)
+                    ->where('quantity', '>', 0);
+            }
+        ])
+            ->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('generic_name', 'like', "%{$search}%");
+            })
             ->whereHas('stocks', function ($q) use ($campId) {
                 $q->where('warehouse_id', $campId)
                     ->where('quantity', '>', 0);
@@ -57,7 +63,7 @@ class MedicineDistributionController extends Controller
             ->get()
             ->map(function ($medicine) use ($campId) {
                 // Calculate total stock for this camp precisely
-                $availableStock = (int) $medicine->stocks()
+                $availableStock = (int) $medicine->stocks
                     ->where('warehouse_id', $campId)
                     ->where('quantity', '>', 0)
                     ->sum('quantity');
@@ -127,12 +133,12 @@ class MedicineDistributionController extends Controller
                 $remainingToDeduct = $quantityToDispense;
 
                 foreach ($stocks as $stock) {
+                    /** @var InventoryStock $stock */
                     if ($remainingToDeduct <= 0)
                         break;
 
                     $deduct = min($stock->quantity, $remainingToDeduct);
-                    $stock->quantity -= $deduct;
-                    $stock->save();
+                    $stock->decrement('quantity', $deduct);
 
                     $remainingToDeduct -= $deduct;
 

@@ -1110,7 +1110,7 @@ class UserController extends Controller
 
                 // Queue approval emails (non-blocking, processed in background)
                 try {
-                    \Mail::to($user->email)->queue(new \App\Mail\UserApproved($user, $currentUser));
+                    \Mail::to($user->email)->queue(new UserApproved($user, $currentUser));
                 } catch (\Exception $e) {
                     \Log::error('Failed to queue bulk approval email for user ' . $user->id . ': ' . $e->getMessage());
                 }
@@ -1120,7 +1120,7 @@ class UserController extends Controller
 
             // Bulk insert all activity logs (single query)
             if (!empty($activityLogs)) {
-                \App\Models\ActivityLog::insert($activityLogs);
+                ActivityLog::insert($activityLogs);
             }
 
             \DB::commit();
