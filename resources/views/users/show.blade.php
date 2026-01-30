@@ -148,7 +148,7 @@
                             $uplineName = $uplineUser?->profile?->full_name ?? 'ROOT / Super Admin';
                         @endphp
 
-                        @if(auth()->user()->isSuperAdmin() && $uplineUser)
+                        @if((auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) && $uplineUser)
                             <a href="{{ route('users.show', $uplineUser->id) }}"
                                 class="text-sm font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
                                 <span>{{ $uplineName }}</span>
