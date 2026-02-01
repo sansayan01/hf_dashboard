@@ -604,6 +604,7 @@
             }
             @endif
 
+            @endif
 
             const stateSelect = document.getElementById('state-select');
             const districtSelect = document.getElementById('district-select');
