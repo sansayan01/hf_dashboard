@@ -97,7 +97,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div>
+                        <div id="parent-selection-wrapper">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Reports To (Parent)</label>
                             <select name="parent_id" id="parent-select"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
@@ -106,6 +106,23 @@
                                     <option value="{{ $user->parent_id }}" selected>{{ $user->parent->profile->full_name ?? $user->parent->employee_id }} (Current)</option>
                                 @endif
                             </select>
+                        </div>
+                        
+                        <!-- Camp Selection (Pharmacist Only) -->
+                        <div id="camp-selection-wrapper" class="hidden">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Assign Camp Location</label>
+                            <select name="camp_id" id="camp-select"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                                <option value="">Select Camp</option>
+                                @if(isset($camps))
+                                    @foreach($camps as $camp)
+                                        <option value="{{ $camp->id }}" {{ old('camp_id', $user->camp_id) == $camp->id ? 'selected' : '' }}>
+                                            {{ $camp->name }} {{ $camp->location ? '('.$camp->location.')' : '' }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <p class="text-xs text-slate-500 mt-1">Pharmacist will be assigned to this camp location.</p>
                         </div>
                     </div>
 
@@ -516,19 +533,34 @@
                     }
                     parentSelect.disabled = false;
                 }
-                @endif
                 
-                // Top Level Roles
-                if (designation === 'super_admin' || designation === 'hs') {
-                    parentSelect.disabled = true;
+                // Top Level Roles and Staff (Pharmacist)
+                if (designation === 'super_admin' || designation === 'hs' || designation === 'staff') {
                     parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
-                    // If current user is parent (e.g. HS created by SA), we might want to keep it?
-                    // But backend logic handles null/current assignment for Top Level.
-                    // Let's leave value empty or allow keeping existing if it matches logic?
-                    // Actually, if HS, parent IS SA/OI. Backend sets it.
-                    // But here we are editing. If existing HS has parent SA, we want to keep it.
-                    // But visual "None (Top Level)" implies no manual selection needed.
+                    parentSelect.required = false;
+                    
+                    // For Staff (Pharmacist), hide Parent select and Show Camp Select
+                    if (designation === 'staff') {
+                        document.getElementById('parent-selection-wrapper').classList.add('hidden');
+                        document.getElementById('camp-selection-wrapper').classList.remove('hidden');
+                        document.getElementById('camp-select').required = true;
+                    } else {
+                        document.getElementById('parent-selection-wrapper').classList.remove('hidden');
+                        document.getElementById('camp-selection-wrapper').classList.add('hidden');
+                        document.getElementById('camp-select').required = false;
+                        
+                        parentSelect.closest('div').classList.add('opacity-50');
+                        parentSelect.disabled = true;
+                    }
                 } else {
+                    // Reset visibility for other designations
+                    document.getElementById('parent-selection-wrapper').classList.remove('hidden');
+                    document.getElementById('camp-selection-wrapper').classList.add('hidden');
+                    document.getElementById('camp-select').required = false;
+                    parentSelect.closest('div').classList.remove('opacity-50');
+                    parentSelect.disabled = false;
+                    parentSelect.required = true;
+                    
                     let targetParentDesignation = '';
                     if (designation === 'dm') targetParentDesignation = 'hs';
                     else if (designation === 'bm') targetParentDesignation = 'dm';

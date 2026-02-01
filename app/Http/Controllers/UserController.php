@@ -750,7 +750,10 @@ class UserController extends Controller
             }
         }
 
-        return view('users.edit', compact('user', 'allDesignations', 'potentialParents', 'potentialUplines'));
+        // Get Camps for Pharmacist assignment
+        $camps = \App\Models\InventoryWarehouse::where('type', 'camp')->where('is_active', true)->get();
+
+        return view('users.edit', compact('user', 'allDesignations', 'potentialParents', 'potentialUplines', 'camps'));
     }
 
     /**
@@ -800,6 +803,7 @@ class UserController extends Controller
 
             $rules['can_create_users'] = 'nullable|boolean';
             $rules['can_edit_user_details'] = 'nullable|boolean';
+            $rules['camp_id'] = 'nullable|exists:inventory_warehouses,id';
         }
 
         $validated = $request->validate($rules);
@@ -931,6 +935,11 @@ class UserController extends Controller
             if ($currentUser->isSuperAdmin()) {
                 $userData['can_create_users'] = $request->has('can_create_users');
                 $userData['can_edit_user_details'] = $request->has('can_edit_user_details');
+            }
+
+            // Update Camp ID for Pharmacists (Super Admin/Office In-Charge Only)
+            if (($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) && $request->has('camp_id')) {
+                $userData['camp_id'] = $request->camp_id;
             }
 
             $user->update($userData);
