@@ -33,18 +33,18 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div id="parent-selection-wrapper">
+                        <div id="parent-selection-wrapper" class="{{ request('type') === 'staff' ? 'hidden' : '' }}">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Assign Parent (Manager)</label>
-                            <select name="parent_id" id="parent-select" required
+                            <select name="parent_id" id="parent-select" {{ request('type') === 'staff' ? '' : 'required' }}
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Role First</option>
                             </select>
                         </div>
                         
                         <!-- Camp Selection (Pharmacist Only) -->
-                        <div id="camp-selection-wrapper" class="hidden">
+                        <div id="camp-selection-wrapper" class="{{ request('type') === 'staff' ? '' : 'hidden' }}">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Assign Camp Location</label>
-                            <select name="camp_id" id="camp-select"
+                            <select name="camp_id" id="camp-select" {{ request('type') === 'staff' ? 'required' : '' }}
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Camp</option>
                                 @if(isset($camps))
