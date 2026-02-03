@@ -545,7 +545,8 @@ class InventoryController extends Controller
     {
         $user = auth()->user();
         $patient = $patientId ? Survey::findOrFail($patientId) : null;
-        $patients = Survey::orderBy('full_name')->get();
+        $allowedIds = $user->getDataVisibilityIds();
+        $patients = Survey::whereIn('created_by', $allowedIds)->orderBy('full_name')->get();
 
         // Pharmacists can only see their assigned camp
         if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {

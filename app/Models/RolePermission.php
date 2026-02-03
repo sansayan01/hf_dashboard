@@ -41,7 +41,7 @@ class RolePermission extends Model
         }
 
         // Common permissions for managers
-        $managerPerms = ['can_create_users', 'can_view_downline', 'can_create_surveys', 'can_manage_appointments'];
+        $managerPerms = ['can_create_users', 'can_view_downline', 'can_create_surveys', 'can_manage_appointments', 'can_assign_oic'];
         if (in_array($role, ['dm', 'bm', 'rm']) && in_array($key, $managerPerms)) {
             return true;
         }

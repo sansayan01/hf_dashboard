@@ -24,12 +24,7 @@ class PatientController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        if ($user->designation === 'staff') {
-            $allowedIds = $user->getCampRMTeamIds();
-        } else {
-            $downline = $user->getAllDownline();
-            $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
-        }
+        $allowedIds = $user->getDataVisibilityIds();
 
         $query = Survey::with('creator.profile')
             ->whereIn('created_by', $allowedIds)
@@ -147,13 +142,8 @@ class PatientController extends Controller
         // Get all members this user is allowed to see data for
         // Pharmacists can see all patients (they need to dispense medicine to anyone)
         // Pharmacists can see patients under their camp RM's team
-        if ($user->designation === 'staff') {
-            $allowedIds = $user->getCampRMTeamIds();
-        } else {
-            // For other users: Self + All Downline
-            $downline = $user->getAllDownline();
-            $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
-        }
+        $allowedIds = $user->getDataVisibilityIds();
+        $downline = $user->getAllDownline(); // Still needed for the collectors filter dropdown
 
 
         $query = Survey::with('creator.profile')
@@ -471,14 +461,8 @@ class PatientController extends Controller
 
         $query = Survey::onlyTrashed()->with('creator.profile');
 
-        if (!$currentUser->isSuperAdmin()) {
-            if ($currentUser->designation === 'staff') {
-                $allowedIds = $currentUser->getCampRMTeamIds();
-            } else {
-                $allowedIds = $currentUser->getAllDownline()->pluck('id')->push($currentUser->id);
-            }
-            $query->whereIn('created_by', $allowedIds);
-        }
+        $allowedIds = $currentUser->getDataVisibilityIds();
+        $query->whereIn('created_by', $allowedIds);
 
         $patients = $query->latest('deleted_at')->paginate(20);
 

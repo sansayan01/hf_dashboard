@@ -1312,4 +1312,51 @@ class UserController extends Controller
         $format = $request->get('format', 'png'); // Default to PNG, can be 'pdf' or 'svg'
         return view('users.printable_id_cards', compact('users', 'format'));
     }
+
+    /**
+     * Toggle Officer in Charge status for a user
+     */
+    public function toggleOic(User $user)
+    {
+        $currentUser = auth()->user();
+
+        // Permission check
+        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_assign_oic')) {
+            abort(403, 'Unauthorized access: You do not have permission to assign Officer in Charge status.');
+        }
+
+        // Only ROs can be assigned as Officer in Charge via this button
+        if (!$user->isRO()) {
+            return back()->with('error', 'Only Relationship Officers can be assigned as Officer in Charge.');
+        }
+
+        // Toggle status
+        $user->is_office_in_charge = !$user->is_office_in_charge;
+
+        if ($user->is_office_in_charge) {
+            // Inherit upline from parent (RM) if available
+            $user->upline_id = $user->parent_id;
+            $user->upline_designation = $user->parent ? $user->parent->designation : null;
+        } else {
+            // Clear inheritance
+            $user->upline_id = null;
+            $user->upline_designation = null;
+        }
+
+        $user->save();
+
+        $statusLabel = $user->is_office_in_charge ? 'assigned as' : 'removed from';
+
+        // Log activity
+        ActivityLog::logActivity(
+            'oic_toggle',
+            $user->id,
+            $currentUser->id,
+            "User {$user->profile->full_name} was {$statusLabel} Officer in Charge.",
+            'User',
+            $user->id
+        );
+
+        return back()->with('success', "User " . ($user->is_office_in_charge ? "assigned as" : "removed from") . " Officer in Charge successfully.");
+    }
 }

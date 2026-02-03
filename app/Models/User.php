@@ -574,12 +574,6 @@ class User extends Authenticatable
 
             // Office In-Charge inherits access scope from their Upline
             if ($this->upline_id && $this->upline) {
-                // Can access if target is in Upline's downline
-                // Using efficient check: is target's root ancestor the upline? or is target in upline's downline list?
-                // Easiest is to check if target is contained in upline's downline.
-                // Note: user said "not above", so accessing Upline might likely be NO.
-                // But let's stick to "work under". 
-
                 // Can access the Upline? Usually subordinates can see manager profile.
                 if ($targetUser->id === $this->upline_id) {
                     return true;
@@ -588,7 +582,7 @@ class User extends Authenticatable
                 return $this->upline->getAllDownline()->contains('id', $targetUser->id);
             }
 
-            return true;
+            return false;
         }
 
         // Can access self
@@ -602,8 +596,37 @@ class User extends Authenticatable
             return in_array($targetUser->id, $allowedIds);
         }
 
-        // Can access if target is in downline
-        return in_array($targetUser->id, $this->getAllDownlineIds());
+        // Can access if target is in visibility scope
+        return in_array($targetUser->id, $this->getDataVisibilityIds());
+    }
+
+    /**
+     * Get all IDs that the current user has visibility over for data/patients
+     */
+    public function getDataVisibilityIds()
+    {
+        if ($this->isSuperAdmin()) {
+            return self::where('designation', '!=', 'super_admin')->pluck('id')->toArray();
+        }
+
+        if ($this->designation === 'staff') {
+            return $this->getCampRMTeamIds();
+        }
+
+        $ids = [$this->id];
+
+        if ($this->isOfficeInCharge()) {
+            // OIC inherits scope from Upline
+            if ($this->upline_id && $this->upline) {
+                $ids[] = $this->upline_id;
+                $ids = array_merge($ids, $this->upline->getAllDownlineIds());
+            }
+        } else {
+            // Regular user sees self + downline
+            $ids = array_merge($ids, $this->getAllDownlineIds());
+        }
+
+        return array_values(array_unique($ids));
     }
 
     // Check if user can edit another user's data

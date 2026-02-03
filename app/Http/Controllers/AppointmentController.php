@@ -39,8 +39,7 @@ class AppointmentController extends Controller
         }
 
         $user = auth()->user();
-        $downline = $user->getAllDownline();
-        $allowedIds = collect([$user])->merge($downline)->pluck('id')->toArray();
+        $allowedIds = $user->getDataVisibilityIds();
 
         $view = $request->get('view', 'scheduled');
 

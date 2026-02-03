@@ -34,6 +34,12 @@
                                 class="px-3 py-1 bg-accent/10 text-accent rounded-full text-[10px] font-black uppercase tracking-widest">
                                 {{ $user->getDesignationLabel() }}
                             </span>
+                            @if($user->is_office_in_charge && $user->designation !== 'office_in_charge')
+                                <span
+                                    class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-200">
+                                    Officer In Charge
+                                </span>
+                            @endif
                             @if($user->status === 'active')
                                 <span
                                     class="px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-black uppercase tracking-widest">Active</span>
@@ -104,6 +110,19 @@
                                     </a>
                                 </div>
                             </div>
+                        @endif
+                        @if($user->isRO() && (auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_assign_oic')))
+                            <form action="{{ route('users.toggle-oic', $user->id) }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                    class="px-6 py-3 {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200' : 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' }} font-bold rounded-xl text-sm hover:opacity-90 transition flex items-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    <span>{{ $user->is_office_in_charge ? 'Remove OIC' : 'Assign OIC' }}</span>
+                                </button>
+                            </form>
                         @endif
 
                         @if($currentUser->canEdit($user))
