@@ -6,7 +6,7 @@
 @section('content')
     <div class="space-y-8">
         <!-- Header Actions -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2 relative z-50">
             <div>
                 <h3 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
                     @if(request('view') === 'successful')
@@ -29,10 +29,10 @@
             </div>
             <div class="flex items-center gap-3">
                 <!-- Registry Filter Dropdown -->
-                <div class="relative">
+                <div class="relative z-[60]">
                     <button type="button" 
                         onclick="toggleDropdown('appointment-filter-dropdown')"
-                        class="px-5 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200/10 dark:border-white/5 shadow-sm flex items-center gap-2 hover:border-accent transition-all active:scale-95">
+                        class="px-5 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-black uppercase tracking-widest rounded-xl border border-slate-200/10 dark:border-white/5 shadow-sm flex items-center gap-2 hover:border-accent transition-all active:scale-95">
                         <span class="w-2 h-2 rounded-full {{ request('view') === 'successful' ? 'bg-emerald-500' : (request('view') === 'not_attended' ? 'bg-rose-500' : 'bg-accent') }}"></span>
                         @if(request('view') === 'successful') 
                             View: Successful 
@@ -54,8 +54,8 @@
                                     <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-[10px] font-black uppercase tracking-widest text-accent group-hover/tile:text-white transition-colors">Scheduled</p>
-                                    <p class="text-[8px] font-bold text-slate-400 group-hover/tile:text-white/70 transition-colors">Upcoming clinical visits</p>
+                                    <p class="text-xs font-black uppercase tracking-widest text-accent group-hover/tile:text-white transition-colors">Scheduled</p>
+                                    <p class="text-[10px] font-bold text-slate-400 group-hover/tile:text-white/70 transition-colors">Upcoming clinical visits</p>
                                 </div>
                             </a>
                             
@@ -66,8 +66,8 @@
                                     <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 group-hover/tile:text-white transition-colors">Successful</p>
-                                    <p class="text-[8px] font-bold text-slate-400 group-hover/tile:text-white/70 transition-colors">Completed health checkups</p>
+                                    <p class="text-xs font-black uppercase tracking-widest text-emerald-600 group-hover/tile:text-white transition-colors">Successful</p>
+                                    <p class="text-[10px] font-bold text-slate-400 group-hover/tile:text-white/70 transition-colors">Completed health checkups</p>
                                 </div>
                             </a>
 
@@ -78,8 +78,8 @@
                                     <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-[10px] font-black uppercase tracking-widest text-rose-600 group-hover/tile:text-white transition-colors">Not Attended</p>
-                                    <p class="text-[8px] font-bold text-slate-400 group-hover/tile:text-white/70 transition-colors">Missed or skipped visits</p>
+                                    <p class="text-xs font-black uppercase tracking-widest text-rose-600 group-hover/tile:text-white transition-colors">Not Attended</p>
+                                    <p class="text-[10px] font-bold text-slate-400 group-hover/tile:text-white/70 transition-colors">Missed or skipped visits</p>
                                 </div>
                             </a>
                         </div>
