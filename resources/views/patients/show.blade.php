@@ -53,7 +53,7 @@
                                 </svg>
                                 Dispense History
                             </button>
-                            @if($patient->is_member)
+                            @if($patient->is_member && auth()->user()->designation !== 'staff')
                                 <a href="{{ route('patients.membership', $patient->id) }}"
                                     class="px-6 py-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border border-emerald-500/20 font-bold rounded-xl text-sm hover:bg-emerald-500 hover:text-white transition flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +62,7 @@
                                     </svg>
                                     Membership Profile
                                 </a>
-                            @else
+                            @elseif(auth()->user()->designation !== 'staff')
                                 <a href="{{ route('patients.membership', $patient->id) }}"
                                     class="px-6 py-3 bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20 font-bold rounded-xl text-sm hover:bg-amber-500 hover:text-white transition flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
