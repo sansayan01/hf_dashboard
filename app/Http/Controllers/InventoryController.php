@@ -149,15 +149,22 @@ class InventoryController extends Controller
                 'quantity' => $validated['quantity'],
             ]);
 
-            InventoryTransaction::create([
+            $transactionData = [
                 'stock_id' => $stock->id,
-                'warehouse_id' => $validated['warehouse_id'],
-                'sponsor_id' => $validated['sponsor_id'] ?? null,
                 'type' => 'in',
                 'quantity' => $validated['quantity'],
                 'user_id' => auth()->id(),
                 'notes' => 'Stock Received',
-            ]);
+            ];
+
+            if (Schema::hasColumn('inventory_transactions', 'warehouse_id')) {
+                $transactionData['warehouse_id'] = $validated['warehouse_id'];
+            }
+            if (Schema::hasColumn('inventory_transactions', 'sponsor_id')) {
+                $transactionData['sponsor_id'] = $validated['sponsor_id'] ?? null;
+            }
+
+            InventoryTransaction::create($transactionData);
         });
 
         return redirect()->route('inventory.index')
@@ -603,16 +610,23 @@ class InventoryController extends Controller
                         $decrement = min($stock->quantity, $qtyToDispense);
                         $stock->decrement('quantity', $decrement);
 
-                        InventoryTransaction::create([
+                        $transactionData = [
                             'stock_id' => $stock->id,
-                            'warehouse_id' => $validated['warehouse_id'],
-                            'sponsor_id' => $stock->sponsor_id,
                             'type' => 'dispense',
                             'quantity' => $decrement,
                             'user_id' => auth()->id(),
                             'patient_id' => $validated['patient_id'],
                             'notes' => $validated['notes'],
-                        ]);
+                        ];
+
+                        if (Schema::hasColumn('inventory_transactions', 'warehouse_id')) {
+                            $transactionData['warehouse_id'] = $validated['warehouse_id'];
+                        }
+                        if (Schema::hasColumn('inventory_transactions', 'sponsor_id')) {
+                            $transactionData['sponsor_id'] = $stock->sponsor_id;
+                        }
+
+                        InventoryTransaction::create($transactionData);
 
                         $qtyToDispense -= $decrement;
                     }

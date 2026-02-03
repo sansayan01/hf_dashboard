@@ -12,6 +12,7 @@ use App\Models\Survey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class MedicineDistributionController extends Controller
 {
@@ -143,17 +144,27 @@ class MedicineDistributionController extends Controller
                     $remainingToDeduct -= $deduct;
 
                     // Record transaction for the log
-                    InventoryTransaction::create([
+                    $transactionData = [
                         'stock_id' => $stock->id,
-                        'warehouse_id' => $campId,
-                        'sponsor_id' => $stock->sponsor_id,
                         'type' => 'dispense',
                         'quantity' => $deduct,
                         'user_id' => $user->id,
                         'patient_id' => $validated['patient_id'],
-                        'distribution_id' => $distribution->id,
                         'notes' => 'Dispensed via Distribution #' . $distribution->id,
-                    ]);
+                    ];
+
+                    // Safely add columns that might be missing in older schemas
+                    if (Schema::hasColumn('inventory_transactions', 'warehouse_id')) {
+                        $transactionData['warehouse_id'] = $campId;
+                    }
+                    if (Schema::hasColumn('inventory_transactions', 'sponsor_id')) {
+                        $transactionData['sponsor_id'] = $stock->sponsor_id;
+                    }
+                    if (Schema::hasColumn('inventory_transactions', 'distribution_id')) {
+                        $transactionData['distribution_id'] = $distribution->id;
+                    }
+
+                    InventoryTransaction::create($transactionData);
                 }
 
                 $price = $medicine->market_price ?? 0;
