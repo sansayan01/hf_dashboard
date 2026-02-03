@@ -3,6 +3,59 @@
 @section('title', 'Stock Transfer')
 @section('header_title', 'NGO Pharmacy | Move Stock')
 
+@section('css')
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <style>
+        .ts-control {
+            border-radius: 1rem !important;
+            height: 3rem !important;
+            padding: 0 1.25rem !important;
+            display: flex !important;
+            align-items: center !important;
+            border: 1px solid #e2e8f0 !important;
+            background-color: white !important;
+            font-family: 'Outfit', sans-serif !important;
+        }
+
+        .dark .ts-control {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: white !important;
+        }
+
+        .ts-dropdown {
+            border-radius: 1rem !important;
+            margin-top: 5px !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+            font-family: 'Outfit', sans-serif !important;
+            background-color: white !important;
+        }
+
+        .dark .ts-dropdown {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: white !important;
+        }
+
+        .ts-dropdown .active {
+            background-color: #3C50E0 !important;
+            color: white !important;
+        }
+
+        .ts-dropdown .option.active * {
+            color: white !important;
+        }
+
+        .ts-dropdown .optgroup-header {
+            font-weight: 900 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            font-size: 10px !important;
+            color: #94a3b8 !important;
+        }
+    </style>
+@endsection
+
 @section('content')
     <div class="max-w-2xl mx-auto">
         <div
@@ -90,25 +143,27 @@
 @endsection
 
 @section('js')
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
         let itemCounter = 0;
+        const tomSelectInstances = {};
         const stockOptions = `
-                            <option value="">Select matching stock...</option>
-                            @foreach($medicines as $med)
-                                <optgroup label="{{ $med->name }} ({{ $med->unit }})">
-                                    @foreach($med->stocks as $stock)
-                                        <option value="{{ $stock->id }}" 
-                                                data-warehouse="{{ $stock->warehouse_id }}" 
-                                                data-quantity="{{ $stock->quantity }}"
-                                                data-unit="{{ $med->unit }}"
-                                                data-units-per-box="{{ $med->units_per_box ?? 100 }}"
-                                                class="stock-option">
-                                            Batch: #{{ $stock->batch_number }} | Exp: {{ $stock->expiry_date->format('M Y') }} | Qty: {{ $stock->quantity }}
-                                        </option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        `;
+                                                        <option value="">Select matching stock...</option>
+                                                        @foreach($medicines as $med)
+                                                            <optgroup label="{{ $med->name }} ({{ $med->unit }})">
+                                                                @foreach($med->stocks as $stock)
+                                                                    <option value="{{ $stock->id }}" 
+                                                                            data-warehouse="{{ $stock->warehouse_id }}" 
+                                                                            data-quantity="{{ $stock->quantity }}"
+                                                                            data-unit="{{ $med->unit }}"
+                                                                            data-units-per-box="{{ $med->units_per_box ?? 100 }}"
+                                                                            class="stock-option">
+                                                                        {{ $med->name }} | Batch: #{{ $stock->batch_number }} | Exp: {{ $stock->expiry_date->format('M Y') }} | Qty: {{ $stock->quantity }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </optgroup>
+                                                        @endforeach
+                                                    `;
 
         document.addEventListener('DOMContentLoaded', function () {
             handleSourceChange();
@@ -164,66 +219,122 @@
             itemRow.className = 'transfer-item p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700';
             itemRow.id = `item_${itemCounter}`;
             itemRow.innerHTML = `
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div class="md:col-span-2">
-                                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Stock Item</label>
-                                        <select name="items[${itemCounter}][stock_id]" class="stock-select" required onchange="updateItemMaxQty(${itemCounter})"
-                                            class="w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
-                                            ${stockOptions}
-                                        </select>
-                                        <div class="qty-indicator mt-2 text-[10px] font-bold text-accent hidden">
-                                            Available: <span class="max-qty-label">0</span> <span class="max-qty-unit">units</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                                            <span class="quantity-label">Quantity</span>
-                                        </label>
-                                        <div class="flex space-x-2">
-                                            <input type="number" class="quantity-input flex-1 h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" 
-                                                min="1" placeholder="0" required onchange="calculateItemQuantity(${itemCounter})">
-                                            <input type="hidden" name="items[${itemCounter}][quantity]" class="actual-quantity">
-                                            ${itemCounter > 1 ? '<button type="button" onclick="removeTransferItem(' + itemCounter + ')" class="px-3 h-12 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition">Remove</button>' : ''}
-                                        </div>
-                                        <p class="quantity-hint mt-1 text-[10px] text-slate-500 font-medium"></p>
-                                    </div>
-                                </div>
-                            `;
+                                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                                <div class="md:col-span-2">
+                                                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Stock Item</label>
+                                                                    <select name="items[${itemCounter}][stock_id]" class="stock-select w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" required onchange="updateItemMaxQty(${itemCounter})">
+                                                                        ${stockOptions}
+                                                                    </select>
+                                                                    <div class="qty-indicator mt-2 text-[10px] font-bold text-accent hidden">
+                                                                        Available: <span class="max-qty-label">0</span> <span class="max-qty-unit">units</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                                                                        <span class="quantity-label">Quantity</span>
+                                                                    </label>
+                                                                    <div class="flex space-x-2">
+                                                                        <input type="number" class="quantity-input flex-1 h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" 
+                                                                            min="1" placeholder="0" required onchange="calculateItemQuantity(${itemCounter})">
+                                                                        <input type="hidden" name="items[${itemCounter}][quantity]" class="actual-quantity">
+                                                                        ${itemCounter > 1 ? '<button type="button" onclick="removeTransferItem(' + itemCounter + ')" class="px-3 h-12 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition">Remove</button>' : ''}
+                                                                    </div>
+                                                                    <p class="quantity-hint mt-1 text-[10px] text-slate-500 font-medium"></p>
+                                                                </div>
+                                                            </div>
+                                                        `;
 
             container.appendChild(itemRow);
-            filterStockSelect(itemRow.querySelector('.stock-select'), fromWhId);
+
+            // Initialize Tom Select for the new row
+            const newSelect = itemRow.querySelector('.stock-select');
+            const ts = new TomSelect(newSelect, {
+                create: false,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
+                placeholder: "Search medicine name or batch...",
+                allowEmptyOption: true,
+                render: {
+                    optgroup_header: function (data, escape) {
+                        return '<div class="optgroup-header">' + escape(data.label) + '</div>';
+                    },
+                    option: function (data, escape) {
+                        const parts = escape(data.text).split(' | ');
+                        const name = parts[0];
+                        const details = parts.slice(1).join(' | ');
+                        return `
+                                        <div class="py-1">
+                                            <div class="font-bold text-slate-800 dark:text-white text-sm">${name}</div>
+                                            <div class="text-[10px] text-slate-500 font-medium">${details}</div>
+                                        </div>
+                                    `;
+                    },
+                    item: function (data, escape) {
+                        return '<div class="text-sm font-medium">' + escape(data.text) + '</div>';
+                    }
+                }
+            });
+            tomSelectInstances[itemCounter] = ts;
+
+            filterStockSelect(newSelect, fromWhId, ts);
         }
 
         function removeTransferItem(id) {
             const item = document.getElementById(`item_${id}`);
             if (item) {
+                if (tomSelectInstances[id]) {
+                    tomSelectInstances[id].destroy();
+                    delete tomSelectInstances[id];
+                }
                 item.remove();
             }
         }
 
         function filterAllStockSelects() {
             const fromWhId = document.getElementById('from_warehouse_id').value;
-            const selects = document.querySelectorAll('.stock-select');
-            selects.forEach(select => filterStockSelect(select, fromWhId));
+            Object.values(tomSelectInstances).forEach(ts => {
+                const stockSelect = ts.input;
+                filterStockSelect(stockSelect, fromWhId, ts);
+            });
         }
 
-        function filterStockSelect(select, fromWhId) {
+        function filterStockSelect(select, fromWhId, tsInstance = null) {
             const options = select.querySelectorAll('option.stock-option');
             const optgroups = select.querySelectorAll('optgroup');
 
             options.forEach(opt => {
                 if (opt.dataset.warehouse == fromWhId || fromWhId === '') {
-                    opt.style.display = '';
+                    opt.disabled = false;
                 } else {
-                    opt.style.display = 'none';
+                    opt.disabled = true;
                 }
             });
 
-            // Hide empty optgroups
-            optgroups.forEach(group => {
-                const visibleOptions = Array.from(group.options).filter(opt => opt.style.display !== 'none');
-                group.style.display = visibleOptions.length > 0 ? '' : 'none';
-            });
+            // If we have a Tom Select instance, we need to refresh its view
+            if (tsInstance) {
+                tsInstance.clearCache();
+                tsInstance.refreshOptions(false);
+
+                // If current value is now disabled, clear it
+                const currentValue = tsInstance.getValue();
+                if (currentValue) {
+                    const currentOpt = select.querySelector(`option[value="${currentValue}"]`);
+                    if (currentOpt && currentOpt.disabled) {
+                        tsInstance.clear();
+                    }
+                }
+            } else {
+                // Fallback for standard select
+                options.forEach(opt => {
+                    opt.style.display = opt.disabled ? 'none' : '';
+                });
+                optgroups.forEach(group => {
+                    const visibleOptions = Array.from(group.options).filter(opt => opt.style.display !== 'none');
+                    group.style.display = visibleOptions.length > 0 ? '' : 'none';
+                });
+            }
         }
 
         function updateItemMaxQty(itemId) {
