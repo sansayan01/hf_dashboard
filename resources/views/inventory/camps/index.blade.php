@@ -26,6 +26,8 @@
                     <thead>
                         <tr class="bg-slate-50/50 dark:bg-white/5">
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Camp Name</th>
+                            <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Camp Parent (RM)
+                            </th>
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Location/Area
                             </th>
                             <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
@@ -40,6 +42,18 @@
                             <tr class="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                                 <td class="p-4">
                                     <span class="font-bold text-sm">{{ $camp->name }}</span>
+                                </td>
+                                <td class="p-4">
+                                    @if($camp->parent)
+                                        <div class="flex flex-col">
+                                            <span
+                                                class="font-bold text-xs text-slate-700 dark:text-slate-200">{{ $camp->parent->profile->full_name ?? 'N/A' }}</span>
+                                            <span
+                                                class="text-[9px] font-black text-slate-400 uppercase tracking-tight">{{ $camp->parent->employee_id }}</span>
+                                        </div>
+                                    @else
+                                        <span class="text-xs text-slate-400 italic">No Parent Assigned</span>
+                                    @endif
                                 </td>
                                 <td class="p-4 text-xs font-medium text-slate-500">{{ $camp->location ?? 'N/A' }}</td>
                                 <td class="p-4">
@@ -57,7 +71,7 @@
                                 <td class="p-4 text-right">
                                     <div class="flex items-center justify-end space-x-2">
                                         <button
-                                            onclick="openEditModal({{ $camp->id }}, '{{ addslashes($camp->name) }}', '{{ addslashes($camp->location ?? '') }}', {{ $camp->is_active }})"
+                                            onclick="openEditModal({{ $camp->id }}, '{{ addslashes($camp->name) }}', '{{ addslashes($camp->location ?? '') }}', {{ $camp->is_active }}, {{ $camp->parent_id ?? 'null' }})"
                                             class="p-2 text-slate-400 hover:text-accent transition">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -79,7 +93,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="p-20 text-center text-slate-500 font-bold">No health camps registered.
+                                <td colspan="6" class="p-20 text-center text-slate-500 font-bold">No health camps registered.
                                 </td>
                             </tr>
                         @endforelse
@@ -113,6 +127,32 @@
                                 <input type="text" name="name" id="name" required
                                     class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
                             </div>
+
+                            <div>
+                                <label
+                                    class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Camp
+                                    Parent (RM)</label>
+                                <div class="relative">
+                                    @if(auth()->user()->isSuperAdmin())
+                                        <div class="mb-2">
+                                            <input type="text" id="rm-search" placeholder="Search RM by name or ID..."
+                                                class="w-full h-10 px-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-xs focus:ring-2 focus:ring-accent/20 outline-none transition"
+                                                onkeyup="filterRMs()">
+                                        </div>
+                                    @endif
+                                    <select name="parent_id" id="parent_id" required
+                                        class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                        <option value="">Select Camp Parent (RM)</option>
+                                        @foreach($rms as $rm)
+                                            <option value="{{ $rm->id }}"
+                                                data-search="{{ strtolower($rm->profile->full_name ?? '') }} {{ strtolower($rm->employee_id) }}">
+                                                {{ $rm->profile->full_name ?? 'N/A' }} ({{ $rm->employee_id }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
                             <div>
                                 <label
                                     class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Location/Area</label>
@@ -146,6 +186,26 @@
 
 @section('js')
     <script>
+        function filterRMs() {
+            const input = document.getElementById('rm-search');
+            if (!input) return;
+            const filter = input.value.toLowerCase();
+            const select = document.getElementById('parent_id');
+            const options = select.getElementsByTagName('option');
+
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                if (option.value === "") continue;
+
+                const searchText = option.getAttribute('data-search') || "";
+                if (searchText.indexOf(filter) > -1) {
+                    option.style.display = "";
+                } else {
+                    option.style.display = "none";
+                }
+            }
+        }
+
         function openCreateModal() {
             const modal = document.getElementById('camp-modal');
             const form = document.getElementById('camp-form');
@@ -157,6 +217,10 @@
             methodField.innerHTML = '';
             document.getElementById('name').value = '';
             document.getElementById('location').value = '';
+            document.getElementById('parent_id').value = '';
+            if (document.getElementById('rm-search')) document.getElementById('rm-search').value = '';
+            filterRMs();
+
             statusContainer.classList.add('hidden');
             title.innerText = 'Add New Camp Site';
 
@@ -164,18 +228,22 @@
             document.body.style.overflow = 'hidden';
         }
 
-        function openEditModal(id, name, location, isActive) {
+        function openEditModal(id, name, location, isActive, parentId) {
             const modal = document.getElementById('camp-modal');
             const form = document.getElementById('camp-form');
             const methodField = document.getElementById('method-field');
             const statusContainer = document.getElementById('status-container');
             const title = document.getElementById('modal-title');
 
-            form.action = `/inventory/camps/${id}`;
+            form.action = `{{ url('inventory/camps') }}/${id}`;
             methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
             document.getElementById('name').value = name;
             document.getElementById('location').value = location;
             document.getElementById('is_active').checked = isActive === 1;
+            document.getElementById('parent_id').value = parentId || '';
+            if (document.getElementById('rm-search')) document.getElementById('rm-search').value = '';
+            filterRMs();
+
             statusContainer.classList.remove('hidden');
             title.innerText = 'Edit Camp Site';
 

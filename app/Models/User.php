@@ -437,6 +437,21 @@ class User extends Authenticatable
         return $allIds;
     }
 
+    /**
+     * Get IDs of all users in the team of the RM assigned to this user's camp.
+     * Useful for Pharmacists (staff) to restrict visibility to their camp's RM team.
+     */
+    public function getCampRMTeamIds()
+    {
+        if ($this->designation !== 'staff' || !$this->camp_id || !$this->camp || !$this->camp->parent_id) {
+            return [];
+        }
+
+        $rm = $this->camp->parent;
+        // RM's own ID + all their downline
+        return array_merge([$rm->id], $rm->getAllDownlineIds());
+    }
+
     // Count total downline
     public function getDownlineCount()
     {
@@ -579,6 +594,12 @@ class User extends Authenticatable
         // Can access self
         if ($this->id === $targetUser->id) {
             return true;
+        }
+
+        // Pharmacists can access users who are in their camp RM's team
+        if ($this->designation === 'staff') {
+            $allowedIds = $this->getCampRMTeamIds();
+            return in_array($targetUser->id, $allowedIds);
         }
 
         // Can access if target is in downline

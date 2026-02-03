@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\InventoryWarehouse;
+use App\Models\User;
 
 class InventoryCampController extends Controller
 {
     public function index()
     {
-        $camps = InventoryWarehouse::where('type', InventoryWarehouse::TYPE_CAMP)->get();
-        return view('inventory.camps.index', compact('camps'));
+        $camps = InventoryWarehouse::where('type', InventoryWarehouse::TYPE_CAMP)
+            ->with('parent')
+            ->get();
+        $rms = User::where('designation', 'rm')->get();
+        return view('inventory.camps.index', compact('camps', 'rms'));
     }
 
     public function store(Request $request)
@@ -18,6 +22,16 @@ class InventoryCampController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:inventory_warehouses,name',
             'location' => 'nullable|string|max:255',
+            'parent_id' => [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    $user = User::find($value);
+                    if ($user && $user->designation !== 'rm') {
+                        $fail('The camp parent must be a Relationship Manager (RM).');
+                    }
+                },
+            ],
         ]);
 
         $validated['type'] = InventoryWarehouse::TYPE_CAMP;
@@ -33,7 +47,17 @@ class InventoryCampController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:inventory_warehouses,name,' . $camp->id,
             'location' => 'nullable|string|max:255',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
+            'parent_id' => [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    $user = User::find($value);
+                    if ($user && $user->designation !== 'rm') {
+                        $fail('The camp parent must be a Relationship Manager (RM).');
+                    }
+                },
+            ],
         ]);
 
         $camp->update($validated);

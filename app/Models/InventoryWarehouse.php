@@ -9,7 +9,12 @@ class InventoryWarehouse extends Model
     const TYPE_WAREHOUSE = 'warehouse';
     const TYPE_CAMP = 'camp';
 
-    protected $fillable = ['name', 'location', 'type', 'is_active'];
+    protected $fillable = ['name', 'location', 'type', 'is_active', 'parent_id'];
+
+    public function parent()
+    {
+        return $this->belongsTo(User::class, 'parent_id');
+    }
 
     public function stocks()
     {
