@@ -343,7 +343,7 @@ class User extends Authenticatable
                 $q->where('designation', 'hs')
                     ->orWhereIn('parent_id', $saRoleIds);
             })
-                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'staff'])
                 ->get();
         }
 
@@ -358,13 +358,13 @@ class User extends Authenticatable
                 $q->where('designation', 'hs')
                     ->orWhereIn('parent_id', $saRoleIds);
             })
-                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'staff'])
                 ->get();
         }
 
         // Standard behavior: Return direct children but exclude admins
         return $this->children()
-            ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
+            ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'staff'])
             ->get();
     }
 
@@ -376,7 +376,7 @@ class User extends Authenticatable
                 $q->where('designation', 'hs')
                     ->orWhereIn('parent_id', $saRoleIds);
             })
-                ->whereNotIn('designation', ['super_admin', 'office_in_charge'])
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'staff'])
                 ->count();
         }
 
@@ -385,7 +385,7 @@ class User extends Authenticatable
             return $this->upline->getDashboardChildrenCount();
         }
 
-        return $this->children()->where('designation', '!=', 'office_in_charge')->count();
+        return $this->children()->whereNotIn('designation', ['office_in_charge', 'staff'])->count();
     }
 
     // Get all downline users (entire tree)
