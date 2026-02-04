@@ -132,7 +132,7 @@
                     <div class="flex items-center space-x-4 mb-12" id="logo-anim">
                         <div
                             class="w-16 h-16 bg-transparent flex items-center justify-center transition-transform hover:scale-105">
-                            <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-14 h-14 object-contain"
+                            <img src="{{ asset('img/logo.png') }}" class="w-14 h-14 object-contain"
                                 style="mix-blend-mode: screen;" alt="Humanity Foundation Logo">
                         </div>
                         <span class="text-2xl font-black text-white tracking-tight drop-shadow-md">Humanity
@@ -175,7 +175,7 @@
                 <!-- Faded Logo Watermark Background -->
                 <div
                     class="absolute inset-0 opacity-[0.04] pointer-events-none flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('img/hf_gold_logo.png') }}"
+                    <img src="{{ asset('img/logo.png') }}"
                         class="w-[120%] h-auto opacity-[0.08] rotate-[-15deg] scale-110"
                         style="mix-blend-mode: screen;">
                 </div>

@@ -37,7 +37,7 @@
             <!-- Logo -->
             <div class="flex justify-center mb-8">
                 <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg p-2">
-                    <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-full h-full object-contain" alt="Logo">
+                    <img src="{{ asset('img/logo.png') }}" class="w-full h-full object-contain" alt="Logo">
                 </div>
             </div>
 

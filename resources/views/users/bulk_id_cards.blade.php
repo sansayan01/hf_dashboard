@@ -264,7 +264,7 @@
             @foreach($users as $user)
                 <div class="id-card" id="card-{{ $user->id }}" data-filename="ID_Card_{{ $user->employee_id }}.png">
                     <div class="header-curve">
-                        <img src="{{ asset('img/hf_gold_logo.png') }}" alt="Logo" class="logo-img"
+                        <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img"
                             style="mix-blend-mode: screen;">
                         <h1
                             class="text-yellow-400 font-black text-xl tracking-wide uppercase text-center w-2/3 leading-tight">

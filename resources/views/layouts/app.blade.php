@@ -98,7 +98,7 @@
                 <div class="flex items-center space-x-4">
                     <div
                         class="w-12 h-12 bg-transparent rounded-xl flex items-center justify-center shadow-lg shadow-black/10 transition-transform hover:scale-105 p-1">
-                        <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-10 h-10 object-contain"
+                        <img src="{{ asset('img/logo.png') }}" class="w-10 h-10 object-contain"
                             style="mix-blend-mode: screen;" alt="Logo">
                     </div>
                     <div>
