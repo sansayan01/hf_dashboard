@@ -341,7 +341,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p class="font-black text-[7.5px]">www.hrbardwan.in</p>
+            <p class="font-black text-[7.5px]">www.hfburdwan.in</p>
             <p class="font-bold opacity-100">Kendriyanagar, Keshabganj, Purba Bardhaman</p>
             <p class="font-black">Mob : 9735563157</p>
         </div>
