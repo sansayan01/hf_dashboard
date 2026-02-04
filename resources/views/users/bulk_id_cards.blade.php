@@ -47,7 +47,7 @@
         }
 
         .logo-img {
-            height: 50px;
+            height: 60px;
             margin-bottom: 2px;
             z-index: 2;
         }
