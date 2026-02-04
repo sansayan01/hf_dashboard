@@ -332,71 +332,58 @@
         }
 
         function filterStockSelect(select, fromWhId, tsInstance = null) {
-            const options = select.querySelectorAll('option.stock-option');
+            if (!tsInstance) return;
 
-            // 1. Update underlying select options (for master reference and non-TS fallback)
-            options.forEach(opt => {
-                const isMatch = (fromWhId === '' || opt.dataset.warehouse == fromWhId);
-                opt.disabled = !isMatch;
-                opt.style.display = isMatch ? '' : 'none';
+            // Normalize warehouse ID
+            fromWhId = fromWhId ? fromWhId.toString() : "";
+
+            // Store current selection to restore it if still valid
+            const currentValue = tsInstance.getValue();
+            
+            // Clear current TomSelect state
+            tsInstance.clearOptions();
+            tsInstance.clearOptgroups();
+            
+            // Get all possible options from the underlying select element
+            const allOptions = select.querySelectorAll('option.stock-option');
+            const groupsAdded = {};
+            let matchCount = 0;
+
+            allOptions.forEach(opt => {
+                const whId = opt.getAttribute('data-warehouse');
+                
+                // Filter: If source warehouse is selected, only show matches. 
+                // If no source is selected, show nothing to avoid invalid selection.
+                if (fromWhId !== "" && whId == fromWhId) {
+                    const optgroup = opt.closest('optgroup');
+                    const groupLabel = optgroup ? optgroup.label : "Medicines";
+                    
+                    if (!groupsAdded[groupLabel]) {
+                        tsInstance.addOptgroup(groupLabel, { label: groupLabel });
+                        groupsAdded[groupLabel] = true;
+                    }
+                    
+                    tsInstance.addOption({
+                        value: opt.value,
+                        text: opt.textContent.trim(),
+                        optgroup: groupLabel,
+                        warehouse: whId,
+                        quantity: opt.getAttribute('data-quantity'),
+                        unit: opt.getAttribute('data-unit'),
+                        units_per_box: opt.getAttribute('data-units-per-box')
+                    });
+                    matchCount++;
+                }
             });
 
-            // 2. If we have a Tom Select instance, we need to rebuild its options
-            if (tsInstance) {
-                const currentValue = tsInstance.getValue();
-
-                // Clear all current items in TS
-                tsInstance.clearOptions();
-                tsInstance.clearOptgroups();
-
-                const addedGroups = new Set();
-
-                // Re-add only enabled options
-                options.forEach(opt => {
-                    if (!opt.disabled && opt.value) {
-                        const optgroup = opt.closest('optgroup');
-                        const groupLabel = optgroup ? optgroup.label : null;
-
-                        // Add optgroup if not already added
-                        if (groupLabel && !addedGroups.has(groupLabel)) {
-                            tsInstance.addOptgroup(groupLabel, { label: groupLabel });
-                            addedGroups.add(groupLabel);
-                        }
-
-                        // Add the option
-                        const optionData = {
-                            value: opt.value,
-                            text: opt.text,
-                            warehouse: opt.dataset.warehouse,
-                            quantity: opt.dataset.quantity,
-                            unit: opt.dataset.unit,
-                            units_per_box: opt.dataset.unitsPerBox
-                        };
-
-                        if (groupLabel) {
-                            optionData.optgroup = groupLabel;
-                        }
-
-                        tsInstance.addOption(optionData);
-                    }
-                });
-
-                // Refresh the dropdown
-                tsInstance.refreshOptions(false);
-
-                // Restore value if it still exists in the filtered list, otherwise clear it
-                if (currentValue && tsInstance.options[currentValue]) {
-                    tsInstance.setValue(currentValue);
-                } else if (currentValue) {
-                    tsInstance.clear();
-                }
+            // Refresh the dropdown UI
+            tsInstance.refreshOptions(false);
+            
+            // Restore selection if it's still available in the filtered list
+            if (currentValue && tsInstance.options[currentValue]) {
+                tsInstance.setValue(currentValue);
             } else {
-                // Fallback for standard select (though we mostly use TomSelect)
-                const optgroups = select.querySelectorAll('optgroup');
-                optgroups.forEach(group => {
-                    const visibleOptions = Array.from(group.options).filter(opt => opt.style.display !== 'none');
-                    group.style.display = visibleOptions.length > 0 ? '' : 'none';
-                });
+                tsInstance.clear();
             }
         }
 
