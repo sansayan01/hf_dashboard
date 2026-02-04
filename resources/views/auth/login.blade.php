@@ -132,7 +132,7 @@
                     <div class="flex items-center space-x-4 mb-12" id="logo-anim">
                         <div
                             class="w-16 h-16 bg-transparent flex items-center justify-center transition-transform hover:scale-105">
-                            <img src="{{ asset('img/logo.png') }}" class="w-14 h-14 object-contain"
+                            <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-14 h-14 object-contain"
                                 style="mix-blend-mode: screen;" alt="Humanity Foundation Logo">
                         </div>
                         <span class="text-2xl font-black text-white tracking-tight drop-shadow-md">Humanity
@@ -175,7 +175,7 @@
                 <!-- Faded Logo Watermark Background -->
                 <div
                     class="absolute inset-0 opacity-[0.04] pointer-events-none flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('img/logo.png') }}"
+                    <img src="{{ asset('img/hf_gold_logo.png') }}"
                         class="w-[120%] h-auto opacity-[0.08] rotate-[-15deg] scale-110"
                         style="mix-blend-mode: screen;">
                 </div>
@@ -477,41 +477,6 @@
                 confirmButtonText: 'Understood',
                 confirmButtonColor: '#3C50E0'
             });
-        }
-
-        // Process logos for transparency
-        window.addEventListener('load', () => {
-            document.querySelectorAll('img[src*="hf_gold_logo"]').forEach(img => {
-                if (img.complete) {
-                    processLogo(img);
-                } else {
-                    img.onload = () => processLogo(img);
-                }
-            });
-        });
-
-        function processLogo(img) {
-            if (img.dataset.processed) return;
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.naturalWidth;
-                canvas.height = img.naturalHeight;
-                ctx.drawImage(img, 0, 0);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                for (let i = 0; i < data.length; i += 4) {
-                    if (data[i] < 45 && data[i + 1] < 45 && data[i + 2] < 45) {
-                        data[i + 3] = 0;
-                    }
-                }
-                ctx.putImageData(imageData, 0, 0);
-                img.src = canvas.toDataURL();
-                img.style.mixBlendMode = 'normal';
-                img.dataset.processed = "true";
-            } catch (e) {
-                console.warn("Logo processing skipped", e);
-            }
         }
     </script>
 </body>

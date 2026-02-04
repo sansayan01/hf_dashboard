@@ -89,7 +89,7 @@
         }
 
         .logo-img {
-            height: 13.5mm;
+            height: 11mm;
             margin-bottom: 0.1mm;
             z-index: 2;
             display: block;
@@ -315,7 +315,7 @@
                 @foreach($chunk as $user)
                     <div class="id-card">
                         <div class="header-curve">
-                            <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img"
+                            <img src="{{ asset('img/hf_gold_logo.png') }}" alt="Logo" class="logo-img"
                                 style="mix-blend-mode: screen;">
                             <h1
                                 class="text-yellow-400 font-black text-[13px] tracking-wide uppercase text-center w-2/3 leading-tight mt-[-2px]">
@@ -425,39 +425,6 @@
             pdf.save(`Humanity_Foundation_ID_Cards_${new Date().getTime()}.pdf`);
 
             overlay.classList.add('hidden');
-        }
-
-        // Process logos for transparency
-        window.addEventListener('load', () => {
-            document.querySelectorAll('.logo-img').forEach(img => {
-                if (img.complete) {
-                    processLogo(img);
-                } else {
-                    img.onload = () => processLogo(img);
-                }
-            });
-        });
-
-        function processLogo(img) {
-            if (img.dataset.processed) return;
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.naturalWidth;
-                canvas.height = img.naturalHeight;
-                ctx.drawImage(img, 0, 0);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                for (let i = 0; i < data.length; i += 4) {
-                    if (data[i] < 45 && data[i + 1] < 45 && data[i + 2] < 45) {
-                        data[i + 3] = 0;
-                    }
-                }
-                ctx.putImageData(imageData, 0, 0);
-                img.src = canvas.toDataURL();
-                img.style.mixBlendMode = 'normal';
-                img.dataset.processed = "true";
-            } catch (e) { console.error("Logo processing failed", e); }
         }
     </script>
 </body>

@@ -47,7 +47,7 @@
         }
 
         .logo-img {
-            height: 60px;
+            height: 50px;
             margin-bottom: 2px;
             z-index: 2;
         }
@@ -264,7 +264,7 @@
             @foreach($users as $user)
                 <div class="id-card" id="card-{{ $user->id }}" data-filename="ID_Card_{{ $user->employee_id }}.png">
                     <div class="header-curve">
-                        <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img"
+                        <img src="{{ asset('img/hf_gold_logo.png') }}" alt="Logo" class="logo-img"
                             style="mix-blend-mode: screen;">
                         <h1
                             class="text-yellow-400 font-black text-xl tracking-wide uppercase text-center w-2/3 leading-tight">
@@ -413,39 +413,6 @@
                 console.error('Error creating ZIP:', error);
                 progressText.textContent = 'Error creating ZIP file!';
             }
-        }
-
-        // Process logos for transparency
-        window.addEventListener('load', () => {
-            document.querySelectorAll('.logo-img').forEach(img => {
-                if (img.complete) {
-                    processLogo(img);
-                } else {
-                    img.onload = () => processLogo(img);
-                }
-            });
-        });
-
-        function processLogo(img) {
-            if (img.dataset.processed) return;
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.naturalWidth;
-                canvas.height = img.naturalHeight;
-                ctx.drawImage(img, 0, 0);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                for (let i = 0; i < data.length; i += 4) {
-                    if (data[i] < 45 && data[i + 1] < 45 && data[i + 2] < 45) {
-                        data[i + 3] = 0;
-                    }
-                }
-                ctx.putImageData(imageData, 0, 0);
-                img.src = canvas.toDataURL();
-                img.style.mixBlendMode = 'normal';
-                img.dataset.processed = "true";
-            } catch (e) { console.error("Logo processing failed", e); }
         }
     </script>
 </body>
