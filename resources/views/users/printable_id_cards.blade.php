@@ -107,7 +107,7 @@
             position: relative;
             z-index: 10;
             margin: 0 auto;
-            margin-top: 22.2mm;
+            margin-top: 22.7mm;
             overflow: hidden;
             border: 0.8mm solid white;
             box-shadow: 0 1.5mm 2mm rgba(0, 0, 0, 0.1);
