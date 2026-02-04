@@ -338,7 +338,7 @@
 
                         <div class="details">
                             @php
-                                $p_name = $user->profile->full_name;
+                                $p_name = $user->profile ? $user->profile->full_name : 'N/A';
                                 $p_nameFontSize = '11pt';
                                 if (strlen($p_name) > 18)
                                     $p_nameFontSize = '9pt';

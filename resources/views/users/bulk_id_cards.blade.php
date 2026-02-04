@@ -287,7 +287,7 @@
 
                     <div class="details">
                         @php
-                            $c_name = $user->profile->full_name;
+                            $c_name = $user->profile ? $user->profile->full_name : 'N/A';
                             $c_nameFontSize = '24px';
                             if (strlen($c_name) > 18)
                                 $c_nameFontSize = '20px';
