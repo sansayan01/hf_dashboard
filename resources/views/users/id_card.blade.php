@@ -276,7 +276,7 @@
     <div id="id-card">
         <!-- Curved Header -->
         <div class="header-curve">
-            <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img">
+            <img src="{{ asset('img/hf_gold_logo.png') }}" alt="Logo" class="logo-img">
             <h1
                 class="text-yellow-400 font-black text-[13px] tracking-wide uppercase text-center w-2/3 leading-tight mt-[-2px]">
                 Humanity Foundation</h1>

@@ -97,8 +97,8 @@
             <div class="p-6 flex items-center justify-between border-b border-secondary">
                 <div class="flex items-center space-x-4">
                     <div
-                        class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/10 transition-transform hover:scale-105 p-1">
-                        <img src="{{ asset('img/logo.png') }}" class="w-10 h-10 object-contain" alt="Logo">
+                        class="w-12 h-12 bg-transparent rounded-xl flex items-center justify-center shadow-lg shadow-black/10 transition-transform hover:scale-105 p-1">
+                        <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-10 h-10 object-contain" alt="Logo">
                     </div>
                     <div>
                         <h1 class="font-bold text-lg tracking-tight text-white leading-none">Humanity</h1>
@@ -494,17 +494,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                        }).then((result) => {
+                                                                                                                                                                            }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                        });
+                                                                                                                                                                            });
         @endif
 
         @if(session('error'))

@@ -131,9 +131,8 @@
                 <div class="relative z-10">
                     <div class="flex items-center space-x-4 mb-12" id="logo-anim">
                         <div
-                            class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 border border-white/20">
-                            <img src="{{ asset('img/logo.png') }}"
-                                class="w-12 h-12 object-contain brightness-200 contrast-200"
+                            class="w-16 h-16 bg-transparent flex items-center justify-center transition-transform hover:scale-105">
+                            <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-14 h-14 object-contain"
                                 alt="Humanity Foundation Logo">
                         </div>
                         <span class="text-2xl font-black text-white tracking-tight drop-shadow-md">Humanity
@@ -176,8 +175,8 @@
                 <!-- Faded Logo Watermark Background -->
                 <div
                     class="absolute inset-0 opacity-[0.04] pointer-events-none flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('img/logo.png') }}"
-                        class="w-[120%] h-auto grayscale invert opacity-50 rotate-[-15deg] scale-110">
+                    <img src="{{ asset('img/hf_gold_logo.png') }}"
+                        class="w-[120%] h-auto opacity-[0.08] rotate-[-15deg] scale-110">
                 </div>
                 <!-- NGO-themed Decorative Pattern -->
                 <div class="absolute inset-0 opacity-[0.05] pointer-events-none z-0">
