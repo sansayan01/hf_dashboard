@@ -743,11 +743,20 @@ class InventoryController extends Controller
         }
 
         $preSelectedStock = null;
+        $preSelectedRepresentativeId = null;
         if ($request->has('stock_id')) {
             $preSelectedStock = InventoryStock::with('medicine', 'warehouse')->find($request->stock_id);
+            if ($preSelectedStock) {
+                // Find the first stock in this batch to match our grouped dropdown
+                $preSelectedRepresentativeId = InventoryStock::where('medicine_id', $preSelectedStock->medicine_id)
+                    ->where('warehouse_id', $preSelectedStock->warehouse_id)
+                    ->where('batch_number', $preSelectedStock->batch_number)
+                    ->orderBy('expiry_date')
+                    ->value('id');
+            }
         }
 
-        return view('inventory.transfer', compact('warehouses', 'medicines', 'preSelectedStock'));
+        return view('inventory.transfer', compact('warehouses', 'medicines', 'preSelectedStock', 'preSelectedRepresentativeId'));
     }
 
     /**
@@ -757,21 +766,32 @@ class InventoryController extends Controller
     {
         // Check if transfer_all is enabled
         $transferAll = $request->input('transfer_all') == '1';
-        // Check if multi-item transfer
-        $hasItems = $request->has('items');
+
+        // Filter and re-index items before validation
+        if ($request->has('items') && is_array($request->items)) {
+            $filteredItems = array_values(array_filter($request->items, function ($item) {
+                return !empty($item['stock_id']);
+            }));
+            $request->merge(['items' => $filteredItems]);
+        }
 
         $validated = $request->validate([
             'from_warehouse_id' => 'required|exists:inventory_warehouses,id',
             'to_warehouse_id' => 'required|exists:inventory_warehouses,id|different:from_warehouse_id',
             'transfer_all' => 'nullable',
-            'items' => $hasItems ? 'required|array|min:1' : 'nullable',
-            'items.*.stock_id' => $hasItems ? 'required|exists:inventory_stocks,id' : 'nullable',
-            'items.*.quantity' => $hasItems ? 'required|integer|min:1' : 'nullable',
+            'items' => (!$transferAll) ? 'required|array|min:1' : 'nullable',
+            'items.*.stock_id' => (!$transferAll) ? 'required|exists:inventory_stocks,id' : 'nullable',
+            'items.*.quantity' => (!$transferAll) ? 'required|integer|min:1' : 'nullable',
             'notes' => 'nullable|string',
+        ], [
+            'items.required' => 'Please select at least one medicine to transfer.',
+            'items.min' => 'Please select at least one medicine to transfer.',
+            'items.*.stock_id.required' => 'Please select a medicine for all rows.',
+            'items.*.quantity.required' => 'Please enter a quantity for all selected medicines.',
         ]);
 
         try {
-            DB::transaction(function () use ($validated, $transferAll, $hasItems) {
+            DB::transaction(function () use ($validated, $transferAll) {
                 if ($transferAll) {
                     // Transfer ALL stock from the source warehouse
                     $allStocks = InventoryStock::where('warehouse_id', $validated['from_warehouse_id'])
@@ -841,151 +861,94 @@ class InventoryController extends Controller
                             'notes' => "Bulk transfer from " . InventoryWarehouse::find($validated['from_warehouse_id'])->name . ". " . ($validated['notes'] ?? ''),
                         ]);
                     }
-
                     $message = "All stock (" . $allStocks->count() . " items) transferred successfully.";
-                } elseif ($hasItems && isset($validated['items'])) {
-                    // Multi-item transfer from warehouses
+                } else {
+                    // Process multi-item transfer (handles any number of items)
                     $itemCount = 0;
 
                     foreach ($validated['items'] as $item) {
-                        /** @var InventoryStock $sourceStock */
-                        $sourceStock = InventoryStock::findOrFail($item['stock_id']);
+                        /** @var InventoryStock $initialStock */
+                        $initialStock = InventoryStock::findOrFail($item['stock_id']);
+                        $totalQtyToTransfer = $item['quantity'];
 
-                        if ($sourceStock->warehouse_id != $validated['from_warehouse_id']) {
-                            throw new \Exception("Stock does not belong to the source warehouse.");
+                        $matchingStocks = InventoryStock::where('medicine_id', $initialStock->medicine_id)
+                            ->where('warehouse_id', $validated['from_warehouse_id'])
+                            ->where('batch_number', $initialStock->batch_number)
+                            ->where('quantity', '>', 0)
+                            ->orderBy('expiry_date')
+                            ->get();
+
+                        if ($matchingStocks->sum('quantity') < $totalQtyToTransfer) {
+                            throw new \Exception("Insufficient stock for transfer (Medicine: {$initialStock->medicine->name}).");
                         }
 
-                        if ($sourceStock->quantity < $item['quantity']) {
-                            throw new \Exception("Insufficient stock for transfer (Stock ID: {$sourceStock->id}).");
-                        }
+                        foreach ($matchingStocks as $sourceStock) {
+                            if ($totalQtyToTransfer <= 0)
+                                break;
+                            $currentTransferQty = min($sourceStock->quantity, $totalQtyToTransfer);
 
-                        // Determine effective sponsor
-                        $effectiveSponsorId = $sourceStock->sponsor_id;
-                        if (!$effectiveSponsorId) {
-                            $inTx = $sourceStock->transactions()->where('type', 'in')->first();
-                            $effectiveSponsorId = $inTx?->sponsor_id;
-                            if ($effectiveSponsorId) {
-                                $sourceStock->update(['sponsor_id' => $effectiveSponsorId]);
+                            // Determine effective sponsor
+                            $effectiveSponsorId = $sourceStock->sponsor_id;
+                            if (!$effectiveSponsorId) {
+                                $inTx = $sourceStock->transactions()->where('type', 'in')->first();
+                                $effectiveSponsorId = $inTx?->sponsor_id;
+                                if ($effectiveSponsorId) {
+                                    $sourceStock->update(['sponsor_id' => $effectiveSponsorId]);
+                                }
                             }
-                        }
 
-                        // Deduct from source
-                        $sourceStock->decrement('quantity', $item['quantity']);
+                            // Deduct from source
+                            $sourceStock->decrement('quantity', $currentTransferQty);
 
-                        // Find or create destination stock
-                        $destStock = InventoryStock::where('medicine_id', $sourceStock->medicine_id)
-                            ->where('warehouse_id', $validated['to_warehouse_id'])
-                            ->where('batch_number', $sourceStock->batch_number)
-                            ->where('expiry_date', $sourceStock->expiry_date)
-                            ->where('sponsor_id', $effectiveSponsorId)
-                            ->first();
+                            // Find or create destination stock
+                            $destStock = InventoryStock::where('medicine_id', $sourceStock->medicine_id)
+                                ->where('warehouse_id', $validated['to_warehouse_id'])
+                                ->where('batch_number', $sourceStock->batch_number)
+                                ->where('expiry_date', $sourceStock->expiry_date)
+                                ->where('sponsor_id', $effectiveSponsorId)
+                                ->first();
 
-                        if ($destStock) {
-                            $destStock->increment('quantity', $item['quantity']);
-                        } else {
-                            $destStock = InventoryStock::create([
-                                'medicine_id' => $sourceStock->medicine_id,
-                                'warehouse_id' => $validated['to_warehouse_id'],
-                                'batch_number' => $sourceStock->batch_number,
-                                'expiry_date' => $sourceStock->expiry_date,
+                            if ($destStock) {
+                                $destStock->increment('quantity', $currentTransferQty);
+                            } else {
+                                $destStock = InventoryStock::create([
+                                    'medicine_id' => $sourceStock->medicine_id,
+                                    'warehouse_id' => $validated['to_warehouse_id'],
+                                    'batch_number' => $sourceStock->batch_number,
+                                    'expiry_date' => $sourceStock->expiry_date,
+                                    'sponsor_id' => $effectiveSponsorId,
+                                    'quantity' => $currentTransferQty,
+                                ]);
+                            }
+
+                            // Log transactions
+                            InventoryTransaction::create([
+                                'stock_id' => $sourceStock->id,
+                                'warehouse_id' => $validated['from_warehouse_id'],
                                 'sponsor_id' => $effectiveSponsorId,
-                                'quantity' => $item['quantity'],
+                                'type' => 'out',
+                                'quantity' => $currentTransferQty,
+                                'user_id' => auth()->id(),
+                                'notes' => "Multi-item transfer to " . InventoryWarehouse::find($validated['to_warehouse_id'])->name . ". " . ($validated['notes'] ?? ''),
                             ]);
+
+                            InventoryTransaction::create([
+                                'stock_id' => $destStock->id,
+                                'warehouse_id' => $validated['to_warehouse_id'],
+                                'sponsor_id' => $effectiveSponsorId,
+                                'type' => 'in',
+                                'quantity' => $currentTransferQty,
+                                'user_id' => auth()->id(),
+                                'notes' => "Multi-item transfer from " . InventoryWarehouse::find($validated['from_warehouse_id'])->name . ". " . ($validated['notes'] ?? ''),
+                            ]);
+
+                            $totalQtyToTransfer -= $currentTransferQty;
                         }
-
-                        // Log transactions
-                        InventoryTransaction::create([
-                            'stock_id' => $sourceStock->id,
-                            'warehouse_id' => $validated['from_warehouse_id'],
-                            'sponsor_id' => $effectiveSponsorId,
-                            'type' => 'out',
-                            'quantity' => $item['quantity'],
-                            'user_id' => auth()->id(),
-                            'notes' => "Multi-item transfer to " . InventoryWarehouse::find($validated['to_warehouse_id'])->name . ". " . ($validated['notes'] ?? ''),
-                        ]);
-
-                        InventoryTransaction::create([
-                            'stock_id' => $destStock->id,
-                            'warehouse_id' => $validated['to_warehouse_id'],
-                            'sponsor_id' => $effectiveSponsorId,
-                            'type' => 'in',
-                            'quantity' => $item['quantity'],
-                            'user_id' => auth()->id(),
-                            'notes' => "Multi-item transfer from " . InventoryWarehouse::find($validated['from_warehouse_id'])->name . ". " . ($validated['notes'] ?? ''),
-                        ]);
 
                         $itemCount++;
                     }
 
                     $message = "Successfully transferred {$itemCount} item(s).";
-                } else {
-                    // Single stock transfer (existing logic)
-                    $sourceStock = InventoryStock::findOrFail($validated['stock_id']);
-
-                    if ($sourceStock->warehouse_id != $validated['from_warehouse_id']) {
-                        throw new \Exception("Stock does not belong to the source warehouse.");
-                    }
-
-                    if ($sourceStock->quantity < $validated['quantity']) {
-                        throw new \Exception("Insufficient stock for transfer.");
-                    }
-
-                    // Ensure we have a sponsor ID
-                    $effectiveSponsorId = $sourceStock->sponsor_id;
-                    if (!$effectiveSponsorId) {
-                        $inTx = $sourceStock->transactions()->where('type', 'in')->first();
-                        $effectiveSponsorId = $inTx?->sponsor_id;
-                        if ($effectiveSponsorId) {
-                            $sourceStock->update(['sponsor_id' => $effectiveSponsorId]);
-                        }
-                    }
-
-                    // 1. Deduct from source
-                    $sourceStock->decrement('quantity', $validated['quantity']);
-
-                    // 2. Find or create destination stock
-                    $destStock = InventoryStock::where('medicine_id', $sourceStock->medicine_id)
-                        ->where('warehouse_id', $validated['to_warehouse_id'])
-                        ->where('batch_number', $sourceStock->batch_number)
-                        ->where('expiry_date', $sourceStock->expiry_date)
-                        ->where('sponsor_id', $effectiveSponsorId)
-                        ->first();
-
-                    if ($destStock) {
-                        $destStock->increment('quantity', $validated['quantity']);
-                    } else {
-                        $destStock = InventoryStock::create([
-                            'medicine_id' => $sourceStock->medicine_id,
-                            'warehouse_id' => $validated['to_warehouse_id'],
-                            'batch_number' => $sourceStock->batch_number,
-                            'expiry_date' => $sourceStock->expiry_date,
-                            'sponsor_id' => $effectiveSponsorId,
-                            'quantity' => $validated['quantity'],
-                        ]);
-                    }
-
-                    // 3. Log transactions
-                    InventoryTransaction::create([
-                        'stock_id' => $sourceStock->id,
-                        'warehouse_id' => $validated['from_warehouse_id'],
-                        'sponsor_id' => $effectiveSponsorId,
-                        'type' => 'out',
-                        'quantity' => $validated['quantity'],
-                        'user_id' => auth()->id(),
-                        'notes' => "Transfer to " . InventoryWarehouse::find($validated['to_warehouse_id'])->name . ". " . ($validated['notes'] ?? ''),
-                    ]);
-
-                    InventoryTransaction::create([
-                        'stock_id' => $destStock->id,
-                        'warehouse_id' => $validated['to_warehouse_id'],
-                        'sponsor_id' => $effectiveSponsorId,
-                        'type' => 'in',
-                        'quantity' => $validated['quantity'],
-                        'user_id' => auth()->id(),
-                        'notes' => "Transfer from " . InventoryWarehouse::find($validated['from_warehouse_id'])->name . ". " . ($validated['notes'] ?? ''),
-                    ]);
-
-                    $message = 'Stock transferred successfully.';
                 }
             });
 
