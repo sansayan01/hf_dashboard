@@ -147,59 +147,41 @@
     <script>
         let itemCounter = 0;
         const tomSelectInstances = {};
-        const masterStockItems = [];
-        
-        // This holds the raw HTML string from PHP for parsing
-        const stockOptionsHtml = `
-            <option value="">Select matching stock...</option>
-            @foreach($medicines as $med)
-                <optgroup label="{{ $med->name }} ({{ $med->unit }})">
-                    @foreach($med->stocks->groupBy(fn($s) => $s->warehouse_id . '-' . $s->batch_number) as $groupKey => $batchStocks)
-                        @php 
-                            $first = $batchStocks->sortBy('expiry_date')->first();
-                            $totalQty = $batchStocks->sum('quantity');
-                        @endphp
-                        <option value="{{ $first->id }}" 
-                                data-warehouse="{{ $first->warehouse_id }}" 
-                                data-quantity="{{ $totalQty }}"
-                                data-unit="{{ $med->unit }}"
-                                data-units-per-box="{{ $med->units_per_box ?? 100 }}"
-                                class="stock-option">
-                            {{ $med->name }} | Batch: #{{ $first->batch_number }} | Exp: {{ $first->expiry_date->format('M Y') }} | Qty: {{ $totalQty }}
-                        </option>
-                    @endforeach
-                </optgroup>
-            @endforeach
-        `;
+        const stockOptions = `
+                                                                    <option value="">Select matching stock...</option>
+                                                                    @foreach($medicines as $med)
+                                                                        <optgroup label="{{ $med->name }} ({{ $med->unit }})">
+                                                                            @foreach($med->stocks->groupBy(fn($s) => $s->warehouse_id . '-' . $s->batch_number) as $groupKey => $batchStocks)
+                                                                                @php 
+                                                                                                                                                            $first = $batchStocks->sortBy('expiry_date')->first();
+                                                                                    $totalQty = $batchStocks->sum('quantity');
+                                                                                @endphp
+                                                                                <option value="{{ $first->id }}" 
+                                                                                        data-warehouse="{{ $first->warehouse_id }}" 
+                                                                                        data-quantity="{{ $totalQty }}"
+                                                                                        data-unit="{{ $med->unit }}"
+                                                                                        data-units-per-box="{{ $med->units_per_box ?? 100 }}"
+                                                                                        class="stock-option">
+                                                                                    {{ $med->name }} | Batch: #{{ $first->batch_number }} | Exp: {{ $first->expiry_date->format('M Y') }} | Qty: {{ $totalQty }}
+                                                                                </option>
+                                                                            @endforeach
+                                                                        </optgroup>
+                                                                    @endforeach
+                                                                `;
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Parse stockOptionsHtml into masterStockItems once for reliable filtering
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = `<select>${stockOptionsHtml}</select>`;
-            tempDiv.querySelectorAll('option.stock-option').forEach(opt => {
-                const optgroup = opt.closest('optgroup');
-                masterStockItems.push({
-                    value: opt.value,
-                    text: opt.textContent.trim(),
-                    optgroup: optgroup ? optgroup.label : "Medicines",
-                    warehouse: opt.getAttribute('data-warehouse'),
-                    quantity: opt.getAttribute('data-quantity'),
-                    unit: opt.getAttribute('data-unit'),
-                    units_per_box: opt.getAttribute('data-units-per-box')
-                });
-            });
-
             handleSourceChange();
 
             @if(isset($preSelectedRepresentativeId))
-                // Allow time for initialization
+                // Wait for the first row to be created
                 setTimeout(() => {
-                    if (tomSelectInstances[1]) {
+                    const firstSelect = document.querySelector('.stock-select');
+                    if (firstSelect && tomSelectInstances[1]) {
                         tomSelectInstances[1].setValue('{{ $preSelectedRepresentativeId }}');
                     }
-                }, 500);
+                }, 300);
             @endif
-        });
+            });
 
         function handleSourceChange() {
             const fromWhSelect = document.getElementById('from_warehouse_id');
@@ -215,6 +197,7 @@
                 return;
             }
 
+            // Show Transfer All option only for camps
             if (selectedOpt.dataset.type === 'camp') {
                 transferAllWrapper.classList.remove('hidden');
             } else {
@@ -222,8 +205,10 @@
                 transferAllCheckbox.checked = false;
             }
 
+            // Update multi-item visibility based on transfer_all
             toggleTransferMode();
 
+            // Initialize with one item row if empty
             if (document.getElementById('transfer_items_container').children.length === 0) {
                 addTransferItem();
             }
@@ -237,10 +222,16 @@
 
             if (transferAll) {
                 multiItemWrapper.classList.add('hidden');
-                multiItemWrapper.querySelectorAll('input, select').forEach(el => el.disabled = true);
+                // Disable all inputs in the wrapper so they aren't submitted and don't trigger validation
+                multiItemWrapper.querySelectorAll('input, select').forEach(el => {
+                    el.disabled = true;
+                });
             } else {
                 multiItemWrapper.classList.remove('hidden');
-                multiItemWrapper.querySelectorAll('input, select').forEach(el => el.disabled = false);
+                // Re-enable inputs
+                multiItemWrapper.querySelectorAll('input, select').forEach(el => {
+                    el.disabled = false;
+                });
             }
         }
 
@@ -253,57 +244,72 @@
             itemRow.className = 'transfer-item relative p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 transition-all hover:border-accent/30';
             itemRow.id = `item_${itemCounter}`;
             itemRow.innerHTML = `
-                <button type="button" onclick="removeTransferItem(${itemCounter})" 
-                    class="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-700 text-red-500 hover:bg-red-500 hover:text-white rounded-full shadow-lg border border-slate-100 dark:border-slate-600 transition-all z-10"
-                    title="Remove Item">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                </button>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="md:col-span-2">
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Stock Item</label>
-                        <select name="items[${itemCounter}][stock_id]" class="stock-select w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" required onchange="updateItemMaxQty(${itemCounter})">
-                            <option value="">Select matching stock...</option>
-                        </select>
-                        <div class="qty-indicator mt-2 text-[10px] font-bold text-accent hidden">
-                            Available: <span class="max-qty-label">0</span> <span class="max-qty-unit">units</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2"><span class="quantity-label">Quantity</span></label>
-                        <div class="flex flex-col space-y-2">
-                            <input type="number" class="quantity-input w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" 
-                                min="1" placeholder="0" required onchange="calculateItemQuantity(${itemCounter})">
-                            <input type="hidden" name="items[${itemCounter}][quantity]" class="actual-quantity">
-                            <p class="quantity-hint text-[10px] text-slate-500 font-medium"></p>
-                        </div>
-                    </div>
-                </div>
-            `;
+                                                                            <button type="button" onclick="removeTransferItem(${itemCounter})" 
+                                                                                class="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-700 text-red-500 hover:bg-red-500 hover:text-white rounded-full shadow-lg border border-slate-100 dark:border-slate-600 transition-all z-10"
+                                                                                title="Remove Item">
+                                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                                </svg>
+                                                                            </button>
+                                                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                                                <div class="md:col-span-2">
+                                                                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Stock Item</label>
+                                                                                    <select name="items[${itemCounter}][stock_id]" class="stock-select w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" required onchange="updateItemMaxQty(${itemCounter})">
+                                                                                        ${stockOptions}
+                                                                                    </select>
+                                                                                    <div class="qty-indicator mt-2 text-[10px] font-bold text-accent hidden">
+                                                                                        Available: <span class="max-qty-label">0</span> <span class="max-qty-unit">units</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                                                                                        <span class="quantity-label">Quantity</span>
+                                                                                    </label>
+                                                                                    <div class="flex flex-col space-y-2">
+                                                                                        <input type="number" class="quantity-input w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" 
+                                                                                            min="1" placeholder="0" required onchange="calculateItemQuantity(${itemCounter})">
+                                                                                        <input type="hidden" name="items[${itemCounter}][quantity]" class="actual-quantity">
+                                                                                        <p class="quantity-hint text-[10px] text-slate-500 font-medium"></p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
 
             container.appendChild(itemRow);
 
+            // Initialize Tom Select for the new row
             const newSelect = itemRow.querySelector('.stock-select');
             const ts = new TomSelect(newSelect, {
                 create: false,
-                sortField: { field: "text", direction: "asc" },
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
                 placeholder: "Search medicine name or batch...",
                 allowEmptyOption: true,
                 render: {
-                    optgroup_header: (data, escape) => `<div class="optgroup-header">${escape(data.label)}</div>`,
-                    option: (data, escape) => {
-                        const parts = escape(data.text).split(' | ');
-                        return `<div class="py-1">
-                                    <div class="font-bold text-slate-800 dark:text-white text-sm">${parts[0]}</div>
-                                    <div class="text-[10px] text-slate-500 font-medium">${parts.slice(1).join(' | ')}</div>
-                                </div>`;
+                    optgroup_header: function (data, escape) {
+                        return '<div class="optgroup-header">' + escape(data.label) + '</div>';
                     },
-                    item: (data, escape) => `<div class="text-sm font-medium">${escape(data.text)}</div>`
+                    option: function (data, escape) {
+                        const parts = escape(data.text).split(' | ');
+                        const name = parts[0];
+                        const details = parts.slice(1).join(' | ');
+                        return `
+                                                        <div class="py-1">
+                                                            <div class="font-bold text-slate-800 dark:text-white text-sm">${name}</div>
+                                                            <div class="text-[10px] text-slate-500 font-medium">${details}</div>
+                                                        </div>
+                                                    `;
+                    },
+                    item: function (data, escape) {
+                        return '<div class="text-sm font-medium">' + escape(data.text) + '</div>';
+                    }
                 }
             });
             tomSelectInstances[itemCounter] = ts;
-            filterStockSelect(itemCounter, fromWhId);
+
+            filterStockSelect(newSelect, fromWhId, ts);
         }
 
         function removeTransferItem(id) {
@@ -319,44 +325,53 @@
 
         function filterAllStockSelects() {
             const fromWhId = document.getElementById('from_warehouse_id').value;
-            Object.keys(tomSelectInstances).forEach(id => filterStockSelect(id, fromWhId));
+            Object.values(tomSelectInstances).forEach(ts => {
+                const stockSelect = ts.input;
+                filterStockSelect(stockSelect, fromWhId, ts);
+            });
         }
 
-        function filterStockSelect(itemId, fromWhId) {
-            const tsInstance = tomSelectInstances[itemId];
-            if (!tsInstance) return;
+        function filterStockSelect(select, fromWhId, tsInstance = null) {
+            const options = select.querySelectorAll('option.stock-option');
+            const optgroups = select.querySelectorAll('optgroup');
 
-            fromWhId = fromWhId ? fromWhId.toString() : "";
-            const currentValue = tsInstance.getValue();
-            
-            tsInstance.clearOptions();
-            tsInstance.clearOptgroups();
-            
-            const groupsAdded = {};
-            masterStockItems.forEach(item => {
-                if (fromWhId !== "" && item.warehouse == fromWhId) {
-                    if (!groupsAdded[item.optgroup]) {
-                        tsInstance.addOptgroup(item.optgroup, { label: item.optgroup });
-                        groupsAdded[item.optgroup] = true;
-                    }
-                    tsInstance.addOption(item);
+            options.forEach(opt => {
+                if (opt.dataset.warehouse == fromWhId || fromWhId === '') {
+                    opt.disabled = false;
+                } else {
+                    opt.disabled = true;
                 }
             });
 
-            tsInstance.refreshOptions(false);
-            if (currentValue && tsInstance.options[currentValue]) {
-                tsInstance.setValue(currentValue);
+            // If we have a Tom Select instance, we need to refresh its view
+            if (tsInstance) {
+                tsInstance.clearCache();
+                tsInstance.refreshOptions(false);
+
+                // If current value is now disabled, clear it
+                const currentValue = tsInstance.getValue();
+                if (currentValue) {
+                    const currentOpt = select.querySelector(`option[value="${currentValue}"]`);
+                    if (currentOpt && currentOpt.disabled) {
+                        tsInstance.clear();
+                    }
+                }
             } else {
-                tsInstance.clear();
+                // Fallback for standard select
+                options.forEach(opt => {
+                    opt.style.display = opt.disabled ? 'none' : '';
+                });
+                optgroups.forEach(group => {
+                    const visibleOptions = Array.from(group.options).filter(opt => opt.style.display !== 'none');
+                    group.style.display = visibleOptions.length > 0 ? '' : 'none';
+                });
             }
         }
 
         function updateItemMaxQty(itemId) {
-            const tsInstance = tomSelectInstances[itemId];
             const itemRow = document.getElementById(`item_${itemId}`);
-            if (!tsInstance || !itemRow) return;
-
-            const selectedData = tsInstance.options[tsInstance.getValue()];
+            const stockSelect = itemRow.querySelector('.stock-select');
+            const selectedOpt = stockSelect.options[stockSelect.selectedIndex];
             const quantityInput = itemRow.querySelector('.quantity-input');
             const actualQuantity = itemRow.querySelector('.actual-quantity');
             const quantityLabel = itemRow.querySelector('.quantity-label');
@@ -365,19 +380,19 @@
             const label = itemRow.querySelector('.max-qty-label');
             const unitLabel = itemRow.querySelector('.max-qty-unit');
 
-            if (selectedData) {
-                const maxQty = parseInt(selectedData.quantity);
-                const unit = selectedData.unit;
-                const unitsPerBox = parseInt(selectedData.units_per_box) || 100;
+            if (selectedOpt && selectedOpt.value) {
+                const maxQty = parseInt(selectedOpt.dataset.quantity);
+                const unit = selectedOpt.dataset.unit;
+                const unitsPerBox = parseInt(selectedOpt.dataset.unitsPerBox) || 100;
 
                 if (unit === 'Tablet' || unit === 'Capsule') {
                     const maxBoxes = Math.floor(maxQty / unitsPerBox);
                     quantityLabel.textContent = 'Boxes';
                     quantityInput.placeholder = 'Number of boxes';
                     quantityInput.max = maxBoxes;
-                    quantityHint.textContent = `* Each box = ${unitsPerBox} ${unit.toLowerCase()}s`;
+                    quantityHint.textContent = '* Each box = ' + unitsPerBox + ' ' + unit.toLowerCase() + 's';
                     label.innerText = maxBoxes;
-                    unitLabel.innerText = `boxes (${maxQty} ${unit.toLowerCase()}s)`;
+                    unitLabel.innerText = 'boxes (' + maxQty + ' ' + unit.toLowerCase() + 's)';
                 } else {
                     quantityLabel.textContent = 'Quantity';
                     quantityInput.placeholder = '0';
@@ -386,28 +401,33 @@
                     label.innerText = maxQty;
                     unitLabel.innerText = 'units';
                 }
+
                 indicator.classList.remove('hidden');
+                quantityInput.value = '';
+                actualQuantity.value = '';
             } else {
                 indicator.classList.add('hidden');
+                quantityHint.textContent = '';
             }
-            quantityInput.value = '';
-            actualQuantity.value = '';
         }
 
         function calculateItemQuantity(itemId) {
-            const tsInstance = tomSelectInstances[itemId];
             const itemRow = document.getElementById(`item_${itemId}`);
-            if (!tsInstance || !itemRow) return;
-
-            const selectedData = tsInstance.options[tsInstance.getValue()];
+            const stockSelect = itemRow.querySelector('.stock-select');
+            const selectedOpt = stockSelect.options[stockSelect.selectedIndex];
             const quantityInput = itemRow.querySelector('.quantity-input');
             const actualQuantity = itemRow.querySelector('.actual-quantity');
             const inputValue = parseInt(quantityInput.value) || 0;
 
-            if (selectedData) {
-                const unit = selectedData.unit;
-                const unitsPerBox = parseInt(selectedData.units_per_box) || 100;
-                actualQuantity.value = (unit === 'Tablet' || unit === 'Capsule') ? inputValue * unitsPerBox : inputValue;
+            if (selectedOpt && selectedOpt.value) {
+                const unit = selectedOpt.dataset.unit;
+                const unitsPerBox = parseInt(selectedOpt.dataset.unitsPerBox) || 100;
+
+                if (unit === 'Tablet' || unit === 'Capsule') {
+                    actualQuantity.value = inputValue * unitsPerBox;
+                } else {
+                    actualQuantity.value = inputValue;
+                }
             }
         }
     </script>
