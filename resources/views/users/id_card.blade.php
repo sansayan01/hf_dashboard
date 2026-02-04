@@ -449,10 +449,45 @@
 
         // Auto-refresh layout on load to ensure CSS rounding is solid
         window.addEventListener('load', () => {
+            const logo = document.querySelector('.logo-img');
+            if (logo) {
+                if (logo.complete) {
+                    processLogo(logo);
+                } else {
+                    logo.onload = () => processLogo(logo);
+                }
+            }
+
             document.fonts.ready.then(() => {
                 console.log('Fonts loaded, ID Card ready for capture.');
             });
         });
+
+        function processLogo(img) {
+            // Only process if it hasn't been processed yet
+            if (img.dataset.processed) return;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                // Remove black/near-black background (threshold of 40 for R,G,B)
+                if (data[i] < 45 && data[i + 1] < 45 && data[i + 2] < 45) {
+                    data[i + 3] = 0; // Set alpha to transparent
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            img.src = canvas.toDataURL();
+            img.style.mixBlendMode = 'normal'; // Revert blend mode
+            img.dataset.processed = "true";
+        }
     </script>
 </body>
 

@@ -495,17 +495,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                }).then((result) => {
+                                                                                                                                                                                    }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                });
+                                                                                                                                                                                    });
         @endif
 
         @if(session('error'))
@@ -527,6 +527,42 @@
                 confirmButtonColor: '#F2994A',
             });
         @endif
+
+        // Process logos for transparency
+        window.addEventListener('load', () => {
+            document.querySelectorAll('img[src*="hf_gold_logo"]').forEach(img => {
+                if (img.complete) {
+                    processLogo(img);
+                } else {
+                    img.onload = () => processLogo(img);
+                }
+            });
+        });
+
+        function processLogo(img) {
+            if (img.dataset.processed) return;
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    // Remove black background
+                    if (data[i] < 45 && data[i + 1] < 45 && data[i + 2] < 45) {
+                        data[i + 3] = 0;
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+                img.src = canvas.toDataURL();
+                img.style.mixBlendMode = 'normal';
+                img.dataset.processed = "true";
+            } catch (e) {
+                console.warn("Logo processing skipped (likely CORS or missing GD)", e);
+            }
+        }
     </script>
     @include('layouts.partials.ai_assistant')
     @yield('js')

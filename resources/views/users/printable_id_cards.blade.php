@@ -426,6 +426,39 @@
 
             overlay.classList.add('hidden');
         }
+
+        // Process logos for transparency
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.logo-img').forEach(img => {
+                if (img.complete) {
+                    processLogo(img);
+                } else {
+                    img.onload = () => processLogo(img);
+                }
+            });
+        });
+
+        function processLogo(img) {
+            if (img.dataset.processed) return;
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i] < 45 && data[i + 1] < 45 && data[i + 2] < 45) {
+                        data[i + 3] = 0;
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+                img.src = canvas.toDataURL();
+                img.style.mixBlendMode = 'normal';
+                img.dataset.processed = "true";
+            } catch (e) { console.error("Logo processing failed", e); }
+        }
     </script>
 </body>
 
