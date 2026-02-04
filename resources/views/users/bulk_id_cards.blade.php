@@ -60,7 +60,7 @@
             position: relative;
             z-index: 10;
             margin: 0 auto;
-            margin-top: 75px;
+            margin-top: 76px;
             overflow: hidden;
             border: 6px solid white;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
