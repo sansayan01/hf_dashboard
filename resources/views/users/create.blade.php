@@ -751,44 +751,58 @@
                 }
                 @endif
 
+                // Default state for Parent & Camp selection
+                const parentWrapper = document.getElementById('parent-selection-wrapper');
+                const campWrapper = document.getElementById('camp-selection-wrapper');
+                const campSelect = document.getElementById('camp-select');
+
+                if (parentWrapper) parentWrapper.classList.remove('hidden');
+                if (campWrapper) campWrapper.classList.add('hidden');
+                if (campSelect) campSelect.required = false;
+                
+                if (parentSelect) {
+                    parentSelect.disabled = false;
+                    const parentDiv = parentSelect.closest('div');
+                    if (parentDiv) parentDiv.classList.remove('opacity-50');
+                }
+
                 // Roles that don't need manual parent selection (Top Level)
                 if (designation === 'super_admin' || designation === 'hs' || designation === 'staff') {
-                    parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
-                    parentSelect.required = false;
-                    // Dont hide, just disable or auto-fill
-                    // For Staff (Pharmacist), we completely hide Parent select and Show Camp Select
+                    if (parentSelect) {
+                        parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
+                        parentSelect.required = false;
+                    }
+                    
                     if (designation === 'staff') {
-                        document.getElementById('parent-selection-wrapper').classList.add('hidden');
-                        document.getElementById('camp-selection-wrapper').classList.remove('hidden');
-                        document.getElementById('camp-select').required = true;
+                        if (parentWrapper) parentWrapper.classList.add('hidden');
+                        if (campWrapper) campWrapper.classList.remove('hidden');
+                        if (campSelect) campSelect.required = true;
                     } else {
-                        document.getElementById('parent-selection-wrapper').classList.remove('hidden');
-                        document.getElementById('camp-selection-wrapper').classList.add('hidden');
-                        document.getElementById('camp-select').required = false;
-                        
-                        parentSelect.closest('div').classList.add('opacity-50');
-                        parentSelect.disabled = true;
+                        if (parentSelect) {
+                            parentSelect.disabled = true;
+                            const parentDiv = parentSelect.closest('div');
+                            if (parentDiv) parentDiv.classList.add('opacity-50');
+                        }
                     }
                 } else if (designation === 'office_in_charge') {
-                    document.getElementById('parent-selection-wrapper').classList.remove('hidden');
-                    document.getElementById('camp-selection-wrapper').classList.add('hidden');
                     // Office In-Charge gets parent from Upline
-                    parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
-                    parentSelect.required = false;
-                    parentSelect.closest('div').classList.add('opacity-50');
-                    parentSelect.disabled = true;
+                    if (parentSelect) {
+                        parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
+                        parentSelect.required = false;
+                        parentSelect.disabled = true;
+                        const parentDiv = parentSelect.closest('div');
+                        if (parentDiv) parentDiv.classList.add('opacity-50');
+                    }
                     
                     // Trigger sync if we have a value
-                    if (document.getElementById('upline-person-select').value) {
-                        const ups = document.getElementById('upline-person-select');
+                    const ups = document.getElementById('upline-person-select');
+                    if (ups && ups.value && parentSelect) {
                         const opt = ups.options[ups.selectedIndex];
                         parentSelect.innerHTML = '';
                         parentSelect.add(new Option(opt.text, opt.value, true, true));
                     }
                 } else {
-                    parentSelect.required = true;
-                    parentSelect.closest('div').classList.remove('opacity-50');
-                    parentSelect.disabled = false;
+                    if (parentSelect) parentSelect.required = true;
 
                     let targetParentDesignation = '';
                     if (designation === 'dm') targetParentDesignation = 'hs';
