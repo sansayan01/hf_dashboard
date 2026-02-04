@@ -89,7 +89,7 @@
         }
 
         .logo-img {
-            height: 18mm;
+            height: 13mm;
             margin-bottom: 0.1mm;
             z-index: 2;
             display: block;
