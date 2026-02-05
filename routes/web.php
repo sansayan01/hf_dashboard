@@ -54,6 +54,9 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         // ID Card
         Route::get('/{user}/id-card', [UserController::class, 'idCard'])->name('id-card');
 
+        // Joining Letter
+        Route::get('/{user}/joining-letter', [UserController::class, 'joiningLetter'])->name('joining-letter');
+
         // Toggle Officer in Charge status
         Route::post('/{user}/toggle-oic', [UserController::class, 'toggleOic'])->name('toggle-oic');
 

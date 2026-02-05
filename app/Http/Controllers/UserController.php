@@ -1287,6 +1287,21 @@ class UserController extends Controller
         return view('users.id_card', compact('user', 'format'));
     }
 
+    /**
+     * Generate Joining Letter View
+     */
+    public function joiningLetter(User $user)
+    {
+        $currentUser = auth()->user();
+
+        // Check access
+        if (!$currentUser->canAccess($user)) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        return view('users.joining_letter', compact('user'));
+    }
+
 
 
     /**
