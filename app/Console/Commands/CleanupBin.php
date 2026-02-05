@@ -36,6 +36,7 @@ class CleanupBin extends Command
         $count = $usersToDelete->count();
 
         foreach ($usersToDelete as $user) {
+            /** @var User $user */
             // Delete associated profile picture if exists
             if ($user->profile && $user->profile->profile_picture) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile->profile_picture);

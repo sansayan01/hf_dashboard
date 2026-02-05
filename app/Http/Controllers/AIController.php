@@ -134,6 +134,7 @@ class AIController extends Controller
 
             // Get Team Members
             $team = User::whereIn('id', $relevantUserIds)->with('profile')->take(40)->get()->map(function ($u) {
+                /** @var \App\Models\User $u */
                 $name = $u->profile->full_name ?? 'Unknown';
                 return "- {$name} (#{$u->employee_id}, {$u->getDesignationLabel()})";
             })->implode("\n");

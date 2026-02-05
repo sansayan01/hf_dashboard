@@ -260,6 +260,7 @@ class UserController extends Controller
             ]);
 
             foreach ($users as $user) {
+                /** @var \App\Models\User $user */
                 $parentName = 'N/A';
                 if ($type === 'staff' && ($user->designation === 'office_in_charge' || $user->is_office_in_charge)) {
                     $parentName = $user->upline->profile->full_name ?? $user->upline->employee_id ?? 'N/A';
@@ -1083,6 +1084,7 @@ class UserController extends Controller
 
         // Filter users based on access permissions
         $accessibleUsers = $users->filter(function ($user) use ($currentUser) {
+            /** @var \App\Models\User $user */
             return $currentUser->canAccess($user);
         });
 
@@ -1106,6 +1108,7 @@ class UserController extends Controller
 
             // Prepare bulk activity logs (insert all at once)
             foreach ($accessibleUsers as $user) {
+                /** @var \App\Models\User $user */
                 $activityLogs[] = [
                     'action' => 'approved',
                     'user_id' => $user->id,

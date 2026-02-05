@@ -69,6 +69,7 @@ class InventoryController extends Controller
         if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
             // For pharmacists and OICs, only show low stock for their camp
             $lowStockMedicines = $lowStockQuery->get()->filter(function ($medicine) use ($user) {
+                /** @var \App\Models\Medicine $medicine */
                 $campStock = $medicine->stocks()->where('warehouse_id', $user->camp_id)->sum('quantity');
                 return $campStock <= $medicine->min_stock_level;
             });
@@ -883,6 +884,7 @@ class InventoryController extends Controller
                         }
 
                         foreach ($matchingStocks as $sourceStock) {
+                            /** @var \App\Models\InventoryStock $sourceStock */
                             if ($totalQtyToTransfer <= 0)
                                 break;
                             $currentTransferQty = min($sourceStock->quantity, $totalQtyToTransfer);

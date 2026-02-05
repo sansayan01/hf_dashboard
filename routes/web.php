@@ -588,6 +588,7 @@ Route::get('/diag/profile-pictures', function () {
     $html .= '</tr></thead><tbody>';
 
     foreach ($profiles as $profile) {
+        /** @var \App\Models\UserProfile $profile */
         $path = $profile->profile_picture;
         $possiblePaths = [
             'storage_path' => storage_path('app/public/' . $path),

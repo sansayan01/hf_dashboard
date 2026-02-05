@@ -29,16 +29,15 @@
             background-color: #f1f5f9;
             color: var(--slate-800);
             display: flex;
-            background-color: white;
-            color: var(--slate-800);
-            display: flex;
             justify-content: center;
-            padding: 0;
+            padding: 40px 0;
+            margin: 0;
         }
 
         .letter-page {
             width: 210mm;
-            height: 297mm;
+            height: 296.8mm;
+            /* Slightly less than 297mm to avoid 2nd page overflow */
             background: white;
             padding: 10mm 15mm;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
@@ -118,15 +117,15 @@
 
         .recipient-section {
             margin-bottom: 15px;
-            font-size: 14px;
-            line-height: 1.4;
+            font-size: 16px;
+            line-height: 1.5;
             font-weight: 600;
         }
 
         .recipient-section .to-label {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 800;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .recipient-section .dynamic-data {
@@ -134,36 +133,36 @@
         }
 
         .body-content {
-            font-size: 12px;
-            line-height: 1.4;
+            font-size: 13.5px;
+            line-height: 1.5;
             text-align: justify;
             margin-bottom: 15px;
         }
 
         .body-content p {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .tc-heading {
             color: var(--accent-red);
             font-weight: 900;
-            font-size: 12px;
+            font-size: 13.5px;
             text-transform: uppercase;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .tc-list {
             list-style: none;
             padding-left: 0;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .tc-list li {
             position: relative;
-            padding-left: 20px;
+            padding-left: 22px;
             margin-bottom: 4px;
-            font-size: 10px;
-            line-height: 1.2;
+            font-size: 11px;
+            line-height: 1.3;
             font-weight: 600;
         }
 
@@ -241,6 +240,19 @@
             font-size: 10px;
             font-weight: 600;
             color: var(--primary-green);
+        }
+
+        /* Central Watermark */
+        .watermark {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            width: 700px;
+            height: auto;
+            opacity: 0.06;
+            pointer-events: none;
+            z-index: 0;
         }
 
         /* Controls */
@@ -342,6 +354,7 @@
     </div>
 
     <div class="letter-page" id="offer-letter">
+        <img src="{{ asset('img/logo 1.png') }}" class="watermark" alt="Watermark">
         <div class="corner-decoration top-left-decor"></div>
         <div class="corner-decoration bottom-right-decor"></div>
 
@@ -367,6 +380,7 @@
         <div class="recipient-section">
             <div class="to-label">To:</div>
             <div class="dynamic-data">{{ $user->profile->full_name }}</div>
+            <div class="dynamic-data">Emp ID : {{ $user->employee_id }}</div>
             <div class="dynamic-data">Aadhar Number : {{ $user->profile->aadhaar_number }}</div>
         </div>
 
@@ -443,14 +457,6 @@
                 </div>
             </div>
 
-            <div class="seal-section">
-                <img src="{{ asset('img/logo 1.png') }}" alt="Seal" class="seal-img">
-                <div
-                    style="font-size: 10px; font-weight: 800; color: var(--slate-600); margin-top: -30px; position: relative; z-index: 2;">
-                    Secretary<br>Humanity Foundation
-                </div>
-            </div>
-
             <div class="signature-section">
                 <img src="{{ asset('img/signature.png') }}" alt="Director Signature" class="signature-img">
                 <div class="signature-label">Secretary</div>
@@ -467,12 +473,23 @@
                 margin: 0,
                 filename: 'Offer_Letter_{{ $user->employee_id }}.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: false },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    letterRendering: true,
+                    scrollY: 0,
+                    scrollX: 0
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: 'avoid-all' }
             };
 
-            // New Promise-based usage:
-            html2pdf().set(opt).from(element).save();
+            // Capture the letter
+            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {
+                // Double check if page count is > 1 and it's blank (safety measure if library still adds it)
+                // but avoid-all and the height adjustment should handle it.
+            }).save();
         }
     </script>
 </body>
