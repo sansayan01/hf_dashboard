@@ -398,28 +398,62 @@
         </div>
 
         <div class="body-content">
-            @if($user->isRM())
+            @if($user->isDM())
+                {{-- DM Content --}}
+                <p>We are pleased to offer you this Joining letter as designation of District Manager (DM) Under
+                    <strong>“{{ $user->profile->district }}”</strong> District, Which will effect from the date of your
+                    team performance starts. We congratulate you and wish you a long and successful career with us. We are
+                    confident that your contribution will take us further in our journey towards becoming world leaders. We
+                    assure you of our support for your professional development and growth.
+                </p>
+
+                <p>You will get Monthly Honorarium of Rupees 90,000 (Ninety thousand) inr + Travelling allowance 5,000 (Five
+                    Thousands) inr. Also you may earn Spot incentives. Your first duty is to lead all Relationship Manager
+                    (RM) to increase HF Members, doing surveys, Delivering Banking & Financial services, Health services
+                    (Doctor Consultation, Medicine, Pathology services), governments projects, Nutrition food to every
+                    family etc..you should have minimum 625 ROs in your team.</p>
+            @elseif($user->isBM())
+                {{-- BM Content --}}
+                <p>We are pleased to offer you this Joining letter as designation of Block Manager (BM) Under
+                    <strong>“{{ $user->profile->block }}”</strong> block of
+                    <strong>“{{ $user->profile->district }}”</strong> District, Which will effect from the date of your
+                    team performance starts. We congratulate you and wish you a long and successful career with us. We are
+                    confident that your contribution will take us further in our journey towards becoming world leaders. We
+                    assure you of our support for your professional development and growth.
+                </p>
+
+                <p>You will get Monthly Honorarium of Rupees 37,500 (Thirty seven thousand five hundred) inr. Also you may
+                    earn Spot incentives. Your first duty is to lead all Relationship Manager (RM) to increase HF Members,
+                    doing surveys, Delivering Banking & Financial services, Health services (Doctor Consultation, Medicine,
+                    Pathology services), governments projects, Nutrition food to every family etc. You should have minimum
+                    125 ROs in your team.</p>
+            @elseif($user->isRM())
                 {{-- RM Content --}}
                 <p>We are pleased to offer you this Joining letter as designation of Relationship Manager (RM),
-                    “{{ $user->profile->block }}” Block, Under “{{ $user->profile->district }}” District , Which will effect
+                    <strong>“{{ $user->profile->block }}”</strong> Block, Under
+                    <strong>“{{ $user->profile->district }}”</strong> District , Which will effect
                     from the date of your team performance starts.
                     We congratulate you and wish you a long and successful career with us. We are confident that your
                     contribution will take us further in our journey towards becoming world leaders. We assure you of our
-                    support for your professional development and growth.</p>
+                    support for your professional development and growth.
+                </p>
 
                 <p>You will get Monthly Honorarium of Rupees 18,750 (Eighteen thousand Seven hundred fifty ) inr . Also you
                     may earn Spot incentives . Your first duty is to lead all Relationship Officers (RO) to increase HF
                     Members, doing surveys, Delivering Banking & Financial services, Health services (Doctor Consultation,
                     Medicine, Pathology services), governments projects, Nutrition food to every family etc..you should have
-                    minimum 25 ROs in your team.</p>
+                    minimum 25 ROs in your team. </p>
             @else
                 {{-- Default RO Content --}}
                 <p>We are pleased to offer you an Offer letter as designation of Relationship Officer (RO) at
-                    “{{ $user->profile->gram_panchayat }}” Gram Panchayat, “{{ $user->profile->block }}” Block ,
-                    “{{ $user->profile->district }}” District, Which will effect from the date of your performance starts.
+                    <strong>“{{ $user->profile->gram_panchayat }}”</strong> Gram Panchayat,
+                    <strong>“{{ $user->profile->block }}”</strong> Block ,
+                    <strong>“{{ $user->profile->district }}”</strong> District, Which will effect from the date of your
+                    performance starts.
                     We congratulate you and wish you a long and successful career with us. We are confident that your
                     contribution will take us further in our journey towards becoming world leaders. We assure you of our
-                    support for your professional development and growth.</p>
+                    support for your professional development and growth.
+                </p>
 
                 <p>Humanity Foundation is a Government Registered Trust and you are going to be a part of this Organization.
                     You will get Monthly Honorarium of Rupees 6,000(six thousands)inr+ 1500 (One Thousand Five Hundred) as
@@ -441,11 +475,13 @@
         </div>
 
         <ul class="tc-list">
-            @if($user->isRM())
-                {{-- RM Terms --}}
+            @if($user->isDM() || $user->isBM() || $user->isRM())
+                {{-- DM, BM, RM Terms --}}
                 <li data-index="1">Organization isn’t liable to pay you the above Honorarium, if you found guilty or non
                     compliance.</li>
-                <li data-index="2">You should have minimum 25 RO’s active in your team.</li>
+                <li data-index="2">You should have minimum
+                    {{ $user->isDM() ? '625' : ($user->isBM() ? '125' : '25') }} RO’s active in your team.
+                </li>
                 <li data-index="3">The notice period is one month from the effective date of acceptance of resignation.
                     However the Trust at its sole discretion is liable to terminate with immediate effect due to
                     nonperformance or integrity issues.</li>
