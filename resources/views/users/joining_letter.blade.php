@@ -63,6 +63,7 @@
 
         .logo-section img {
             height: 100px;
+            /* Increased from 85px */
             width: auto;
         }
 
@@ -73,7 +74,8 @@
 
         .title-section h1 {
             color: var(--primary-green);
-            font-size: 34px;
+            font-size: 38px;
+            /* Significantly increased from 30px */
             font-weight: 900;
             letter-spacing: 0.5px;
             margin-bottom: 2px;
@@ -81,7 +83,8 @@
         }
 
         .title-section p {
-            font-size: 13px;
+            font-size: 13.5px;
+            /* Increased from 11px */
             font-weight: 700;
             color: var(--slate-800);
             margin-bottom: 2px;
@@ -91,8 +94,9 @@
             background-color: var(--dark-green);
             color: white;
             text-align: center;
-            padding: 5px;
-            font-size: 12px;
+            padding: 6px;
+            font-size: 14px;
+            /* Increased from 11px */
             font-weight: 600;
             border-radius: 4px;
             margin-bottom: 15px;
@@ -107,25 +111,29 @@
 
         .document-title h2 {
             color: var(--accent-red);
-            font-size: 22px;
+            font-size: 26px;
+            /* Increased from 20px */
             font-weight: 800;
             text-decoration: underline;
-            text-underline-offset: 6px;
+            text-underline-offset: 7px;
             text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: 4px;
         }
 
         .recipient-section {
-            margin-bottom: 15px;
-            font-size: 16px;
-            line-height: 1.5;
+            margin-bottom: 8px;
+            /* Reduced from 15px */
+            font-size: 15px;
+            /* Slightly reduced */
+            line-height: 1.4;
             font-weight: 600;
         }
 
         .recipient-section .to-label {
-            font-size: 18px;
+            font-size: 17px;
+            /* Slightly reduced */
             font-weight: 800;
-            margin-bottom: 3px;
+            margin-bottom: 1px;
         }
 
         .recipient-section .dynamic-data {
@@ -133,10 +141,13 @@
         }
 
         .body-content {
-            font-size: 13.5px;
-            line-height: 1.5;
+            font-size: 13px;
+            /* Slightly reduced from 13.5px */
+            line-height: 1.4;
+            /* Slightly reduced from 1.5 */
             text-align: justify;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            /* Reduced from 15px */
         }
 
         .body-content p {
@@ -160,8 +171,9 @@
         .tc-list li {
             position: relative;
             padding-left: 22px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             font-size: 11px;
+            /* Increased from 10px */
             line-height: 1.3;
             font-weight: 600;
         }
@@ -174,11 +186,12 @@
         }
 
         .footer {
-            margin-top: auto;
+            margin-top: 15mm;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            padding-bottom: 5mm;
+            padding-bottom: 75mm;
+            /* Moved very high from the edge */
             position: relative;
             z-index: 1;
         }
@@ -385,21 +398,38 @@
         </div>
 
         <div class="body-content">
-            <p>We are pleased to offer you an Offer letter as designation of Relationship Officer (RO) at
-                “{{ $user->profile->gram_panchayat }}” Gram Panchayat, “{{ $user->profile->block }}” Block ,
-                “{{ $user->profile->district }}” District, Which will effect from the date of your performance starts.
-                We congratulate you and wish you a long and successful career with us. We are confident that your
-                contribution will take us further in our journey towards becoming world leaders. We assure you of our
-                support for your professional development and growth.</p>
+            @if($user->isRM())
+                {{-- RM Content --}}
+                <p>We are pleased to offer you this Joining letter as designation of Relationship Manager (RM),
+                    “{{ $user->profile->block }}” Block, Under “{{ $user->profile->district }}” District , Which will effect
+                    from the date of your team performance starts.
+                    We congratulate you and wish you a long and successful career with us. We are confident that your
+                    contribution will take us further in our journey towards becoming world leaders. We assure you of our
+                    support for your professional development and growth.</p>
 
-            <p>Humanity Foundation is a Government Registered Trust and you are going to be a part of this Organization.
-                You will get Monthly Honorarium of Rupees 6,000(six thousands)inr+ 1500(One Thousand Five Hundred) as
-                travelling allowance. Your responsibility/task is to doing survey minimum 20 families every day, through
-                which has to generate minimum 8 doctors appointments, in a month has to provide at least 200 Doctor
-                appointments+100 Memberships & other banking services. It is Mandatory to give your work report to your
-                senior at the end of every day and organize Health camps. Apart from this it is your duty to supply
-                medicines/Glasses/test reports to Members/Patients. Also you can regularly get spot incentives, loan
-                Commissions etc by providing various services.</p>
+                <p>You will get Monthly Honorarium of Rupees 18,750 (Eighteen thousand Seven hundred fifty ) inr . Also you
+                    may earn Spot incentives . Your first duty is to lead all Relationship Officers (RO) to increase HF
+                    Members, doing surveys, Delivering Banking & Financial services, Health services (Doctor Consultation,
+                    Medicine, Pathology services), governments projects, Nutrition food to every family etc..you should have
+                    minimum 25 ROs in your team.</p>
+            @else
+                {{-- Default RO Content --}}
+                <p>We are pleased to offer you an Offer letter as designation of Relationship Officer (RO) at
+                    “{{ $user->profile->gram_panchayat }}” Gram Panchayat, “{{ $user->profile->block }}” Block ,
+                    “{{ $user->profile->district }}” District, Which will effect from the date of your performance starts.
+                    We congratulate you and wish you a long and successful career with us. We are confident that your
+                    contribution will take us further in our journey towards becoming world leaders. We assure you of our
+                    support for your professional development and growth.</p>
+
+                <p>Humanity Foundation is a Government Registered Trust and you are going to be a part of this Organization.
+                    You will get Monthly Honorarium of Rupees 6,000(six thousands)inr+ 1500 (One Thousand Five Hundred) as
+                    travelling allowance. Your responsibility/task is to doing survey minimum 20 families every day, through
+                    which has to generate minimum 8 doctors appointments, in a month has to provide at least 200 Doctor
+                    appointments+100 Memberships & other banking services. It is Mandatory to give your work report to your
+                    senior at the end of every day and organize Health camps. Apart from this it is your duty to supply
+                    medicines/Glasses/test reports to Members/Patients. Also you can regularly get spot incentives, loan
+                    Commissions etc by providing various services.</p>
+            @endif
 
             <p>Your offer has been made based on information furnished by you. However, if there is a discrepancy in the
                 copies of documents or certificates given by you as a proof of above, we retain the right to review our
@@ -411,34 +441,71 @@
         </div>
 
         <ul class="tc-list">
-            <li data-index="1">Trust isn’t liable to pay you the above Honorarium, if you found guilty or non compliance
-                in the Trust.</li>
-            <li data-index="2">The notice period is one month from the effective date of acceptance of resignation.
-                However the Trust at its sole discretion is liable to terminate with immediate effect due to
-                nonperformance or integrity issues.</li>
-            <li data-index="3">The Trust holds all right to switch over to POP (payment on performance) mode without any
-                further notice or information.</li>
-            <li data-index="4">The Trust can reallocate your shift & process as per requirement and the employee should
-                be flexible enough to reallocate as per Trust’s requirement, failing which service come to an end.</li>
-            <li data-index="5">If you cannot Complete the stipulated task, the amount of your Monthly Honorarium will
-                depend on the volume of your work.</li>
-            <li data-index="6">To claim any salary or dues an employee has to be there in the Trust floor minimum 40
-                days.</li>
-            <li data-index="7">You will get HF identity cards. always wear formal dress & carry your ID card along with
-                you during duty hours.</li>
-            <li data-index="8">You may not offer any product or services to any member on your behalf without the
-                Organization’s permission.</li>
-            <li data-index="9">You have to send your daily performance report to your senior. If you do not deliver your
-                daily report till 3 days then 300 inr will deduct from your base Honorarium and you would be warned but
-                if you will do continue the same then within 5 days you may get a “Show Cause notice”. After 10 days of
-                your inactive response we will take it as your resignation. You will lose your job.</li>
-            <li data-index="10">Medicine or pathology due or membership fees Daily collection and submit to HF Official
-                is an important work in your daily schedule.</li>
-            <li data-index="11">You cannot keep Membership fees/ Medicine billed amount/ Pathology billed amount etc..
-            </li>
-            <li data-index="12">Please do not miss behave with any HF Members.</li>
-            <li data-index="13">Within the 10th of every month, you will receive the Honorarium of the previous month.
-            </li>
+            @if($user->isRM())
+                {{-- RM Terms --}}
+                <li data-index="1">Organization isn’t liable to pay you the above Honorarium, if you found guilty or non
+                    compliance.</li>
+                <li data-index="2">You should have minimum 25 RO’s active in your team.</li>
+                <li data-index="3">The notice period is one month from the effective date of acceptance of resignation.
+                    However the Trust at its sole discretion is liable to terminate with immediate effect due to
+                    nonperformance or integrity issues.</li>
+                <li data-index="4">If for any reason the work is stopped or you do not perform your duty, That day’s payout
+                    will not be counted.</li>
+                <li data-index="5">The Trust holds all right to switch over to POP (payment on performance) mode without any
+                    further notice or information.</li>
+                <li data-index="6">The Trust can reallocate your shift & process as per requirement and the employee should
+                    be flexible enough to reallocate as per Trust’s requirement, failing which service come to an end.</li>
+                <li data-index="7">To claim any salary or dues an employee has to be there in the Trust floor minimum 40
+                    days.</li>
+                <li data-index="8">Always carry your ID card along with you during duty hours.</li>
+                <li data-index="9">You may not offer any product or services to any member or do not on your behalf without
+                    the Organization’s permission.</li>
+                <li data-index="10">Do not give instructions to any RMs for your personal use or to do any work other than
+                    work for the Organization.</li>
+                <li data-index="11">You have to update your team performance report to your senior. If you do not deliver
+                    your daily report till 2 days then 500 inr will deduct from your base Honorarium and you would be warned
+                    but if you will do continue the same then within 5 days you may get a “Show Cause notice”. After 10 days
+                    of your inactive response we will take it as your resignation. You will lose your job.</li>
+                <li data-index="12">You do have the authority to give warning and take action on those RMs who are not
+                    working.</li>
+                <li data-index="13">It is one of your important responsibility to see if the RM’s are collecting and
+                    depositing bills of Medicine or pathology or other payments or membership fees on a daily basis..</li>
+                <li data-index="14">You cannot keep Membership fees/ Medicine billed amount/ Pathology billed amount etc..
+                </li>
+                <li data-index="15">Please do not miss behave with any RMs or any HF Members.</li>
+                <li data-index="16">Within the 10th of every month, you will receive the Honorarium of the previous month.
+                </li>
+            @else
+                {{-- RO Terms --}}
+                <li data-index="1">Trust isn’t liable to pay you the above Honorarium, if you found guilty or non compliance
+                    in the Trust.</li>
+                <li data-index="2">The notice period is one month from the effective date of acceptance of resignation.
+                    However the Trust at its sole discretion is liable to terminate with immediate effect due to
+                    nonperformance or integrity issues.</li>
+                <li data-index="3">The Trust holds all right to switch over to POP (payment on performance) mode without any
+                    further notice or information.</li>
+                <li data-index="4">The Trust can reallocate your shift & process as per requirement and the employee should
+                    be flexible enough to reallocate as per Trust’s requirement, failing which service come to an end.</li>
+                <li data-index="5">If you cannot Complete the stipulated task, the amount of your Monthly Honorarium will
+                    depend on the volume of your work.</li>
+                <li data-index="6">To claim any salary or dues an employee has to be there in the Trust floor minimum 40
+                    days.</li>
+                <li data-index="7">You will get HF identity cards. always wear formal dress & carry your ID card along with
+                    you during duty hours.</li>
+                <li data-index="8">You may not offer any product or services to any member on your behalf without the
+                    Organization’s permission.</li>
+                <li data-index="9">You have to send your daily performance report to your senior. If you do not deliver your
+                    daily report till 3 days then 300 inr will deduct from your base Honorarium and you would be warned but
+                    if you will do continue the same then within 5 days you may get a “Show Cause notice”. After 10 days of
+                    your inactive response we will take it as your resignation. You will lose your job.</li>
+                <li data-index="10">Medicine or pathology due or membership fees Daily collection and submit to HF Official
+                    is an important work in your daily schedule.</li>
+                <li data-index="11">You cannot keep Membership fees/ Medicine billed amount/ Pathology billed amount etc..
+                </li>
+                <li data-index="12">Please do not miss behave with any HF Members.</li>
+                <li data-index="13">Within the 10th of every month, you will receive the Honorarium of the previous month.
+                </li>
+            @endif
         </ul>
 
         <div class="footer">
