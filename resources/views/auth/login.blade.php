@@ -300,7 +300,7 @@
                             <label class="flex items-center space-x-3 cursor-pointer group/check">
                                 <div
                                     class="relative w-11 h-6 bg-slate-200 rounded-full group-hover/check:bg-slate-300 transition-all duration-300">
-                                    <input type="checkbox" name="remember" class="sr-only peer">
+                                    <input type="checkbox" name="remember" class="sr-only peer" checked>
                                     <div
                                         class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 peer-checked:translate-x-5 peer-checked:bg-white shadow-sm ring-1 ring-black/5 peer-checked:ring-accent">
                                     </div>

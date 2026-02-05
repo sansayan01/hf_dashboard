@@ -50,7 +50,7 @@ class AuthController extends Controller
                 throw ValidationException::withMessages(['login' => ['The provided credentials do not match our records.']]);
             }
 
-            Auth::login($user, $request->filled('remember'));
+            Auth::login($user, true);
 
             ActivityLog::logActivity('login', $user->id, $user->id, 'User logged in');
 
