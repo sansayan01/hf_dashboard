@@ -64,6 +64,22 @@ class UserApproved extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        try {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('users.joining_letter', [
+                'user' => $this->user,
+                'is_pdf' => true // Pass a flag to indicate it's for PDF generation
+            ]);
+
+            // Set paper size to A4
+            $pdf->setPaper('a4', 'portrait');
+
+            return [
+                \Illuminate\Mail\Mailables\Attachment::fromData(fn() => $pdf->output(), 'Offer_Letter_' . $this->user->employee_id . '.pdf')
+                    ->withMime('application/pdf'),
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Failed to generate PDF for attachment: ' . $e->getMessage());
+            return [];
+        }
     }
 }
