@@ -16,11 +16,11 @@
                     <!-- Profile Picture -->
                     <div class="w-32 h-32 rounded-3xl bg-white p-2 shadow-xl ring-1 ring-slate-100">
                         <div class="w-full h-full rounded-2xl overflow-hidden bg-slate-50 flex items-center justify-center">
-                            @if($user->profile && $user->profile->profile_picture)
+                            @if($user->profile?->profile_picture)
                                 <img src="{{ $user->profile->getProfilePictureUrl() }}" class="w-full h-full object-cover">
                             @else
                                 <span
-                                    class="text-4xl font-black text-accent">{{ substr($user->profile->full_name ?? $user->employee_id, 0, 1) }}</span>
+                                    class="text-4xl font-black text-accent">{{ substr($user->profile?->full_name ?? $user->employee_id, 0, 1) }}</span>
                             @endif
                         </div>
                     </div>
@@ -28,7 +28,7 @@
                     <div class="flex-1">
                         <div class="flex flex-wrap items-center gap-3 mb-2">
                             <h2 class="text-3xl font-black text-slate-800">
-                                {{ $user->profile->full_name ?? 'Incomplete Profile' }}
+                                {{ $user->profile?->full_name ?? 'Incomplete Profile' }}
                             </h2>
                             <span
                                 class="px-3 py-1 bg-accent/10 text-accent rounded-full text-[10px] font-black uppercase tracking-widest">
@@ -199,7 +199,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Contact No.</p>
-                        <p class="text-sm font-bold text-slate-700">{{ $user->profile->phone_number }}</p>
+                        <p class="text-sm font-bold text-slate-700">{{ $user->profile?->phone_number ?? 'N/A' }}</p>
                     </div>
                 </div>
             </div>
@@ -228,24 +228,25 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Blood Group</p>
-                            <p class="font-bold text-slate-800">{{ $user->profile->blood_group ?? 'Not Specified' }}</p>
+                            <p class="font-bold text-slate-800">{{ $user->profile?->blood_group ?? 'Not Specified' }}</p>
                         </div>
                         <div>
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Aadhaar Card No.
                             </p>
-                            <p class="font-bold text-slate-800">{{ $user->profile->aadhaar_number ?? 'N/A' }}</p>
+                            <p class="font-bold text-slate-800">{{ $user->profile?->aadhaar_number ?? 'N/A' }}</p>
                         </div>
                         <div>
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PAN Card No.</p>
-                            <p class="font-bold text-slate-800 uppercase">{{ $user->profile->pan_number ?? 'N/A' }}</p>
+                            <p class="font-bold text-slate-800 uppercase">{{ $user->profile?->pan_number ?? 'N/A' }}</p>
                         </div>
                         <div class="col-span-2">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Current Address
                             </p>
-                            <p class="font-bold text-slate-800 leading-relaxed">{{ $user->profile->address }}</p>
+                            <p class="font-bold text-slate-800 leading-relaxed">{{ $user->profile?->address ?? 'N/A' }}</p>
                             <p class="text-xs text-slate-500 mt-1">
-                                {{ $user->profile->gram_panchayat }}, {{ $user->profile->block }},
-                                {{ $user->profile->district }}, {{ $user->profile->state }} - {{ $user->profile->pin_code }}
+                                {{ $user->profile?->gram_panchayat ?? '' }}, {{ $user->profile?->block ?? '' }},
+                                {{ $user->profile?->district ?? '' }}, {{ $user->profile?->state ?? '' }} -
+                                {{ $user->profile?->pin_code ?? '' }}
                             </p>
                         </div>
                     </div>

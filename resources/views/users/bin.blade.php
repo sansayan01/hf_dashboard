@@ -47,10 +47,11 @@
                                 <div class="flex items-center space-x-3">
                                     <div
                                         class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-bold">
-                                        {{ substr($u->profile->full_name ?? 'U', 0, 1) }}
+                                        {{ substr($u->profile?->full_name ?? 'Unknown', 0, 1) }}
                                     </div>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-400">{{ $u->profile->full_name }}</p>
+                                        <p class="text-sm font-bold text-slate-400">
+                                            {{ $u->profile?->full_name ?? 'Unknown Profile' }}</p>
                                         <p class="text-[10px] text-slate-300 font-bold uppercase">{{ $u->employee_id }}</p>
                                     </div>
                                 </div>
