@@ -84,29 +84,32 @@
         <!-- Inventory Table -->
         <div id="inventory-section"
             class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden text-slate-800 dark:text-white">
-            <div class="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <h3 class="font-bold text-lg">Batch-wise Inventory</h3>
-                    <form id="inventory-filter-form" action="{{ route('inventory.index') }}" method="GET" class="flex flex-wrap items-center gap-4 no-loader">
-                        <div class="relative flex items-center">
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search medicine, batch..."
-                                class="h-10 w-64 pl-10 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition">
-                            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                            @if(request('search'))
-                                <a href="{{ route('inventory.index', request()->except('search')) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </a>
-                            @endif
+            <div class="p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h3 class="font-bold text-lg whitespace-nowrap">Batch-wise Inventory</h3>
+                <form id="inventory-filter-form" action="{{ route('inventory.index') }}" method="GET" class="flex flex-wrap items-center gap-3 no-loader">
+                    <!-- Search Input -->
+                    <div class="relative group">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search medicine, batch..."
+                            class="h-10 w-full md:w-64 pl-11 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all shadow-sm">
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-accent transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
+                        @if(request('search'))
+                            <a href="{{ route('inventory.index', request()->except('search')) }}" 
+                               class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </a>
+                        @endif
+                    </div>
 
+                    <!-- Warehouse Selector -->
+                    <div class="relative">
                         <select name="warehouse_id" onchange="this.form.submit()"
-                            class="h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition">
+                            class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm">
                             <option value="">All Warehouses</option>
                             @foreach($warehouses as $wh)
                                 <option value="{{ $wh->id }}" {{ request('warehouse_id') == $wh->id ? 'selected' : '' }}>
@@ -114,20 +117,27 @@
                                 </option>
                             @endforeach
                         </select>
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </div>
 
-                        @if(request('warehouse_id') || ((auth()->user()->designation === 'staff' || auth()->user()->isOfficeInCharge()) && auth()->user()->camp_id))
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" name="exclusive" value="1" 
-                                    {{ request('exclusive') == '1' ? 'checked' : '' }} 
-                                    onchange="this.form.submit()"
-                                    class="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent transition">
-                                <span class="text-[10px] font-black uppercase text-slate-500 tracking-tight">Show Only Exclusive Stock</span>
-                            </label>
-                        @endif
-                        
-                        <button type="submit" class="hidden">Search</button>
-                    </form>
-                </div>
+                    <!-- Exclusive Checkbox -->
+                    @if(request('warehouse_id') || ((auth()->user()->designation === 'staff' || auth()->user()->isOfficeInCharge()) && auth()->user()->camp_id))
+                        <label class="flex items-center space-x-2.5 cursor-pointer bg-slate-50/50 dark:bg-slate-800/50 h-10 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-accent/30 transition-all shadow-sm">
+                            <input type="checkbox" name="exclusive" value="1" 
+                                {{ request('exclusive') == '1' ? 'checked' : '' }} 
+                                onchange="this.form.submit()"
+                                class="w-4 h-4 rounded-lg border-slate-300 dark:border-slate-600 text-accent focus:ring-accent transition shadow-inner">
+                            <span class="text-[10px] font-black uppercase text-slate-500 tracking-tight select-none">Show Only Exclusive Stock</span>
+                        </label>
+                    @endif
+                    
+                    <button type="submit" class="hidden">Search</button>
+                </form>
+            </div>
             </div>
 
             <div class="overflow-x-auto">
