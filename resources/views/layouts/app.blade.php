@@ -33,14 +33,14 @@
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #FAF3E0 0%, #E6D5B8 100%);
-            /* Distinct creamy off-color gradient */
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            /* Clean, professional Slate/Gainsboro gradient */
         }
 
         .dark .gradient-bg {
-            background: radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15), transparent 50%),
-                radial-gradient(circle at 20% 20%, rgba(30, 58, 138, 0.2), transparent 50%),
-                #020617;
+            background: radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1), transparent 50%),
+                radial-gradient(circle at 20% 20%, rgba(30, 58, 138, 0.15), transparent 50%),
+                #0f172a;
         }
 
         .sidebar-scroll::-webkit-scrollbar {
@@ -495,17 +495,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                }).then((result) => {
+                                                                                                                                                                                    }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                });
+                                                                                                                                                                                    });
         @endif
 
         @if(session('error'))

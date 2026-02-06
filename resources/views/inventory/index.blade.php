@@ -138,7 +138,6 @@
                     <button type="submit" class="hidden">Search</button>
                 </form>
             </div>
-            </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -235,6 +234,7 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
             </div>
         </div>
     </div>
