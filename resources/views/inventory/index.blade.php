@@ -87,7 +87,7 @@
             <div class="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                 <div class="flex items-center space-x-4">
                     <h3 class="font-bold text-lg">Batch-wise Inventory</h3>
-                    <form action="{{ route('inventory.index') }}" method="GET" class="flex flex-wrap items-center gap-4">
+                    <form action="{{ route('inventory.index') }}" method="GET" class="flex flex-wrap items-center gap-4 no-loader">
                         <div class="relative flex items-center">
                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search medicine, batch..."
                                 class="h-10 w-64 pl-10 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition">
