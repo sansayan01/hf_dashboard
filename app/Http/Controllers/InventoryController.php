@@ -22,6 +22,14 @@ class InventoryController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $selectedWarehouseId = null;
+
+        // Determine the active warehouse filter
+        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
+            $selectedWarehouseId = $user->camp_id;
+        } elseif ($request->has('warehouse_id') && $request->warehouse_id != '') {
+            $selectedWarehouseId = $request->warehouse_id;
+        }
 
         // Retroactive fix: Ensure all active stocks have a sponsor_id
         if (Schema::hasColumn('inventory_stocks', 'sponsor_id') && Schema::hasColumn('inventory_transactions', 'sponsor_id')) {
@@ -52,32 +60,49 @@ class InventoryController extends Controller
                 });
         }
 
+        // Query for stocks
         $query = InventoryStock::with(['medicine.category', 'warehouse', 'sponsor'])
             ->where('quantity', '>', 0);
 
-        // Pharmacists and Office In-Charges can only see stock from their assigned camp
-        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
-            $query->where('warehouse_id', $user->camp_id);
-        } elseif ($request->has('warehouse_id') && $request->warehouse_id != '') {
-            $query->where('warehouse_id', $request->warehouse_id);
+        if ($selectedWarehouseId) {
+            $query->where('warehouse_id', $selectedWarehouseId);
+
+            // "Only available at" requirement: Filter for medicines that exist ONLY in the selected warehouse
+            if ($request->has('exclusive') && $request->exclusive == '1') {
+                $query->whereNotExists(function ($q) use ($selectedWarehouseId) {
+                    $q->select(DB::raw(1))
+                        ->from('inventory_stocks as other_stocks')
+                        ->whereColumn('other_stocks.medicine_id', 'inventory_stocks.medicine_id')
+                        ->where('other_stocks.warehouse_id', '!=', $selectedWarehouseId)
+                        ->where('other_stocks.quantity', '>', 0);
+                });
+            }
         }
 
         $stocks = $query->orderBy('expiry_date')->get();
 
-        // Low stock medicines - filter by camp for pharmacists
+        // Low stock medicines - filter by selected warehouse if applicable
         $lowStockQuery = Medicine::with('category');
-        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
-            // For pharmacists and OICs, only show low stock for their camp
-            $lowStockMedicines = $lowStockQuery->get()->filter(function ($medicine) use ($user) {
-                /** @var \App\Models\Medicine $medicine */
-                $campStock = $medicine->stocks()->where('warehouse_id', $user->camp_id)->sum('quantity');
-                return $campStock <= $medicine->min_stock_level;
-            });
-        } else {
-            $lowStockMedicines = $lowStockQuery->get()->filter(function ($medicine) {
-                return $medicine->totalStock <= $medicine->min_stock_level;
-            });
-        }
+        $lowStockMedicines = $lowStockQuery->get()->filter(function ($medicine) use ($selectedWarehouseId, $request) {
+            /** @var \App\Models\Medicine $medicine */
+
+            // If exclusivity is requested, check if it's available elsewhere first
+            if ($selectedWarehouseId && $request->has('exclusive') && $request->exclusive == '1') {
+                $existsElsewhere = $medicine->stocks()
+                    ->where('warehouse_id', '!=', $selectedWarehouseId)
+                    ->where('quantity', '>', 0)
+                    ->exists();
+                if ($existsElsewhere)
+                    return false;
+            }
+
+            if ($selectedWarehouseId) {
+                $quantity = $medicine->stocks()->where('warehouse_id', $selectedWarehouseId)->sum('quantity');
+            } else {
+                $quantity = $medicine->totalStock;
+            }
+            return $quantity <= $medicine->min_stock_level && ($selectedWarehouseId ? $quantity > 0 : true);
+        });
 
         // Warehouses - pharmacists/OICs only see their camp
         if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
@@ -86,13 +111,23 @@ class InventoryController extends Controller
             $warehouses = InventoryWarehouse::where('is_active', true)->get();
         }
 
-        // Get medicine quantities for chart - filter by camp for pharmacists
+        // Get medicine quantities for chart - respect selected warehouse and exclusivity
         $medicineData = Medicine::with('category')
             ->get()
-            ->map(function ($medicine) use ($user) {
-                if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
-                    // For pharmacists and OICs, only show stock from their camp
-                    $quantity = $medicine->stocks()->where('warehouse_id', $user->camp_id)->sum('quantity');
+            ->map(function ($medicine) use ($selectedWarehouseId, $request) {
+                // If exclusivity is requested, check if it's available elsewhere first
+                if ($selectedWarehouseId && $request->has('exclusive') && $request->exclusive == '1') {
+                    $existsElsewhere = $medicine->stocks()
+                        ->where('warehouse_id', '!=', $selectedWarehouseId)
+                        ->where('quantity', '>', 0)
+                        ->exists();
+                    if ($existsElsewhere) {
+                        return ['name' => $medicine->name, 'quantity' => 0, 'unit' => $medicine->unit];
+                    }
+                }
+
+                if ($selectedWarehouseId) {
+                    $quantity = $medicine->stocks()->where('warehouse_id', $selectedWarehouseId)->sum('quantity');
                 } else {
                     $quantity = $medicine->totalStock;
                 }
@@ -112,6 +147,7 @@ class InventoryController extends Controller
 
         return view('inventory.index', compact('stocks', 'lowStockMedicines', 'warehouses', 'medicineData'));
     }
+
 
     /**
      * Show form to add new stock.
