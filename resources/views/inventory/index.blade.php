@@ -82,12 +82,12 @@
         </div>
 
         <!-- Inventory Table -->
-        <div
+        <div id="inventory-section"
             class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden text-slate-800 dark:text-white">
             <div class="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                 <div class="flex items-center space-x-4">
                     <h3 class="font-bold text-lg">Batch-wise Inventory</h3>
-                    <form action="{{ route('inventory.index') }}" method="GET" class="flex flex-wrap items-center gap-4 no-loader">
+                    <form id="inventory-filter-form" action="{{ route('inventory.index') }}" method="GET" class="flex flex-wrap items-center gap-4 no-loader">
                         <div class="relative flex items-center">
                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search medicine, batch..."
                                 class="h-10 w-64 pl-10 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition">
@@ -306,5 +306,73 @@
                 }
             }
         });
+
+        // AJAX Filtering for Inventory
+        const filterForm = document.getElementById('inventory-filter-form');
+        const inventorySection = document.getElementById('inventory-section');
+
+        if (filterForm && inventorySection) {
+            filterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(filterForm);
+                const params = new URLSearchParams(formData);
+                const url = `${filterForm.action}?${params.toString()}`;
+
+                // Add a subtle loading state to the table
+                const tableBody = inventorySection.querySelector('tbody');
+                if (tableBody) tableBody.style.opacity = '0.5';
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newSection = doc.getElementById('inventory-section');
+                    
+                    if (newSection) {
+                        inventorySection.innerHTML = newSection.innerHTML;
+                        // Re-bind the event listener to the NEW form (since we replaced its parent)
+                        bindFilterEvents();
+                        // Update URL without reloading
+                        window.history.pushState({}, '', url);
+                    }
+                })
+                .catch(err => {
+                    console.error('Filtering failed:', err);
+                    filterForm.submit(); // Fallback to normal reload
+                });
+            });
+
+            function bindFilterEvents() {
+                // Re-bind the onchange events for select and checkbox
+                const newForm = document.getElementById('inventory-filter-form');
+                const interactiveEls = newForm.querySelectorAll('select, input[type="checkbox"]');
+                interactiveEls.forEach(el => {
+                    el.onchange = null; // Remove old listener
+                    el.addEventListener('change', () => {
+                        newForm.dispatchEvent(new Event('submit', {cancelable: true}));
+                    });
+                });
+
+                // Handle clear search button if it exists in the NEW HTML
+                const clearBtn = newForm.querySelector('a[href*="inventory"]');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const url = new URL(this.href);
+                        // Manually clear search and submit
+                        const searchInput = newForm.querySelector('input[name="search"]');
+                        if (searchInput) searchInput.value = '';
+                        newForm.dispatchEvent(new Event('submit', {cancelable: true}));
+                    });
+                }
+            }
+
+            bindFilterEvents();
+        }
     </script>
 @endsection
