@@ -220,8 +220,8 @@
                                 <td class="p-4">
                                     <code
                                         class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded text-[10px] font-bold">
-                                                                                                                                    #{{ $stock->batch_number }}
-                                                                                                                                </code>
+                                                                                                                                            #{{ $stock->batch_number }}
+                                                                                                                                        </code>
                                 </td>
                                 <td class="p-4">
                                     <span
@@ -406,39 +406,22 @@
             });
 
             function bindFilterEvents() {
-                // Re-bind the onchange events for select and checkbox
                 const newForm = document.getElementById('inventory-filter-form');
 
-                // Keep Tom Select alive
-                if (window.warehouseSelect) {
-                    window.warehouseSelect.setup();
-                } else {
-                    initTomSelect();
-                }
+                // Re-initialize Tom Select on the new element
+                initTomSelect();
 
                 const interactiveEls = newForm.querySelectorAll('input[type="checkbox"]');
                 interactiveEls.forEach(el => {
-                    el.onchange = null; // Remove old listener
                     el.addEventListener('change', () => {
                         newForm.dispatchEvent(new Event('submit', { cancelable: true }));
                     });
                 });
 
-                // We handle select separately via Tom Select callback
-                if (window.warehouseSelect) {
-                    window.warehouseSelect.off('change');
-                    window.warehouseSelect.on('change', () => {
-                        newForm.dispatchEvent(new Event('submit', { cancelable: true }));
-                    });
-                }
-
-                // Handle clear search button if it exists in the NEW HTML
                 const clearBtn = newForm.querySelector('a[href*="inventory"]');
                 if (clearBtn) {
                     clearBtn.addEventListener('click', function (e) {
                         e.preventDefault();
-                        const url = new URL(this.href);
-                        // Manually clear search and submit
                         const searchInput = newForm.querySelector('input[name="search"]');
                         if (searchInput) searchInput.value = '';
                         newForm.dispatchEvent(new Event('submit', { cancelable: true }));
@@ -448,18 +431,24 @@
 
             function initTomSelect() {
                 const el = document.getElementById('warehouse_id');
-                if (el) {
-                    window.warehouseSelect = new TomSelect(el, {
-                        create: false,
-                        sortField: { field: "text", direction: "asc" },
-                        placeholder: "Search warehouse...",
-                        allowEmptyOption: true
-                    });
+                if (!el) return;
 
-                    window.warehouseSelect.on('change', () => {
-                        filterForm.dispatchEvent(new Event('submit', { cancelable: true }));
-                    });
+                // Destroy existing instance if it exists
+                if (window.warehouseSelect) {
+                    window.warehouseSelect.destroy();
                 }
+
+                window.warehouseSelect = new TomSelect(el, {
+                    create: false,
+                    sortField: { field: "text", direction: "asc" },
+                    placeholder: "Search warehouse...",
+                    allowEmptyOption: true
+                });
+
+                window.warehouseSelect.on('change', () => {
+                    const currentForm = document.getElementById('inventory-filter-form');
+                    currentForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                });
             }
 
             initTomSelect();
