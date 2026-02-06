@@ -89,7 +89,15 @@ class InventoryController extends Controller
             });
         }
 
-        $stocks = $query->orderBy('expiry_date')->get();
+        $stocks = $query->orderBy('expiry_date')->get()
+            ->groupBy(function ($stock) {
+                return $stock->medicine_id . '-' . $stock->warehouse_id . '-' . $stock->batch_number . '-' . $stock->expiry_date->format('Y-m-d');
+            })
+            ->map(function ($group) {
+                $mainStock = $group->first();
+                $mainStock->quantity = $group->sum('quantity');
+                return $mainStock;
+            })->values();
 
         // Low stock medicines - filter by selected warehouse if applicable
         $lowStockQuery = Medicine::with('category');
