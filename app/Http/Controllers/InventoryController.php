@@ -79,6 +79,16 @@ class InventoryController extends Controller
             }
         }
 
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('medicine', function ($mq) use ($search) {
+                    $mq->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('generic_name', 'like', '%' . $search . '%');
+                })->orWhere('batch_number', 'like', '%' . $search . '%');
+            });
+        }
+
         $stocks = $query->orderBy('expiry_date')->get();
 
         // Low stock medicines - filter by selected warehouse if applicable
