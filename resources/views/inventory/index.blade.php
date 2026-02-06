@@ -3,6 +3,51 @@
 @section('title', 'Inventory Overview')
 @section('header_title', 'NGO Pharmacy Inventory')
 
+@section('css')
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <style>
+        .ts-control {
+            border-radius: 1rem !important;
+            height: 2.5rem !important;
+            padding: 0 0.75rem !important;
+            display: flex !important;
+            align-items: center !important;
+            border: 1px solid #e2e8f0 !important;
+            background-color: rgba(248, 250, 252, 0.5) !important;
+            font-family: 'Outfit', sans-serif !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            width: 200px !important;
+        }
+
+        .dark .ts-control {
+            background-color: rgba(30, 41, 59, 0.5) !important;
+            border-color: #334155 !important;
+            color: white !important;
+        }
+
+        .ts-dropdown {
+            border-radius: 1rem !important;
+            margin-top: 5px !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+            font-family: 'Outfit', sans-serif !important;
+            background-color: white !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        .dark .ts-dropdown {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: white !important;
+        }
+
+        .ts-dropdown .active {
+            background-color: #3C50E0 !important;
+            color: white !important;
+        }
+    </style>
+@endsection
+
 @section('content')
     <div class="space-y-8">
         <!-- Navigation Links -->
@@ -84,23 +129,29 @@
         <!-- Inventory Table -->
         <div id="inventory-section"
             class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden text-slate-800 dark:text-white">
-            <div class="p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div
+                class="p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h3 class="font-bold text-lg whitespace-nowrap">Batch-wise Inventory</h3>
-                <form id="inventory-filter-form" action="{{ route('inventory.index') }}" method="GET" class="flex flex-wrap items-center gap-3 no-loader">
+                <form id="inventory-filter-form" action="{{ route('inventory.index') }}" method="GET"
+                    class="flex flex-wrap items-center gap-3 no-loader">
                     <!-- Search Input -->
                     <div class="relative group">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search medicine, batch..."
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="Search medicine, batch..."
                             class="h-10 w-full md:w-64 pl-11 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all shadow-sm">
-                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-accent transition-colors">
+                        <div
+                            class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-accent transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
                         @if(request('search'))
-                            <a href="{{ route('inventory.index', request()->except('search')) }}" 
-                               class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-all">
+                            <a href="{{ route('inventory.index', request()->except('search')) }}"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </a>
                         @endif
@@ -108,7 +159,7 @@
 
                     <!-- Warehouse Selector -->
                     <div class="relative">
-                        <select name="warehouse_id" onchange="this.form.submit()"
+                        <select name="warehouse_id" id="warehouse_id"
                             class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm">
                             <option value="">All Warehouses</option>
                             @foreach($warehouses as $wh)
@@ -117,24 +168,20 @@
                                 </option>
                             @endforeach
                         </select>
-                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
                     </div>
 
                     <!-- Exclusive Checkbox -->
                     @if(request('warehouse_id') || ((auth()->user()->designation === 'staff' || auth()->user()->isOfficeInCharge()) && auth()->user()->camp_id))
-                        <label class="flex items-center space-x-2.5 cursor-pointer bg-slate-50/50 dark:bg-slate-800/50 h-10 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-accent/30 transition-all shadow-sm">
-                            <input type="checkbox" name="exclusive" value="1" 
-                                {{ request('exclusive') == '1' ? 'checked' : '' }} 
+                        <label
+                            class="flex items-center space-x-2.5 cursor-pointer bg-slate-50/50 dark:bg-slate-800/50 h-10 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-accent/30 transition-all shadow-sm">
+                            <input type="checkbox" name="exclusive" value="1" {{ request('exclusive') == '1' ? 'checked' : '' }}
                                 onchange="this.form.submit()"
                                 class="w-4 h-4 rounded-lg border-slate-300 dark:border-slate-600 text-accent focus:ring-accent transition shadow-inner">
-                            <span class="text-[10px] font-black uppercase text-slate-500 tracking-tight select-none">Show Only Exclusive Stock</span>
+                            <span class="text-[10px] font-black uppercase text-slate-500 tracking-tight select-none">Show Only
+                                Exclusive Stock</span>
                         </label>
                     @endif
-                    
+
                     <button type="submit" class="hidden">Search</button>
                 </form>
             </div>
@@ -173,8 +220,8 @@
                                 <td class="p-4">
                                     <code
                                         class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded text-[10px] font-bold">
-                                                                                                                            #{{ $stock->batch_number }}
-                                                                                                                        </code>
+                                                                                                                                    #{{ $stock->batch_number }}
+                                                                                                                                </code>
                                 </td>
                                 <td class="p-4">
                                     <span
@@ -235,13 +282,14 @@
                     </tbody>
                 </table>
             </div>
-            </div>
         </div>
+    </div>
     </div>
 @endsection
 
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
         const medicineData = @json($medicineData);
 
@@ -322,7 +370,7 @@
         const inventorySection = document.getElementById('inventory-section');
 
         if (filterForm && inventorySection) {
-            filterForm.addEventListener('submit', function(e) {
+            filterForm.addEventListener('submit', function (e) {
                 e.preventDefault();
                 const formData = new FormData(filterForm);
                 const params = new URLSearchParams(formData);
@@ -337,51 +385,84 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newSection = doc.getElementById('inventory-section');
-                    
-                    if (newSection) {
-                        inventorySection.innerHTML = newSection.innerHTML;
-                        // Re-bind the event listener to the NEW form (since we replaced its parent)
-                        bindFilterEvents();
-                        // Update URL without reloading
-                        window.history.pushState({}, '', url);
-                    }
-                })
-                .catch(err => {
-                    console.error('Filtering failed:', err);
-                    filterForm.submit(); // Fallback to normal reload
-                });
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newSection = doc.getElementById('inventory-section');
+
+                        if (newSection) {
+                            inventorySection.innerHTML = newSection.innerHTML;
+                            // Re-bind the event listener to the NEW form (since we replaced its parent)
+                            bindFilterEvents();
+                            // Update URL without reloading
+                            window.history.pushState({}, '', url);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Filtering failed:', err);
+                        filterForm.submit(); // Fallback to normal reload
+                    });
             });
 
             function bindFilterEvents() {
                 // Re-bind the onchange events for select and checkbox
                 const newForm = document.getElementById('inventory-filter-form');
-                const interactiveEls = newForm.querySelectorAll('select, input[type="checkbox"]');
+
+                // Keep Tom Select alive
+                if (window.warehouseSelect) {
+                    window.warehouseSelect.setup();
+                } else {
+                    initTomSelect();
+                }
+
+                const interactiveEls = newForm.querySelectorAll('input[type="checkbox"]');
                 interactiveEls.forEach(el => {
                     el.onchange = null; // Remove old listener
                     el.addEventListener('change', () => {
-                        newForm.dispatchEvent(new Event('submit', {cancelable: true}));
+                        newForm.dispatchEvent(new Event('submit', { cancelable: true }));
                     });
                 });
+
+                // We handle select separately via Tom Select callback
+                if (window.warehouseSelect) {
+                    window.warehouseSelect.off('change');
+                    window.warehouseSelect.on('change', () => {
+                        newForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                    });
+                }
 
                 // Handle clear search button if it exists in the NEW HTML
                 const clearBtn = newForm.querySelector('a[href*="inventory"]');
                 if (clearBtn) {
-                    clearBtn.addEventListener('click', function(e) {
+                    clearBtn.addEventListener('click', function (e) {
                         e.preventDefault();
                         const url = new URL(this.href);
                         // Manually clear search and submit
                         const searchInput = newForm.querySelector('input[name="search"]');
                         if (searchInput) searchInput.value = '';
-                        newForm.dispatchEvent(new Event('submit', {cancelable: true}));
+                        newForm.dispatchEvent(new Event('submit', { cancelable: true }));
                     });
                 }
             }
 
+            function initTomSelect() {
+                const el = document.getElementById('warehouse_id');
+                if (el) {
+                    window.warehouseSelect = new TomSelect(el, {
+                        create: false,
+                        sortField: { field: "text", direction: "asc" },
+                        placeholder: "Search warehouse...",
+                        allowEmptyOption: true
+                    });
+
+                    window.warehouseSelect.on('change', () => {
+                        filterForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                    });
+                }
+            }
+
+            initTomSelect();
             bindFilterEvents();
         }
     </script>
