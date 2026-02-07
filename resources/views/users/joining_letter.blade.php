@@ -11,293 +11,314 @@
     @if (!$is_pdf)
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
-            rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     @endif
     <style>
         :root {
-            --primary-green: #008037;
-            --dark-green: #004d21;
-            --accent-red: #cc0000;
-            --slate-800: #1e293b;
-            --slate-600: #475569;
+            --brand-green: #008037;
+            --brand-dark: #004d21;
+            --brand-red: #cc0000;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --bg-light: #f8fafc;
         }
 
+        /* Reset & Base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family:
-                {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Outfit', sans-serif" }}
-            ;
         }
 
         body {
-            background-color:
-                {{ $is_pdf ? '#ffffff' : '#f1f5f9' }}
-            ;
-            color: var(--slate-800);
+            background-color: {{ $is_pdf ? '#ffffff' : '#e2e8f0' }};
+            color: var(--text-main);
+            font-family: {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Inter', sans-serif" }};
+            -webkit-font-smoothing: antialiased;
             @if (!$is_pdf)
                 display: flex;
-                justify-content: center;
+                flex-direction: column;
+                align-items: center;
                 padding: 40px 0;
-            @endif margin: 0;
+                min-height: 100vh;
+            @endif
         }
 
+        /* Page Container */
         .letter-page {
-            width:
-                {{ $is_pdf ? '100%' : '210mm' }}
-            ;
-            height:
-                {{ $is_pdf ? 'auto' : '296.8mm' }}
-            ;
+            width: {{ $is_pdf ? '100%' : '210mm' }};
+            height: {{ $is_pdf ? 'auto' : '296.8mm' }}; /* A4 Height */
             background: white;
-            padding:
-                {{ $is_pdf ? '5mm' : '10mm 15mm' }}
-            ;
-            @if (!$is_pdf)
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            @endif position: relative;
+            position: relative;
             overflow: hidden;
-            display: block;
+            @if (!$is_pdf)
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            @endif
+            padding: 10mm 15mm;
+            display: flex;
+            flex-direction: column;
         }
 
+        /* Typography Override for Headings */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Outfit', sans-serif" }};
+        }
+
+        /* Header Section */
         .header {
-            width: 100%;
-            margin-bottom: 2px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .logo-section {
-            width: 25%;
-            vertical-align: middle;
-        }
-
-        .logo-section img {
-            height: 80px;
-            width: auto;
-        }
-
-        .title-section {
-            width: 75%;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .title-section h1 {
-            color: var(--primary-green);
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
-            text-transform: uppercase;
-        }
-
-        .title-section p {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--slate-800);
-            margin-bottom: 2px;
-        }
-
-        .address-bar {
-            background-color: var(--dark-green);
-            color: white;
-            text-align: center;
-            padding: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .document-title {
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--brand-green);
+            padding-bottom: 12px;
             margin-bottom: 15px;
         }
 
-        .document-title h2 {
-            color: var(--accent-red);
-            font-size: 22px;
-            font-weight: 800;
-            text-decoration: underline;
-            text-underline-offset: 7px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
+        .header-logo {
+            width: 70px;
+            height: auto;
         }
 
-        .recipient-section {
-            margin-bottom: 8px;
-            font-size: 14px;
-            line-height: 1.4;
-            font-weight: 600;
-        }
-
-        .recipient-section .to-label {
-            font-size: 16px;
-            font-weight: 800;
-            margin-bottom: 1px;
-        }
-
-        .body-content {
-            font-size: 12px;
-            line-height: 1.4;
-            text-align: justify;
-            margin-bottom: 10px;
-        }
-
-        .body-content p {
-            margin-bottom: 8px;
-        }
-
-        .tc-heading {
-            color: var(--accent-red);
-            font-weight: 900;
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-
-        .tc-list {
-            list-style: none;
-            padding-left: 0;
-            margin-bottom: 10px;
-        }
-
-        .tc-list li {
-            position: relative;
-            padding-left: 22px;
-            margin-bottom: 2px;
-            font-size: 10px;
-            line-height: 1.3;
-            font-weight: 600;
-        }
-
-        .footer {
-            margin-top: 10mm;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-        }
-
-        .footer-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .contact-info {
-            width: 50%;
-            font-size: 9px;
-            font-weight: 600;
-            color: var(--slate-600);
-        }
-
-        .signature-section {
-            width: 50%;
+        .header-text {
             text-align: right;
+            flex: 1;
+            margin-left: 20px;
+        }
+
+        .brand-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--brand-green);
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .brand-sub {
+            font-size: 9px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .brand-details {
+            font-size: 8px;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        /* Recipient Section */
+        .recipient-box {
+            background: var(--bg-light);
+            border-left: 4px solid var(--brand-green);
+            padding: 10px 15px;
+            border-radius: 0 4px 4px 0;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recipient-info h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .recipient-details {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .doc-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--brand-green);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid var(--brand-green);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        /* Content Body */
+        .content-body {
+            font-size: 10.5px;
+            line-height: 1.5;
+            text-align: justify;
+            margin-bottom: 15px;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .content-body p {
+            margin-bottom: 8px;
+        }
+
+        .highlight {
+            font-weight: 700;
+            color: var(--brand-dark);
+            background-color: #f0fdf4; /* Light green highlight bg */
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        /* Terms Section (The Space Saver) */
+        .terms-container {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+            background: #fff;
+            flex-grow: 1; /* Push footer down */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terms-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--brand-red);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .terms-grid {
+            column-count: 2;
+            column-gap: 20px;
+            width: 100%;
+        }
+
+        .term-item {
+            font-size: 8.5px;
+            line-height: 1.35;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            position: relative;
+            padding-left: 10px;
+        }
+
+        .term-item::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--brand-green);
+            font-weight: bold;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: auto;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .footer-left {
+            font-size: 8px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .footer-right {
+            text-align: center;
         }
 
         .signature-img {
             height: 35px;
-            width: auto;
             margin-bottom: 2px;
         }
 
-        .signature-label {
-            font-weight: 800;
-            font-size: 10px;
-            margin-bottom: 1px;
+        .auth-line {
+            width: 120px;
+            height: 1px;
+            background: var(--text-main);
+            margin: 2px auto;
         }
 
-        .signature-org {
+        .auth-title {
             font-size: 9px;
-            font-weight: 600;
-            color: var(--primary-green);
+            font-weight: 800;
+            color: var(--brand-green);
+            text-transform: uppercase;
         }
 
+        .auth-sub {
+            font-size: 8px;
+            color: var(--text-muted);
+        }
+
+        /* Watermark */
         .watermark {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-15deg);
-            width: 400px;
-            opacity: 0.06;
+            width: 350px;
+            opacity: 0.04;
+            pointer-events: none;
             z-index: 0;
         }
 
-        @if (!$is_pdf)
+        /* Screen Controls */
+        @if (!$is_pdf && !($hide_controls ?? false))
             .controls {
                 position: fixed;
-                top: 40px;
-                right: 40px;
+                top: 30px;
+                right: 30px;
                 display: flex;
-                flex-direction: column;
-                gap: 12px;
-                z-index: 100;
+                gap: 10px;
+                z-index: 50;
             }
 
             .btn {
-                padding: 12px 24px;
+                padding: 10px 20px;
                 border: none;
-                border-radius: 12px;
-                font-weight: 700;
+                border-radius: 8px;
+                font-weight: 600;
                 cursor: pointer;
+                font-size: 14px;
+                text-decoration: none;
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                font-size: 14px;
-                transition: all 0.3s;
-                text-decoration: none;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                gap: 6px;
+                transition: transform 0.2s, box-shadow 0.2s;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             }
 
-            .btn-primary {
-                background: var(--primary-green);
-                color: white;
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.15);
             }
 
-            .btn-secondary {
-                background: white;
-                color: var(--slate-800);
-                border: 1px solid #e2e8f0;
-            }
-
+            .btn-primary { background: var(--brand-green); color: white; }
+            .btn-secondary { background: white; color: var(--text-main); }
         @endif
     </style>
 </head>
 
 <body>
-    @if (!$is_pdf)
+    @if (!$is_pdf && !($hide_controls ?? false))
         <div class="controls">
             <button onclick="window.print()" class="btn btn-primary">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
-                    </path>
-                </svg>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                 Print Letter
             </button>
-            <button onclick="downloadPDF()" class="btn btn-secondary"
-                style="background: #1e293b; color: white; border: none;">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
+            <button onclick="downloadPDF()" class="btn btn-secondary">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 Download PDF
             </button>
             <a href="{{ route('users.show', $user->id) }}" class="btn btn-secondary">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
-                    </path>
-                </svg>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Back
             </a>
         </div>
@@ -308,177 +329,143 @@
             $logoPath = $is_pdf ? public_path('img/logo 1.png') : asset('img/logo 1.png');
             $sigPath = $is_pdf ? public_path('img/signature.png') : asset('img/signature.png');
         @endphp
+
+        <!-- Watermark -->
         <img src="{{ $logoPath }}" class="watermark" alt="Watermark">
 
+        <!-- Modern Header -->
         <div class="header">
-            <table class="header-table">
-                <tr>
-                    <td class="logo-section">
-                        <img src="{{ $logoPath }}" alt="Humanity Foundation Logo">
-                    </td>
-                    <td class="title-section">
-                        <h1>HUMANITY FOUNDATION</h1>
-                        <p>Registered of Non Government Organization (NGO)</p>
-                        <p>Registered Under Sec - 60 & Rule 69, Registration No. - IV-190100489</p>
-                    </td>
-                </tr>
-            </table>
+            <img src="{{ $logoPath }}" alt="Logo" class="header-logo">
+            <div class="header-text">
+                <div class="brand-name">Humanity Foundation</div>
+                <div class="brand-sub">Registered Non-Government Organization (NGO)</div>
+                <div class="brand-details">Reg No: IV-190100489 (Sec-60 & Rule 69)</div>
+                <div class="brand-details">Kendriyanagar, Keshabganj Chati, Burdwan, West Bengal - 713104</div>
+            </div>
         </div>
 
-        <div class="address-bar">
-            Head Office : Kendriyanagar Keshabganj Chati , Burdwan West Bengal-713104
-        </div>
-
-        <div class="document-title">
-            <h2>OFFER LETTER</h2>
-        </div>
-
-        <div class="recipient-section">
-            <div class="to-label">To:</div>
-            <div class="dynamic-data">{{ $user->profile?->full_name ?? 'N/A' }}</div>
-            <div class="dynamic-data">Emp ID : {{ $user->employee_id }}</div>
-            <div class="dynamic-data">Aadhar Number : {{ $user->profile?->aadhaar_number ?? 'N/A' }}</div>
-        </div>
-
-        <div class="body-content">
-            @if ($user->isDM())
-                <p>We are pleased to offer you this Joining letter as designation of District Manager (DM) Under
-                    <strong>“{{ $user->profile?->district ?? 'N/A' }}”</strong> District, Which will effect from the date of
-                    your
-                    team performance starts. We congratulate you and wish you a long and successful career with us. We are
-                    confident that your contribution will take us further in our journey towards becoming world leaders. We
-                    assure you of our support for your professional development and growth.
-                </p>
-
-                <p>You will get Monthly Honorarium of Rupees 90,000 (Ninety thousand) inr + Travelling allowance 5,000 (Five
-                    Thousands) inr. Also you may earn Spot incentives. Your first duty is to lead all Relationship Manager
-                    (RM) to increase HF Members, doing surveys, Delivering Banking & Financial services, Health services
-                    (Doctor Consultation, Medicine, Pathology services), governments projects, Nutrition food to every
-                    family etc..you should have minimum 625 ROs in your team.</p>
-            @elseif($user->isBM())
-                <p>We are pleased to offer you this Joining letter as designation of Block Manager (BM) Under
-                    <strong>“{{ $user->profile?->block ?? 'N/A' }}”</strong> block of
-                    <strong>“{{ $user->profile?->district ?? 'N/A' }}”</strong> District, Which will effect from the date of
-                    your
-                    team performance starts. We congratulate you and wish you a long and successful career with us. We are
-                    confident that your contribution will take us further in our journey towards becoming world leaders. We
-                    assure you of our support for your professional development and growth.
-                </p>
-
-                <p>You will get Monthly Honorarium of Rupees 37,500 (Thirty seven thousand five hundred) inr. Also you may
-                    earn Spot incentives. Your first duty is to lead all Relationship Manager (RM) to increase HF Members,
-                    doing surveys, Delivering Banking & Financial services, Health services (Doctor Consultation, Medicine,
-                    Pathology services), governments projects, Nutrition food to every family etc. You should have minimum
-                    125 ROs in your team.</p>
-            @elseif($user->isRM())
-                <p>We are pleased to offer you this Joining letter as designation of Relationship Manager (RM),
-                    <strong>“{{ $user->profile?->block ?? 'N/A' }}”</strong> Block, Under
-                    <strong>“{{ $user->profile?->district ?? 'N/A' }}”</strong> District , Which will effect
-                    from the date of your team performance starts.
-                    We congratulate you and wish you a long and successful career with us. We are confident that your
-                    contribution will take us further in our journey towards becoming world leaders. We assure you of our
-                    support for your professional development and growth.
-                </p>
-
-                <p>You will get Monthly Honorarium of Rupees 18,750 (Eighteen thousand Seven hundred fifty ) inr . Also you
-                    may earn Spot incentives . Your first duty is to lead all Relationship Officers (RO) to increase HF
-                    Members, doing surveys, Delivering Banking & Financial services, Health services (Doctor Consultation,
-                    Medicine, Pathology services), governments projects, Nutrition food to every family etc..you should have
-                    minimum 25 ROs in your team. </p>
-            @else
-                <p>We are pleased to offer you an Offer letter as designation of Relationship Officer (RO) at
-                    <strong>“{{ $user->profile?->gram_panchayat ?? 'N/A' }}”</strong> Gram Panchayat,
-                    <strong>“{{ $user->profile?->block ?? 'N/A' }}”</strong> Block ,
-                    <strong>“{{ $user->profile?->district ?? 'N/A' }}”</strong> District, Which will effect from the date of
-                    your
-                    performance starts.
-                    We congratulate you and wish you a long and successful career with us. We are confident that your
-                    contribution will take us further in our journey towards becoming world leaders. We assure you of our
-                    support for your professional development and growth.
-                </p>
-
-                <p>Humanity Foundation is a Government Registered Trust and you are going to be a part of this Organization.
-                    You will get Monthly Honorarium of Rupees 6,000(six thousands)inr+ 1500 (One Thousand Five Hundred) as
-                    travelling allowance. Your responsibility/task is to doing survey minimum 20 families every day, through
-                    which has to generate minimum 8 doctors appointments, in a month has to provide at least 200 Doctor
-                    appointments+100 Memberships & other banking services. It is Mandatory to give your work report to your
-                    senior at the end of every day and organize Health camps. Apart from this it is your duty to supply
-                    medicines/Glasses/test reports to Members/Patients. Also you can regularly get spot incentives, loan
-                    Commissions etc by providing various services.</p>
-            @endif
-
-            <p>Your offer has been made based on information furnished by you. However, if there is a discrepancy in the
-                copies of documents or certificates given by you as a proof of above, we retain the right to review our
-                offer of employment.</p>
-        </div>
-
-        <div class="tc-heading">
-            DETAILS OF THE TERMS AND CONDITIONS OF THE OFFER ARE AS UNDER:
-        </div>
-
-        @php
-            $terms = [];
-            if ($user->isDM() || $user->isBM() || $user->isRM()) {
-                $terms = [
-                    'Organization isn’t liable to pay you the above Honorarium, if you found guilty or non compliance.',
-                    'You should have minimum ' . ($user->isDM() ? '625' : ($user->isBM() ? '125' : '25')) . ' RO’s active in your team.',
-                    'The notice period is one month from the effective date of acceptance of resignation. However the Trust at its sole discretion is liable to terminate with immediate effect due to nonperformance or integrity issues.',
-                    'If for any reason the work is stopped or you do not perform your duty, That day’s payout will not be counted.',
-                    'The Trust holds all right to switch over to POP (payment on performance) mode without any further notice or information.',
-                    'The Trust can reallocate your shift & process as per requirement and the employee should be flexible enough to reallocate as per Trust’s requirement, failing which service come to an end.',
-                    'To claim any salary or dues an employee has to be there in the Trust floor minimum 40 days.',
-                    'Always carry your ID card along with you during duty hours.',
-                    'You may not offer any product or services to any member or do not on your behalf without the Organization’s permission.',
-                    'Do not give instructions to any RMs for your personal use or to do any work other than work for the Organization.',
-                    'You have to update your team performance report to your senior. If you do not deliver your daily report till 2 days then 500 inr will deduct from your base Honorarium and you would be warned but if you will do continue the same then within 5 days you may get a “Show Cause notice”. After 10 days of your inactive response we will take it as your resignation. You will lose your job.',
-                    'You do have the authority to give warning and take action on those RMs who are not working.',
-                    'It is one of your important responsibility to see if the RM’s are collecting and depositing bills of Medicine or pathology or other payments or membership fees on a daily basis..',
-                    'You cannot keep Membership fees/ Medicine billed amount/ Pathology billed amount etc..',
-                    'Please do not miss behave with any RMs or any HF Members.',
-                    'Within the 10th of every month, you will receive the Honorarium of the previous month.',
-                ];
-            } else {
-                $terms = [
-                    'Trust isn’t liable to pay you the above Honorarium, if you found guilty or non compliance in the Trust.',
-                    'The notice period is one month from the effective date of acceptance of resignation. However the Trust at its sole discretion is liable to terminate with immediate effect due to nonperformance or integrity issues.',
-                    'The Trust holds all right to switch over to POP (payment on performance) mode without any further notice or information.',
-                    'The Trust can reallocate your shift & process as per requirement and the employee should be flexible enough to reallocate as per Trust’s requirement, failing which service come to an end.',
-                    'If you cannot Complete the stipulated task, the amount of your Monthly Honorarium will depend on the volume of your work.',
-                    'To claim any salary or dues an employee has to be there in the Trust floor minimum 40 days.',
-                    'You will get HF identity cards. always wear formal dress & carry your ID card along with you during duty hours.',
-                    'You may not offer any product or services to any member on your behalf without the Organization’s permission.',
-                    'You have to send your daily performance report to your senior. If you do not deliver your daily report till 3 days then 300 inr will deduct from your base Honorarium and you would be warned but if you will do continue the same then within 5 days you may get a “Show Cause notice”. After 10 days of your inactive response we will take it as your resignation. You will lose your job.',
-                    'Medicine or pathology due or membership fees Daily collection and submit to HF Official is an important work in your daily schedule.',
-                    'You cannot keep Membership fees/ Medicine billed amount/ Pathology billed amount etc..',
-                    'Please do not miss behave with any HF Members.',
-                    'Within the 10th of every month, you will receive the Honorarium of the previous month.',
-                ];
-            }
-        @endphp
-
-        <div class="tc-list">
-            @foreach ($terms as $index => $term)
-                <div style="font-size: 10px; margin-bottom: 2px;">
-                    <strong>{{ $index + 1 }}.</strong> {{ $term }}
+        <!-- Recipient Bar -->
+        <div class="recipient-box">
+            <div class="recipient-info">
+                <h3>{{ $user->profile?->full_name ?? 'N/A' }}</h3>
+                <div class="recipient-details">
+                    <span>Emp ID: <strong>{{ $user->employee_id }}</strong></span>
+                    <span style="margin: 0 8px; color: #cbd5e1;">|</span>
+                    <span>Aadhar: {{ $user->profile?->aadhaar_number ?? 'N/A' }}</span>
                 </div>
-            @endforeach
+            </div>
+            <div class="doc-title">Offer Letter</div>
         </div>
 
+        <!-- Dynamic Body Content -->
+        <div class="content-body">
+            @if ($user->isDM())
+                <p>We are pleased to offer you the position of <span class="highlight">District Manager (DM)</span> under
+                <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. This appointment is effective immediately upon the commencement of your team's performance. 
+                We are confident that your leadership will drive our mission forward, and we assure you of our full support for your professional growth.</p>
+
+                <p><strong>Compensation & Responsibilities:</strong><br>
+                You will receive a Monthly Honorarium of <span class="highlight">₹90,000</span> + <span class="highlight">₹5,000</span> (Travel Allowance), plus potential spot incentives. 
+                Your primary duty is to lead Relationship Managers (RM) to expand HF membership, conduct surveys, and deliver essential services (Health, Banking, Govt Projects). 
+                <strong>Target:</strong> Maintain a minimum of 625 active ROs in your team.</p>
+            @elseif($user->isBM())
+                <p>We are pleased to offer you the position of <span class="highlight">Block Manager (BM)</span> for
+                <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block, <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. 
+                This appointment is effective immediately upon the commencement of your team's performance. We look forward to your contributions.</p>
+
+                <p><strong>Compensation & Responsibilities:</strong><br>
+                You will receive a Monthly Honorarium of <span class="highlight">₹37,500</span>, plus potential spot incentives. 
+                Your primary duty is to lead Relationship Managers (RM) in expanding membership and delivering services.
+                <strong>Target:</strong> Maintain a minimum of 125 active ROs in your team.</p>
+            @elseif($user->isRM())
+                <p>We are pleased to offer you the position of <span class="highlight">Relationship Manager (RM)</span> for
+                <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block, <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. 
+                This appointment is effective immediately upon the commencement of your team's performance.</p>
+
+                <p><strong>Compensation & Responsibilities:</strong><br>
+                You will receive a Monthly Honorarium of <span class="highlight">₹18,750</span>, plus potential spot incentives. 
+                Your role involves leading Relationship Officers (RO) to expand membership and facilitate service delivery.
+                <strong>Target:</strong> Maintain a minimum of 25 active ROs in your team.</p>
+            @else
+                <p>We are pleased to offer you the position of <span class="highlight">Relationship Officer (RO)</span> at
+                <strong>{{ $user->profile?->gram_panchayat ?? 'N/A' }}</strong> Gram Panchayat, <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block. 
+                This appointment is effective from your start date.</p>
+
+                <p><strong>Compensation & Responsibilities:</strong><br>
+                Humanity Foundation is a Govt. Registered Trust. You will receive a Monthly Honorarium of <span class="highlight">₹6,000</span> + <span class="highlight">₹1,500</span> (Travel Allowance).
+                <strong>Daily Targets:</strong> Conduct 20 family surveys and generate 8 doctor appointments. 
+                <strong>Monthly Targets:</strong> 200 appointments + 100 memberships. Daily reporting to your senior is mandatory.</p>
+            @endif
+            
+            <p style="font-size: 9px; color: var(--text-muted); margin-top: 10px;">
+                * This offer is contingent upon the verification of documents furnished by you.
+            </p>
+        </div>
+
+        <!-- Compact Terms Section -->
+        <div class="terms-container">
+            <div class="terms-title">Terms & Conditions of Engagement</div>
+            @php
+                $terms = [];
+                // Use standard User model methods 
+                if ($user->isDM() || $user->isBM() || $user->isRM()) {
+                    $terms = [
+                         'Organization isn’t liable to pay you the above Honorarium, if you found guilty or non compliance.',
+                        'You should have minimum ' . ($user->isDM() ? '625' : ($user->isBM() ? '125' : '25')) . ' active ROs in your team.',
+                        'The notice period is one month. The Trust may terminate immediately for non-performance or integrity issues.',
+                        'No payout for days with stopped work or non-performance.',
+                        'Management reserves the right to switch to POP (Payment On Performance) mode anytime.',
+                        'Flexible shift/process reallocation is mandatory as per Trust requirement.',
+                        'Minimum 40 days service required to claim any salary or dues.',
+                        'ID card must be carried during duty hours.',
+                        'Unauthorized offering of products/services is strictly prohibited.',
+                        'Do not instruct RMs for personal work.',
+                        'Daily reporting mandatory. 2-day delay = ₹500 deduction. 5-day = Show Cause. 10-day = Termination.',
+                        'Authority to warn/act against non-performing RMs is granted.',
+                        'Ensure daily deposit of all collected bills/fees.',
+                        'Retention of collected fees is strictly prohibited.',
+                        'Maintain professional behavior with all stakeholders.',
+                        'Honorarium is disbursed by the 10th of the following month.'
+                    ];
+                } else {
+                    $terms = [
+                        'Organization isn’t liable to pay you the above Honorarium, if you found guilty or non compliance.',
+                        'The notice period is one month. The Trust may terminate immediately for non-performance.',
+                        'Management reserves the right to switch to POP (Payment On Performance) mode anytime.',
+                        'Flexible shift/process reallocation is mandatory as per Trust requirement.',
+                        'Incomplete targets will proportionally affect Honorarium volume.',
+                        'Minimum 40 days service required to claim any salary or dues.',
+                        'Formal dress and ID card are mandatory during duty.',
+                        'Unauthorized offering of products/services is strictly prohibited.',
+                        'Daily reporting mandatory. 3-day delay = ₹300 deduction. 5-day = Show Cause. 10-day = Termination.',
+                        'Daily submission of collected fees/bills is mandatory.',
+                        'Retention of collected fees is strictly prohibited.',
+                        'Maintain professional behavior with HF Members.',
+                        'Honorarium is disbursed by the 10th of the following month.'
+                    ];
+                }
+            @endphp
+            <div class="terms-grid">
+                @foreach ($terms as $term)
+                    <div class="term-item">{{ $term }}</div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Footer -->
         <div class="footer">
-            <table class="footer-table">
-                <tr>
-                    <td class="contact-info">
-                        <div>📞 9735563157</div>
-                        <div>📧 info@hfburdwan.in</div>
-                        <div>🌐 www.hfburdwan.in</div>
-                    </td>
-                    <td class="signature-section">
-                        <img src="{{ $sigPath }}" alt="Director Signature" class="signature-img">
-                        <div class="signature-label">Secretary</div>
-                        <div class="signature-org">Humanity Foundation</div>
-                    </td>
-                </tr>
-            </table>
+            <div class="footer-left">
+                <div><strong>Contact Us:</strong></div>
+                <div>Phone: +91 97355 63157</div>
+                <div>Email: info@hfburdwan.in</div>
+                <div>Web: www.hfburdwan.in</div>
+            </div>
+            <div class="footer-right">
+                <img src="{{ $sigPath }}" alt="Signature" class="signature-img">
+                <div class="auth-line"></div>
+                <div class="auth-title">Secretary</div>
+                <div class="auth-sub">Humanity Foundation</div>
+            </div>
         </div>
     </div>
 
@@ -489,33 +476,14 @@
                 const element = document.getElementById('offer-letter');
                 const opt = {
                     margin: 0,
-                    filename: '{{ $user->profile?->full_name ?? "User" }}_{{ $user->employee_id }}.pdf',
-                    image: {
-                        type: 'jpeg',
-                        quality: 0.98
-                    },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true,
-                        logging: false,
-                        letterRendering: true,
-                        scrollY: 0,
-                        scrollX: 0
-                    },
-                    jsPDF: {
-                        unit: 'mm',
-                        format: 'a4',
-                        orientation: 'portrait'
-                    },
-                    pagebreak: {
-                        mode: 'avoid-all'
-                    }
+                    filename: '{{ $user->profile?->full_name ?? "Offer_Letter" }}_{{ $user->employee_id }}.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, logging: false },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
-
                 html2pdf().set(opt).from(element).save();
             }
         </script>
     @endif
 </body>
-
 </html>
