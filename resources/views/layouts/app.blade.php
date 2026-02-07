@@ -452,37 +452,108 @@
 
     <!-- Global Loading Overlay / Splash Screen -->
     <div id="global-loader"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl transition-all duration-500 opacity-100">
-        <div class="relative flex flex-col items-center">
-            <!-- Animated Logo Container -->
-            <div class="relative w-32 h-32 flex items-center justify-center">
-                <!-- Outer Pulse Rings -->
-                <div class="absolute inset-0 rounded-full bg-accent/20 animate-[ping_2s_linear_infinite]"></div>
-                <div class="absolute inset-4 rounded-full bg-accent/10 animate-[ping_3s_linear_infinite] delay-700">
-                </div>
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-md transition-all duration-700 opacity-100 overflow-hidden">
+        
+        <style>
+            /* Modern Attractive Spirals & Pulses */
+            @keyframes spin-slow {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            @keyframes heartbeat {
+                0%, 100% { transform: scale(1); }
+                15% { transform: scale(1.15); }
+                30% { transform: scale(1); }
+                45% { transform: scale(1.15); }
+                60% { transform: scale(1); }
+            }
+            @keyframes float-up {
+                0% { transform: translateY(0) scale(0.8); opacity: 0; }
+                50% { opacity: 0.8; }
+                100% { transform: translateY(-100px) scale(1.2); opacity: 0; }
+            }
+            @keyframes shimmer-glow {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            
+            .animate-heartbeat { animation: heartbeat 2s infinite ease-in-out; }
+            .animate-float-up { animation: float-up 4s ease-in infinite; }
+            .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+            
+            /* Reusable Cute Loader Class */
+            .loader-cute {
+                display: inline-flex;
+                gap: 4px;
+                align-items: center;
+            }
+            .loader-cute span {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background-color: currentColor;
+                animation: bounce 1.4s infinite ease-in-out both;
+            }
+            .loader-cute span:nth-child(1) { animation-delay: -0.32s; }
+            .loader-cute span:nth-child(2) { animation-delay: -0.16s; }
+        </style>
 
-                <!-- Main Logo -->
-                <div
-                    class="relative z-10 w-20 h-20 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl flex items-center justify-center p-3 border border-white/20 animate-[bounce_2s_ease-in-out_infinite]">
-                    <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-full h-full object-contain" alt="HF Logo">
-                </div>
+        <!-- Ambient Background Glows -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-400/20 rounded-full mix-blend-multiply blur-3xl animate-pulse"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full mix-blend-multiply blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        <!-- Floating Hearts Particles -->
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute bottom-10 left-10 text-pink-400/60 animate-float-up" style="animation-delay: 0s; left: 20%;">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </div>
-
-            <!-- Loading Text -->
-            <div class="mt-8 text-center">
-                <div class="flex items-center justify-center space-x-1.5 mb-3">
-                    <div class="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style="animation-delay: -0.3s"></div>
-                    <div class="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style="animation-delay: -0.15s">
-                    </div>
-                    <div class="w-1.5 h-1.5 rounded-full bg-accent animate-bounce"></div>
-                </div>
-                <h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-[0.4em] mb-1">Humanity
-                </h3>
-                <p
-                    class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest animate-pulse">
-                    Foundation • Spreading Love</p>
+            <div class="absolute bottom-10 right-10 text-purple-400/60 animate-float-up" style="animation-delay: 2s; left: 80%;">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
+            <div class="absolute bottom-10 left-1/2 text-accent/60 animate-float-up" style="animation-delay: 1s; left: 50%;">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </div>
         </div>
+
+        <!-- Glass Card with Rotating Border & Shimmer -->
+        <div class="relative z-10 p-1 rounded-[3rem] bg-gradient-to-br from-white/60 to-white/10 dark:from-white/10 dark:to-white/5 shadow-2xl backdrop-blur-xl animate-jelly overflow-hidden group">
+            
+            <!-- Animated Border Gradient -->
+            <div class="absolute inset-0 rounded-[3rem] bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-spin-slow" style="filter: blur(10px);"></div>
+
+            <!-- Inner Content -->
+            <div class="bg-white/80 dark:bg-slate-900/80 rounded-[2.8rem] p-10 flex flex-col items-center relative z-20 overflow-hidden">
+                
+                <!-- Logo with Heartbeat -->
+                <div class="relative w-28 h-28 bg-white dark:bg-slate-800 rounded-3xl shadow-lg flex items-center justify-center p-5 mb-6 animate-heartbeat border-4 border-white dark:border-slate-700">
+                    <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-full h-full object-contain filter drop-shadow-sm" alt="HF Logo">
+                    
+                    <!-- Floating Pulse Ring around Logo -->
+                    <div class="absolute -inset-4 border-2 border-accent/30 rounded-full animate-ping opacity-75"></div>
+                    <div class="absolute -inset-8 border border-accent/10 rounded-full animate-ping opacity-50 delay-700"></div>
+
+                    <!-- Badge -->
+                    <div class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-pink-500 to-accent text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800 animate-bounce">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </div>
+                </div>
+
+                <!-- Text with Gradient -->
+                <div class="text-center relative z-20">
+                    <h3 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-500 dark:from-white dark:to-slate-400 mb-2 tracking-tight">
+                        Humanity<span class="text-accent">.Foundation</span>
+                    </h3>
+                    <div class="inline-flex items-center space-x-3 bg-slate-100/80 dark:bg-black/40 px-5 py-2 rounded-full backdrop-blur-sm border border-slate-200 dark:border-white/10 shadow-sm">
+                        <span class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">Spreading Love</span>
+                        <div class="loader-cute text-accent"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
     </div>
 
     <script>
@@ -626,17 +697,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                            }).then((result) => {
+                                                                                                                                                                                                                        }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                            });
+                                                                                                                                                                                                                        });
         @endif
 
         @if(session('error'))
