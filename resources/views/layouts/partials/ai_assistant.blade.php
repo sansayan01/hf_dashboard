@@ -245,6 +245,41 @@
 
                     const chunk = decoder.decode(value);
                     fullResponse += chunk;
+
+                    // --- HANDLE ACTION COMMANDS ---
+                    if (fullResponse.includes('[ACTION:THEME:')) {
+                        const match = fullResponse.match(/\[ACTION:THEME:(dark|light|toggle)\]/);
+                        if (match) {
+                            const themeAction = match[1];
+
+                            if (themeAction === 'dark') {
+                                document.documentElement.classList.add('dark');
+                                localStorage.setItem('color-theme', 'dark');
+                            } else if (themeAction === 'light') {
+                                document.documentElement.classList.remove('dark');
+                                localStorage.setItem('color-theme', 'light');
+                            } else if (themeAction === 'toggle') {
+                                document.documentElement.classList.toggle('dark');
+                                const newTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                                localStorage.setItem('color-theme', newTheme);
+                            }
+
+                            // Update theme toggle icons
+                            const darkIcon = document.getElementById('theme-toggle-dark-icon');
+                            const lightIcon = document.getElementById('theme-toggle-light-icon');
+                            if (darkIcon && lightIcon) {
+                                const isDark = document.documentElement.classList.contains('dark');
+                                darkIcon.classList.toggle('hidden', isDark);
+                                lightIcon.classList.toggle('hidden', !isDark);
+                            }
+
+                            // Remove action prefix from display
+                            fullResponse = fullResponse.replace(/\[ACTION:THEME:(dark|light|toggle)\]\s*/g, '');
+
+                            window.dispatchEvent(new Event('theme-changed'));
+                        }
+                    }
+
                     botTextEl.innerHTML = formatMessage(fullResponse);
                     aiMessages.scrollTop = aiMessages.scrollHeight;
                 }
@@ -262,6 +297,32 @@
         });
 
         function formatMessage(text) {
+            // Parse markdown tables
+            const tableRegex = /\|(.+)\|\n\|[-|\s]+\|\n((?:\|.+\|\n?)+)/g;
+            text = text.replace(tableRegex, function(match, header, rows) {
+                const headers = header.split('|').map(h => h.trim()).filter(h => h);
+                const rowsArr = rows.trim().split('\n').map(row => 
+                    row.split('|').map(c => c.trim()).filter(c => c)
+                );
+                
+                let table = '<table style="width:100%; border-collapse:collapse; margin:8px 0; font-size:11px;">';
+                table += '<thead><tr style="background:#1C2434; color:white;">';
+                headers.forEach(h => {
+                    table += `<th style="padding:6px 8px; text-align:left; border:1px solid #ddd;">${h}</th>`;
+                });
+                table += '</tr></thead><tbody>';
+                rowsArr.forEach((row, i) => {
+                    const bg = i % 2 === 0 ? '#f8f9fa' : '#fff';
+                    table += `<tr style="background:${bg};">`;
+                    row.forEach(cell => {
+                        table += `<td style="padding:5px 8px; border:1px solid #ddd;">${cell}</td>`;
+                    });
+                    table += '</tr>';
+                });
+                table += '</tbody></table>';
+                return table;
+            });
+            
             // Simple markdown-like formatting for bold and lists
             return text
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')

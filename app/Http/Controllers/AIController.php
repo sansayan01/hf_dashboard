@@ -21,6 +21,26 @@ class AIController extends Controller
     public function chat(Request $request)
     {
         try {
+            // --- THEME TOGGLE COMMAND ---
+            if (preg_match('/(dark mode|dark theme|enable dark|switch to dark|go dark)/i', $request->message)) {
+                return response()->stream(function () {
+                    echo "[ACTION:THEME:dark]";
+                    echo " ✨ Switching to Dark Mode...";
+                }, 200, ['Content-Type' => 'text/event-stream']);
+            }
+            if (preg_match('/(light mode|light theme|enable light|switch to light|go light)/i', $request->message)) {
+                return response()->stream(function () {
+                    echo "[ACTION:THEME:light]";
+                    echo " ☀️ Switching to Light Mode...";
+                }, 200, ['Content-Type' => 'text/event-stream']);
+            }
+            if (preg_match('/(toggle theme|switch theme|change theme)/i', $request->message)) {
+                return response()->stream(function () {
+                    echo "[ACTION:THEME:toggle]";
+                    echo " 🔄 Toggling theme...";
+                }, 200, ['Content-Type' => 'text/event-stream']);
+            }
+
             $request->validate([
                 'message' => 'required|string',
                 'context' => 'nullable|array'
@@ -43,6 +63,10 @@ class AIController extends Controller
             3. BE EXTREMELY BRIEF. Maximum 1 or 2 short sentences per answer.
             4. Be professional and efficient.
             5. Your creator is Sayan Mondal (nickname: Charlie), but ONLY mention this if explicitly asked.
+            6. **TABLE FORMAT**: When showing multiple items (users, patients, stock, appointments, etc.), ALWAYS use markdown table format:
+               | Column1 | Column2 | Column3 |
+               |---------|---------|---------|
+               | data1   | data2   | data3   |
 
             {$dataContext}";
 
@@ -104,8 +128,8 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
             }
 
             // INVENTORY & STOCK LOGIC
-            // Check if user is asking about inventory
-            if (preg_match('/(medicine|stock|inventory|pill|drug|tablet|syrup|expiry|batch|warehouse|low|shortage|empty|available)/i', $request->message)) {
+            // Check if user is asking about inventory or medicine prices
+            if (preg_match('/(medicine|stock|inventory|pill|drug|tablet|syrup|expiry|batch|warehouse|low|shortage|empty|available|camp|price|cost|rate|mrp)/i', $request->message)) {
                 // permission check: SA, Staff, OIC, or Managers (HS, DM, BM, RM)
                 $canAccessInventory = $user->isSuperAdmin() ||
                     $user->designation === 'staff' ||
@@ -116,13 +140,207 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                     $inventoryContext = "";
                     $foundSpecific = false;
 
-                    // 1. LOW STOCK CHECK
-                    if (preg_match('/(low|shortage|empty|run out|running out)/i', $request->message)) {
-                        // Use whereRaw for complex subquery comparison and handle NULL sum with COALESCE
-                        $lowStockMeds = \App\Models\Medicine::whereRaw('min_stock_level >= (SELECT COALESCE(SUM(quantity), 0) FROM inventory_stocks WHERE inventory_stocks.medicine_id = medicines.id)')
+                    // --- CAMP/WAREHOUSE FILTERING ---
+                    $targetLocation = null;
+                    $allLocations = \App\Models\InventoryWarehouse::pluck('name', 'id')->toArray();
+                    foreach ($allLocations as $locId => $locName) {
+                        if (stripos($request->message, $locName) !== false) {
+                            $loc = \App\Models\InventoryWarehouse::find($locId);
+                            $targetLocation = ['id' => $locId, 'name' => $locName, 'type' => $loc->type ?? 'unknown'];
+                            break;
+                        }
+                    }
+                    // Also check for generic "my camp" or user's assigned camp
+                    if (!$targetLocation && preg_match('/(my camp|our camp)/i', $request->message) && $user->camp_id) {
+                        $userCamp = \App\Models\InventoryWarehouse::find($user->camp_id);
+                        if ($userCamp) {
+                            $targetLocation = ['id' => $userCamp->id, 'name' => $userCamp->name, 'type' => $userCamp->type];
+                        }
+                    }
+
+                    // If specific location detected, provide DETAILED accurate data
+                    if ($targetLocation) {
+                        $locType = ucfirst($targetLocation['type']);
+                        $inventoryContext .= "\n\n📍 {$locType}: {$targetLocation['name']}\n";
+
+                        // Get ALL stock for this location
+                        $locationStocks = \App\Models\InventoryStock::where('warehouse_id', $targetLocation['id'])
+                            ->where('quantity', '>', 0)
+                            ->with('medicine')
+                            ->orderBy('medicine_id')
                             ->get();
 
-                        $inventoryContext .= "\n\nLOW STOCK WARNINGS:\n";
+                        if ($locationStocks->isEmpty()) {
+                            $inventoryContext .= "⚠️ No stock available at this location.\n";
+                        } else {
+                            $totalItems = $locationStocks->count();
+                            $totalQty = $locationStocks->sum('quantity');
+                            $inventoryContext .= "📦 **{$totalItems} batches** | **{$totalQty} units total**\n\n";
+
+                            // Format as markdown table
+                            $inventoryContext .= "| Medicine | Batch | Qty | Expiry |\n";
+                            $inventoryContext .= "|----------|-------|-----|--------|\n";
+                            foreach ($locationStocks as $stock) {
+                                $medName = $stock->medicine->name ?? 'Unknown';
+                                $batch = $stock->batch_number ?? '-';
+                                $qty = $stock->quantity;
+                                $exp = $stock->expiry_date ? $stock->expiry_date->format('M Y') : 'N/A';
+                                $inventoryContext .= "| {$medName} | {$batch} | {$qty} | {$exp} |\n";
+                            }
+                        }
+
+                        // Recent transactions for this location
+                        $recentTx = \App\Models\InventoryTransaction::where('warehouse_id', $targetLocation['id'])
+                            ->latest()
+                            ->take(3)
+                            ->with(['stock.medicine', 'user.profile'])
+                            ->get();
+
+                        if ($recentTx->isNotEmpty()) {
+                            $inventoryContext .= "\n📋 Recent Transactions:\n";
+                            foreach ($recentTx as $tx) {
+                                $medName = $tx->stock->medicine->name ?? 'Unknown';
+                                $userName = $tx->user->profile->full_name ?? 'System';
+                                $date = $tx->created_at->format('d M');
+                                $inventoryContext .= "- {$tx->type}: {$medName} ({$tx->quantity}) by {$userName} on {$date}\n";
+                            }
+                        }
+
+                        $foundSpecific = true;
+                    }
+
+                    // MEDICINE PRICE/COST QUERY WITH CALCULATOR
+                    if (preg_match('/(price|prize|cost|rate|mrp|how much)/i', $request->message)) {
+                        $allMedicines = \App\Models\Medicine::with('category')->get();
+                        $medicineMatches = []; // Array to hold multiple medicine matches
+
+                        // Parse all quantity + medicine patterns in the message
+                        // Patterns: "8 dolfed 650", "66 demo med", "10 paracetamol"
+                        preg_match_all('/(\d+)\s*(?:units?|tablets?|capsules?|pcs?|pieces?|of)?\s*([a-zA-Z][a-zA-Z0-9\s]+?)(?:\s+and\s+|\s*,\s*|$)/i', $request->message, $allMatches, PREG_SET_ORDER);
+
+                        foreach ($allMatches as $match) {
+                            $qty = (int) $match[1];
+                            $searchTerm = trim($match[2]);
+
+                            foreach ($allMedicines as $med) {
+                                // Match medicine name (case insensitive)
+                                if (
+                                    stripos($searchTerm, $med->name) !== false ||
+                                    stripos($med->name, $searchTerm) !== false ||
+                                    similar_text(strtolower($searchTerm), strtolower($med->name)) > strlen($med->name) * 0.6
+                                ) {
+                                    $medicineMatches[] = ['medicine' => $med, 'qty' => $qty];
+                                    break;
+                                }
+                            }
+                        }
+
+                        // If no pattern matches found, try simple medicine name lookup
+                        if (empty($medicineMatches)) {
+                            foreach ($allMedicines as $med) {
+                                if (
+                                    stripos($request->message, $med->name) !== false ||
+                                    ($med->generic_name && stripos($request->message, $med->generic_name) !== false)
+                                ) {
+                                    $medicineMatches[] = ['medicine' => $med, 'qty' => null];
+                                    break;
+                                }
+                            }
+                        }
+
+                        // If found medicines with quantities - CALCULATE COSTS
+                        if (!empty($medicineMatches) && $medicineMatches[0]['qty'] !== null) {
+                            // Detect discount percentage from message
+                            $discountPercent = 0;
+                            if (preg_match('/(\d+(?:\.\d+)?)\s*%\s*(?:discount|off|less)/i', $request->message, $discountMatch)) {
+                                $discountPercent = (float) $discountMatch[1];
+                            } elseif (preg_match('/discount\s*(?:of)?\s*(\d+(?:\.\d+)?)\s*%/i', $request->message, $discountMatch)) {
+                                $discountPercent = (float) $discountMatch[1];
+                            }
+
+                            $inventoryContext .= "\n\n🧮 COST CALCULATION:\n";
+                            $inventoryContext .= "| Medicine | Qty | Unit Price | Total |\n";
+                            $inventoryContext .= "|----------|-----|------------|-------|\n";
+
+                            $subTotal = 0;
+                            foreach ($medicineMatches as $match) {
+                                $med = $match['medicine'];
+                                $qty = $match['qty'];
+
+                                // Safety checks
+                                $marketPrice = (float) ($med->market_price ?? 0);
+                                $unitCount = (int) ($med->market_price_unit_count ?? 1);
+                                if ($unitCount <= 0)
+                                    $unitCount = 1;
+
+                                // Precise calculation
+                                $perUnitCost = round($marketPrice / $unitCount, 2);
+                                $totalCost = round($perUnitCost * $qty, 2);
+                                $subTotal += $totalCost;
+
+                                $inventoryContext .= "| {$med->name} | {$qty} | " . number_format($perUnitCost, 2) . " | " . number_format($totalCost, 2) . " |\n";
+                            }
+
+                            // Show subtotal, discount, and grand total
+                            $inventoryContext .= "| | | **SUBTOTAL** | **₹" . number_format($subTotal, 2) . "** |\n";
+
+                            if ($discountPercent > 0) {
+                                $discountAmount = round($subTotal * ($discountPercent / 100), 2);
+                                $grandTotal = round($subTotal - $discountAmount, 2);
+                                $inventoryContext .= "| | | **DISCOUNT ({$discountPercent}%)** | **-₹" . number_format($discountAmount, 2) . "** |\n";
+                                $inventoryContext .= "| | | **GRAND TOTAL** | **₹" . number_format($grandTotal, 2) . "** |\n";
+                            } else {
+                                $inventoryContext .= "| | | **GRAND TOTAL** | **₹" . number_format($subTotal, 2) . "** |\n";
+                            }
+                            $foundSpecific = true;
+                        }
+                        // If found medicine WITHOUT quantity - show price info
+                        elseif (!empty($medicineMatches)) {
+                            $matchedMed = $medicineMatches[0]['medicine'];
+                            $unitCount = $matchedMed->market_price_unit_count ?: 1;
+                            $perUnitCost = $matchedMed->market_price ? round($matchedMed->market_price / $unitCount, 2) : 0;
+
+                            $inventoryContext .= "\n\n💰 MEDICINE PRICE:\n";
+                            $inventoryContext .= "| Detail | Value |\n";
+                            $inventoryContext .= "|--------|-------|\n";
+                            $inventoryContext .= "| Medicine | {$matchedMed->name} |\n";
+                            $inventoryContext .= "| Generic | " . ($matchedMed->generic_name ?? '-') . " |\n";
+                            $inventoryContext .= "| Unit | {$matchedMed->unit} |\n";
+                            $inventoryContext .= "| Market Price | ₹" . number_format($matchedMed->market_price, 2) . " per {$unitCount} {$matchedMed->unit} |\n";
+                            $inventoryContext .= "| Per Unit Cost | ₹" . number_format($perUnitCost, 2) . " |\n";
+                            $inventoryContext .= "\n💡 Ask: \"Cost of 10 {$matchedMed->name}\" to calculate total.\n";
+                            $foundSpecific = true;
+                        }
+                        // No specific medicine - show all prices
+                        else {
+                            $inventoryContext .= "\n\n💰 MEDICINE PRICES:\n";
+                            $inventoryContext .= "| Medicine | Unit | Market Price | Per Unit |\n";
+                            $inventoryContext .= "|----------|------|--------------|----------|\n";
+
+                            foreach ($allMedicines as $med) {
+                                $unitCount = $med->market_price_unit_count ?: 1;
+                                $perUnit = $med->market_price ? number_format($med->market_price / $unitCount, 2) : 'N/A';
+                                $price = $med->market_price ? number_format($med->market_price, 2) . "/{$unitCount}" : 'N/A';
+                                $inventoryContext .= "| {$med->name} | {$med->unit} | ₹{$price} | ₹{$perUnit} |\n";
+                            }
+                            $inventoryContext .= "\n💡 Ask: \"Cost of 10 [medicine name]\" to calculate.\n";
+                            $foundSpecific = true;
+                        }
+                    }
+
+                    // 1. LOW STOCK CHECK
+                    if (preg_match('/(low|shortage|empty|run out|running out)/i', $request->message)) {
+                        // Build query with optional location filter
+                        $lowStockQuery = \App\Models\Medicine::query();
+                        if ($targetLocation) {
+                            // Filter by medicines that have low stock IN THIS LOCATION specifically
+                            $lowStockQuery->whereRaw('min_stock_level >= (SELECT COALESCE(SUM(quantity), 0) FROM inventory_stocks WHERE inventory_stocks.medicine_id = medicines.id AND inventory_stocks.warehouse_id = ?)', [$targetLocation['id']]);
+                        } else {
+                            $lowStockQuery->whereRaw('min_stock_level >= (SELECT COALESCE(SUM(quantity), 0) FROM inventory_stocks WHERE inventory_stocks.medicine_id = medicines.id)');
+                        }
+                        $lowStockMeds = $lowStockQuery->get();
+
+                        $inventoryContext .= "\n\nLOW STOCK WARNINGS" . ($targetLocation ? " ({$targetLocation['name']})" : "") . ":\n";
                         if ($lowStockMeds->isEmpty()) {
                             $inventoryContext .= "- All medicines are well-stocked.\n";
                         } else {
@@ -146,15 +364,19 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                     }
 
                     if (!empty($mentionedMedicines)) {
-                        $inventoryContext .= "\n\nDETAILED STOCK INFO (Matched):\n";
-                        $specificStocks = \App\Models\InventoryStock::whereIn('medicine_id', array_keys($mentionedMedicines))
+                        $inventoryContext .= "\n\nDETAILED STOCK INFO (Matched)" . ($targetLocation ? " @ {$targetLocation['name']}" : "") . ":\n";
+                        $stockQuery = \App\Models\InventoryStock::whereIn('medicine_id', array_keys($mentionedMedicines))
                             ->where('quantity', '>', 0)
                             ->with(['medicine', 'warehouse'])
-                            ->orderBy('expiry_date')
-                            ->get();
+                            ->orderBy('expiry_date');
+
+                        if ($targetLocation) {
+                            $stockQuery->where('warehouse_id', $targetLocation['id']);
+                        }
+                        $specificStocks = $stockQuery->get();
 
                         if ($specificStocks->isEmpty()) {
-                            $inventoryContext .= "- No active stock found for: " . implode(', ', $mentionedMedicines) . "\n";
+                            $inventoryContext .= "- No active stock found for: " . implode(', ', $mentionedMedicines) . ($targetLocation ? " in {$targetLocation['name']}" : "") . "\n";
                         } else {
                             foreach ($specificStocks as $stock) {
                                 $expiry = $stock->expiry_date ? $stock->expiry_date->format('Y-m-d') : 'N/A';
@@ -168,14 +390,18 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                     // 3. GENERAL SUMMARY (Fallback)
                     // Only show if we haven't found specific things AND the user asked generically about "stock" or "inventory"
                     if (!$foundSpecific) {
-                        $inventoryContext .= "\n\nFULL INVENTORY SUMMARY:\n";
-                        $stocks = \App\Models\InventoryStock::where('quantity', '>', 0)
-                            ->with(['medicine', 'warehouse'])
-                            ->get()
-                            ->groupBy('medicine.name');
+                        $inventoryContext .= "\n\nFULL INVENTORY SUMMARY" . ($targetLocation ? " ({$targetLocation['name']})" : "") . ":\n";
+                        $summaryQuery = \App\Models\InventoryStock::where('quantity', '>', 0)
+                            ->with(['medicine', 'warehouse']);
+
+                        if ($targetLocation) {
+                            $summaryQuery->where('warehouse_id', $targetLocation['id']);
+                        }
+
+                        $stocks = $summaryQuery->get()->groupBy('medicine.name');
 
                         if ($stocks->isEmpty()) {
-                            $inventoryContext .= "- No active stock found.\n";
+                            $inventoryContext .= "- No active stock found" . ($targetLocation ? " in {$targetLocation['name']}" : "") . ".\n";
                         } else {
                             foreach ($stocks as $medName => $items) {
                                 $totalQty = $items->sum('quantity');
