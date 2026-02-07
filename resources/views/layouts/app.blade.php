@@ -339,7 +339,7 @@
 
             <!-- Dashboard Content -->
             <div class="flex-1 overflow-y-auto p-6 lg:p-10 flex flex-col justify-between">
-                <div>
+                <div class="pb-24 md:pb-0">
                     @yield('content')
                 </div>
 
@@ -495,17 +495,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                            }).then((result) => {
+                                                                                                                                                                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                            });
+                                                                                                                                                                                                });
         @endif
 
         @if(session('error'))

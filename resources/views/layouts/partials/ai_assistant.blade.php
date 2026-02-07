@@ -12,10 +12,10 @@
 
     @media (max-width: 640px) {
         #ai-assistant-container {
-            bottom: 16px !important;
-            right: 16px !important;
-            width: 48px !important;
-            height: 48px !important;
+            bottom: 12px !important;
+            right: 12px !important;
+            width: 44px !important;
+            height: 44px !important;
         }
     }
 
