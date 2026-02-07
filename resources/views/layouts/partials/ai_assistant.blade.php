@@ -450,68 +450,83 @@
         const aiSendBtn = document.getElementById('ai-send-btn');
         const aiVoiceBtn = document.getElementById('ai-voice-btn');
 
-        // Voice Typing Logic
+        // Voice Typing Logic - Enhanced Version
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.lang = 'en-IN'; // Set to English (India) as requested/contextual
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
+            let recognition = null;
             let isRecognizing = false;
 
-            aiVoiceBtn.addEventListener('click', (e) => {
+            const initRecognition = () => {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    isRecognizing = true;
+                    aiVoiceBtn.classList.add('is-active');
+                    aiInput.placeholder = "Listening... Speak now";
+                    console.log('AI Voice: Recording started');
+                };
+
+                recognition.onend = () => {
+                    isRecognizing = false;
+                    aiVoiceBtn.classList.remove('is-active');
+                    console.log('AI Voice: Recording ended');
+                };
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    if (transcript) {
+                        aiInput.value = transcript;
+                        console.log('AI Voice Result:', transcript);
+                        // AUTO-SUBMIT after voice result for a seamless experience
+                        setTimeout(() => {
+                            if (aiInput.value.trim()) {
+                                aiForm.dispatchEvent(new Event('submit'));
+                            }
+                        }, 600);
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    isRecognizing = false;
+                    aiVoiceBtn.classList.remove('is-active');
+                    console.error('AI Voice Error:', event.error);
+                    
+                    let errorMsg = "Voice error: " + event.error;
+                    if (event.error === 'not-allowed') errorMsg = "Microphone access denied";
+                    if (event.error === 'no-speech') errorMsg = "No speech detected. Try again.";
+                    
+                    aiInput.placeholder = errorMsg;
+                    setTimeout(() => aiInput.placeholder = "Type your message...", 3000);
+                };
+            };
+
+            aiVoiceBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
                 if (isRecognizing) {
-                    recognition.stop();
+                    if (recognition) recognition.stop();
                 } else {
                     try {
+                        // Explicitly request permission to ensure browser prompt appears
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        stream.getTracks().forEach(track => track.stop()); // Close stream immediately
+                        
+                        if (!recognition) initRecognition();
                         recognition.start();
                     } catch (err) {
-                        console.error('Recognition start error:', err);
-                        isRecognizing = false;
-                        aiVoiceBtn.classList.remove('is-active');
+                        console.error('Mic Permission/Start failed:', err);
+                        aiInput.placeholder = "Microphone permission required";
+                        setTimeout(() => aiInput.placeholder = "Type your message...", 3000);
                     }
                 }
             });
-
-            recognition.onstart = () => {
-                isRecognizing = true;
-                aiVoiceBtn.classList.add('is-active');
-                aiInput.placeholder = "Listening... Speak now";
-            };
-
-            recognition.onend = () => {
-                isRecognizing = false;
-                aiVoiceBtn.classList.remove('is-active');
-                aiInput.placeholder = "Type your message...";
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                aiInput.value = aiInput.value ? aiInput.value + ' ' + transcript : transcript;
-                aiInput.focus();
-            };
-
-            recognition.onerror = (event) => {
-                isRecognizing = false;
-                aiVoiceBtn.classList.remove('is-active');
-                
-                if (event.error === 'not-allowed') {
-                    aiInput.placeholder = "Microphone access denied";
-                    setTimeout(() => aiInput.placeholder = "Type your message...", 3000);
-                } else if (event.error === 'network') {
-                    aiInput.placeholder = "Network error in voice typing";
-                    setTimeout(() => aiInput.placeholder = "Type your message...", 3000);
-                } else {
-                    aiInput.placeholder = "Voice error: " + event.error;
-                    setTimeout(() => aiInput.placeholder = "Type your message...", 3000);
-                }
-                console.error('Speech recognition error:', event.error);
-            };
         } else {
+            console.warn('AI Voice: Not supported in this browser');
             aiVoiceBtn.style.display = 'none';
         }
 
