@@ -33,8 +33,8 @@
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            /* Clean, professional Slate/Gainsboro gradient */
+            background-color: #ffdfaf;
+            /* Solid color requested by user */
         }
 
         .dark .gradient-bg {
@@ -284,7 +284,7 @@
 
             <!-- Header -->
             <header
-                class="h-20 bg-white dark:bg-darkbg/40 dark:backdrop-blur-md border-b border-slate-200 dark:border-white/5 px-6 lg:px-8 flex items-center justify-between sticky top-0 z-40 transition-colors duration-300">
+                class="h-20 bg-white/50 backdrop-blur-md dark:bg-darkbg/40 border-b border-slate-200 dark:border-white/5 px-6 lg:px-8 flex items-center justify-between sticky top-0 z-40 transition-colors duration-300">
                 <div class="flex items-center space-x-4">
                     <button onclick="toggleSidebar()" class="lg:hidden text-slate-800 dark:text-white">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -495,17 +495,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                    }).then((result) => {
+                                                                                                                                                                                            }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                    });
+                                                                                                                                                                                            });
         @endif
 
         @if(session('error'))

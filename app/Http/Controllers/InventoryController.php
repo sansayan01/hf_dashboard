@@ -22,146 +22,22 @@ class InventoryController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $selectedWarehouseId = null;
-
-        // Determine the active warehouse filter
-        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
-            $selectedWarehouseId = $user->camp_id;
-        } elseif ($request->has('warehouse_id') && $request->warehouse_id != '') {
-            $selectedWarehouseId = $request->warehouse_id;
-        }
+        $selectedWarehouseId = $this->resolveSelectedWarehouseId($user, $request);
 
         // Retroactive fix: Ensure all active stocks have a sponsor_id
-        if (Schema::hasColumn('inventory_stocks', 'sponsor_id') && Schema::hasColumn('inventory_transactions', 'sponsor_id')) {
-            InventoryStock::where('quantity', '>', 0)
-                ->whereNull('sponsor_id')
-                ->chunk(50, function ($stocks) {
-                    foreach ($stocks as $stock) {
-                        // Try immediate 'in' transaction first
-                        $inTx = $stock->transactions()->where('type', 'in')->first();
-                        if ($inTx && $inTx->sponsor_id) {
-                            $stock->update(['sponsor_id' => $inTx->sponsor_id]);
-                            continue;
-                        }
-
-                        // Try finding any 'in' transaction for the same medicine and batch that has a sponsor
-                        $rootSponsorId = InventoryTransaction::where('type', 'in')
-                            ->whereNotNull('sponsor_id')
-                            ->whereHas('stock', function ($q) use ($stock) {
-                            $q->where('medicine_id', $stock->medicine_id)
-                                ->where('batch_number', $stock->batch_number);
-                        })
-                            ->value('sponsor_id');
-
-                        if ($rootSponsorId) {
-                            $stock->update(['sponsor_id' => $rootSponsorId]);
-                        }
-                    }
-                });
-        }
+        $this->ensureStockSponsors();
 
         // Query for stocks
-        $query = InventoryStock::with(['medicine.category', 'warehouse', 'sponsor'])
-            ->where('quantity', '>', 0);
-
-        if ($selectedWarehouseId) {
-            $query->where('warehouse_id', $selectedWarehouseId);
-
-            // "Only available at" requirement: Filter for medicines that exist ONLY in the selected warehouse
-            if ($request->has('exclusive') && $request->exclusive == '1') {
-                $query->whereNotExists(function ($q) use ($selectedWarehouseId) {
-                    $q->select(DB::raw(1))
-                        ->from('inventory_stocks as other_stocks')
-                        ->whereColumn('other_stocks.medicine_id', 'inventory_stocks.medicine_id')
-                        ->where('other_stocks.warehouse_id', '!=', $selectedWarehouseId)
-                        ->where('other_stocks.quantity', '>', 0);
-                });
-            }
-        }
-
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('medicine', function ($mq) use ($search) {
-                    $mq->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('generic_name', 'like', '%' . $search . '%');
-                })->orWhere('batch_number', 'like', '%' . $search . '%');
-            });
-        }
-
-        $stocks = $query->orderBy('expiry_date')->get()
-            ->groupBy(function ($stock) {
-                return $stock->medicine_id . '-' . $stock->warehouse_id . '-' . $stock->batch_number . '-' . $stock->expiry_date->format('Y-m-d');
-            })
-            ->map(function ($group) {
-                $mainStock = $group->first();
-                $mainStock->quantity = $group->sum('quantity');
-                return $mainStock;
-            })->values();
+        $stocks = $this->getStocks($request, $selectedWarehouseId);
 
         // Low stock medicines - filter by selected warehouse if applicable
-        $lowStockQuery = Medicine::with('category');
-        $lowStockMedicines = $lowStockQuery->get()->filter(function ($medicine) use ($selectedWarehouseId, $request) {
-            /** @var \App\Models\Medicine $medicine */
-
-            // If exclusivity is requested, check if it's available elsewhere first
-            if ($selectedWarehouseId && $request->has('exclusive') && $request->exclusive == '1') {
-                $existsElsewhere = $medicine->stocks()
-                    ->where('warehouse_id', '!=', $selectedWarehouseId)
-                    ->where('quantity', '>', 0)
-                    ->exists();
-                if ($existsElsewhere)
-                    return false;
-            }
-
-            if ($selectedWarehouseId) {
-                $quantity = $medicine->stocks()->where('warehouse_id', $selectedWarehouseId)->sum('quantity');
-            } else {
-                $quantity = $medicine->totalStock;
-            }
-            return $quantity <= $medicine->min_stock_level && ($selectedWarehouseId ? $quantity > 0 : true);
-        });
+        $lowStockMedicines = $this->getLowStockMedicines($request, $selectedWarehouseId);
 
         // Warehouses - pharmacists/OICs only see their camp
-        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
-            $warehouses = InventoryWarehouse::where('id', $user->camp_id)->where('is_active', true)->get();
-        } else {
-            $warehouses = InventoryWarehouse::where('is_active', true)->get();
-        }
+        $warehouses = $this->getAccessibleWarehouses($user);
 
         // Get medicine quantities for chart - respect selected warehouse and exclusivity
-        $medicineData = Medicine::with('category')
-            ->get()
-            ->map(function ($medicine) use ($selectedWarehouseId, $request) {
-                // If exclusivity is requested, check if it's available elsewhere first
-                if ($selectedWarehouseId && $request->has('exclusive') && $request->exclusive == '1') {
-                    $existsElsewhere = $medicine->stocks()
-                        ->where('warehouse_id', '!=', $selectedWarehouseId)
-                        ->where('quantity', '>', 0)
-                        ->exists();
-                    if ($existsElsewhere) {
-                        return ['name' => $medicine->name, 'quantity' => 0, 'unit' => $medicine->unit];
-                    }
-                }
-
-                if ($selectedWarehouseId) {
-                    $quantity = $medicine->stocks()->where('warehouse_id', $selectedWarehouseId)->sum('quantity');
-                } else {
-                    $quantity = $medicine->totalStock;
-                }
-
-                return [
-                    'name' => $medicine->name,
-                    'quantity' => $quantity,
-                    'unit' => $medicine->unit
-                ];
-            })
-            ->filter(function ($item) {
-                return $item['quantity'] > 0; // Only show medicines with stock
-            })
-            ->sortByDesc('quantity')
-            ->take(10) // Show top 10 medicines
-            ->values();
+        $medicineData = $this->getMedicineChartData($request, $selectedWarehouseId);
 
         return view('inventory.index', compact('stocks', 'lowStockMedicines', 'warehouses', 'medicineData'));
     }
@@ -1014,5 +890,158 @@ class InventoryController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+    private function resolveSelectedWarehouseId($user, Request $request)
+    {
+        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
+            return $user->camp_id;
+        } elseif ($request->has('warehouse_id') && $request->warehouse_id != '') {
+            return $request->warehouse_id;
+        }
+        return null;
+    }
+
+    private function ensureStockSponsors()
+    {
+        if (Schema::hasColumn('inventory_stocks', 'sponsor_id') && Schema::hasColumn('inventory_transactions', 'sponsor_id')) {
+            InventoryStock::where('quantity', '>', 0)
+                ->whereNull('sponsor_id')
+                ->chunk(50, function ($stocks) {
+                    foreach ($stocks as $stock) {
+                        // Try immediate 'in' transaction first
+                        $inTx = $stock->transactions()->where('type', 'in')->first();
+                        if ($inTx && $inTx->sponsor_id) {
+                            $stock->update(['sponsor_id' => $inTx->sponsor_id]);
+                            continue;
+                        }
+
+                        // Try finding any 'in' transaction for the same medicine and batch that has a sponsor
+                        $rootSponsorId = InventoryTransaction::where('type', 'in')
+                            ->whereNotNull('sponsor_id')
+                            ->whereHas('stock', function ($q) use ($stock) {
+                            $q->where('medicine_id', $stock->medicine_id)
+                                ->where('batch_number', $stock->batch_number);
+                        })
+                            ->value('sponsor_id');
+
+                        if ($rootSponsorId) {
+                            $stock->update(['sponsor_id' => $rootSponsorId]);
+                        }
+                    }
+                });
+        }
+    }
+
+    private function getStocks(Request $request, $selectedWarehouseId)
+    {
+        $query = InventoryStock::with(['medicine.category', 'warehouse', 'sponsor'])
+            ->where('quantity', '>', 0);
+
+        if ($selectedWarehouseId) {
+            $query->where('warehouse_id', $selectedWarehouseId);
+
+            // "Only available at" requirement: Filter for medicines that exist ONLY in the selected warehouse
+            if ($request->has('exclusive') && $request->exclusive == '1') {
+                $query->whereNotExists(function ($q) use ($selectedWarehouseId) {
+                    $q->select(DB::raw(1))
+                        ->from('inventory_stocks as other_stocks')
+                        ->whereColumn('other_stocks.medicine_id', 'inventory_stocks.medicine_id')
+                        ->where('other_stocks.warehouse_id', '!=', $selectedWarehouseId)
+                        ->where('other_stocks.quantity', '>', 0);
+                });
+            }
+        }
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('medicine', function ($mq) use ($search) {
+                    $mq->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('generic_name', 'like', '%' . $search . '%');
+                })->orWhere('batch_number', 'like', '%' . $search . '%');
+            });
+        }
+
+        return $query->orderBy('expiry_date')->get()
+            ->groupBy(function ($stock) {
+                return $stock->medicine_id . '-' . $stock->warehouse_id . '-' . $stock->batch_number . '-' . $stock->expiry_date->format('Y-m-d');
+            })
+            ->map(function ($group) {
+                $mainStock = $group->first();
+                $mainStock->quantity = $group->sum('quantity');
+                return $mainStock;
+            })->values();
+    }
+
+    private function getLowStockMedicines(Request $request, $selectedWarehouseId)
+    {
+        $lowStockQuery = Medicine::with('category');
+        return $lowStockQuery->get()->filter(function ($medicine) use ($selectedWarehouseId, $request) {
+            /** @var \App\Models\Medicine $medicine */
+
+            // If exclusivity is requested, check if it's available elsewhere first
+            if ($selectedWarehouseId && $request->has('exclusive') && $request->exclusive == '1') {
+                $existsElsewhere = $medicine->stocks()
+                    ->where('warehouse_id', '!=', $selectedWarehouseId)
+                    ->where('quantity', '>', 0)
+                    ->exists();
+                if ($existsElsewhere)
+                    return false;
+            }
+
+            if ($selectedWarehouseId) {
+                $quantity = $medicine->stocks()->where('warehouse_id', $selectedWarehouseId)->sum('quantity');
+            } else {
+                $quantity = $medicine->totalStock;
+            }
+            return $quantity <= $medicine->min_stock_level && ($selectedWarehouseId ? $quantity > 0 : true);
+        });
+    }
+
+    private function getAccessibleWarehouses($user)
+    {
+        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
+            return InventoryWarehouse::where('id', $user->camp_id)->where('is_active', true)->get();
+        } else {
+            return InventoryWarehouse::where('is_active', true)->get();
+        }
+    }
+
+    private function getMedicineChartData(Request $request, $selectedWarehouseId)
+    {
+        return Medicine::with('category')
+            ->get()
+            ->map(function ($medicine) use ($selectedWarehouseId, $request) {
+                /** @var \App\Models\Medicine $medicine */
+
+                // If exclusivity is requested, check if it's available elsewhere first
+                if ($selectedWarehouseId && $request->has('exclusive') && $request->exclusive == '1') {
+                    $existsElsewhere = $medicine->stocks()
+                        ->where('warehouse_id', '!=', $selectedWarehouseId)
+                        ->where('quantity', '>', 0)
+                        ->exists();
+                    if ($existsElsewhere) {
+                        return ['name' => $medicine->name, 'quantity' => 0, 'unit' => $medicine->unit];
+                    }
+                }
+
+                if ($selectedWarehouseId) {
+                    $quantity = $medicine->stocks()->where('warehouse_id', $selectedWarehouseId)->sum('quantity');
+                } else {
+                    $quantity = $medicine->totalStock;
+                }
+
+                return [
+                    'name' => $medicine->name,
+                    'quantity' => $quantity,
+                    'unit' => $medicine->unit
+                ];
+            })
+            ->filter(function ($item) {
+                return $item['quantity'] > 0; // Only show medicines with stock
+            })
+            ->sortByDesc('quantity')
+            ->take(10) // Show top 10 medicines
+            ->values();
     }
 }

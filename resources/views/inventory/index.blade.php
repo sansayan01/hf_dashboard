@@ -182,7 +182,15 @@
                         </label>
                     @endif
 
-                    <button type="submit" class="hidden">Search</button>
+                    <button type="submit"
+                        class="h-10 px-6 rounded-2xl bg-accent text-white text-xs font-bold hover:bg-opacity-90 transition-all shadow-md shadow-accent/20 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                            </path>
+                        </svg>
+                        <span>Filter</span>
+                    </button>
                 </form>
             </div>
 
@@ -220,8 +228,8 @@
                                 <td class="p-4">
                                     <code
                                         class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded text-[10px] font-bold">
-                                                                                                                                            #{{ $stock->batch_number }}
-                                                                                                                                        </code>
+                                                                                                                                                    #{{ $stock->batch_number }}
+                                                                                                                                                </code>
                                 </td>
                                 <td class="p-4">
                                     <span
