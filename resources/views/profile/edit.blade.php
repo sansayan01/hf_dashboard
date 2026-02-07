@@ -51,9 +51,9 @@
     }
 
     .dark .dial-container {
-        background: rgba(15, 23, 42, 0.5);
-        border-color: rgba(255,255,255,0.05);
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        background: rgba(30, 41, 59, 0.7) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4) !important;
     }
 
     .dial-label {
@@ -107,6 +107,56 @@
 
     .dark .dial-btn {
         color: #94a3b8;
+    }
+
+    /* Sidebar Tab Premium Overrides */
+    .dark .permission-tab-btn {
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        margin-bottom: 4px;
+    }
+
+    .dark .permission-tab-btn span {
+        color: #94a3b8 !important; /* Lighter slate for inactive labels */
+        font-weight: 700 !important;
+        transition: all 0.3s ease;
+    }
+
+    .dark .permission-tab-btn:hover {
+        background: rgba(255, 255, 255, 0.03) !important;
+    }
+
+    .dark .permission-tab-btn:hover span {
+        color: #cbd5e1 !important;
+    }
+
+    .dark .permission-tab-btn.active {
+        background: rgba(60, 80, 224, 0.15) !important;
+        border-color: rgba(60, 80, 224, 0.25) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .dark .permission-tab-btn.active span {
+        color: #ffffff !important; /* Pure white for active label */
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .dark .permission-tab-btn .w-8 {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        color: #94a3b8 !important;
+    }
+
+    .dark .permission-tab-btn.active .w-8 {
+        background: #3C50E0 !important;
+        border-color: #3C50E0 !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 15px rgba(60, 80, 224, 0.4) !important;
+    }
+
+    .dark .bg-slate-900\/40 {
+        background-color: rgba(10, 15, 30, 0.7) !important; /* Deeper sidebar */
+        backdrop-filter: blur(12px);
     }
 </style>
 @endsection
@@ -167,7 +217,7 @@
             <div class="bg-white dark:bg-darkcard rounded-[2rem] shadow-xl border border-slate-100 dark:border-white/5 overflow-hidden">
                 <div class="flex flex-col lg:flex-row">
                     <!-- Sidebar Tabs -->
-                    <div class="lg:w-72 bg-slate-50/50 dark:bg-white/[0.02] border-r border-slate-100 dark:border-white/5 p-6">
+                    <div class="lg:w-72 bg-slate-50/50 dark:bg-slate-900/40 border-r border-slate-100 dark:border-white/5 p-6">
                         <nav class="space-y-2" id="permission-tabs">
                             @php
                                 $roles = [
@@ -182,7 +232,7 @@
 
                             @foreach($roles as $key => $data)
                                 <button type="button" onclick="switchTab('{{ $key }}')" id="tab-btn-{{ $key }}"
-                                    class="permission-tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest group">
+                                    class="permission-tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest group border border-transparent">
                                     <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-slate-400 group-hover:text-accent transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $data['icon'] }}" />
@@ -194,7 +244,7 @@
 
                             <div class="pt-8 mt-8 border-t border-slate-100 dark:border-white/5">
                                 <button type="button" onclick="switchTab('my-account')" id="tab-btn-my-account"
-                                    class="permission-tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest group">
+                                    class="permission-tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all font-bold text-xs uppercase tracking-widest group border border-transparent">
                                     <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-slate-400 group-hover:text-accent transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -218,7 +268,7 @@
                                             <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">{{ $data['label'] }} Permissions</h2>
                                             <p class="text-slate-500 font-medium">Define what users with the {{ $data['label'] }} role are allowed to perform in the system.</p>
                                         </div>
-                                        <div class="flex items-center space-x-6 bg-slate-50/80 dark:bg-white/[0.03] px-8 py-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm">
+                                        <div class="flex items-center space-x-6 bg-slate-50/80 dark:bg-slate-800/60 px-8 py-5 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm">
                                             <div class="hidden sm:block">
                                                 <p class="text-[10px] font-black uppercase tracking-widest text-accent mb-0.5">Global Controller</p>
                                                 <p class="text-xs font-bold text-slate-600 dark:text-slate-300">Permit All Actions Currently Shown</p>
@@ -239,7 +289,7 @@
                                         @endphp
 
                                         @foreach($perms as $perm)
-                                            <label class="group flex items-center justify-between p-5 bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 rounded-3xl cursor-pointer hover:border-accent/30 hover:bg-white dark:hover:bg-white/[0.05] transition-all">
+                                            <label class="group flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-white/5 rounded-3xl cursor-pointer hover:border-accent/30 hover:bg-white dark:hover:bg-slate-800/60 transition-all">
                                                 <div class="flex-1 pr-4">
                                                     <p class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest mb-1">{{ str_replace('_', ' ', $perm->permission_key) }}</p>
                                                     <p class="text-[10px] text-slate-400 font-bold uppercase">Grant Access</p>
@@ -453,7 +503,7 @@
             
             // Remove active style from all buttons
             document.querySelectorAll('.permission-tab-btn').forEach(btn => {
-                btn.classList.remove('bg-white', 'dark:bg-slate-800', 'shadow-md', 'scale-[1.02]');
+                btn.classList.remove('active', 'bg-white', 'dark:bg-slate-800', 'shadow-md', 'scale-[1.02]');
                 btn.querySelector('div').classList.remove('bg-accent', 'text-white');
                 btn.querySelector('div').classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-400');
                 btn.querySelector('span').classList.remove('text-slate-800', 'dark:text-white');
@@ -461,15 +511,18 @@
             });
 
             // Show target content
-            document.getElementById('permission-content-' + roleId).classList.remove('hidden');
+            const targetContent = document.getElementById('permission-content-' + roleId);
+            if (targetContent) targetContent.classList.remove('hidden');
             
             // Apply active style to target button
             const activeBtn = document.getElementById('tab-btn-' + roleId);
-            activeBtn.classList.add('bg-white', 'dark:bg-slate-800', 'shadow-md', 'scale-[1.02]');
-            activeBtn.querySelector('div').classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-400');
-            activeBtn.querySelector('div').classList.add('bg-accent', 'text-white');
-            activeBtn.querySelector('span').classList.remove('text-slate-500');
-            activeBtn.querySelector('span').classList.add('text-slate-800', 'dark:text-white');
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'bg-white', 'dark:bg-slate-800', 'shadow-md', 'scale-[1.02]');
+                activeBtn.querySelector('div').classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-400');
+                activeBtn.querySelector('div').classList.add('bg-accent', 'text-white');
+                activeBtn.querySelector('span').classList.remove('text-slate-500');
+                activeBtn.querySelector('span').classList.add('text-slate-800', 'dark:text-white');
+            }
         }
 
         function toggleAllPermissions(roleKey, isChecked) {
