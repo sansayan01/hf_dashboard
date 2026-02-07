@@ -54,9 +54,11 @@
             @if (!$is_pdf)
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             @endif
+            /* Optimized padding for coverage */
             padding: 10mm 15mm;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
         }
 
         /* Typography Override for Headings */
@@ -69,164 +71,171 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--brand-green);
-            padding-bottom: 12px;
-            margin-bottom: 15px;
+            border-bottom: 3px solid var(--brand-green);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            flex-shrink: 0;
+            position: relative;
         }
 
         .header-logo {
-            width: 70px;
+            width: 110px; /* Significantly larger */
             height: auto;
         }
 
         .header-text {
             text-align: right;
             flex: 1;
-            margin-left: 20px;
+            margin-left: 30px;
         }
 
         .brand-name {
-            font-size: 20px;
+            font-size: 32px; /* Much larger */
             font-weight: 800;
             color: var(--brand-green);
             text-transform: uppercase;
-            letter-spacing: -0.5px;
+            letter-spacing: -1px;
             line-height: 1;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
 
         .brand-sub {
-            font-size: 9px;
-            color: var(--text-muted);
-            font-weight: 600;
+            font-size: 13px; /* Increased */
+            color: var(--text-main);
+            font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
         }
 
         .brand-details {
-            font-size: 8px;
+            font-size: 11px; /* Increased */
             color: var(--text-muted);
-            line-height: 1.3;
+            line-height: 1.4;
+            font-weight: 500;
         }
 
         /* Recipient Section */
         .recipient-box {
             background: var(--bg-light);
-            border-left: 4px solid var(--brand-green);
-            padding: 10px 15px;
-            border-radius: 0 4px 4px 0;
-            margin-bottom: 15px;
+            border-left: 5px solid var(--brand-green);
+            padding: 12px 18px;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .recipient-info h3 {
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--text-main);
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .recipient-details {
-            font-size: 10px;
+            font-size: 12px;
             color: var(--text-muted);
         }
 
         .doc-title {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 800;
             color: var(--brand-green);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 1px solid var(--brand-green);
-            padding: 4px 12px;
-            border-radius: 20px;
+            letter-spacing: 1.5px;
+            border: 2px solid var(--brand-green);
+            padding: 6px 16px;
+            border-radius: 50px;
         }
 
         /* Content Body */
         .content-body {
-            font-size: 10.5px;
-            line-height: 1.5;
+            font-size: 14.5px; /* Increased for better visibility */
+            line-height: 1.65;
             text-align: justify;
-            margin-bottom: 15px;
+            margin-bottom: 25px;
             color: #334155;
             font-weight: 500;
+            flex-grow: 0;
         }
 
         .content-body p {
-            margin-bottom: 8px;
+            margin-bottom: 15px;
         }
 
         .highlight {
             font-weight: 700;
             color: var(--brand-dark);
-            background-color: #f0fdf4; /* Light green highlight bg */
-            padding: 0 2px;
-            border-radius: 2px;
+            background-color: #f0fdf4;
+            padding: 0 4px;
+            border-radius: 4px;
         }
 
-        /* Terms Section (The Space Saver) */
+        /* Terms Section */
         .terms-container {
             border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 15px;
             background: #fff;
-            flex-grow: 1; /* Push footer down */
+            flex-grow: 1; /* Fills remaining space */
             display: flex;
             flex-direction: column;
+            margin-bottom: 15px;
         }
 
         .terms-title {
-            font-size: 10px;
+            font-size: 16px; /* Increased */
             font-weight: 800;
             color: var(--brand-red);
             text-transform: uppercase;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 4px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
             letter-spacing: 0.5px;
         }
 
         .terms-grid {
-            column-count: 2;
-            column-gap: 20px;
+            /* Single column layout */
+            display: flex;
+            flex-direction: column;
             width: 100%;
         }
 
         .term-item {
-            font-size: 8.5px;
-            line-height: 1.35;
+            font-size: 12px;
+            line-height: {{ $user->isRO() ? '1.6' : '1.35' }};
             color: var(--text-muted);
-            margin-bottom: 4px;
-            break-inside: avoid;
-            page-break-inside: avoid;
-            position: relative;
-            padding-left: 10px;
+            margin-bottom: {{ $user->isRO() ? '8px' : '3px' }};
+            padding-left: 0;
+            display: flex;
+            align-items: flex-start;
         }
 
-        .term-item::before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: var(--brand-green);
-            font-weight: bold;
+        .term-number {
+             font-weight: 700;
+             color: var(--brand-green);
+             min-width: 20px;
+             margin-right: 5px;
         }
 
         /* Footer */
         .footer {
             margin-top: auto;
             border-top: 1px solid #e2e8f0;
-            padding-top: 10px;
+            padding-top: 15px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
+            flex-shrink: 0;
         }
 
         .footer-left {
-            font-size: 8px;
+            font-size: 10px;
             color: var(--text-muted);
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .footer-right {
@@ -234,26 +243,26 @@
         }
 
         .signature-img {
-            height: 35px;
-            margin-bottom: 2px;
+            height: 45px;
+            margin-bottom: 5px;
         }
 
         .auth-line {
-            width: 120px;
+            width: 140px;
             height: 1px;
             background: var(--text-main);
-            margin: 2px auto;
+            margin: 4px auto;
         }
 
         .auth-title {
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 800;
             color: var(--brand-green);
             text-transform: uppercase;
         }
 
         .auth-sub {
-            font-size: 8px;
+            font-size: 9px;
             color: var(--text-muted);
         }
 
@@ -263,8 +272,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-15deg);
-            width: 350px;
-            opacity: 0.04;
+            width: 400px;
+            opacity: 0.03;
             pointer-events: none;
             z-index: 0;
         }
@@ -351,7 +360,7 @@
                 <div class="recipient-details">
                     <span>Emp ID: <strong>{{ $user->employee_id }}</strong></span>
                     <span style="margin: 0 8px; color: #cbd5e1;">|</span>
-                    <span>Aadhar: {{ $user->profile?->aadhaar_number ?? 'N/A' }}</span>
+                    <span>Aadhar: <strong>{{ $user->profile?->aadhaar_number ?? 'N/A' }}</strong></span>
                 </div>
             </div>
             <div class="doc-title">Offer Letter</div>
@@ -397,7 +406,7 @@
                 <strong>Monthly Targets:</strong> 200 appointments + 100 memberships. Daily reporting to your senior is mandatory.</p>
             @endif
             
-            <p style="font-size: 9px; color: var(--text-muted); margin-top: 10px;">
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 15px;">
                 * This offer is contingent upon the verification of documents furnished by you.
             </p>
         </div>
@@ -446,8 +455,11 @@
                 }
             @endphp
             <div class="terms-grid">
-                @foreach ($terms as $term)
-                    <div class="term-item">{{ $term }}</div>
+                @foreach ($terms as $index => $term)
+                    <div class="term-item">
+                        <span class="term-number">{{ $index + 1 }}.</span>
+                        <span>{{ $term }}</span>
+                    </div>
                 @endforeach
             </div>
         </div>
@@ -477,8 +489,8 @@
                 const opt = {
                     margin: 0,
                     filename: '{{ $user->profile?->full_name ?? "Offer_Letter" }}_{{ $user->employee_id }}.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, logging: false },
+                    image: { type: 'jpeg', quality: 1.0 },
+                    html2canvas: { scale: 5, useCORS: true, logging: false, letterRendering: true },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 html2pdf().set(opt).from(element).save();
