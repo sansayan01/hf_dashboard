@@ -94,6 +94,7 @@ class MedicineDistributionController extends Controller
         $validated = $request->validate([
             'patient_id' => 'required|exists:surveys,id',
             'camp_id' => 'required|exists:inventory_warehouses,id',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'medicines' => 'required|array|min:1',
             'medicines.*.id' => 'required|exists:medicines,id',
             'medicines.*.quantity' => 'required|integer|min:1',
@@ -188,7 +189,10 @@ class MedicineDistributionController extends Controller
                 $totalAmount += $lineTotal;
             }
 
-            $discountPercentage = $totalAmount > 300 ? 20 : 18;
+            $discountPercentage = $request->has('discount_percentage') && $request->discount_percentage !== null
+                ? (float) $request->discount_percentage
+                : ($totalAmount > 300 ? 20 : 18);
+
             $discountAmount = round(($totalAmount * $discountPercentage) / 100, 2);
             $finalAmount = $totalAmount - $discountAmount;
 
@@ -254,6 +258,7 @@ class MedicineDistributionController extends Controller
             'items.*.item_id' => 'nullable',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
         ]);
 
         try {
@@ -402,7 +407,10 @@ class MedicineDistributionController extends Controller
             }
 
             // Recalculate distribution totals
-            $discountPercentage = $totalAmount > 300 ? 20 : 18;
+            $discountPercentage = $request->has('discount_percentage') && $request->discount_percentage !== null
+                ? (float) $request->discount_percentage
+                : ($totalAmount > 300 ? 20 : 18);
+
             $discountAmount = round(($totalAmount * $discountPercentage) / 100, 2);
             $finalAmount = $totalAmount - $discountAmount;
 
