@@ -48,7 +48,6 @@ class AIController extends Controller
 
             $context = $request->input('context', []);
 
-            // Update or add system prompt to the context
             $found = false;
             foreach ($context as &$msg) {
                 if (isset($msg['role']) && $msg['role'] === 'system') {
@@ -59,6 +58,50 @@ class AIController extends Controller
             }
             if (!$found) {
                 array_unshift($context, ['role' => 'system', 'content' => $systemPrompt]);
+            }
+
+            // check if message contains a specific user ID to lookup details
+            if (preg_match('/HF[A-Z]{2}\d{6}/i', $request->message, $matches)) {
+                $targetId = strtoupper($matches[0]);
+                $targetUser = User::where('employee_id', $targetId)->with('profile', 'bankDetails')->first();
+
+                if ($targetUser && $user->canAccess($targetUser)) {
+                    $profile = $targetUser->profile;
+                    $bank = $targetUser->bankDetails;
+
+                    $details = "\n\nSPECIFIC USER DETAILS FOUND ({$targetId}):\n";
+                    $details .= "- Name: " . ($profile->full_name ?? 'N/A') . "\n";
+                    $details .= "- Designation: " . $targetUser->getDesignationLabel() . "\n";
+                    $details .= "- Phone: " . ($profile->phone_number ?? 'N/A') . "\n";
+                    $details .= "- Email: " . ($targetUser->email ?? 'N/A') . "\n";
+                    $details .= "- Address: " . ($profile->address ?? 'N/A') . ", " . ($profile->district ?? '') . ", " . ($profile->state ?? '') . "\n";
+                    $details .= "- DOB: " . ($profile->dob ? $profile->dob->format('d M Y') : 'N/A') . "\n";
+                    $details .= "- Joining Date: " . $targetUser->created_at->format('d M Y') . "\n";
+                    $details .= "- Status: " . ucfirst($targetUser->status) . "\n";
+
+                    if ($bank) {
+                        $details .= "- Bank: " . ($bank->bank_name ?? 'N/A') . "\n";
+                        $details .= "- Account No: " . ($bank->account_number ?? 'N/A') . "\n";
+                        $details .= "- IFSC: " . ($bank->ifsc_code ?? 'N/A') . "\n";
+                        $details .= "- Holder: " . ($bank->account_holder_name ?? 'N/A') . "\n";
+                    }
+
+                    $stats = [
+                        'Direct Team' => $targetUser->getDirectChildren()->count(),
+                        'Total Downline' => $targetUser->getDownlineCount(),
+                        'Patients Registered' => Survey::where('created_by', $targetUser->id)->where('is_member', false)->count(),
+                        'Members Registered' => Survey::where('created_by', $targetUser->id)->where('is_member', true)->count(),
+                    ];
+                    $details .= "- Stats: " . json_encode($stats) . "\n";
+
+                    // Append this to the system prompt in the context
+                    foreach ($context as &$msg) {
+                        if (isset($msg['role']) && $msg['role'] === 'system') {
+                            $msg['content'] .= $details;
+                            break;
+                        }
+                    }
+                }
             }
 
             $apiKey = env('OPENROUTER_API_KEY');
@@ -143,10 +186,23 @@ class AIController extends Controller
                 return "- {$name} (#{$u->employee_id}, {$u->getDesignationLabel()})";
             })->implode("\n");
 
-            // Get Patients
-            $patients = Survey::whereIn('created_by', $relevantUserIds)->latest()->take(10)->get()->map(function ($p) {
-                return "- {$p->full_name} ({$p->patient_id}) - Health: {$p->health_issues}";
-            })->implode("\n");
+            // Get Patients (Non-Members)
+            $patients = Survey::whereIn('created_by', $relevantUserIds)
+                ->where('is_member', false)
+                ->latest()
+                ->take(5)
+                ->get()->map(function ($p) {
+                    return "- {$p->full_name} ({$p->patient_id}) - Health: {$p->health_issues}";
+                })->implode("\n");
+
+            // Get Memberships
+            $members = Survey::whereIn('created_by', $relevantUserIds)
+                ->where('is_member', true)
+                ->latest()
+                ->take(5)
+                ->get()->map(function ($m) {
+                    return "- {$m->full_name} ({$m->patient_id}) - Fee: {$m->membership_fee}";
+                })->implode("\n");
 
             // Get Appointments
             $appointments = Appointment::whereIn('created_by', $relevantUserIds)
@@ -159,13 +215,50 @@ class AIController extends Controller
                     return "- {$a->appointment_id}: {$pName} on {$date} ({$a->status})";
                 })->implode("\n");
 
+            // Calculate Team Statistics
+            $stats = [];
+            if ($user->isSuperAdmin()) {
+                // Super Admin sees global stats
+                $stats = User::selectRaw('designation, count(*) as count')
+                    ->groupBy('designation')
+                    ->pluck('count', 'designation')
+                    ->toArray();
+
+                $totalPatients = Survey::where('is_member', false)->count();
+                $totalMembers = Survey::where('is_member', true)->count();
+                $totalAppointments = Appointment::count();
+            } else {
+                // Regular users see their downline stats
+                $stats = User::whereIn('id', $downlineIds)
+                    ->selectRaw('designation, count(*) as count')
+                    ->groupBy('designation')
+                    ->pluck('count', 'designation')
+                    ->toArray();
+
+                $totalPatients = Survey::whereIn('created_by', $relevantUserIds)->where('is_member', false)->count();
+                $totalMembers = Survey::whereIn('created_by', $relevantUserIds)->where('is_member', true)->count();
+                $totalAppointments = Appointment::whereIn('created_by', $relevantUserIds)->count();
+            }
+
+            $statsStr = "TEAM STATISTICS:\n";
+            foreach ($stats as $designation => $count) {
+                $label = strtoupper($designation);
+                $statsStr .= "- {$label}: {$count}\n";
+            }
+            $statsStr .= "- TOTAL TEAM SIZE: " . array_sum($stats) . "\n";
+            $statsStr .= "- TOTAL PATIENTS: {$totalPatients}\n";
+            $statsStr .= "- TOTAL MEMBERSHIPS: {$totalMembers}\n";
+            $statsStr .= "- TOTAL APPOINTMENTS: {$totalAppointments}";
+
             $today = now()->format('d M Y');
 
             return "CONTEXT AS OF {$today}:\n" .
                 "USER: {$user->profile->full_name}\n" .
-                "TEAM:\n{$team}\n" .
-                "PATIENTS:\n{$patients}\n" .
-                "APPOINTMENTS:\n{$appointments}";
+                "{$statsStr}\n" .
+                "TEAM (Recent Members):\n{$team}\n" .
+                "RECENT MEMBERSHIPS:\n{$members}\n" .
+                "RECENT PATIENTS:\n{$patients}\n" .
+                "RECENT APPOINTMENTS:\n{$appointments}";
         } catch (\Exception $e) {
             Log::error("Error generating chat context: " . $e->getMessage());
             return "No specific data context available due to an internal error.";
