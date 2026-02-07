@@ -154,7 +154,7 @@
         width: 100% !important;
         border-radius: 10px !important;
         border: 1px solid #E2E8F0 !important;
-        padding: 12px 45px 12px 16px !important;
+        padding: 12px 85px 12px 16px !important;
         font-size: 14px !important;
         outline: none !important;
         background: white !important;
@@ -170,6 +170,62 @@
 
     .dark #ai-input::placeholder {
         color: #64748B !important;
+    }
+
+    /* Voice Typing Styles */
+    #ai-voice-btn {
+        position: absolute !important;
+        right: 45px !important;
+        top: 5px !important;
+        width: 36px !important;
+        height: 36px !important;
+        background: transparent !important;
+        color: #64748B !important;
+        border: none !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.3s ease !important;
+        z-index: 10 !important;
+    }
+
+    #ai-voice-btn:hover {
+        background: #F1F5F9 !important;
+        color: #2b3bb3 !important;
+    }
+
+    .dark #ai-voice-btn:hover {
+        background: #1E293B !important;
+        color: #3B82F6 !important;
+    }
+
+    #ai-voice-btn.is-active {
+        color: #EF4444 !important;
+        background: #FEE2E2 !important;
+        animation: ai-voice-pulse 1.5s infinite !important;
+    }
+
+    .dark #ai-voice-btn.is-active {
+        background: rgba(239, 68, 68, 0.2) !important;
+    }
+
+    @keyframes ai-voice-pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
     }
 
     #ai-label {
@@ -361,7 +417,15 @@
 
         <div class="ai-chat-footer">
             <form id="ai-chat-form" style="position: relative; display: flex;">
-                <input type="text" id="ai-input" placeholder="Type your message..." autocomplete="off">
+                <input type="text" id="ai-input" placeholder="Type your message..." autocomplete="off"
+                    style="padding-right: 85px !important;">
+                <button type="button" id="ai-voice-btn" title="Voice Typing">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                        </path>
+                    </svg>
+                </button>
                 <button type="submit" id="ai-send-btn"
                     style="position: absolute; right: 5px; top: 5px; width: 36px; height: 36px; background: #2b3bb3; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease-in-out;">
                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -384,6 +448,72 @@
         const aiInput = document.getElementById('ai-input');
         const aiMessages = document.getElementById('ai-messages');
         const aiSendBtn = document.getElementById('ai-send-btn');
+        const aiVoiceBtn = document.getElementById('ai-voice-btn');
+
+        // Voice Typing Logic
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-IN'; // Set to English (India) as requested/contextual
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            let isRecognizing = false;
+
+            aiVoiceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isRecognizing) {
+                    recognition.stop();
+                } else {
+                    try {
+                        recognition.start();
+                    } catch (err) {
+                        console.error('Recognition start error:', err);
+                        isRecognizing = false;
+                        aiVoiceBtn.classList.remove('is-active');
+                    }
+                }
+            });
+
+            recognition.onstart = () => {
+                isRecognizing = true;
+                aiVoiceBtn.classList.add('is-active');
+                aiInput.placeholder = "Listening... Speak now";
+            };
+
+            recognition.onend = () => {
+                isRecognizing = false;
+                aiVoiceBtn.classList.remove('is-active');
+                aiInput.placeholder = "Type your message...";
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                aiInput.value = aiInput.value ? aiInput.value + ' ' + transcript : transcript;
+                aiInput.focus();
+            };
+
+            recognition.onerror = (event) => {
+                isRecognizing = false;
+                aiVoiceBtn.classList.remove('is-active');
+                
+                if (event.error === 'not-allowed') {
+                    aiInput.placeholder = "Microphone access denied";
+                    setTimeout(() => aiInput.placeholder = "Type your message...", 3000);
+                } else if (event.error === 'network') {
+                    aiInput.placeholder = "Network error in voice typing";
+                    setTimeout(() => aiInput.placeholder = "Type your message...", 3000);
+                } else {
+                    aiInput.placeholder = "Voice error: " + event.error;
+                    setTimeout(() => aiInput.placeholder = "Type your message...", 3000);
+                }
+                console.error('Speech recognition error:', event.error);
+            };
+        } else {
+            aiVoiceBtn.style.display = 'none';
+        }
 
         let chatContext = [];
 
