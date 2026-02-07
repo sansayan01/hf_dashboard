@@ -55,14 +55,47 @@
         }
 
         /* Universal Text Visibility in Dark Mode */
-        .dark .text-slate-950, .dark .text-gray-950 { color: #f8fafc !important; }
-        .dark .text-slate-900, .dark .text-gray-900, .dark .text-primary { color: #f8fafc !important; }
-        .dark .text-slate-800, .dark .text-gray-800 { color: #f1f5f9 !important; }
-        .dark .text-slate-700, .dark .text-gray-700, .dark .text-secondary { color: #e2e8f0 !important; }
-        .dark .text-slate-600, .dark .text-gray-600 { color: #cbd5e1 !important; }
-        .dark .text-slate-500, .dark .text-gray-500, .dark .text-bodydark { color: #94a3b8 !important; }
-        .dark .text-slate-400, .dark .text-gray-400 { color: #94a3b8 !important; }
-        .dark .text-black { color: #ffffff !important; }
+        .dark .text-slate-950,
+        .dark .text-gray-950 {
+            color: #f8fafc !important;
+        }
+
+        .dark .text-slate-900,
+        .dark .text-gray-900,
+        .dark .text-primary {
+            color: #f8fafc !important;
+        }
+
+        .dark .text-slate-800,
+        .dark .text-gray-800 {
+            color: #f1f5f9 !important;
+        }
+
+        .dark .text-slate-700,
+        .dark .text-gray-700,
+        .dark .text-secondary {
+            color: #e2e8f0 !important;
+        }
+
+        .dark .text-slate-600,
+        .dark .text-gray-600 {
+            color: #cbd5e1 !important;
+        }
+
+        .dark .text-slate-500,
+        .dark .text-gray-500,
+        .dark .text-bodydark {
+            color: #94a3b8 !important;
+        }
+
+        .dark .text-slate-400,
+        .dark .text-gray-400 {
+            color: #94a3b8 !important;
+        }
+
+        .dark .text-black {
+            color: #ffffff !important;
+        }
 
         /* Standardize Cards in Dark Mode */
         .dark .bg-white {
@@ -417,23 +450,37 @@
         </main>
     </div>
 
-    <!-- Global Loading Overlay -->
+    <!-- Global Loading Overlay / Splash Screen -->
     <div id="global-loader"
-        class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        <div
-            class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl flex flex-col items-center space-y-4 border border-white/20">
-            <div class="relative w-16 h-16">
-                <!-- Outer Ring -->
-                <div class="absolute inset-0 border-4 border-accent/20 rounded-full"></div>
-                <!-- Spinning Ring -->
-                <div class="absolute inset-0 border-4 border-transparent border-t-accent rounded-full animate-spin">
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl transition-all duration-500 opacity-100">
+        <div class="relative flex flex-col items-center">
+            <!-- Animated Logo Container -->
+            <div class="relative w-32 h-32 flex items-center justify-center">
+                <!-- Outer Pulse Rings -->
+                <div class="absolute inset-0 rounded-full bg-accent/20 animate-[ping_2s_linear_infinite]"></div>
+                <div class="absolute inset-4 rounded-full bg-accent/10 animate-[ping_3s_linear_infinite] delay-700">
+                </div>
+
+                <!-- Main Logo -->
+                <div
+                    class="relative z-10 w-20 h-20 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl flex items-center justify-center p-3 border border-white/20 animate-[bounce_2s_ease-in-out_infinite]">
+                    <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-full h-full object-contain" alt="HF Logo">
                 </div>
             </div>
-            <div class="text-center">
-                <h3 class="text-lg font-black text-slate-800 dark:text-white uppercase tracking-widest">Processing</h3>
+
+            <!-- Loading Text -->
+            <div class="mt-8 text-center">
+                <div class="flex items-center justify-center space-x-1.5 mb-3">
+                    <div class="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style="animation-delay: -0.3s"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" style="animation-delay: -0.15s">
+                    </div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-accent animate-bounce"></div>
+                </div>
+                <h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-[0.4em] mb-1">Humanity
+                </h3>
                 <p
-                    class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest animate-pulse">
-                    Please wait a moment...</p>
+                    class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest animate-pulse">
+                    Foundation • Spreading Love</p>
             </div>
         </div>
     </div>
@@ -445,9 +492,29 @@
                 loader.classList.remove('hidden');
                 setTimeout(() => {
                     loader.classList.add('opacity-100');
+                    loader.classList.remove('opacity-0');
                 }, 10);
             }
         }
+
+        function hideGlobalLoader() {
+            const loader = document.getElementById('global-loader');
+            if (loader) {
+                loader.classList.remove('opacity-100');
+                loader.classList.add('opacity-0');
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                }, 500);
+            }
+        }
+
+        // Global Splash Screen Logic
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('global-loader');
+            if (loader) {
+                setTimeout(hideGlobalLoader, 1000); // 1.0s of branded splash
+            }
+        });
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('show');
@@ -559,17 +626,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                        }).then((result) => {
+                                                                                                                                                                                                            }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                        });
+                                                                                                                                                                                                            });
         @endif
 
         @if(session('error'))
