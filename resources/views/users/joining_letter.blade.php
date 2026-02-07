@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offer Letter - {{ $user->profile->full_name }}</title>
+    <title>Offer Letter - {{ $user->profile?->full_name ?? 'N/A' }}</title>
     @if (!$is_pdf)
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -335,15 +335,16 @@
 
         <div class="recipient-section">
             <div class="to-label">To:</div>
-            <div class="dynamic-data">{{ $user->profile->full_name }}</div>
+            <div class="dynamic-data">{{ $user->profile?->full_name ?? 'N/A' }}</div>
             <div class="dynamic-data">Emp ID : {{ $user->employee_id }}</div>
-            <div class="dynamic-data">Aadhar Number : {{ $user->profile->aadhaar_number }}</div>
+            <div class="dynamic-data">Aadhar Number : {{ $user->profile?->aadhaar_number ?? 'N/A' }}</div>
         </div>
 
         <div class="body-content">
             @if ($user->isDM())
                 <p>We are pleased to offer you this Joining letter as designation of District Manager (DM) Under
-                    <strong>“{{ $user->profile->district }}”</strong> District, Which will effect from the date of your
+                    <strong>“{{ $user->profile?->district ?? 'N/A' }}”</strong> District, Which will effect from the date of
+                    your
                     team performance starts. We congratulate you and wish you a long and successful career with us. We are
                     confident that your contribution will take us further in our journey towards becoming world leaders. We
                     assure you of our support for your professional development and growth.
@@ -356,8 +357,9 @@
                     family etc..you should have minimum 625 ROs in your team.</p>
             @elseif($user->isBM())
                 <p>We are pleased to offer you this Joining letter as designation of Block Manager (BM) Under
-                    <strong>“{{ $user->profile->block }}”</strong> block of
-                    <strong>“{{ $user->profile->district }}”</strong> District, Which will effect from the date of your
+                    <strong>“{{ $user->profile?->block ?? 'N/A' }}”</strong> block of
+                    <strong>“{{ $user->profile?->district ?? 'N/A' }}”</strong> District, Which will effect from the date of
+                    your
                     team performance starts. We congratulate you and wish you a long and successful career with us. We are
                     confident that your contribution will take us further in our journey towards becoming world leaders. We
                     assure you of our support for your professional development and growth.
@@ -370,8 +372,8 @@
                     125 ROs in your team.</p>
             @elseif($user->isRM())
                 <p>We are pleased to offer you this Joining letter as designation of Relationship Manager (RM),
-                    <strong>“{{ $user->profile->block }}”</strong> Block, Under
-                    <strong>“{{ $user->profile->district }}”</strong> District , Which will effect
+                    <strong>“{{ $user->profile?->block ?? 'N/A' }}”</strong> Block, Under
+                    <strong>“{{ $user->profile?->district ?? 'N/A' }}”</strong> District , Which will effect
                     from the date of your team performance starts.
                     We congratulate you and wish you a long and successful career with us. We are confident that your
                     contribution will take us further in our journey towards becoming world leaders. We assure you of our
@@ -385,9 +387,10 @@
                     minimum 25 ROs in your team. </p>
             @else
                 <p>We are pleased to offer you an Offer letter as designation of Relationship Officer (RO) at
-                    <strong>“{{ $user->profile->gram_panchayat }}”</strong> Gram Panchayat,
-                    <strong>“{{ $user->profile->block }}”</strong> Block ,
-                    <strong>“{{ $user->profile->district }}”</strong> District, Which will effect from the date of your
+                    <strong>“{{ $user->profile?->gram_panchayat ?? 'N/A' }}”</strong> Gram Panchayat,
+                    <strong>“{{ $user->profile?->block ?? 'N/A' }}”</strong> Block ,
+                    <strong>“{{ $user->profile?->district ?? 'N/A' }}”</strong> District, Which will effect from the date of
+                    your
                     performance starts.
                     We congratulate you and wish you a long and successful career with us. We are confident that your
                     contribution will take us further in our journey towards becoming world leaders. We assure you of our
@@ -486,7 +489,7 @@
                 const element = document.getElementById('offer-letter');
                 const opt = {
                     margin: 0,
-                    filename: 'Offer_Letter_{{ $user->employee_id }}.pdf',
+                    filename: '{{ $user->profile?->full_name ?? "User" }}_{{ $user->employee_id }}.pdf',
                     image: {
                         type: 'jpeg',
                         quality: 0.98
