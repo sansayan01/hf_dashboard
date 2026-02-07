@@ -355,7 +355,7 @@
                                     @endif
 
                                     <div
-                                        class="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        class="flex items-center justify-end space-x-2 transition-opacity">
                                         <a href="{{ route('users.show', $u->id) }}"
                                             class="p-2 text-slate-400 hover:text-accent transition">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

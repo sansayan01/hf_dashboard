@@ -54,29 +54,34 @@
             color: #fff;
         }
 
+        /* Universal Text Visibility in Dark Mode */
+        .dark .text-slate-950, .dark .text-gray-950 { color: #f8fafc !important; }
+        .dark .text-slate-900, .dark .text-gray-900, .dark .text-primary { color: #f8fafc !important; }
+        .dark .text-slate-800, .dark .text-gray-800 { color: #f1f5f9 !important; }
+        .dark .text-slate-700, .dark .text-gray-700, .dark .text-secondary { color: #e2e8f0 !important; }
+        .dark .text-slate-600, .dark .text-gray-600 { color: #cbd5e1 !important; }
+        .dark .text-slate-500, .dark .text-gray-500, .dark .text-bodydark { color: #94a3b8 !important; }
+        .dark .text-slate-400, .dark .text-gray-400 { color: #94a3b8 !important; }
+        .dark .text-black { color: #ffffff !important; }
+
         /* Standardize Cards in Dark Mode */
         .dark .bg-white {
             background-color: #1E293B !important;
-            /* darkcard */
         }
 
         .dark .border-slate-100,
-        .dark .border-slate-200 {
+        .dark .border-slate-200,
+        .dark .border-slate-300,
+        .dark .border-gray-100,
+        .dark .border-gray-200 {
             border-color: rgba(255, 255, 255, 0.05) !important;
         }
 
-        .dark .text-slate-800 {
-            color: #F1F5F9 !important;
-        }
-
-        .dark .text-slate-500,
-        .dark .text-slate-600 {
-            color: #94A3B8 !important;
-            /* slate-400 equivalent */
-        }
-
         .dark .bg-slate-50,
-        .dark .bg-slate-100 {
+        .dark .bg-slate-100,
+        .dark .bg-slate-200,
+        .dark .bg-gray-50,
+        .dark .bg-gray-100 {
             background-color: rgba(255, 255, 255, 0.03) !important;
         }
 
@@ -99,7 +104,7 @@
         }
 
         .dark input::placeholder {
-            color: #475569 !important;
+            color: #64748b !important;
         }
 
         .sidebar-scroll::-webkit-scrollbar {
@@ -554,17 +559,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                    }).then((result) => {
+                                                                                                                                                                                                        }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                    });
+                                                                                                                                                                                                        });
         @endif
 
         @if(session('error'))
