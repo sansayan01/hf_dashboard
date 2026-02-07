@@ -60,6 +60,153 @@ class AIController extends Controller
                 array_unshift($context, ['role' => 'system', 'content' => $systemPrompt]);
             }
 
+            // DASHBOARD SYSTEM MAP & FEATURES
+            // This provides the AI with knowledge about the application's structure and capabilities.
+            $systemMap = "
+SYSTEM CAPABILITIES & NAVIGATION GUIDE:
+You are assisting users on the 'HF Dashboard'. Here is what they can do:
+
+1. **USER MANAGEMENT** (Routes: `/users`, `/users/create`, `/hierarchy-tree`)
+   - **Manage Staff:** Add, edit, or remove staff members.
+   - **Hierarchy:** View the organization tree (Super Admin -> HS -> DM -> BM -> RM -> RO -> Pharmacist).
+   - **Approvals:** Approve new user registrations.
+   - **IDs & Letters:** Generate ID cards and Joining/Offer letters.
+
+2. **PATIENTS & MEMBERSHIPS** (Routes: `/patients`, `/patients/create`, `/membership`)
+   - **Register:** Add new patients or upgrad them to members.
+   - **Memberships:** View active memberships. Valid members pay a fee (e.g., 499).
+   - **Health Survey:** Record basic health stats during registration.
+
+3. **INVENTORY & STOCK** (Routes: `/inventory`, `/inventory/create`, `/inventory/dispense`, `/inventory/transfer`)
+   - **Stock In:** Add new medicine batches to a warehouse/camp.
+   - **Dispense:** Give medicine to a patient (deducts stock).
+   - **Transfer:** Move stock between warehouses or camps.
+   - **Low Stock:** View medicines running low.
+   - **Transactions:** View history of all stock movements.
+
+4. **APPOINTMENTS** (Routes: `/appointments`)
+   - **Schedule:** Book appointments for patients.
+   - **Status:** Mark as Completed, Missed, or Reschedule.
+
+5. **PROFILE & SETTINGS** (Routes: `/profile`)
+   - **Security:** Change password.
+   - **Permissions:** View or request specific permissions (e.g., 'Can Create Users').
+
+**INSTRUCTION:** If a user asks 'How do I...' or 'Where is...', use this map to guide them. actively suggest the relevant route or page name.
+";
+
+            // Append this map to the system prompt
+            foreach ($context as &$msg) {
+                if (isset($msg['role']) && $msg['role'] === 'system') {
+                    $msg['content'] .= "\n\n" . $systemMap;
+                    break;
+                }
+            }
+
+            // INVENTORY & STOCK LOGIC
+            // Check if user is asking about inventory
+            if (preg_match('/(medicine|stock|inventory|pill|drug|tablet|syrup|expiry|batch|warehouse|low|shortage|empty|available)/i', $request->message)) {
+                // permission check: SA, Staff, OIC, or Managers (HS, DM, BM, RM)
+                $canAccessInventory = $user->isSuperAdmin() ||
+                    $user->designation === 'staff' ||
+                    $user->isOfficeInCharge() ||
+                    in_array($user->designation, ['hs', 'dm', 'bm', 'rm']);
+
+                if ($canAccessInventory) {
+                    $inventoryContext = "";
+                    $foundSpecific = false;
+
+                    // 1. LOW STOCK CHECK
+                    if (preg_match('/(low|shortage|empty|run out|running out)/i', $request->message)) {
+                        // Use whereRaw for complex subquery comparison and handle NULL sum with COALESCE
+                        $lowStockMeds = \App\Models\Medicine::whereRaw('min_stock_level >= (SELECT COALESCE(SUM(quantity), 0) FROM inventory_stocks WHERE inventory_stocks.medicine_id = medicines.id)')
+                            ->get();
+
+                        $inventoryContext .= "\n\nLOW STOCK WARNINGS:\n";
+                        if ($lowStockMeds->isEmpty()) {
+                            $inventoryContext .= "- All medicines are well-stocked.\n";
+                        } else {
+                            foreach ($lowStockMeds as $med) {
+                                $inventoryContext .= "- {$med->name} (Current: {$med->total_stock}, Min: {$med->min_stock_level})\n";
+                            }
+                        }
+                        $foundSpecific = true;
+                    }
+
+                    // 2. SPECIFIC MEDICINE LOOKUP
+                    // Get all medicine names to check against the message
+                    // Optimization: We could cache this, but for now direct query is fine
+                    $allMedicines = \App\Models\Medicine::pluck('name', 'id')->toArray();
+                    $mentionedMedicines = [];
+
+                    foreach ($allMedicines as $id => $name) {
+                        if (stripos($request->message, $name) !== false) {
+                            $mentionedMedicines[$id] = $name;
+                        }
+                    }
+
+                    if (!empty($mentionedMedicines)) {
+                        $inventoryContext .= "\n\nDETAILED STOCK INFO (Matched):\n";
+                        $specificStocks = \App\Models\InventoryStock::whereIn('medicine_id', array_keys($mentionedMedicines))
+                            ->where('quantity', '>', 0)
+                            ->with(['medicine', 'warehouse'])
+                            ->orderBy('expiry_date')
+                            ->get();
+
+                        if ($specificStocks->isEmpty()) {
+                            $inventoryContext .= "- No active stock found for: " . implode(', ', $mentionedMedicines) . "\n";
+                        } else {
+                            foreach ($specificStocks as $stock) {
+                                $expiry = $stock->expiry_date ? $stock->expiry_date->format('Y-m-d') : 'N/A';
+                                $warehouse = $stock->warehouse->name ?? 'Unknown';
+                                $inventoryContext .= "- {$stock->medicine->name}: {$stock->quantity} units (Batch: {$stock->batch_number}, Exp: {$expiry}, Loc: {$warehouse})\n";
+                            }
+                        }
+                        $foundSpecific = true;
+                    }
+
+                    // 3. GENERAL SUMMARY (Fallback)
+                    // Only show if we haven't found specific things AND the user asked generically about "stock" or "inventory"
+                    if (!$foundSpecific) {
+                        $inventoryContext .= "\n\nFULL INVENTORY SUMMARY:\n";
+                        $stocks = \App\Models\InventoryStock::where('quantity', '>', 0)
+                            ->with(['medicine', 'warehouse'])
+                            ->get()
+                            ->groupBy('medicine.name');
+
+                        if ($stocks->isEmpty()) {
+                            $inventoryContext .= "- No active stock found.\n";
+                        } else {
+                            foreach ($stocks as $medName => $items) {
+                                $totalQty = $items->sum('quantity');
+                                $warehouses = $items->pluck('warehouse.name')->unique()->implode(', ');
+                                $inventoryContext .= "- {$medName}: {$totalQty} units (Locations: {$warehouses})\n";
+                            }
+                        }
+                    }
+
+                    // Append constructed context
+                    foreach ($context as &$msg) {
+                        if (isset($msg['role']) && $msg['role'] === 'system') {
+                            $msg['content'] .= $inventoryContext;
+                            break;
+                        }
+                    }
+
+                } else {
+                    // User is NOT permitted (e.g., RO)
+                    $denialMsg = "\n\n[SYSTEM WARNING]: The user asked about inventory/medicine, but they DO NOT have permission to access this data. You MUST reply saying: 'You do not have permission to access inventory data.' Do not provide any other information.";
+
+                    foreach ($context as &$msg) {
+                        if (isset($msg['role']) && $msg['role'] === 'system') {
+                            $msg['content'] .= $denialMsg;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // SPECIFIC USER LOOKUP LOGIC
             // check if message contains a specific user ID to lookup details
             if (preg_match('/HF[A-Z]{2}\d{6}/i', $request->message, $matches)) {
                 $targetId = strtoupper($matches[0]);
