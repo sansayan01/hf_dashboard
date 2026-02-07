@@ -133,14 +133,14 @@ class AIController extends Controller
             $relevantUserIds = array_merge([$user->id], $downlineIds);
 
             // Get Team Members
-            $team = User::whereIn('id', $relevantUserIds)->with('profile')->take(40)->get()->map(function ($u) {
+            $team = User::whereIn('id', $relevantUserIds)->with('profile')->take(10)->get()->map(function ($u) {
                 /** @var \App\Models\User $u */
                 $name = $u->profile->full_name ?? 'Unknown';
                 return "- {$name} (#{$u->employee_id}, {$u->getDesignationLabel()})";
             })->implode("\n");
 
             // Get Patients
-            $patients = Survey::whereIn('created_by', $relevantUserIds)->latest()->take(40)->get()->map(function ($p) {
+            $patients = Survey::whereIn('created_by', $relevantUserIds)->latest()->take(10)->get()->map(function ($p) {
                 return "- {$p->full_name} ({$p->patient_id}) - Health: {$p->health_issues}";
             })->implode("\n");
 
@@ -148,7 +148,7 @@ class AIController extends Controller
             $appointments = Appointment::whereIn('created_by', $relevantUserIds)
                 ->with('survey')
                 ->latest()
-                ->take(20)
+                ->take(5)
                 ->get()->map(function ($a) {
                     $pName = $a->survey->full_name ?? 'Unknown';
                     $date = $a->appointment_date ? $a->appointment_date->format('d M') : 'N/A';

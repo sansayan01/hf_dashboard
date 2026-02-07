@@ -9,7 +9,7 @@ class AIService
 {
     protected $apiKey;
     protected $baseUrl = 'https://openrouter.ai/api/v1';
-    protected $model = 'mistralai/devstral-2512:free';
+    protected $model = 'deepseek/deepseek-r1-0528:free';
 
     public function __construct()
     {
@@ -150,7 +150,7 @@ class AIService
             'HTTP-Referer' => env('APP_URL', 'http://localhost'),
             'X-Title' => env('APP_NAME', 'Humanity Foundation'),
             'Content-Type' => 'application/json',
-        ])->timeout(60)->withOptions([
+        ])->timeout(120)->withOptions([
                     'stream' => true,
                 ])->post($this->baseUrl . '/chat/completions', [
                     'model' => $this->model,
