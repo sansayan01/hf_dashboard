@@ -2,33 +2,33 @@
 <style>
     #ai-assistant-container {
         position: fixed !important;
-        bottom: 20px !important;
-        right: 20px !important;
+        bottom: 32px !important;
+        right: 48px !important;
         z-index: 999999 !important;
         display: block !important;
-        width: 56px !important;
-        height: 56px !important;
+        width: 68px !important;
+        height: 68px !important;
     }
 
     @media (max-width: 640px) {
         #ai-assistant-container {
-            bottom: 12px !important;
-            right: 12px !important;
-            width: 44px !important;
-            height: 44px !important;
+            bottom: 24px !important;
+            right: 32px !important;
+            width: 60px !important;
+            height: 60px !important;
         }
     }
 
     #ai-toggle {
         width: 100% !important;
         height: 100% !important;
-        background: linear-gradient(135deg, #2b3bb3 0%, #1C2434 100%) !important;
+        background: linear-gradient(135deg, #2b3bb3 0%, #172033 100%) !important;
         border-radius: 50% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        border: 2px solid rgba(255, 255, 255, 0.2) !important;
-        box-shadow: 0 8px 20px rgba(28, 36, 52, 0.3) !important;
+        border: 2.5px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 12px 30px rgba(43, 59, 179, 0.4) !important;
         cursor: pointer !important;
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
         position: relative !important;
@@ -79,32 +79,32 @@
 
     .ai-pulse {
         position: absolute;
-        inset: -2px;
+        inset: -4px;
         background: #2b3bb3;
         border-radius: 50%;
-        opacity: 0.2;
-        animation: ai-pulse-anim 3s infinite;
+        opacity: 0.25;
+        animation: ai-pulse-anim 2.5s infinite;
         z-index: -1;
     }
 
     .ai-pulse-2 {
         position: absolute;
-        inset: -4px;
+        inset: -8px;
         background: #2b3bb3;
         border-radius: 50%;
-        opacity: 0.1;
-        animation: ai-pulse-anim 3s infinite 1s;
+        opacity: 0.15;
+        animation: ai-pulse-anim 2.5s infinite 1.2s;
         z-index: -2;
     }
 
     @keyframes ai-pulse-anim {
         0% {
             transform: scale(1);
-            opacity: 0.3;
+            opacity: 0.4;
         }
 
         100% {
-            transform: scale(1.4);
+            transform: scale(1.7);
             opacity: 0;
         }
     }
@@ -174,8 +174,8 @@
 
     #ai-label {
         position: absolute !important;
-        right: 70px !important;
-        bottom: 10px !important;
+        right: 80px !important;
+        bottom: 18px !important;
         background: white !important;
         color: #1C2434 !important;
         padding: 8px 14px !important;
@@ -281,9 +281,9 @@
     <div class="ai-pulse"></div>
     <div class="ai-pulse-2"></div>
     <button id="ai-toggle" class="ai-attention-wiggle">
-        <span class="ai-status-dot"></span>
+        <span class="ai-status-dot" style="width: 12px; height: 12px; border-width: 2.5px;"></span>
         <!-- Cute Bot Icon -->
-        <svg id="ai-icon-open" style="width: 55%; height: 55%;" viewBox="0 0 24 24" fill="none"
+        <svg id="ai-icon-open" style="width: 65%; height: 65%;" viewBox="0 0 24 24" fill="none"
             xmlns="http://www.w3.org/2000/svg">
             <!-- Bot Face -->
             <rect x="4" y="6" width="16" height="12" rx="5" fill="white" fill-opacity="0.1" stroke="white"
