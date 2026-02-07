@@ -18,7 +18,7 @@
     @if(!auth()->user()->isRO())
         <div class="grid {{ auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2' }} gap-4 mb-6">
             <!-- Total Downline -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+            <div class="bg-white dark:bg-darkcard p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
                 <div class="flex items-center justify-between mb-3">
                     <div class="w-10 h-10 bg-accent/10 text-accent rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,55 +26,57 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Total Team</h3>
-                <p class="text-2xl font-black text-slate-800">{{ number_format($stats['total_downline']) }}</p>
+                <h3 class="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Total Team</h3>
+                <p class="text-2xl font-black text-slate-800 dark:text-white">{{ number_format($stats['total_downline']) }}</p>
             </div>
 
             <!-- Active Members -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+            <div class="bg-white dark:bg-darkcard p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
                 <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Active Members</h3>
-                <p class="text-2xl font-black text-slate-800">{{ number_format($stats['active_downline']) }}</p>
+                <h3 class="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Active Members</h3>
+                <p class="text-2xl font-black text-slate-800 dark:text-white">{{ number_format($stats['active_downline']) }}</p>
             </div>
 
             @if(auth()->user()->isSuperAdmin())
                 <!-- Pending Approvals -->
-                <div onclick="window.location.href='{{ route('users.index', ['status' => 'pending']) }}'" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer">
+                <div onclick="window.location.href='{{ route('users.index', ['status' => 'pending']) }}'" class="bg-white dark:bg-darkcard p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group cursor-pointer">
                     <div class="flex items-center justify-between mb-3">
-                        <div class="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div class="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
                     </div>
-                    <h3 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Pending Approvals</h3>
-                    <p class="text-2xl font-black text-slate-800">{{ number_format($stats['pending_approvals']) }}</p>
+                    <h3 class="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Pending Approvals</h3>
+                    <p class="text-2xl font-black text-slate-800 dark:text-white">{{ number_format($stats['pending_approvals']) }}</p>
                 </div>
             @endif
         </div>
     @endif
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+    <div class="bg-white dark:bg-darkcard rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <div class="flex items-center space-x-3">
-                    <h3 class="font-bold text-lg text-slate-800">Team Members</h3>
+                    <h3 class="font-bold text-lg text-slate-800 dark:text-white">Team Members</h3>
                     <span
                         class="px-2 py-0.5 bg-accent/10 text-accent text-[10px] font-black rounded-full border border-accent/20">
                         {{ $users->total() }} Total
                     </span>
                 </div>
-                <p class="text-sm text-slate-500">View and manage your network hierarchy.</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">View and manage your network hierarchy.</p>
             </div>
+
             <div class="flex items-center space-x-3">
                 @if(request('view_all'))
                     <a href="{{ route('users.index', request()->except('view_all')) }}"
-                        class="px-2 sm:px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all flex items-center space-x-2">
+                        class="px-2 sm:px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -84,7 +86,7 @@
                     </a>
                 @else
                     <a href="{{ route('users.index', array_merge(request()->all(), ['view_all' => 1])) }}"
-                        class="px-2 sm:px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all flex items-center space-x-2">
+                        class="px-2 sm:px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
@@ -93,7 +95,7 @@
                     </a>
                 @endif
                 <a href="{{ route('users.export', array_merge(request()->all(), ['type' => 'team'])) }}"
-                    class="px-2 sm:px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-all flex items-center space-x-2">
+                    class="px-2 sm:px-4 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all flex items-center space-x-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -102,7 +104,7 @@
                     <span class="hidden lg:inline uppercase tracking-widest">Download CSV</span>
                 </a>
                 <button type="button" onclick="toggleFilters()"
-                    class="px-2 sm:px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all flex items-center space-x-2">
+                    class="px-2 sm:px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center space-x-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
@@ -110,6 +112,7 @@
                     </svg>
                     <span class="hidden lg:inline uppercase tracking-widest">Filter</span>
                 </button>
+
                 @if(auth()->user()->isSuperAdmin())
                     <button type="submit" form="bulk-actions-form" id="bulk-approve-header-btn"
                         class="bulk-approve-btn hidden px-2 sm:px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-600/20 hover:bg-emerald-600 transition-all flex items-center space-x-2 border border-emerald-600">
@@ -145,11 +148,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Search
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Search
                             Member</label>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Name, ID or Phone..."
-                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                     </div>
+
 
                     <!-- Designation -->
                     <div>
@@ -197,10 +201,10 @@
 
                     <!-- Status -->
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Status
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Status
                             Filter</label>
                         <select name="status"
-                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                             <option value="">All Status</option>
                             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active Members
                             </option>
@@ -208,6 +212,7 @@
                             </option>
                         </select>
                     </div>
+
 
                     <div class="lg:col-span-3 flex items-end space-x-2">
                         <button type="submit"
@@ -226,38 +231,38 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50">
+                    <tr class="bg-slate-50 dark:bg-white/5">
                         @if($canBulkApprove)
                             <th class="px-6 py-4 w-10 text-center">
                                 <input type="checkbox" id="user-select-all" form="bulk-actions-form"
-                                    class="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent"
+                                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-accent focus:ring-accent"
                                     title="Select All">
                             </th>
                         @endif
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Member
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Member
                             Detail
                         </th>
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                             Designation
                         </th>
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Joined On
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Joined On
                         </th>
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Attendance
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Attendance
                         </th>
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Status
                         </th>
-                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-right">
                             Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-slate-50 dark:divide-white/5">
                     @forelse($users as $u)
-                        <tr class="hover:bg-slate-50 transition-colors group">
+                        <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
                             @if($canBulkApprove)
                                 <td class="px-6 py-4">
                                     <input type="checkbox" name="selected_users[]" value="{{ $u->id }}" form="bulk-actions-form"
                                         data-status="{{ $u->status }}"
-                                        class="user-checkbox w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent">
+                                        class="user-checkbox w-4 h-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-accent focus:ring-accent">
                                 </td>
                             @endif
                             <td class="px-6 py-4">
@@ -272,7 +277,7 @@
                                         @endif
                                     </div>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-800 group-hover:text-accent transition-colors">
+                                        <p class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-accent transition-colors">
                                             {{ $u->profile?->full_name ?? 'Incomplete Profile' }}
                                         </p>
                                         <p class="text-[10px] text-bodydark font-bold uppercase">{{ $u->employee_id }}</p>
@@ -281,12 +286,12 @@
                             </td>
                             <td class="px-6 py-4">
                                 <span
-                                    class="px-3 py-1 bg-primary/5 text-primary rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/10">
+                                    class="px-3 py-1 bg-primary/5 dark:bg-white/5 text-primary dark:text-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/10 dark:border-white/10">
                                     {{ $u->getDesignationLabel() }}
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <p class="text-xs text-slate-500 font-medium">{{ $u->created_at->format('d M, Y') }}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ $u->created_at->format('d M, Y') }}</p>
                             </td>
                             <td class="px-6 py-4">
                                 @if($u->isRO() && (auth()->user()->isSuperAdmin() || auth()->id() === $u->parent_id))
@@ -296,23 +301,25 @@
                                         // dd($todayAtt); // Uncomment to debug
                                     @endphp
                                     <select onchange="markAttendance({{ $u->id }}, this.value, this)"
-                                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-accent/20 transition-all
-                                                                {{ is_null($todayAtt) ? 'bg-slate-100 text-slate-500' : ($todayAtt->status === 'present' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger') }}">
+                                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-accent/20 transition-all
+                                                                {{ is_null($todayAtt) ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : ($todayAtt->status === 'present' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger') }}">
                                         <option value="" {{ is_null($todayAtt) ? 'selected' : '' }}>Mark</option>
                                         <option value="present" {{ !is_null($todayAtt) && $todayAtt->status === 'present' ? 'selected' : '' }}>
                                             Present</option>
                                         <option value="absent" {{ !is_null($todayAtt) && $todayAtt->status === 'absent' ? 'selected' : '' }}>
                                             Absent</option>
                                     </select>
+
                                     {{-- Debug info (remove after testing) --}}
                                     @if(request()->has('debug'))
                                         <small class="text-xs text-red-500">{{ $todayAtt ? 'Has: ' . $todayAtt->status : 'NULL' }}</small>
                                     @endif
                                 @elseif($u->isRO())
                                     <a href="{{ route('attendance.show', $u->id) }}"
-                                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200 transition-all">
+                                        class="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
                                         View Log
                                     </a>
+
                                 @else
                                     <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">-</span>
                                 @endif
@@ -391,17 +398,18 @@
                     @empty
                         <tr>
                             <td colspan="6" class="px-6 py-20 text-center">
-                                <div class="max-w-xs mx-auto text-slate-400">
+                                <div class="max-w-xs mx-auto text-slate-400 dark:text-slate-500">
                                     <svg class="w-12 h-12 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
                                         </path>
                                     </svg>
-                                    <p class="font-bold">No downline members found yet.</p>
+                                    <p class="font-bold text-slate-600 dark:text-slate-400">No downline members found yet.</p>
                                     <p class="text-xs mt-1">Start growing the foundation by adding new members.</p>
                                 </div>
                             </td>
+
                         </tr>
                     @endforelse
                 </tbody>

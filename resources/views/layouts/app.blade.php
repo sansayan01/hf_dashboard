@@ -35,12 +35,71 @@
         .gradient-bg {
             background-color: #ffdfaf;
             /* Solid color requested by user */
+            transition: background-color 0.3s ease;
         }
 
         .dark .gradient-bg {
             background: radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1), transparent 50%),
                 radial-gradient(circle at 20% 20%, rgba(30, 58, 138, 0.15), transparent 50%),
                 #0f172a;
+        }
+
+        /* Global Dark Mode Comfort Adjustments */
+        .dark body {
+            color-scheme: dark;
+        }
+
+        .dark ::selection {
+            background-color: rgba(60, 80, 224, 0.3);
+            color: #fff;
+        }
+
+        /* Standardize Cards in Dark Mode */
+        .dark .bg-white {
+            background-color: #1E293B !important;
+            /* darkcard */
+        }
+
+        .dark .border-slate-100,
+        .dark .border-slate-200 {
+            border-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .dark .text-slate-800 {
+            color: #F1F5F9 !important;
+        }
+
+        .dark .text-slate-500,
+        .dark .text-slate-600 {
+            color: #94A3B8 !important;
+            /* slate-400 equivalent */
+        }
+
+        .dark .bg-slate-50,
+        .dark .bg-slate-100 {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+        }
+
+        /* Table specific dark mode */
+        .dark table thead tr {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .dark table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        /* Input overrides for global comfort */
+        .dark input:not([type="checkbox"]):not([type="radio"]),
+        .dark select,
+        .dark textarea {
+            background-color: #0F172A !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: #F8FAFC !important;
+        }
+
+        .dark input::placeholder {
+            color: #475569 !important;
         }
 
         .sidebar-scroll::-webkit-scrollbar {
@@ -495,17 +554,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                }).then((result) => {
+                                                                                                                                                                                                    }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                });
+                                                                                                                                                                                                    });
         @endif
 
         @if(session('error'))
