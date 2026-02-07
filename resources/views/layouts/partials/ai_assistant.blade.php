@@ -6,29 +6,34 @@
         right: 24px !important;
         z-index: 999999 !important;
         display: block !important;
+        width: 56px !important;
+        height: 56px !important;
     }
 
     #ai-toggle {
-        width: 64px !important;
-        height: 64px !important;
-        background-color: #1C2434 !important;
-        /* Fixed primary color */
+        width: 56px !important;
+        height: 56px !important;
+        background: linear-gradient(135deg, #2b3bb3 0%, #1C2434 100%) !important;
         border-radius: 50% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        border: 2px solid rgba(255, 255, 255, 0.2) !important;
-        box-shadow: 0 10px 25px rgba(28, 36, 52, 0.4) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 10px 25px rgba(43, 59, 179, 0.4) !important;
         cursor: pointer !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
         position: relative !important;
         padding: 0 !important;
         color: white !important;
     }
 
     #ai-toggle:hover {
-        transform: scale(1.1) !important;
-        background-color: #2b3bb3 !important;
+        transform: scale(1.15) rotate(5deg) !important;
+        box-shadow: 0 15px 35px rgba(43, 59, 179, 0.6) !important;
+    }
+
+    #ai-toggle:active {
+        transform: scale(0.95) !important;
     }
 
     #ai-chat-window {
@@ -66,27 +71,32 @@
     .ai-pulse {
         position: absolute;
         inset: -4px;
-        background: #1C2434;
+        background: #2b3bb3;
         border-radius: 50%;
-        opacity: 0.2;
+        opacity: 0.3;
         animation: ai-pulse-anim 2s infinite;
         z-index: -1;
+    }
+
+    .ai-pulse-2 {
+        position: absolute;
+        inset: -8px;
+        background: #2b3bb3;
+        border-radius: 50%;
+        opacity: 0.15;
+        animation: ai-pulse-anim 2s infinite 0.5s;
+        z-index: -2;
     }
 
     @keyframes ai-pulse-anim {
         0% {
             transform: scale(1);
-            opacity: 0.2;
-        }
-
-        50% {
-            transform: scale(1.1);
-            opacity: 0.1;
+            opacity: 0.4;
         }
 
         100% {
-            transform: scale(1);
-            opacity: 0.2;
+            transform: scale(1.6);
+            opacity: 0;
         }
     }
 
@@ -97,29 +107,96 @@
         background-color: #F8FAFC !important;
     }
 
-    .dark #ai-messages {
-        background-color: rgba(255, 255, 255, 0.02) !important;
+    #ai-label {
+        position: absolute !important;
+        right: 70px !important;
+        bottom: 10px !important;
+        background: white !important;
+        color: #1C2434 !important;
+        padding: 8px 14px !important;
+        border-radius: 20px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid #E2E8F0 !important;
+        pointer-events: none !important;
+        animation: ai-float 3s ease-in-out infinite !important;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out !important;
+    }
+
+    #ai-assistant-container:hover #ai-label {
+        opacity: 1;
+    }
+
+    @keyframes ai-float {
+        0%, 100% { transform: translateY(0) translateX(0); }
+        50% { transform: translateY(-5px) translateX(-2px); }
+    }
+
+    .ai-attention-wiggle {
+        animation: ai-wiggle 5s ease-in-out infinite !important;
+    }
+
+    @keyframes ai-wiggle {
+        0%, 90%, 100% { transform: rotate(0); }
+        92% { transform: rotate(-10deg); }
+        94% { transform: rotate(10deg); }
+        96% { transform: rotate(-10deg); }
+        98% { transform: rotate(10deg); }
+    }
+
+    .ai-status-dot {
+        position: absolute !important;
+        top: 2px !important;
+        right: 2px !important;
+        width: 12px !important;
+        height: 12px !important;
+        background: #10B981 !important;
+        border: 2px solid #1C2434 !important;
+        border-radius: 50% !important;
+        z-index: 1 !important;
+    }
+
+    .dark #ai-label {
+        background-color: #1C2434 !important;
+        color: white !important;
+        border-color: #2d3a4f !important;
     }
 </style>
 
 <div id="ai-assistant-container">
+    <div id="ai-label">Ask me anything! ✨</div>
     <div class="ai-pulse"></div>
-    <button id="ai-toggle">
-        <!-- Bot Icon -->
+    <div class="ai-pulse-2"></div>
+    <button id="ai-toggle" class="ai-attention-wiggle">
+        <span class="ai-status-dot"></span>
+        <!-- Cute Bot Icon -->
         <svg id="ai-icon-open" style="width: 32px; height: 32px;" viewBox="0 0 24 24" fill="none"
             xmlns="http://www.w3.org/2000/svg">
-            <path
-                d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z"
-                stroke="currentColor" stroke-width="2" />
-            <path d="M8 12H8.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-            <path d="M16 12H16.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-            <path d="M9 16C9.85002 16.6341 10.882 17 12 17C13.118 17 14.15 16.6341 15 16" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" />
-            <path d="M12 8V7M12 7C12 5.89543 11.1046 5 10 5" stroke="currentColor" stroke-width="2"
+            <!-- Bot Face -->
+            <rect x="4" y="6" width="16" height="12" rx="5" fill="white" fill-opacity="0.1" stroke="white"
+                stroke-width="1.5" />
+            <!-- Blush -->
+            <circle cx="7" cy="14" r="1.5" fill="#FF80AB" fill-opacity="0.6"/>
+            <circle cx="17" cy="14" r="1.5" fill="#FF80AB" fill-opacity="0.6"/>
+            <!-- Eyes -->
+            <circle cx="9" cy="11" r="1.5" fill="white">
+                <animate attributeName="r" values="1.5;0.5;1.5" dur="3s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="15" cy="11" r="1.5" fill="white">
+                <animate attributeName="r" values="1.5;0.5;1.5" dur="3s" repeatCount="indefinite" />
+            </circle>
+            <!-- Mouth -->
+            <path d="M10 14.5C10.5 15.2 11.2 15.5 12 15.5C12.8 15.5 13.5 15.2 14 14.5" stroke="white" stroke-width="1.5"
+                stroke-linecap="round" />
+            <!-- Antennas -->
+            <path d="M12 6V3M12 3C12 3 13 2 13 2M12 3C12 3 11 2 11 2" stroke="white" stroke-width="1.5"
                 stroke-linecap="round" />
         </svg>
         <!-- Close Icon -->
-        <svg id="ai-icon-close" style="width: 32px; height: 32px; display: none;" fill="none" stroke="currentColor"
+        <svg id="ai-icon-close" style="width: 24px; height: 24px; display: none;" fill="none" stroke="currentColor"
             viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -131,9 +208,13 @@
             style="background-color: #1C2434; padding: 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
             <div
                 style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white;">
-                <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                <svg style="width: 24px; height: 24px;" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="6" width="16" height="12" rx="4" stroke="currentColor" stroke-width="2" />
+                    <circle cx="9" cy="11.5" r="1.2" fill="currentColor" />
+                    <circle cx="15" cy="11.5" r="1.2" fill="currentColor" />
+                    <path d="M10 14.5C10.5 15.2 11.2 15.5 12 15.5C12.8 15.5 13.5 15.2 14 14.5" stroke="currentColor"
+                        stroke-width="1.5" stroke-linecap="round" />
                 </svg>
             </div>
             <div>
@@ -150,8 +231,16 @@
             <!-- Initial Message -->
             <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px;">
                 <div
-                    style="width: 32px; height: 32px; border-radius: 50%; background: #1C2434; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">
-                    AI</div>
+                    style="width: 32px; height: 32px; border-radius: 50%; background: #2b3bb3; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="7" width="16" height="10" rx="3" stroke="currentColor" stroke-width="2" />
+                        <circle cx="9" cy="11.5" r="1" fill="currentColor" />
+                        <circle cx="15" cy="11.5" r="1" fill="currentColor" />
+                        <path d="M10 14C10.5 14.5 11.2 14.8 12 14.8C12.8 14.8 13.5 14.5 14 14" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                </div>
                 <div
                     style="background: white; padding: 12px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; max-width: 85%;">
                     <p style="margin:0; font-size: 13px; color: #1C2434; line-height: 1.5;">Hello! I am your Humanity
@@ -194,6 +283,11 @@
             const isActive = aiWindow.classList.toggle('active');
             aiOpenIcon.style.display = isActive ? 'none' : 'block';
             aiCloseIcon.style.display = isActive ? 'block' : 'none';
+            
+            // Hide label when active
+            const label = document.getElementById('ai-label');
+            if (label) label.style.display = isActive ? 'none' : 'block';
+            
             if (isActive) aiInput.focus();
         });
 
@@ -214,7 +308,14 @@
             botMsgDiv.style.gap = '10px';
             botMsgDiv.style.marginBottom = '16px';
             botMsgDiv.innerHTML = `
-                <div style="width: 32px; height: 32px; border-radius: 50%; background: #1C2434; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">AI</div>
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #2b3bb3; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="7" width="16" height="10" rx="3" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="9" cy="11.5" r="1" fill="currentColor"/>
+                        <circle cx="15" cy="11.5" r="1" fill="currentColor"/>
+                        <path d="M10 14C10.5 14.5 11.2 14.8 12 14.8C12.8 14.8 13.5 14.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <div style="background: white; padding: 12px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; max-width: 85%;">
                     <p class="bot-text" style="margin:0; font-size: 13px; color: #1C2434; line-height: 1.5; white-space: pre-wrap;"></p>
                 </div>
@@ -299,12 +400,12 @@
         function formatMessage(text) {
             // Parse markdown tables
             const tableRegex = /\|(.+)\|\n\|[-|\s]+\|\n((?:\|.+\|\n?)+)/g;
-            text = text.replace(tableRegex, function(match, header, rows) {
+            text = text.replace(tableRegex, function (match, header, rows) {
                 const headers = header.split('|').map(h => h.trim()).filter(h => h);
-                const rowsArr = rows.trim().split('\n').map(row => 
+                const rowsArr = rows.trim().split('\n').map(row =>
                     row.split('|').map(c => c.trim()).filter(c => c)
                 );
-                
+
                 let table = '<table style="width:100%; border-collapse:collapse; margin:8px 0; font-size:11px;">';
                 table += '<thead><tr style="background:#1C2434; color:white;">';
                 headers.forEach(h => {
@@ -322,7 +423,7 @@
                 table += '</tbody></table>';
                 return table;
             });
-            
+
             // Simple markdown-like formatting for bold and lists
             return text
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -339,7 +440,7 @@
 
             const isBot = role === 'bot';
             div.innerHTML = `
-            ${isBot ? '<div style="width: 32px; height: 32px; border-radius: 50%; background: #1C2434; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">AI</div>' : ''}
+            ${isBot ? '<div style="width: 32px; height: 32px; border-radius: 50%; background: #1C2434; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg></div>' : ''}
             <div style="background: ${isBot ? 'white' : '#1C2434'}; color: ${isBot ? '#1C2434' : 'white'}; padding: 12px; border-radius: 12px; border-top-${isBot ? 'left' : 'right'}-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid ${isBot ? '#E2E8F0' : '#1C2434'}; max-width: 85%;">
                 <p style="margin:0; font-size: 13px; line-height: 1.5; white-space: pre-wrap;">${isBot ? formatMessage(text) : text}</p>
             </div>
@@ -354,7 +455,11 @@
             div.style.gap = '10px';
             div.style.marginBottom = '16px';
             div.innerHTML = `
-            <div style="width: 32px; height: 32px; border-radius: 50%; background: #1C2434; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0;">AI</div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #1C2434; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                </svg>
+            </div>
             <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #E2E8F0;">
                 <div style="display: flex; gap: 4px;">
                     <div style="width:4px; height:4px; border-radius:50%; background:#1C2434; animation: ai-bounce 1s infinite"></div>
@@ -366,6 +471,18 @@
             aiMessages.appendChild(div);
             aiMessages.scrollTop = aiMessages.scrollHeight;
             return div;
+        }
+        // Show label temporarily on load
+        const label = document.getElementById('ai-label');
+        if (label) {
+            setTimeout(() => {
+                label.style.opacity = '1';
+                setTimeout(() => {
+                    if (!aiWindow.classList.contains('active')) {
+                        label.style.opacity = '0';
+                    }
+                }, 10000);
+            }, 2000);
         }
     });
 </script>
