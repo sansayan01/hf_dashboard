@@ -20,6 +20,9 @@ class MedicineDistributionController extends Controller
     {
         $user = Auth::user();
 
+        // Load the patient's creator (RO) for display
+        $patient->load('creator.profile');
+
         // Pharmacists and Office In-Charges can only see their assigned camp
         if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
             $camps = InventoryWarehouse::where('id', $user->camp_id)
@@ -219,7 +222,7 @@ class MedicineDistributionController extends Controller
      */
     public function edit($id)
     {
-        $distribution = MedicineDistribution::with(['patient', 'items.medicine', 'camp', 'pharmacist'])->findOrFail($id);
+        $distribution = MedicineDistribution::with(['patient.creator.profile', 'items.medicine', 'camp', 'pharmacist'])->findOrFail($id);
 
         // Get current stock for medicines in this camp (for display purposes)
         $stocks = [];
