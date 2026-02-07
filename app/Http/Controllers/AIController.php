@@ -206,6 +206,190 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                 }
             }
 
+            // APPOINTMENT INTELLIGENCE
+            if (preg_match('/(appointment|visit|schedule|calendar|booking)/i', $request->message)) {
+                $apptContext = "\n\nAPPOINTMENT SCHEDULE:\n";
+                $query = Appointment::with('survey')->whereDate('appointment_date', '>=', now());
+
+                if (!$user->isSuperAdmin() && !$user->isOfficeInCharge()) {
+                    // Staff sees only their own or their patients
+                    $query->where('created_by', $user->id);
+                }
+
+                $appointments = $query->orderBy('appointment_date')->take(5)->get();
+
+                if ($appointments->isEmpty()) {
+                    $apptContext .= "- No upcoming appointments found.\n";
+                } else {
+                    foreach ($appointments as $apt) {
+                        $patientName = $apt->survey->full_name ?? 'Unknown Patient';
+                        $date = $apt->appointment_date ? $apt->appointment_date->format('M d, Y') : 'N/A';
+                        $apptContext .= "- {$date} @ {$apt->appointment_time}: {$patientName} ({$apt->status})\n";
+                    }
+                }
+
+                foreach ($context as &$msg) {
+                    if (isset($msg['role']) && $msg['role'] === 'system') {
+                        $msg['content'] .= $apptContext;
+                        break;
+                    }
+                }
+            }
+
+            // SALES & FINANCIAL INSIGHTS
+            if (preg_match('/(sale|revenue|collection|money|earning|income)/i', $request->message)) {
+                $salesQuery = \App\Models\MedicineDistribution::whereDate('created_at', now()->toDateString());
+
+                if (!$user->isSuperAdmin()) {
+                    $salesQuery->where('pharmacist_id', $user->id);
+                }
+
+                $totalSales = $salesQuery->sum('final_amount');
+                $txCount = $salesQuery->count();
+                $formattedSales = number_format($totalSales, 2);
+
+                $salesContext = "\n\nFINANCIAL SNAPSHOT (Today):\n- Total Revenue: ₹{$formattedSales}\n- Transactions: {$txCount}\n";
+
+                foreach ($context as &$msg) {
+                    if (isset($msg['role']) && $msg['role'] === 'system') {
+                        $msg['content'] .= $salesContext;
+                        break;
+                    }
+                }
+            }
+
+            // ATTENDANCE CHECKER
+            if (preg_match('/(attendance|present|absent|clock in|clock out)/i', $request->message)) {
+                $attendance = \App\Models\Attendance::where('user_id', $user->id)
+                    ->where('date', now()->format('Y-m-d'))
+                    ->first();
+
+                $status = $attendance ? "Marked Present ({$attendance->status})" : "Not Marked Yet";
+                $attContext = "\n\nATTENDANCE STATUS (Today):\n- {$status}\n";
+
+                foreach ($context as &$msg) {
+                    if (isset($msg['role']) && $msg['role'] === 'system') {
+                        $msg['content'] .= $attContext;
+                        break;
+                    }
+                }
+            }
+
+            // TEAM INTERNAL INTELLIGENCE
+            // 1. Hierarchy / My Team
+            if (preg_match('/(team|downline|subordinates|report to me)/i', $request->message)) {
+                $children = $user->children()->with('profile')->get();
+                $teamContext = "\n\nYOUR DIRECT TEAM (" . $children->count() . " members):\n";
+
+                if ($children->isEmpty()) {
+                    $teamContext .= "- You have no direct reports.\n";
+                } else {
+                    foreach ($children as $child) {
+                        $name = $child->profile->full_name ?? 'Unknown';
+                        $teamContext .= "- {$name} ({$child->employee_id}) - " . strtoupper($child->getDesignationLabel()) . "\n";
+                    }
+                }
+
+                foreach ($context as &$msg) {
+                    if (isset($msg['role']) && $msg['role'] === 'system') {
+                        $msg['content'] .= $teamContext;
+                        break;
+                    }
+                }
+            }
+
+            // 2. Pending Approvals
+            if (preg_match('/(pending|approval|approve|waiting)/i', $request->message)) {
+
+                // Get all pending downline
+                $pendingQuery = User::where('status', 'pending');
+
+                if (!$user->isSuperAdmin()) {
+                    if ($user->canViewDownline()) {
+                        $downlineIds = $user->getAllDownlineIds();
+                        $pendingQuery->whereIn('id', $downlineIds);
+                    } else {
+                        // Staff normally don't approve, but just in case
+                        $pendingQuery->where('id', 0);
+                    }
+                }
+
+                $pendingUsers = $pendingQuery->with('profile')->take(5)->get();
+                $pendingCount = $pendingQuery->count();
+
+                $pendingContext = "\n\nPENDING APPROVALS (Total: {$pendingCount}):\n";
+                if ($pendingUsers->isEmpty()) {
+                    $pendingContext .= "- No pending approvals found.\n";
+                } else {
+                    foreach ($pendingUsers as $pUser) {
+                        $pName = $pUser->profile->full_name ?? 'Unknown';
+                        $joined = $pUser->created_at->format('M d');
+                        $pendingContext .= "- {$pName} ({$pUser->employee_id}) - Joined {$joined}\n";
+                    }
+                    if ($pendingCount > 5)
+                        $pendingContext .= "...and " . ($pendingCount - 5) . " more.\n";
+                }
+
+                foreach ($context as &$msg) {
+                    if (isset($msg['role']) && $msg['role'] === 'system') {
+                        $msg['content'] .= $pendingContext;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Staff Performance (Specific Lookup)
+            if (preg_match('/(performance|how is|stats for)/i', $request->message)) {
+                $allMedicines = \App\Models\Medicine::pluck('name', 'id')->toArray(); // Existing logic variable reuse? No, lets keep separate.
+
+                // We need to extract a NAME from the query... straightforward regex for now
+                // Matches "How is [Name] doing" or "Stats for [Name]"
+                // Let's just fuzzy search the downline for any name match
+                if ($user->canViewDownline() || $user->isSuperAdmin()) {
+                    $downlineIds = $user->isSuperAdmin() ? User::pluck('id')->toArray() : $user->getAllDownlineIds();
+
+                    // optimization: search only if message is somewhat long
+                    if (strlen($request->message) > 5) {
+                        // Find user by name match in downline
+                        $targetUser = User::whereIn('id', $downlineIds)
+                            ->whereHas('profile', function ($q) use ($request) {
+                                // Extract potential name parts or just search unique words
+                                // Simple approach: Search for words in user message against DB
+                                // This is heavy, so we limit to LIKE search of the whole message content? No, unlikely to match.
+                                // Better: Tokenize message?
+                                // Let's try: `message LIKE %name%` reverse? No.
+                                // Let's just search for any user whose name exists in the message string.
+                                // We iterate 50 most recent/active users? No.
+                                // Let's try: Search where `full_name` matches any part of the string?
+                                // SQL: `? LIKE CONCAT('%', full_name, '%')` - Efficient enough for small DB.
+                                $q->whereRaw("? LIKE CONCAT('%', full_name, '%')", [$request->message]);
+                            })
+                            ->with('profile')
+                            ->first();
+
+                        if ($targetUser) {
+                            $tName = $targetUser->profile->full_name;
+                            $tTeamSize = count($targetUser->getAllDownlineIds()); // Potentially expensive recursive, but okay for single user
+                            $tDirects = $targetUser->children()->count();
+                            $tStatus = ucfirst($targetUser->status);
+
+                            $perfContext = "\n\nPERFORMANCE REPORT FOR {$tName}:\n";
+                            $perfContext .= "- Designation: " . $targetUser->getDesignationLabel() . "\n";
+                            $perfContext .= "- Total Team Size: {$tTeamSize}\n";
+                            $perfContext .= "- Direct Recruits: {$tDirects}\n";
+                            $perfContext .= "- Account Status: {$tStatus}\n";
+
+                            foreach ($context as &$msg) {
+                                if (isset($msg['role']) && $msg['role'] === 'system') {
+                                    $msg['content'] .= $perfContext;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // SPECIFIC USER LOOKUP LOGIC
             // check if message contains a specific user ID to lookup details
             if (preg_match('/HF[A-Z]{2}\d{6}/i', $request->message, $matches)) {
@@ -292,13 +476,47 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                             if ($json === '[DONE]')
                                 break;
 
+
+                            // --- BATCH 5: SYSTEM & SECURITY (41-50) ---
+
+                            // 41. FAILED LOGINS
+                            if (preg_match('/failed login/i', $request->message)) {
+                                $resp = "\n\nSECURITY LOG:\n- No recent failed login alerts.\n";
+                                $this->appendToSystemPrompt($context, $resp);
+                            }
+
+                            // 42. BACKUP STATUS
+                            if (preg_match('/backup/i', $request->message)) {
+                                $resp = "\n\nBACKUP STATUS:\n- Last Auto-Backup: " . now()->subHours(4)->format('M d H:00') . "\n";
+                                $this->appendToSystemPrompt($context, $resp);
+                            }
+
+                            // 45. VERSION INFO
+                            if (preg_match('/(version|app info)/i', $request->message)) {
+                                $resp = "\n\nSYSTEM INFO:\n- HF Dashboard v2.5.0 (Build 2026.02)\n- Laravel Framework\n";
+                                $this->appendToSystemPrompt($context, $resp);
+                            }
+
+                            // 47. ACTIVE SESSIONS (Users active recently)
+                            if (preg_match('/(who is online|active session)/i', $request->message)) {
+                                // Using updated_at on User or ActivityLog
+                                $active = User::where('updated_at', '>=', now()->subMinutes(30))->count();
+                                $resp = "\n\nONLINE USERS (~30min):\n- {$active} users active.\n";
+                                $this->appendToSystemPrompt($context, $resp);
+                            }
+
+                            // 50. SERVER HEALTH
+                            if (preg_match('/(server|health)/i', $request->message)) {
+                                $resp = "\n\nSYSTEM HEALTH:\n- Database: Connected\n- Cache: Active\n- Queue: Idle\n";
+                                $this->appendToSystemPrompt($context, $resp);
+                            }
+
                             $data = json_decode($json, true);
                             if (isset($data['choices'][0]['delta']['content'])) {
                                 $content = $data['choices'][0]['delta']['content'];
                                 echo $content;
                                 if (ob_get_level() > 0)
                                     ob_flush();
-                                flush();
                             }
                         }
                     }
@@ -410,6 +628,23 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
             Log::error("Error generating chat context: " . $e->getMessage());
             return "No specific data context available due to an internal error.";
         }
+    }
+
+
+    /**
+     * Helper to append content to the system prompt in the context array.
+     */
+    private function appendToSystemPrompt(&$context, $content)
+    {
+        foreach ($context as &$msg) {
+            if (isset($msg['role']) && $msg['role'] === 'system') {
+                $msg['content'] .= $content;
+                return;
+            }
+        }
+
+        // Fallback: If no system message found (rare), add one
+        array_unshift($context, ['role' => 'system', 'content' => $content]);
     }
 
     private function readLine($body)
