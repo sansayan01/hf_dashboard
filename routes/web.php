@@ -56,6 +56,9 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
         // Joining Letter
         Route::get('/{user}/joining-letter', [UserController::class, 'joiningLetter'])->name('joining-letter');
+        Route::post('/bulk-print-selection', [UserController::class, 'bulkPrintSelection'])->name('bulk-print-selection');
+        Route::post('/bulk-offer-letters', [UserController::class, 'bulkOfferLetters'])->name('bulk-offer-letters');
+        Route::post('/printable-offer-letters', [UserController::class, 'printableOfferLetters'])->name('printable-offer-letters');
 
         // Toggle Officer in Charge status
         Route::post('/{user}/toggle-oic', [UserController::class, 'toggleOic'])->name('toggle-oic');
