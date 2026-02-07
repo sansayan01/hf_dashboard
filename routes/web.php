@@ -207,6 +207,9 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/search', [App\Http\Controllers\MedicineDistributionController::class, 'searchMedicine'])->name('search');
         Route::post('/distribute', [App\Http\Controllers\MedicineDistributionController::class, 'store'])->name('distribute.store');
         Route::get('/invoice/{id}', [App\Http\Controllers\MedicineDistributionController::class, 'show'])->name('invoice');
+        Route::get('/distribution/{id}/edit', [App\Http\Controllers\MedicineDistributionController::class, 'edit'])->name('distribution.edit');
+        Route::put('/distribution/{id}', [App\Http\Controllers\MedicineDistributionController::class, 'update'])->name('distribution.update');
+        Route::delete('/distribution/{id}', [App\Http\Controllers\MedicineDistributionController::class, 'destroy'])->name('distribution.destroy');
     });
 
     // Coupon Code Management (Super Admin Only)
