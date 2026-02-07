@@ -120,17 +120,16 @@
                         <span class="hidden lg:inline">APPROVE SELECTED</span>
                     </button>
 
-                    <button type="submit" form="bulk-actions-form" formaction="{{ route('users.bulk-print-selection') }}"
+                    <button type="submit" form="bulk-actions-form" formaction="{{ route('users.print-all-id-cards') }}"
                         formtarget="_blank" style="background-color: #e11d48; color: white; border-color: #be185d;"
                         class="px-2 sm:px-4 py-2 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-600/20 hover:opacity-90 transition-all flex items-center space-x-2 border">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h10a2 2 0 002-2v-4H5v4a2 2 0 002 2zM12 17h.01M9 16h6" />
                         </svg>
-                        <span class="hidden lg:inline">PRINT SELECTED</span>
+                        <span class="hidden lg:inline">PRINT A4</span>
                     </button>
                 @endif
-
                 @if(auth()->user()->canCreateUsers())
                     <a href="{{ route('users.create', ['type' => 'team']) }}"
                         class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
@@ -427,7 +426,7 @@
                     </button>
                     @if(auth()->user()->isSuperAdmin())
 
-                        <button type="submit" form="bulk-actions-form" formaction="{{ route('users.bulk-print-selection') }}"
+                        <button type="submit" form="bulk-actions-form" formaction="{{ route('users.print-all-id-cards') }}"
                             formtarget="_blank" style="background-color: #e11d48; color: white; border-color: #be185d;"
                             class="px-2 sm:px-6 py-2.5 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-rose-600/20 hover:opacity-90 flex items-center space-x-2 border">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

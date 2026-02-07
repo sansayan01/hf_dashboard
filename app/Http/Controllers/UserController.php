@@ -1308,31 +1308,6 @@ class UserController extends Controller
 
 
     /**
-     * Intermediate selection page for bulk actions (ID Cards vs Offer Letters)
-     */
-    public function bulkPrintSelection(Request $request)
-    {
-        if (!$request->has('selected_users') || empty($request->selected_users)) {
-            return back()->with('error', 'No users selected.');
-        }
-
-        $userIds = $request->selected_users;
-
-        // Verify access to these users
-        $users = User::whereIn('id', $userIds)->get()->filter(function ($user) {
-            return auth()->user()->canAccess($user);
-        });
-
-        if ($users->isEmpty()) {
-            return back()->with('error', 'No accessible users selected.');
-        }
-
-        $selected_users = $users->pluck('id')->toArray();
-
-        return view('users.bulk_print_selection', compact('selected_users', 'users'));
-    }
-
-    /**
      * Print all ID cards in A4 grid
      */
     public function printAllIdCards(Request $request)
@@ -1354,28 +1329,6 @@ class UserController extends Controller
 
         $format = $request->get('format', 'png'); // Default to PNG, can be 'pdf' or 'svg'
         return view('users.printable_id_cards', compact('users', 'format'));
-    }
-
-    /**
-     * Bulk offer letters printable view (single PDF system)
-     */
-    public function printableOfferLetters(Request $request)
-    {
-        $query = User::with('profile');
-
-        if ($request->has('selected_users')) {
-            $query->whereIn('id', $request->selected_users);
-        }
-
-        $users = $query->get()->filter(function ($user) {
-            return auth()->user()->canAccess($user);
-        });
-
-        if ($users->isEmpty()) {
-            return back()->with('error', 'No accessible users selected.');
-        }
-
-        return view('users.printable_offer_letters', compact('users'));
     }
 
     /**
@@ -1424,27 +1377,4 @@ class UserController extends Controller
 
         return back()->with('success', "User " . ($user->is_office_in_charge ? "assigned as" : "removed from") . " Officer in Charge successfully.");
     }
-
-    /**
-     * Generate bulk offer letters in a ZIP file
-     */
-    public function bulkOfferLetters(Request $request)
-    {
-        $query = User::with('profile');
-
-        if ($request->has('selected_users')) {
-            $query->whereIn('id', $request->selected_users);
-        }
-
-        $users = $query->get()->filter(function ($user) {
-            return auth()->user()->canAccess($user);
-        });
-
-        if ($users->isEmpty()) {
-            return back()->with('error', 'No accessible users selected.');
-        }
-
-        return view('users.bulk_offer_zip', compact('users'));
-    }
-
 }
