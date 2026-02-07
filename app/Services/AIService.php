@@ -9,7 +9,7 @@ class AIService
 {
     protected $apiKey;
     protected $baseUrl = 'https://openrouter.ai/api/v1';
-    protected $model = 'deepseek/deepseek-r1-0528:free';
+    protected $model = 'arcee-ai/trinity-large-preview:free';
 
     public function __construct()
     {

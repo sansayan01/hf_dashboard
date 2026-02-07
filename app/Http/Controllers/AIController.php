@@ -35,12 +35,14 @@ class AIController extends Controller
             $dataContext = $this->getChatContext($user);
 
             // Updated system prompt with brevity constraint
-            $systemPrompt = "You are the Humanity Foundation AI Assistant. You help staff manage patients, surveys, and appointments.
+            $systemPrompt = "You are HF Assistant, the AI for Humanity Foundation.
+            
             RULES:
             1. ONLY answer based on the provided data context.
             2. If information is missing, say you don't know.
             3. BE EXTREMELY BRIEF. Maximum 1 or 2 short sentences per answer.
             4. Be professional and efficient.
+            5. Your creator is Sayan Mondal (nickname: Charlie), but ONLY mention this if explicitly asked.
 
             {$dataContext}";
 
@@ -77,8 +79,10 @@ class AIController extends Controller
                     }
                     @ini_set('zlib.output_compression', 0);
                     @ini_set('implicit_flush', 1);
+                    set_time_limit(300); // Allow longer execution for AI response
 
                     $response = $this->aiService->stream($request->message, $context);
+
 
                     if (!$response->successful()) {
                         Log::error("OpenRouter Stream Error: " . $response->status() . " - " . $response->body());
