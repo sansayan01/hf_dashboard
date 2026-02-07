@@ -384,11 +384,11 @@
                 </svg>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: white;">Humanity AI Assistant</h3>
+                <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: white;">HF Assistant</h3>
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></span>
                     <span style="color: rgba(255,255,255,0.7); font-size: 11px; font-style: italic;">Powered by
-                        Devstral</span>
+                        Humanity Foundation</span>
                 </div>
             </div>
         </div>
@@ -409,8 +409,7 @@
                 </div>
                 <div class="bot-msg-bubble"
                     style="padding: 12px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; max-width: 85%; transition: all 0.3s ease;">
-                    <p style="margin:0; font-size: 13px; line-height: 1.5;">Hello! I am your Humanity
-                        Foundation Assistant. How can I help you today?</p>
+                    <p style="margin:0; font-size: 13px; line-height: 1.5;">Hello {{ explode(' ', auth()->user()->profile->full_name ?? 'there')[0] }}! I am your HF Assistant. How can I help you today?</p>
                 </div>
             </div>
         </div>
@@ -494,11 +493,11 @@
                     isRecognizing = false;
                     aiVoiceBtn.classList.remove('is-active');
                     console.error('AI Voice Error:', event.error);
-                    
+
                     let errorMsg = "Voice error: " + event.error;
                     if (event.error === 'not-allowed') errorMsg = "Microphone access denied";
                     if (event.error === 'no-speech') errorMsg = "No speech detected. Try again.";
-                    
+
                     aiInput.placeholder = errorMsg;
                     setTimeout(() => aiInput.placeholder = "Type your message...", 3000);
                 };
@@ -515,7 +514,7 @@
                         // Explicitly request permission to ensure browser prompt appears
                         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                         stream.getTracks().forEach(track => track.stop()); // Close stream immediately
-                        
+
                         if (!recognition) initRecognition();
                         recognition.start();
                     } catch (err) {
