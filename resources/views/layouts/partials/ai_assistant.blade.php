@@ -105,6 +105,62 @@
         padding: 16px !important;
         overflow-y: auto !important;
         background-color: #F8FAFC !important;
+        transition: background-color 0.3s ease !important;
+    }
+
+    #ai-messages::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    #ai-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #ai-messages::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 10px;
+    }
+
+    .dark #ai-messages {
+        background-color: #0F172A !important;
+    }
+
+    .dark #ai-messages::-webkit-scrollbar-thumb {
+        background: #334155;
+    }
+
+    .ai-chat-footer {
+        padding: 16px !important;
+        background: white !important;
+        border-top: 1px solid #E2E8F0 !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .dark .ai-chat-footer {
+        background: #1C2434 !important;
+        border-color: #2d3a4f !important;
+    }
+
+    #ai-input {
+        width: 100% !important;
+        border-radius: 10px !important;
+        border: 1px solid #E2E8F0 !important;
+        padding: 12px 45px 12px 16px !important;
+        font-size: 14px !important;
+        outline: none !important;
+        background: white !important;
+        color: #1C2434 !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .dark #ai-input {
+        background: #0F172A !important;
+        border-color: #334155 !important;
+        color: #F8FAFC !important;
+    }
+
+    .dark #ai-input::placeholder {
+        color: #64748B !important;
     }
 
     #ai-label {
@@ -131,8 +187,15 @@
     }
 
     @keyframes ai-float {
-        0%, 100% { transform: translateY(0) translateX(0); }
-        50% { transform: translateY(-5px) translateX(-2px); }
+
+        0%,
+        100% {
+            transform: translateY(0) translateX(0);
+        }
+
+        50% {
+            transform: translateY(-5px) translateX(-2px);
+        }
     }
 
     .ai-attention-wiggle {
@@ -140,11 +203,28 @@
     }
 
     @keyframes ai-wiggle {
-        0%, 90%, 100% { transform: rotate(0); }
-        92% { transform: rotate(-10deg); }
-        94% { transform: rotate(10deg); }
-        96% { transform: rotate(-10deg); }
-        98% { transform: rotate(10deg); }
+
+        0%,
+        90%,
+        100% {
+            transform: rotate(0);
+        }
+
+        92% {
+            transform: rotate(-10deg);
+        }
+
+        94% {
+            transform: rotate(10deg);
+        }
+
+        96% {
+            transform: rotate(-10deg);
+        }
+
+        98% {
+            transform: rotate(10deg);
+        }
     }
 
     .ai-status-dot {
@@ -164,6 +244,27 @@
         color: white !important;
         border-color: #2d3a4f !important;
     }
+
+    /* Message Bubbles Dark Mode */
+    .bot-msg-bubble {
+        background-color: white !important;
+        color: #1C2434 !important;
+    }
+
+    .dark .bot-msg-bubble {
+        background-color: #1E293B !important;
+        color: #F1F5F9 !important;
+        border-color: #334155 !important;
+    }
+
+    .user-msg-bubble {
+        background-color: #2b3bb3 !important;
+        color: white !important;
+    }
+
+    .dark .user-msg-bubble {
+        background-color: #3B82F6 !important;
+    }
 </style>
 
 <div id="ai-assistant-container">
@@ -179,8 +280,8 @@
             <rect x="4" y="6" width="16" height="12" rx="5" fill="white" fill-opacity="0.1" stroke="white"
                 stroke-width="1.5" />
             <!-- Blush -->
-            <circle cx="7" cy="14" r="1.5" fill="#FF80AB" fill-opacity="0.6"/>
-            <circle cx="17" cy="14" r="1.5" fill="#FF80AB" fill-opacity="0.6"/>
+            <circle cx="7" cy="14" r="1.5" fill="#FF80AB" fill-opacity="0.6" />
+            <circle cx="17" cy="14" r="1.5" fill="#FF80AB" fill-opacity="0.6" />
             <!-- Eyes -->
             <circle cx="9" cy="11" r="1.5" fill="white">
                 <animate attributeName="r" values="1.5;0.5;1.5" dur="3s" repeatCount="indefinite" />
@@ -241,21 +342,19 @@
                             stroke-width="1.5" stroke-linecap="round" />
                     </svg>
                 </div>
-                <div
-                    style="background: white; padding: 12px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; max-width: 85%;">
-                    <p style="margin:0; font-size: 13px; color: #1C2434; line-height: 1.5;">Hello! I am your Humanity
+                <div class="bot-msg-bubble"
+                    style="padding: 12px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; max-width: 85%; transition: all 0.3s ease;">
+                    <p style="margin:0; font-size: 13px; line-height: 1.5;">Hello! I am your Humanity
                         Foundation Assistant. How can I help you today?</p>
                 </div>
             </div>
         </div>
 
-        <div style="padding: 16px; background: white; border-top: 1px solid #E2E8F0;">
+        <div class="ai-chat-footer">
             <form id="ai-chat-form" style="position: relative; display: flex;">
-                <input type="text" id="ai-input" placeholder="Type your message..."
-                    style="width: 100%; border-radius: 10px; border: 1px solid #E2E8F0; padding: 12px 45px 12px 16px; font-size: 14px; outline: none;"
-                    autocomplete="off">
+                <input type="text" id="ai-input" placeholder="Type your message..." autocomplete="off">
                 <button type="submit" id="ai-send-btn"
-                    style="position: absolute; right: 5px; top: 5px; width: 36px; height: 36px; background: #1C2434; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    style="position: absolute; right: 5px; top: 5px; width: 36px; height: 36px; background: #2b3bb3; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease-in-out;">
                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
@@ -283,11 +382,11 @@
             const isActive = aiWindow.classList.toggle('active');
             aiOpenIcon.style.display = isActive ? 'none' : 'block';
             aiCloseIcon.style.display = isActive ? 'block' : 'none';
-            
+
             // Hide label when active
             const label = document.getElementById('ai-label');
             if (label) label.style.display = isActive ? 'none' : 'block';
-            
+
             if (isActive) aiInput.focus();
         });
 
@@ -316,8 +415,8 @@
                         <path d="M10 14C10.5 14.5 11.2 14.8 12 14.8C12.8 14.8 13.5 14.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <div style="background: white; padding: 12px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; max-width: 85%;">
-                    <p class="bot-text" style="margin:0; font-size: 13px; color: #1C2434; line-height: 1.5; white-space: pre-wrap;"></p>
+                <div class="bot-msg-bubble" style="padding: 12px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; max-width: 85%; transition: all 0.3s ease;">
+                    <p class="bot-text" style="margin:0; font-size: 13px; line-height: 1.5; white-space: pre-wrap;"></p>
                 </div>
             `;
             const botTextEl = botMsgDiv.querySelector('.bot-text');
@@ -440,8 +539,8 @@
 
             const isBot = role === 'bot';
             div.innerHTML = `
-            ${isBot ? '<div style="width: 32px; height: 32px; border-radius: 50%; background: #1C2434; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg></div>' : ''}
-            <div style="background: ${isBot ? 'white' : '#1C2434'}; color: ${isBot ? '#1C2434' : 'white'}; padding: 12px; border-radius: 12px; border-top-${isBot ? 'left' : 'right'}-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid ${isBot ? '#E2E8F0' : '#1C2434'}; max-width: 85%;">
+            ${isBot ? '<div style="width: 32px; height: 32px; border-radius: 50%; background: #2b3bb3; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="7" width="16" height="10" rx="3" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="11.5" r="1" fill="currentColor"/><circle cx="15" cy="11.5" r="1" fill="currentColor"/><path d="M10 14C10.5 14.5 11.2 14.8 12 14.8C12.8 14.8 13.5 14.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>' : ''}
+            <div class="${isBot ? 'bot-msg-bubble' : 'user-msg-bubble'}" style="padding: 12px; border-radius: 12px; border-top-${isBot ? 'left' : 'right'}-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid ${isBot ? '#E2E8F0' : '#2b3bb3'}; max-width: 85%; transition: all 0.3s ease;">
                 <p style="margin:0; font-size: 13px; line-height: 1.5; white-space: pre-wrap;">${isBot ? formatMessage(text) : text}</p>
             </div>
         `;
@@ -455,16 +554,19 @@
             div.style.gap = '10px';
             div.style.marginBottom = '16px';
             div.innerHTML = `
-            <div style="width: 32px; height: 32px; border-radius: 50%; background: #1C2434; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: #2b3bb3; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="7" width="16" height="10" rx="3" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="9" cy="11.5" r="1" fill="currentColor"/>
+                    <circle cx="15" cy="11.5" r="1" fill="currentColor"/>
+                    <path d="M10 14C10.5 14.5 11.2 14.8 12 14.8C12.8 14.8 13.5 14.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
             </div>
-            <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #E2E8F0;">
+            <div class="bot-msg-bubble" style="padding: 12px; border-radius: 12px; border: 1px solid #E2E8F0; transition: all 0.3s ease;">
                 <div style="display: flex; gap: 4px;">
-                    <div style="width:4px; height:4px; border-radius:50%; background:#1C2434; animation: ai-bounce 1s infinite"></div>
-                    <div style="width:4px; height:4px; border-radius:50%; background:#1C2434; animation: ai-bounce 1s infinite 0.2s"></div>
-                    <div style="width:4px; height:4px; border-radius:50%; background:#1C2434; animation: ai-bounce 1s infinite 0.4s"></div>
+                    <div style="width:4px; height:4px; border-radius:50%; background:currentColor; animation: ai-bounce 1s infinite"></div>
+                    <div style="width:4px; height:4px; border-radius:50%; background:currentColor; animation: ai-bounce 1s infinite 0.2s"></div>
+                    <div style="width:4px; height:4px; border-radius:50%; background:currentColor; animation: ai-bounce 1s infinite 0.4s"></div>
                 </div>
             </div>
         `;
