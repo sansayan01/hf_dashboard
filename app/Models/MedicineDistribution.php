@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property float $discount_percentage
  * @property float $discount_amount
  * @property float $final_amount
+ * @property string $payment_method
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
  */
@@ -25,7 +26,8 @@ class MedicineDistribution extends Model
         'total_amount',
         'discount_percentage',
         'discount_amount',
-        'final_amount'
+        'final_amount',
+        'payment_method'
     ];
 
     public function patient()

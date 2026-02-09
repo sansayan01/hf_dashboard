@@ -95,6 +95,7 @@ class MedicineDistributionController extends Controller
             'patient_id' => 'required|exists:surveys,id',
             'camp_id' => 'required|exists:inventory_warehouses,id',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'payment_method' => 'nullable|in:cash,upi',
             'medicines' => 'required|array|min:1',
             'medicines.*.id' => 'required|exists:medicines,id',
             'medicines.*.quantity' => 'required|integer|min:1',
@@ -200,6 +201,10 @@ class MedicineDistributionController extends Controller
             $distribution->discount_percentage = $discountPercentage;
             $distribution->discount_amount = $discountAmount;
             $distribution->final_amount = $finalAmount;
+            // Safely add payment_method only if column exists
+            if (Schema::hasColumn('medicine_distributions', 'payment_method')) {
+                $distribution->payment_method = $request->input('payment_method', 'cash');
+            }
             $distribution->save();
 
             DB::commit();
