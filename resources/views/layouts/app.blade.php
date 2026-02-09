@@ -452,16 +452,15 @@
 
     <!-- Global Loading Overlay / Splash Screen -->
     <div id="global-loader"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm transition-all duration-500 opacity-100 cursor-wait">
-        
-        <!-- Minimal Branded Pulse -->
-        <div class="relative flex flex-col items-center animate-pulse">
-            <div class="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-100 dark:border-white/5 flex items-center justify-center p-3 transition-transform">
-                <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-full h-full object-contain" alt="Loading">
-            </div>
-            <p class="mt-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest animate-pulse">Please Wait...</p>
-        </div>
-        
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl transition-all duration-500 opacity-100"
+        style="pointer-events: all; touch-action: none;">
+
+        <!-- Lottie Animation -->
+        <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
+        <dotlottie-wc src="https://lottie.host/0bda0bba-5419-462b-ba6c-64c49a01587a/QfBd3IAVeP.lottie"
+            style="width: 200px; height: 200px" autoplay loop>
+        </dotlottie-wc>
+
     </div>
 
     <script>
@@ -605,17 +604,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                            }).then((result) => {
+                                                                                                                                                                                                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                            });
+                                                                                                                                                                                                                                });
         @endif
 
         @if(session('error'))
