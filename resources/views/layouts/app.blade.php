@@ -452,8 +452,8 @@
 
     <!-- Global Loading Overlay / Splash Screen -->
     <div id="global-loader"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl transition-all duration-500 opacity-100"
-        style="pointer-events: all; touch-action: none;">
+        class="fixed inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl transition-all duration-500 opacity-100"
+        style="z-index: 99999; pointer-events: all; touch-action: none;">
 
         <!-- Lottie Animation -->
         <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
@@ -604,17 +604,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                }).then((result) => {
+                                                                                                                                                                                                                                    }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                });
+                                                                                                                                                                                                                                    });
         @endif
 
         @if(session('error'))
