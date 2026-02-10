@@ -148,26 +148,26 @@
         let itemCounter = 0;
         const tomSelectInstances = {};
         const stockOptions = `
-                                                                                                                        <option value="">Select matching stock...</option>
-                                                                                                                        @foreach($medicines as $med)
-                                                                                                                            <optgroup label="{{ $med->name }} ({{ $med->unit }})">
-                                                                                                                                @foreach($med->stocks->groupBy(fn($s) => $s->warehouse_id . '-' . $s->batch_number) as $groupKey => $batchStocks)
-                                                                                                                                    @php 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    $first = $batchStocks->sortBy('expiry_date')->first();
-                                                                                                                                        $totalQty = $batchStocks->sum('quantity');
-                                                                                                                                    @endphp
-                                                                                                                                    <option value="{{ $first->id }}" 
-                                                                                                                                            data-warehouse="{{ $first->warehouse_id }}" 
-                                                                                                                                            data-quantity="{{ $totalQty }}"
-                                                                                                                                            data-unit="{{ $med->unit }}"
-                                                                                                                                            data-units-per-box="{{ $med->units_per_box ?? 100 }}"
-                                                                                                                                            class="stock-option">
-                                                                                                                                        {{ $med->name }} | Batch: #{{ $first->batch_number }} | Exp: {{ $first->expiry_date->format('M Y') }} | Qty: {{ $totalQty }}
-                                                                                                                                    </option>
-                                                                                                                                @endforeach
-                                                                                                                            </optgroup>
-                                                                                                                        @endforeach
-                                                                                                                    `;
+                                                                                                                            <option value="">Select matching stock...</option>
+                                                                                                                            @foreach($medicines as $med)
+                                                                                                                                <optgroup label="{{ $med->name }} ({{ $med->unit }})">
+                                                                                                                                    @foreach($med->stocks->groupBy(fn($s) => $s->warehouse_id . '-' . $s->batch_number) as $groupKey => $batchStocks)
+                                                                                                                                        @php 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        $first = $batchStocks->sortBy('expiry_date')->first();
+                                                                                                                                            $totalQty = $batchStocks->sum('quantity');
+                                                                                                                                        @endphp
+                                                                                                                                        <option value="{{ $first->id }}" 
+                                                                                                                                                data-warehouse="{{ $first->warehouse_id }}" 
+                                                                                                                                                data-quantity="{{ $totalQty }}"
+                                                                                                                                                data-unit="{{ $med->unit }}"
+                                                                                                                                                data-units-per-box="{{ $med->units_per_box ?? 100 }}"
+                                                                                                                                                class="stock-option">
+                                                                                                                                            {{ $med->name }} | Batch: #{{ $first->batch_number }} | Exp: {{ $first->expiry_date->format('M Y') }} | Qty: {{ $totalQty }}
+                                                                                                                                        </option>
+                                                                                                                                    @endforeach
+                                                                                                                                </optgroup>
+                                                                                                                            @endforeach
+                                                                                                                        `;
 
         document.addEventListener('DOMContentLoaded', function () {
             handleSourceChange();
@@ -181,7 +181,7 @@
                     }
                 }, 300);
             @endif
-                                                                });
+                                                                    });
 
         function handleSourceChange() {
             const fromWhSelect = document.getElementById('from_warehouse_id');
@@ -305,50 +305,50 @@
             itemRow.className = 'transfer-item relative p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 transition-all hover:border-accent/30';
             itemRow.id = `item_${itemCounter}`;
             itemRow.innerHTML = `
-                        <button type="button" onclick="removeTransferItem(${itemCounter})" 
-                            class="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-700 text-red-500 hover:bg-red-500 hover:text-white rounded-full shadow-lg border border-slate-100 dark:border-slate-600 transition-all z-10"
-                            title="Remove Item">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                            <div class="md:col-span-7">
-                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Stock Item</label>
-                                <select name="items[${itemCounter}][stock_id]" class="stock-select w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" required onchange="updateItemMaxQty(${itemCounter})">
-                                    \${stockOptions}
-                                </select>
-                                <div class="qty-indicator mt-2 text-[10px] font-bold text-accent hidden">
-                                    Available: <span class="max-qty-label">0</span> <span class="max-qty-unit">units</span>
-                                </div>
-                            </div>
-                            <div class="md:col-span-5">
-                                <div class="flex justify-between items-center mb-2">
-                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                        <span class="quantity-label">Quantity</span>
-                                    </label>
-                                    <label class="flex items-center space-x-1 cursor-pointer">
-                                        <input type="checkbox" class="transfer-all-row w-3 h-3 rounded text-accent focus:ring-accent/20" onchange="toggleRowTransferAll(${itemCounter})">
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">All Stock</span>
-                                    </label>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <div class="boxes-wrapper flex-1 hidden">
-                                        <input type="number" class="boxes-input w-full h-12 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" 
-                                            min="0" placeholder="Boxes" oninput="calculateItemQuantity(${itemCounter})">
-                                        <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold text-center">Boxes</p>
-                                    </div>
-                                    <div class="units-wrapper flex-1">
-                                        <input type="number" class="units-input w-full h-12 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" 
-                                            min="0" placeholder="Units" oninput="calculateItemQuantity(${itemCounter})">
-                                        <p class="units-label-small text-[9px] text-slate-400 mt-1 uppercase font-bold text-center">Units</p>
+                            <button type="button" onclick="removeTransferItem(${itemCounter})" 
+                                class="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-700 text-red-500 hover:bg-red-500 hover:text-white rounded-full shadow-lg border border-slate-100 dark:border-slate-600 transition-all z-10"
+                                title="Remove Item">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                <div class="md:col-span-7">
+                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Stock Item</label>
+                                    <select name="items[${itemCounter}][stock_id]" class="stock-select w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" required onchange="updateItemMaxQty(${itemCounter})">
+                                        ${stockOptions}
+                                    </select>
+                                    <div class="qty-indicator mt-2 text-[10px] font-bold text-accent hidden">
+                                        Available: <span class="max-qty-label">0</span> <span class="max-qty-unit">units</span>
                                     </div>
                                 </div>
-                                <input type="hidden" name="items[${itemCounter}][quantity]" class="actual-quantity" required>
-                                <p class="quantity-hint text-[10px] text-slate-500 font-medium mt-2 text-center"></p>
+                                <div class="md:col-span-5">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                            <span class="quantity-label">Quantity</span>
+                                        </label>
+                                        <label class="flex items-center space-x-1 cursor-pointer">
+                                            <input type="checkbox" class="transfer-all-row w-3 h-3 rounded text-accent focus:ring-accent/20" onchange="toggleRowTransferAll(${itemCounter})">
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">All Stock</span>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="boxes-wrapper flex-1 hidden">
+                                            <input type="number" class="boxes-input w-full h-12 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" 
+                                                min="0" placeholder="Boxes" oninput="calculateItemQuantity(${itemCounter})">
+                                            <p class="text-[9px] text-slate-400 mt-1 uppercase font-bold text-center">Boxes</p>
+                                        </div>
+                                        <div class="units-wrapper flex-1">
+                                            <input type="number" class="units-input w-full h-12 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition" 
+                                                min="0" placeholder="Units" oninput="calculateItemQuantity(${itemCounter})">
+                                            <p class="units-label-small text-[9px] text-slate-400 mt-1 uppercase font-bold text-center">Units</p>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="items[${itemCounter}][quantity]" class="actual-quantity" required>
+                                    <p class="quantity-hint text-[10px] text-slate-500 font-medium mt-2 text-center"></p>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
 
             container.appendChild(itemRow);
 
@@ -374,10 +374,10 @@
                         const name = parts[0];
                         const details = parts.slice(1).join(' | ');
                         return `
-                                        <div class="py-1">
-                                            <div class="font-bold text-slate-800 dark:text-white text-sm">\${name}</div>
-                                            <div class="text-[10px] text-slate-500 font-medium">\${details}</div>
-                                        </div>`;
+                                            <div class="py-1">
+                                                <div class="font-bold text-slate-800 dark:text-white text-sm">${name}</div>
+                                                <div class="text-[10px] text-slate-500 font-medium">${details}</div>
+                                            </div>`;
                     },
                     item: function (data, escape) {
                         return '<div class="text-sm font-medium">' + escape(data.text) + '</div>';
@@ -407,7 +407,7 @@
         }
 
         function removeTransferItem(id) {
-            const item = document.getElementById(`item_\${id}`);
+            const item = document.getElementById(`item_${id}`);
             if (item) {
                 if (tomSelectInstances[id]) {
                     tomSelectInstances[id].destroy();
@@ -470,7 +470,7 @@
             if (!ts) return;
 
             const selectedValue = ts.getValue();
-            const itemRow = document.getElementById(`item_\${itemId}`);
+            const itemRow = document.getElementById(`item_${itemId}`);
             const boxesInput = itemRow.querySelector('.boxes-input');
             const unitsInput = itemRow.querySelector('.units-input');
             const boxesWrapper = itemRow.querySelector('.boxes-wrapper');
@@ -494,9 +494,9 @@
                     unitsWrapper.classList.remove('hidden');
                     quantityLabel.textContent = 'Units / Boxes';
                     unitsLabelSmall.textContent = 'Units';
-                    quantityHint.textContent = `* 1 Box = \${unitsPerBox} \${unit.toLowerCase()}s`;
+                    quantityHint.textContent = `* 1 Box = ${unitsPerBox} ${unit.toLowerCase()}s`;
                     label.innerText = maxQty;
-                    unitLabel.innerText = `\${unit.toLowerCase()}s (\${(maxQty / unitsPerBox).toFixed(1)} boxes)`;
+                    unitLabel.innerText = `${unit.toLowerCase()}s (${(maxQty / unitsPerBox).toFixed(1)} boxes)`;
 
                     boxesInput.max = Math.floor(maxQty / unitsPerBox);
                     unitsInput.max = maxQty;
@@ -532,7 +532,7 @@
             if (!ts) return;
 
             const selectedValue = ts.getValue();
-            const itemRow = document.getElementById(`item_\${itemId}`);
+            const itemRow = document.getElementById(`item_${itemId}`);
             const checkbox = itemRow.querySelector('.transfer-all-row');
             const boxesInput = itemRow.querySelector('.boxes-input');
             const unitsInput = itemRow.querySelector('.units-input');
@@ -584,7 +584,7 @@
             if (!ts) return;
 
             const selectedValue = ts.getValue();
-            const itemRow = document.getElementById(`item_\${itemId}`);
+            const itemRow = document.getElementById(`item_${itemId}`);
             const boxesInput = itemRow.querySelector('.boxes-input');
             const unitsInput = itemRow.querySelector('.units-input');
             const actualQuantity = itemRow.querySelector('.actual-quantity');
