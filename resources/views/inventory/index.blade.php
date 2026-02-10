@@ -402,10 +402,10 @@
                     </form>
                 </div>
 
-                <div class="overflow-x-auto overflow-y-auto max-h-[500px]">
+                <div class="overflow-x-auto overflow-y-auto max-h-[500px] flex-1 scrollbar-thin scrollbar-thumb-slate-200">
                     <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50/50 dark:bg-white/5">
+                        <thead class="sticky top-0 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm z-10 border-b border-slate-100 dark:border-white/5">
+                            <tr>
                                 <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Medicine & Location</th>
                                 <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
                                 <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Qty</th>
