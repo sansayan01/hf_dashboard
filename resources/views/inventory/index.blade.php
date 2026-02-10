@@ -138,7 +138,7 @@
             </div>
 
              <!-- Card: Low Stock -->
-            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-5 flex flex-col items-center justify-center text-center relative overflow-hidden group h-full">
+            <a href="#inventory-section" onclick="event.preventDefault(); document.getElementById('status-filter').value='low_stock'; document.getElementById('inventory-filter-form').submit();" class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-5 flex flex-col items-center justify-center text-center relative overflow-hidden group h-full hover:border-red-500/50 transition-all cursor-pointer">
                 <div class="absolute right-0 top-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
                 <div class="z-10">
                      <h4 class="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Low Stock Items</h4>
@@ -147,10 +147,10 @@
                  <div class="mt-3 flex items-center justify-center text-[10px] font-bold text-red-500 z-10">
                     Needs Attention
                 </div>
-            </div>
+            </a>
             
              <!-- Card: Expiry Risk -->
-            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-5 flex flex-col items-center justify-center text-center relative overflow-hidden group h-full">
+            <a href="#inventory-section" onclick="event.preventDefault(); document.getElementById('status-filter').value='near_expiry'; document.getElementById('inventory-filter-form').submit();" class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-5 flex flex-col items-center justify-center text-center relative overflow-hidden group h-full hover:border-orange-500/50 transition-all cursor-pointer">
                 <div class="absolute right-0 top-0 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
                 <div class="z-10">
                      <h4 class="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Near Expiry (< 90 Days)</h4>
@@ -159,7 +159,7 @@
                  <div class="mt-3 flex items-center justify-center text-[10px] font-bold text-orange-500 z-10">
                     {{ $expiredCount }} Already Expired
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- 3. Sales Trend & Quick Actions -->
@@ -215,12 +215,12 @@
 
         <!-- 4. Inventory Health, Top Performance, Payment Overview -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Inventory Health & Categories -->
+            <!-- Top Medicines by Value (Was Inventory Health) -->
             <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
-                 <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-6">Inventory Health</h3>
+                 <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-6">Top Medicines (By Value)</h3>
                  <div class="flex-1 flex flex-col justify-center">
                       <div class="relative h-48 w-full mb-4">
-                        <canvas id="categoryChart"></canvas>
+                        <canvas id="medicineValueChart"></canvas>
                      </div>
                      <div class="grid grid-cols-2 gap-4 mt-4">
                          <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-3 text-center">
@@ -229,7 +229,7 @@
                          </div>
                           <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-3 text-center">
                              <div class="text-xs font-bold text-slate-400 uppercase">Dead Stock</div>
-                             <div class="font-black text-slate-800 dark:text-white">--</div>
+                             <div class="font-black text-slate-800 dark:text-white">{{ $deadStockCount }}</div>
                          </div>
                      </div>
                  </div>
@@ -340,16 +340,30 @@
                     <h3 class="font-bold text-lg whitespace-nowrap">Batch-wise Inventory</h3>
                     <form id="inventory-filter-form" action="{{ route('inventory.index') }}" method="GET"
                         class="flex flex-wrap items-center gap-3 no-loader flex-1 justify-end">
-                        <!-- Search Input -->
-                        <div class="relative group w-full md:w-auto">
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Search medicine, batch..."
-                                class="h-10 w-full pl-11 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all shadow-sm">
-                            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-accent transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
+                        
+                        <!-- Status Filter -->
+                        <div class="relative w-full md:w-auto">
+                            <select name="status" id="status-filter"
+                                class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm w-full md:w-[130px]">
+                                <option value="">All Status</option>
+                                <option value="healthy" {{ request('status') == 'healthy' ? 'selected' : '' }}>Healthy</option>
+                                <option value="low_stock" {{ request('status') == 'low_stock' ? 'selected' : '' }}>Low Stock</option>
+                                <option value="near_expiry" {{ request('status') == 'near_expiry' ? 'selected' : '' }}>Near Expiry</option>
+                                <option value="expired" {{ request('status') == 'expired' ? 'selected' : '' }}>Expired</option>
+                            </select>
+                        </div>
+
+                        <!-- Category Selector -->
+                        <div class="relative w-full md:w-auto">
+                            <select name="category_id" id="category_id"
+                                class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm w-full md:w-[150px]">
+                                <option value="">All Categories</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
+                                        {{ $cat->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
 
                          @if(!auth()->user()->camp_id)
@@ -366,6 +380,18 @@
                             </select>
                         </div>
                         @endif
+
+                        <!-- Search Input -->
+                        <div class="relative group w-full md:w-auto">
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                placeholder="Search medicine, batch..."
+                                class="h-10 w-full pl-11 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all shadow-sm">
+                            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-accent transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
 
                         <button type="submit"
                             class="h-10 px-4 rounded-2xl bg-accent text-white text-xs font-bold hover:bg-opacity-90 transition-all shadow-md shadow-accent/20 flex items-center space-x-2">
@@ -446,7 +472,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
         // Data from Controller
-        const categoryData = @json($categoryChartData);
+        const medicineValueData = @json($medicineValueChartData);
         const warehouseData = @json($warehouseChartData);
         const trendData = @json($trendChartData);
 
@@ -459,14 +485,14 @@
             '#EF4444', '#06B6D4', '#F97316', '#84CC16', '#A855F7'
         ];
 
-        // 1. Category Value Chart (Doughnut) - Inventory Health
-        if (document.getElementById('categoryChart')) {
-            new Chart(document.getElementById('categoryChart'), {
+        // 1. Medicine Value Chart (Doughnut)
+        if (document.getElementById('medicineValueChart')) {
+            new Chart(document.getElementById('medicineValueChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: categoryData.map(d => d.name),
+                    labels: medicineValueData.map(d => d.name),
                     datasets: [{
-                        data: categoryData.map(d => d.value),
+                        data: medicineValueData.map(d => d.value),
                         backgroundColor: vibrantColors,
                         borderWidth: 0,
                         hoverOffset: 4
@@ -567,14 +593,25 @@
             });
             
             function initTomSelect() {
-                const el = document.getElementById('warehouse_id');
-                if (!el) return;
-                new TomSelect(el, {
-                    create: false,
-                    sortField: { field: "text", direction: "asc" },
-                    placeholder: "Store...",
-                    allowEmptyOption: true
-                });
+                const wh = document.getElementById('warehouse_id');
+                if (wh) {
+                    new TomSelect(wh, {
+                        create: false,
+                        sortField: { field: "text", direction: "asc" },
+                        placeholder: "Store...",
+                        allowEmptyOption: true
+                    });
+                }
+
+                const cat = document.getElementById('category_id');
+                if (cat) {
+                    new TomSelect(cat, {
+                        create: false,
+                        sortField: { field: "text", direction: "asc" },
+                        placeholder: "Category...",
+                        allowEmptyOption: true
+                    });
+                }
             }
             initTomSelect();
         }

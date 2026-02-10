@@ -13,6 +13,7 @@ use App\Models\MedicineDistributionItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Models\MedicineCategory;
 
 class InventoryController extends Controller
 {
@@ -279,6 +280,19 @@ class InventoryController extends Controller
         // Warehouses - pharmacists/OICs only see their camp
         $warehouses = $this->getAccessibleWarehouses($user);
 
+        // 8. Top Medicines by Value (Replaces Category Chart)
+        $medicineValueChartData = InventoryStock::query()
+            ->join('medicines', 'inventory_stocks.medicine_id', '=', 'medicines.id')
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('inventory_stocks.warehouse_id', $selectedWarehouseId);
+            })
+            ->selectRaw('medicines.name, SUM(inventory_stocks.quantity * (medicines.market_price / GREATEST(COALESCE(medicines.market_price_unit_count, 1), 1))) as value')
+            ->where('inventory_stocks.quantity', '>', 0)
+            ->groupBy('medicines.id', 'medicines.name')
+            ->orderByDesc('value')
+            ->take(10)
+            ->get();
+
         // Get medicine quantities for legacy chart - respect selected warehouse and exclusivity
         $medicineData = $this->getMedicineChartData($request, $selectedWarehouseId);
 
@@ -294,17 +308,21 @@ class InventoryController extends Controller
             })
             ->count();
 
+        // Fetch categories for the filter
+        $categories = MedicineCategory::orderBy('name')->get();
+
         return view('inventory.index', compact(
             'stocks',
             'lowStockMedicines',
             'warehouses',
+            'categories',
             'medicineData',
             'totalValue',
             'totalMedicines',
             'lowStockCount',
             'nearExpiryCount',
             'expiredCount',
-            'categoryChartData',
+            'medicineValueChartData',
             'warehouseChartData',
             'trendChartData',
             'topMovers',
@@ -1224,6 +1242,25 @@ class InventoryController extends Controller
                         ->where('other_stocks.warehouse_id', '!=', $selectedWarehouseId)
                         ->where('other_stocks.quantity', '>', 0);
                 });
+            }
+        }
+
+        if ($request->has('category_id') && $request->category_id != '') {
+            $query->whereHas('medicine', function ($q) use ($request) {
+                $q->where('category_id', $request->category_id);
+            });
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            $status = $request->status;
+            if ($status === 'low_stock') {
+                $query->whereHas('medicine', function ($q) {
+                    $q->whereRaw('inventory_stocks.quantity <= medicines.min_stock_level');
+                });
+            } elseif ($status === 'expired') {
+                $query->where('expiry_date', '<', now());
+            } elseif ($status === 'near_expiry') {
+                $query->whereBetween('expiry_date', [now(), now()->addDays(90)]);
             }
         }
 
