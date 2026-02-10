@@ -81,6 +81,8 @@
                     class="px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition">Camps</a>
                 <a href="{{ route('inventory.sponsors.index') }}"
                     class="px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition">Sponsors</a>
+                <a href="{{ route('inventory.medicines.index') }}"
+                    class="px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition">Medicine Registry</a>
                 @endif
                 <a href="{{ route('inventory.transactions') }}"
                     class="px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition">Logs</a>

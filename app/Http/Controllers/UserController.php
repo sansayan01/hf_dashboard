@@ -434,6 +434,9 @@ class UserController extends Controller
                 $rules['upline_designation'] = 'nullable|required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
                 $rules['upline_id'] = 'nullable|required_if:designation,office_in_charge|exists:users,id';
             }
+
+            // Post validation for Super Admin
+            $rules['post'] = 'nullable|required_if:designation,super_admin|string|max:255';
         }
 
         // Determine effective designation for validation
@@ -549,6 +552,7 @@ class UserController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'designation' => $designation,
+                'post' => ($designation === 'super_admin') ? $request->post : null,
                 'parent_id' => $parentId,
                 'status' => 'pending',
                 'is_office_in_charge' => ($designation === 'office_in_charge'),
@@ -800,6 +804,7 @@ class UserController extends Controller
             if ($currentUser->isSuperAdmin()) {
                 $rules['upline_designation'] = 'nullable|required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
                 $rules['upline_id'] = 'nullable|required_if:designation,office_in_charge|exists:users,id';
+                $rules['post'] = 'nullable|required_if:designation,super_admin|string|max:255';
             }
 
             $rules['can_create_users'] = 'nullable|boolean';
@@ -941,6 +946,11 @@ class UserController extends Controller
             // Update Camp ID for Pharmacists (Super Admin/Office In-Charge Only)
             if (($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) && $request->has('camp_id')) {
                 $userData['camp_id'] = $request->camp_id;
+            }
+
+            // Update Post for Super Admin
+            if ($currentUser->isSuperAdmin() && $request->has('post')) {
+                $userData['post'] = ($request->input('designation', $user->designation) === 'super_admin') ? $request->post : null;
             }
 
             $user->update($userData);

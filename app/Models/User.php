@@ -40,6 +40,7 @@ class User extends Authenticatable
         'email',
         'password',
         'designation',
+        'post',
         'parent_id',
         'status',
         'is_office_in_charge',

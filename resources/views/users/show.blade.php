@@ -32,7 +32,7 @@
                             </h2>
                             <span
                                 class="px-3 py-1 bg-accent/10 text-accent rounded-full text-[10px] font-black uppercase tracking-widest">
-                                {{ $user->getDesignationLabel() }}
+                                {{ $user->getDesignationLabel() }}{{ $user->post ? ' (' . $user->post . ')' : '' }}
                             </span>
                             @if($user->is_office_in_charge && $user->designation !== 'office_in_charge')
                                 <span

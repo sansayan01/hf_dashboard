@@ -97,6 +97,11 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div id="post-selection-wrapper" class="{{ $user->designation === 'super_admin' ? '' : 'hidden' }}">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Assign Post (Manual Entry)</label>
+                            <input type="text" name="post" id="post-input" value="{{ old('post', $user->post) }}" placeholder="e.g. Secretary, Vice President"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                        </div>
                         <div id="parent-selection-wrapper">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Reports To (Parent)</label>
                             <select name="parent_id" id="parent-select"
@@ -502,6 +507,14 @@
 
             // Function to populate parents based on designation
             function updateParents(designation) {
+                const postWrapper = document.getElementById('post-selection-wrapper');
+                if (postWrapper) {
+                    if (designation === 'super_admin') {
+                        postWrapper.classList.remove('hidden');
+                    } else {
+                        postWrapper.classList.add('hidden');
+                    }
+                }
                 parentSelect.innerHTML = '<option value="">Select Parent</option>';
 
                 @if(auth()->user()->isSuperAdmin())

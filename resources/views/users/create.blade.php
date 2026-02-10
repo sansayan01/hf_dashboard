@@ -33,6 +33,11 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div id="post-selection-wrapper" class="hidden">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Assign Post (Manual Entry)</label>
+                            <input type="text" name="post" id="post-input" value="{{ old('post') }}" placeholder="e.g. Secretary, Vice President"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
+                        </div>
                         <div id="parent-selection-wrapper" class="{{ request('type') === 'staff' ? 'hidden' : '' }}">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Assign Parent (Manager)</label>
                             <select name="parent_id" id="parent-select" {{ request('type') === 'staff' ? '' : 'required' }}
@@ -741,10 +746,18 @@
                 // Default state for Parent & Camp selection
                 const parentWrapper = document.getElementById('parent-selection-wrapper');
                 const campWrapper = document.getElementById('camp-selection-wrapper');
+                const postWrapper = document.getElementById('post-selection-wrapper');
                 const campSelect = document.getElementById('camp-select');
 
                 if (parentWrapper) parentWrapper.classList.remove('hidden');
                 if (campWrapper) campWrapper.classList.add('hidden');
+                if (postWrapper) {
+                    if (designation === 'super_admin') {
+                        postWrapper.classList.remove('hidden');
+                    } else {
+                        postWrapper.classList.add('hidden');
+                    }
+                }
                 if (campSelect) campSelect.required = false;
                 
                 if (parentSelect) {
