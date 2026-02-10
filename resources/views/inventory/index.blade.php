@@ -97,31 +97,153 @@
             </div>
         </div>
 
-        <!-- Medicine Quantity Chart -->
-        <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-8">
-            <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-6">Top 10 Medicines by Stock Quantity</h3>
-            <div class="flex flex-col md:flex-row items-center justify-center gap-8">
-                <div class="w-full md:w-1/2 max-w-md">
-                    <canvas id="medicineChart"></canvas>
+        <!-- Dashboard Summary Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Total Inventory Value -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute right-0 top-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-blue-500/20"></div>
+                <div>
+                    <h4 class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Inventory Value</h4>
+                    <div class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($totalValue, 2) }}</div>
                 </div>
-                <div class="w-full md:w-1/2">
-                    <div class="space-y-3">
-                        @foreach($medicineData as $index => $medicine)
-                            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-4 h-4 rounded-full chart-color-{{ $index }}"></div>
-                                    <span
-                                        class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ $medicine['name'] }}</span>
+                <div class="mt-4 flex items-center text-xs font-bold text-blue-500">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Asset Valuation
+                </div>
+            </div>
+
+            <!-- Total Medicines -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col justify-between relative overflow-hidden group">
+                 <div class="absolute right-0 top-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-purple-500/20"></div>
+                <div>
+                    <h4 class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Medicines</h4>
+                    <div class="text-3xl font-black text-slate-800 dark:text-white">{{ number_format($totalMedicines) }}</div>
+                </div>
+                 <div class="mt-4 flex items-center text-xs font-bold text-purple-500">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    Active Stock Batches
+                </div>
+            </div>
+
+            <!-- Low Stock Alerts -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col justify-between relative overflow-hidden group">
+                 <div class="absolute right-0 top-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-amber-500/20"></div>
+                <div>
+                    <h4 class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Low Stock Alerts</h4>
+                    <div class="text-3xl font-black text-slate-800 dark:text-white">{{ number_format($lowStockCount) }}</div>
+                </div>
+                 <div class="mt-4 flex items-center text-xs font-bold text-amber-500">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Below Minimum Level
+                </div>
+            </div>
+
+             <!-- Expiry Alerts -->
+             <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col justify-between relative overflow-hidden group">
+                 <div class="absolute right-0 top-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-red-500/20"></div>
+                <div>
+                    <h4 class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Expiry Issues</h4>
+                    <div class="flex items-baseline space-x-2">
+                        <div class="text-3xl font-black text-slate-800 dark:text-white">{{ number_format($expiredCount) }}</div>
+                        <div class="text-xs font-bold text-red-500">Expired</div>
+                    </div>
+                </div>
+                 <div class="mt-4 flex items-center text-xs font-bold text-slate-500">
+                    <span class="text-amber-500 font-bold mr-1">{{ $nearExpiryCount }}</span> Expiring Soon (&lt; 3 Months)
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left: Category Distribution -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6">
+                <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-6">Value by Category</h3>
+                <div class="relative h-64 w-full">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Middle: Warehouse Distribution -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6">
+                 <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-6">Warehouse Value</h3>
+                 <div class="relative h-64 w-full">
+                    <canvas id="warehouseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Right: Activity Trend -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6">
+                 <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-6">30-Day Activity</h3>
+                 <div class="relative h-64 w-full">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Tracking Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Top Moving Items -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-slate-800 dark:text-white">Top 5 Moving Items (30 Days)</h3>
+                    <span class="px-2 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded text-[10px] font-bold uppercase">Most Dispensed</span>
+                </div>
+                <div class="divide-y divide-slate-100 dark:divide-white/5">
+                    @forelse($topMovers as $item)
+                        <div class="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs">
+                                    {{ $loop->iteration }}
                                 </div>
-                                <div class="text-right">
-                                    <div class="text-lg font-black text-slate-800 dark:text-white">
-                                        {{ number_format($medicine['quantity']) }}
-                                    </div>
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase">{{ $medicine['unit'] }}s</div>
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-white text-sm">{{ $item->medicine->name ?? 'Unknown' }}</div>
+                                    <div class="text-[10px] text-slate-500 font-bold">{{ $item->medicine->category->name ?? 'Medicine' }}</div>
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
+                            <div class="text-right">
+                                <div class="font-black text-slate-800 dark:text-white">{{ number_format($item->total_qty) }}</div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase">Dispensed</div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="p-8 text-center text-slate-500 font-bold text-xs">No dispensing activity in the last 30 days.</div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Recent Activity Feed -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+                 <div class="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-slate-800 dark:text-white">Recent Activity Log</h3>
+                    <a href="{{ route('inventory.transactions') }}" class="text-xs font-bold text-accent hover:underline">View All</a>
+                </div>
+                <div class="divide-y divide-slate-100 dark:divide-white/5">
+                    @forelse($recentActivity as $activity)
+                        <div class="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition">
+                             <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs
+                                    {{ $activity->type === 'in' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 
+                                       ($activity->type === 'out' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400' : 
+                                       'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400') }}">
+                                    {{ substr(strtoupper($activity->type), 0, 1) }}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-white text-sm">
+                                        {{ ucfirst($activity->type) }} 
+                                        <span class="font-normal text-slate-500">
+                                            {{ $activity->quantity }} x {{ $activity->stock->medicine->name ?? 'Unknown item' }}
+                                        </span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 font-bold">
+                                        by {{ $activity->user->profile->full_name ?? $activity->user->employee_id }} • {{ $activity->created_at->diffForHumans() }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                         <div class="p-8 text-center text-slate-500 font-bold text-xs">No recent items found.</div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -299,79 +421,140 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
-        const medicineData = @json($medicineData);
+        // Data from Controller
+        const categoryData = @json($categoryChartData);
+        const warehouseData = @json($warehouseChartData);
+        const trendData = @json($trendChartData);
 
-        // Generate vibrant colors for each medicine
-        const colors = [
-            '#8B5CF6', // Purple
-            '#EC4899', // Pink
-            '#F59E0B', // Amber
-            '#10B981', // Emerald
-            '#3B82F6', // Blue
-            '#EF4444', // Red
-            '#06B6D4', // Cyan
-            '#F97316', // Orange
-            '#84CC16', // Lime
-            '#A855F7', // Violet
+        // Chart Configuration Defaults
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.scale.grid.color = 'rgba(148, 163, 184, 0.1)';
+
+        const vibrantColors = [
+            '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', 
+            '#EF4444', '#06B6D4', '#F97316', '#84CC16', '#A855F7'
         ];
 
-        // Apply colors to legend items
-        medicineData.forEach((medicine, index) => {
-            const colorElements = document.querySelectorAll(`.chart-color-${index}`);
-            colorElements.forEach(el => {
-                el.style.backgroundColor = colors[index % colors.length];
-            });
-        });
-
-        // Create donut chart
-        const ctx = document.getElementById('medicineChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: medicineData.map(m => m.name),
-                datasets: [{
-                    data: medicineData.map(m => m.quantity),
-                    backgroundColor: colors.slice(0, medicineData.length),
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        titleFont: {
-                            size: 14,
-                            weight: 'bold'
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
-                        callbacks: {
-                            label: function (context) {
-                                const label = context.label || '';
-                                const value = context.parsed || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((value / total) * 100).toFixed(1);
-                                const unit = medicineData[context.dataIndex].unit;
-                                return `${label}: ${value.toLocaleString()} ${unit}s (${percentage}%)`;
+        // 1. Category Value Chart (Doughnut)
+        if (document.getElementById('categoryChart')) {
+            new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: categoryData.map(d => d.name),
+                    datasets: [{
+                        data: categoryData.map(d => d.value),
+                        backgroundColor: vibrantColors,
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed !== null) {
+                                        label += '₹' + new Intl.NumberFormat('en-IN').format(context.parsed);
+                                    }
+                                    return label;
+                                }
                             }
                         }
-                    }
-                },
-                cutout: '65%',
-                animation: {
-                    animateRotate: true,
-                    animateScale: true
+                    },
+                    cutout: '65%',
                 }
-            }
-        });
+            });
+        }
+
+        // 2. Warehouse Value Chart (Bar)
+        if (document.getElementById('warehouseChart')) {
+            new Chart(document.getElementById('warehouseChart'), {
+                type: 'bar',
+                data: {
+                    labels: warehouseData.map(d => d.name),
+                    datasets: [{
+                        label: 'Stock Value',
+                        data: warehouseData.map(d => d.value),
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 8,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Value: ₹' + new Intl.NumberFormat('en-IN').format(context.parsed.x);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false }, // Hide X axis labels for cleaner look
+                        y: { 
+                            grid: { display: false },
+                            ticks: { font: { weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. Activity Trend Chart (Line)
+        if (document.getElementById('trendChart')) {
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: trendData.labels,
+                    datasets: [
+                        {
+                            label: 'Dispensed',
+                            data: trendData.dispense,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4
+                        },
+                        {
+                            label: 'Stock In',
+                            data: trendData.in,
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', align: 'end', labels: { boxWidth: 8, usePointStyle: true } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: true, borderDash: [4, 4] } },
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }
+                    }
+                }
+            });
+        }
 
         // AJAX Filtering for Inventory
         const filterForm = document.getElementById('inventory-filter-form');
