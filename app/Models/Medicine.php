@@ -43,6 +43,11 @@ class Medicine extends Model
         return $this->hasMany(InventoryStock::class);
     }
 
+    public function distributionItems()
+    {
+        return $this->hasMany(MedicineDistributionItem::class, 'medicine_id');
+    }
+
     public function getTotalStockAttribute()
     {
         return $this->stocks()->sum('quantity');

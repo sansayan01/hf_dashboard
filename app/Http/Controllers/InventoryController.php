@@ -228,11 +228,71 @@ class InventoryController extends Controller
             $medicine->coverage_days = $avgDaily > 0 ? round($currentStock / $avgDaily) : 999; // 999 = infinite/no usage
         });
 
+        // 7. Today's Metrics & Financials
+        $todaySales = MedicineDistribution::whereDate('created_at', now())
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('camp_id', $selectedWarehouseId);
+            })
+            ->sum('final_amount');
+
+        // Today's Stock In Value (Purchases/Received)
+        $todayPurchasesRaw = InventoryTransaction::where('type', 'in')
+            ->whereDate('created_at', now())
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('warehouse_id', $selectedWarehouseId);
+            })
+            ->with('stock.medicine')
+            ->get();
+
+        $todayPurchases = 0;
+        foreach ($todayPurchasesRaw as $tx) {
+            $med = $tx->stock->medicine;
+            if ($med && $med->market_price_unit_count > 0) {
+                $unitPrice = $med->market_price / $med->market_price_unit_count;
+                $todayPurchases += $unitPrice * $tx->quantity;
+            }
+        }
+
+        // Payment Overview (All Time or filtered by date if needed, usually dashboard shows current snapshot or recent)
+        // Let's show Today's Payment Balance for the "Payment Overview" widget
+        $paymentMethods = [];
+        $receivables = 0;
+
+        if (Schema::hasColumn('medicine_distributions', 'payment_method')) {
+            $paymentMethods = MedicineDistribution::whereDate('created_at', now())
+                ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                    return $q->where('camp_id', $selectedWarehouseId);
+                })
+                ->select('payment_method', DB::raw('sum(final_amount) as total'))
+                ->groupBy('payment_method')
+                ->pluck('total', 'payment_method')
+                ->toArray();
+
+            // Receivables (Total Unpaid/Credit)
+            $receivables = MedicineDistribution::whereIn('payment_method', ['credit', 'due', 'later'])
+                ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                    return $q->where('camp_id', $selectedWarehouseId);
+                })
+                ->sum('final_amount');
+        }
+
         // Warehouses - pharmacists/OICs only see their camp
         $warehouses = $this->getAccessibleWarehouses($user);
 
         // Get medicine quantities for legacy chart - respect selected warehouse and exclusivity
         $medicineData = $this->getMedicineChartData($request, $selectedWarehouseId);
+
+        // Dead Stock: Medicines with stock but no sales in last 90 days
+        $deadStockCount = Medicine::whereHas('stocks', function ($q) use ($selectedWarehouseId) {
+            $q->where('quantity', '>', 0);
+            if ($selectedWarehouseId) {
+                $q->where('warehouse_id', $selectedWarehouseId);
+            }
+        })
+            ->whereDoesntHave('distributionItems', function ($q) {
+                $q->where('created_at', '>=', now()->subDays(90));
+            })
+            ->count();
 
         return view('inventory.index', compact(
             'stocks',
@@ -248,7 +308,12 @@ class InventoryController extends Controller
             'warehouseChartData',
             'trendChartData',
             'topMovers',
-            'recentActivity'
+            'recentActivity',
+            'todaySales',
+            'todayPurchases',
+            'paymentMethods',
+            'receivables',
+            'deadStockCount'
         ));
     }
 
@@ -1172,7 +1237,7 @@ class InventoryController extends Controller
             });
         }
 
-        return $query->orderBy('expiry_date')->get()
+        $collection = $query->orderBy('expiry_date')->get()
             ->groupBy(function ($stock) {
                 return $stock->medicine_id . '-' . $stock->warehouse_id . '-' . $stock->batch_number . '-' . $stock->expiry_date->format('Y-m-d');
             })
@@ -1181,6 +1246,18 @@ class InventoryController extends Controller
                 $mainStock->quantity = $group->sum('quantity');
                 return $mainStock;
             })->values();
+
+        $page = $request->input('page', 1);
+        $perPage = 15;
+        $sliced = $collection->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $sliced,
+            $collection->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
     }
 
     private function getLowStockMedicines(Request $request, $selectedWarehouseId)
