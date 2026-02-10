@@ -215,86 +215,145 @@
             </div>
         </div>
 
-        <!-- 4. Inventory Health, Top Performance, Payment Overview -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Top Medicines by Value (Was Inventory Health) -->
+        <!-- 4. Advanced Analytics & Trackers -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- 1. Stock Health Overview (New) -->
             <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
-                 <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-6">Top Medicines (By Value)</h3>
+                <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Batch Health Status</h3>
+                <div class="flex-1 flex flex-col justify-center">
+                    <div class="relative h-52 w-full">
+                        <canvas id="batchHealthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Top Medicines by Value -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
+                 <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Top Medicines (Value)</h3>
                  <div class="flex-1 flex flex-col justify-center">
-                      <div class="relative h-48 w-full mb-4">
+                      <div class="relative h-52 w-full mb-4">
                         <canvas id="medicineValueChart"></canvas>
-                     </div>
-                     <div class="grid grid-cols-2 gap-4 mt-4">
-                         <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-3 text-center">
-                             <div class="text-xs font-bold text-slate-400 uppercase">Fast Moving</div>
-                             <div class="font-black text-slate-800 dark:text-white">{{ $topMovers->count() }} Items</div>
-                         </div>
-                          <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-3 text-center">
-                             <div class="text-xs font-bold text-slate-400 uppercase">Dead Stock</div>
-                             <div class="font-black text-slate-800 dark:text-white">{{ $deadStockCount }}</div>
-                         </div>
-                     </div>
+                      </div>
+                      <div class="text-center">
+                          <span class="text-[10px] font-bold text-slate-400">Total Asset Value: ₹{{ number_format($totalValue, 0) }}</span>
+                      </div>
                  </div>
             </div>
 
-            <!-- Top Performance List -->
+             <!-- 3. Category Distribution (Quantity) -->
+             <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
+                <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Category Mix (Qty)</h3>
+                <div class="flex-1 flex flex-col justify-center">
+                    <div class="relative h-52 w-full">
+                        <canvas id="categoryQtyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Expiry Timeline -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
+                <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Expiry Timeline</h3>
+                <div class="flex-1 flex flex-col justify-center">
+                    <div class="relative h-52 w-full">
+                        <canvas id="expiryBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Sponsor Insights (New) -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
+                <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Top Sponsors (Value)</h3>
+                <div class="flex-1 flex flex-col justify-center">
+                    <div class="relative h-52 w-full">
+                        <canvas id="sponsorChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Top Performance List -->
             <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden flex flex-col">
                 <div class="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
-                    <h3 class="font-bold text-lg text-slate-800 dark:text-white">Top Performance</h3>
-                    <span class="px-2 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded text-[10px] font-bold uppercase">Medicines</span>
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-white uppercase tracking-wider">Top Moving</h3>
+                    <span class="px-2 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded text-[10px] font-bold uppercase">30 Days</span>
                 </div>
-                 <div class="divide-y divide-slate-100 dark:divide-white/5 overflow-y-auto max-h-[300px]">
+                 <div class="divide-y divide-slate-100 dark:divide-white/5 overflow-y-auto h-52 scrollbar-none">
                     @forelse($topMovers as $item)
                         <div class="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs">
+                                <div class="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-[10px]">
                                     {{ $loop->iteration }}
                                 </div>
                                 <div>
-                                    <div class="font-bold text-slate-800 dark:text-white text-sm">{{ $item->medicine->name ?? 'Unknown' }}</div>
-                                    <div class="text-[10px] text-slate-500 font-bold">
+                                    <div class="font-bold text-slate-800 dark:text-white text-[11px] truncate w-24">{{ $item->medicine->name ?? 'Unknown' }}</div>
+                                    <div class="text-[9px] text-slate-400 font-bold uppercase">
                                         {{ $item->medicine->category->name ?? 'N/A' }}
                                     </div>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="font-black text-slate-800 dark:text-white">{{ number_format($item->total_qty) }}</div>
-                                <div class="text-[10px] font-bold text-slate-400 uppercase">Dispensed</div>
+                                <div class="font-black text-slate-800 dark:text-white text-xs">{{ number_format($item->total_qty) }}</div>
+                                <div class="text-[8px] font-bold {{ $item->coverage_days < 7 ? 'text-red-500' : 'text-slate-400' }} uppercase">
+                                    {{ $item->coverage_days > 90 ? 'Safe' : ($item->coverage_days . ' Days Left') }}
+                                </div>
                             </div>
                         </div>
                     @empty
-                        <div class="p-8 text-center text-slate-500 font-bold text-xs">No enough data regarding moving items.</div>
+                        <div class="p-8 text-center text-slate-500 font-bold text-[10px]">No data.</div>
                     @endforelse
                 </div>
             </div>
+        </div>
 
-            <!-- Payment Overview & Warehouse Value -->
-            <div class="flex flex-col gap-6">
-                 <!-- Payment Overview Widget -->
-                <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6">
-                     <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-4">Payment Overview</h3>
-                     <div class="space-y-3">
-                        @foreach($paymentMethods as $method => $amount)
-                        <div class="flex items-center justify-between">
-                             <div class="flex items-center space-x-2">
-                                 <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                 <span class="text-sm font-bold text-slate-600 dark:text-slate-300 capitalize">{{ $method ?: 'Cash' }}</span>
-                             </div>
-                             <span class="text-sm font-black text-slate-800 dark:text-white">₹{{ number_format($amount) }}</span>
-                        </div>
-                        @endforeach
-                        @if(empty($paymentMethods))
-                             <div class="text-center text-slate-400 text-xs font-bold py-2">No payments recorded today</div>
-                        @endif
-                     </div>
+        <!-- 5. Secondary Row: Financials & Warehouses -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Payment Methods Distribution -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-white uppercase tracking-wider">Income Streams</h3>
+                    <span class="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded">Today</span>
                 </div>
-
-                <!-- Warehouse Value Mini Chart -->
-                <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex-1">
-                     <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-2">Warehouse Value</h3>
-                     <div class="relative h-32 w-full">
-                        <canvas id="warehouseChart"></canvas>
+                <div class="flex items-center gap-4">
+                    <div class="relative h-32 w-32 shrink-0">
+                        <canvas id="paymentPieChart"></canvas>
                     </div>
+                    <div class="flex-1 space-y-2">
+                        @foreach($paymentMethods as $method => $amount)
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="font-bold text-slate-500 capitalize">{{ $method ?: 'Cash' }}</span>
+                                <span class="font-black text-slate-800 dark:text-white">₹{{ number_format($amount) }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warehouse Value Comparison -->
+            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6">
+                <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Stock Concentration</h3>
+                <div class="relative h-32 w-full">
+                    <canvas id="warehouseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Inventory Summary Text/Quick Data -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-xl shadow-blue-500/20 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-sm uppercase tracking-wider opacity-80 mb-4">Stock Health Index</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-end border-b border-white/10 pb-2">
+                             <span class="text-xs font-bold opacity-70">Dead Stock (90d)</span>
+                             <span class="text-xl font-black">{{ $deadStockCount }} Items</span>
+                        </div>
+                        <div class="flex justify-between items-end border-b border-white/10 pb-2">
+                             <span class="text-xs font-bold opacity-70">Daily Turnover</span>
+                             <span class="text-xl font-black">₹{{ number_format($todaySales, 0) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">System Health Optimized</span>
                 </div>
             </div>
         </div>
@@ -484,6 +543,11 @@
         const medicineValueData = @json($medicineValueChartData);
         const warehouseData = @json($warehouseChartData);
         const trendData = @json($trendChartData);
+        const expiryData = @json($expiryBreakdown);
+        const categoryQtyData = @json($categoryQtyChartData);
+        const paymentData = @json($paymentMethods);
+        const sponsorData = @json($sponsorChartData);
+        const batchHealthData = @json($batchHealthData);
 
         Chart.defaults.font.family = "'Outfit', sans-serif";
         Chart.defaults.color = '#94a3b8';
@@ -520,7 +584,131 @@
                             }
                         }
                     },
-                    cutout: '75%',
+                    cutout: '70%', // Slightly thicker donut
+                }
+            });
+        }
+
+        // --- NEW CHARTS ---
+
+        // 2. Expiry Breakdown Chart (Horizontal Bar)
+        if (document.getElementById('expiryBreakdownChart')) {
+            new Chart(document.getElementById('expiryBreakdownChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Next 30 Days', '31-60 Days', '61-90 Days'],
+                    datasets: [{
+                        data: [expiryData['30_days'], expiryData['60_days'], expiryData['90_days']],
+                        backgroundColor: ['#EF4444', '#F59E0B', '#3B82F6'],
+                        borderRadius: 4,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: true, grid: { display: false } },
+                        y: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        // 3. Category Mix by Quantity (Doughnut)
+        if (document.getElementById('categoryQtyChart')) {
+            new Chart(document.getElementById('categoryQtyChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: categoryQtyData.map(d => d.name),
+                    datasets: [{
+                        data: categoryQtyData.map(d => d.value),
+                        backgroundColor: vibrantColors.slice().reverse(),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: true }
+                    },
+                    cutout: '60%',
+                }
+            });
+        }
+
+        // 4. Payment Pie Chart (Pie)
+        if (document.getElementById('paymentPieChart')) {
+            const labels = Object.keys(paymentData).map(k => k || 'Cash');
+            const data = Object.values(paymentData);
+            
+            new Chart(document.getElementById('paymentPieChart'), {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // 5. Sponsor Chart (Bar)
+        if (document.getElementById('sponsorChart')) {
+             new Chart(document.getElementById('sponsorChart'), {
+                type: 'bar',
+                data: {
+                    labels: sponsorData.map(d => d.name),
+                    datasets: [{
+                        label: 'Value',
+                        data: sponsorData.map(d => d.value),
+                        backgroundColor: '#8B5CF6',
+                        borderRadius: 4,
+                        barThickness: 16
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 9, weight: 'bold' } } },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+
+        // 6. Batch Health Chart (Doughnut)
+        if (document.getElementById('batchHealthChart')) {
+            new Chart(document.getElementById('batchHealthChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Healthy', 'Near Expiry', 'Expired'],
+                    datasets: [{
+                        data: [batchHealthData['Healthy'], batchHealthData['Near Expiry'], batchHealthData['Expired']],
+                        backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 8, usePointStyle: true, font: {size: 10} } }
+                    },
+                    cutout: '50%',
                 }
             });
         }

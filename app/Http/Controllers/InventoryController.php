@@ -310,6 +310,91 @@ class InventoryController extends Controller
         // Fetch categories for the filter
         $categories = MedicineCategory::orderBy('name')->get();
 
+        // 9. Expiry Breakdown (Next 30, 60, 90 Days)
+        $expiryBreakdown = [
+            '30_days' => 0,
+            '60_days' => 0,
+            '90_days' => 0,
+        ];
+
+        $now = now();
+        $thirtyDays = now()->addDays(30);
+        $sixtyDays = now()->addDays(60);
+        $ninetyDays = now()->addDays(90);
+
+        foreach ($allAggregatedStocks as $stock) {
+            if ($stock->quantity > 0) {
+                if ($stock->expiry_date->gt($now)) {
+                    if ($stock->expiry_date->lte($thirtyDays)) {
+                        $expiryBreakdown['30_days']++;
+                    } elseif ($stock->expiry_date->lte($sixtyDays)) {
+                        $expiryBreakdown['60_days']++;
+                    } elseif ($stock->expiry_date->lte($ninetyDays)) {
+                        $expiryBreakdown['90_days']++;
+                    }
+                }
+            }
+        }
+
+        // 10. Category Distribution by Quantity
+        $categoryQtyDataRaw = [];
+        foreach ($allAggregatedStocks as $stock) {
+            if ($stock->medicine && $stock->medicine->category) {
+                $catName = $stock->medicine->category->name;
+                if (!isset($categoryQtyDataRaw[$catName])) {
+                    $categoryQtyDataRaw[$catName] = 0;
+                }
+                $categoryQtyDataRaw[$catName] += $stock->quantity;
+            }
+        }
+        $categoryQtyChartData = collect($categoryQtyDataRaw)
+            ->map(function ($value, $key) {
+                return ['name' => $key, 'value' => $value];
+            })->sortByDesc('value')->take(5)->values();
+
+        // 11. Sponsor Analytics (Top 5 by Value)
+        $sponsorData = [];
+        // Grouping by sponsor from the aggregated stock list
+        // Note: This relies on stocks having valid sponsor_ids (ensured by ensureStockSponsors)
+        foreach ($allAggregatedStocks as $stock) {
+            $sponsorName = $stock->sponsor->name ?? 'Direct Purchase/Unknown';
+            if (!isset($sponsorData[$sponsorName])) {
+                $sponsorData[$sponsorName] = 0;
+            }
+            $unitPrice = ($stock->medicine && $stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
+                ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
+                : 0;
+            $sponsorData[$sponsorName] += $unitPrice * $stock->quantity;
+        }
+
+        $sponsorChartData = collect($sponsorData)
+            ->map(function ($value, $key) {
+                return ['name' => $key, 'value' => round($value, 2)];
+            })
+            ->sortByDesc('value')
+            ->take(5)
+            ->values();
+
+        // 12. Batch Health Status (Chart Data)
+        // Categorize every single batch into Healthy, Near Expiry, Expired
+        $batchHealthData = [
+            'Healthy' => 0,
+            'Near Expiry' => 0,
+            'Expired' => 0
+        ];
+
+        foreach ($allAggregatedStocks as $stock) {
+            if ($stock->quantity > 0) {
+                if ($stock->expiry_date->isPast()) {
+                    $batchHealthData['Expired']++;
+                } elseif ($stock->expiry_date->lte($threeMonthsFromNow)) {
+                    $batchHealthData['Near Expiry']++;
+                } else {
+                    $batchHealthData['Healthy']++;
+                }
+            }
+        }
+
         // --- Final Result for the View (Table) ---
         $stocks = $allAggregatedStocks;
 
@@ -333,7 +418,11 @@ class InventoryController extends Controller
             'todayPurchases',
             'paymentMethods',
             'receivables',
-            'deadStockCount'
+            'deadStockCount',
+            'expiryBreakdown',
+            'categoryQtyChartData',
+            'sponsorChartData',
+            'batchHealthData'
         ));
     }
 
