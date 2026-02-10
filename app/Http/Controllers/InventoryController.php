@@ -1186,6 +1186,64 @@ class InventoryController extends Controller
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+    /**
+     * Show stock adjustment form.
+     */
+    public function adjust(InventoryStock $stock)
+    {
+        $stock->load(['medicine', 'warehouse', 'sponsor']);
+        return view('inventory.adjust', compact('stock'));
+    }
+
+    /**
+     * Process stock adjustment.
+     */
+    public function processAdjust(Request $request, InventoryStock $stock)
+    {
+        $validated = $request->validate([
+            'new_quantity' => 'required|integer|min:0',
+            'notes' => 'required|string|max:255',
+        ]);
+
+        try {
+            DB::transaction(function () use ($stock, $validated) {
+                $oldQty = $stock->quantity;
+                $newQty = $validated['new_quantity'];
+                $diff = $newQty - $oldQty;
+
+                if ($diff == 0) {
+                    return;
+                }
+
+                // Update stock quantity
+                $stock->update(['quantity' => $newQty]);
+
+                // Log adjustment transaction
+                $transactionData = [
+                    'stock_id' => $stock->id,
+                    'type' => 'adjustment',
+                    'quantity' => abs($diff),
+                    'user_id' => auth()->id(),
+                    'notes' => ($diff > 0 ? 'Stock Increased: ' : 'Stock Decreased: ') . $validated['notes'] . " (Original: $oldQty, New: $newQty)",
+                ];
+
+                if (Schema::hasColumn('inventory_transactions', 'warehouse_id')) {
+                    $transactionData['warehouse_id'] = $stock->warehouse_id;
+                }
+                if (Schema::hasColumn('inventory_transactions', 'sponsor_id')) {
+                    $transactionData['sponsor_id'] = $stock->sponsor_id;
+                }
+
+                InventoryTransaction::create($transactionData);
+            });
+
+            return redirect()->route('inventory.index')
+                ->with('success', 'Stock adjusted successfully.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
     private function resolveSelectedWarehouseId($user, Request $request)
     {
         if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {

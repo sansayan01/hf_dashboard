@@ -443,12 +443,20 @@
                                         <span class="text-[9px] text-slate-400 block">{{ $stock->medicine?->unit }}</span>
                                     </td>
                                     <td class="p-4 text-right">
-                                        <a href="{{ route('inventory.transfer', ['stock_id' => $stock->id]) }}"
-                                            class="text-slate-400 hover:text-accent transition">
-                                            <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                            </svg>
-                                        </a>
+                                        <div class="flex items-center justify-end space-x-2">
+                                            <a href="{{ route('inventory.adjust', $stock->id) }}"
+                                                class="text-slate-400 hover:text-accent transition" title="Manual Adjustment">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </a>
+                                            <a href="{{ route('inventory.transfer', ['stock_id' => $stock->id]) }}"
+                                                class="text-slate-400 hover:text-accent transition" title="Transfer Stock">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                                </svg>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

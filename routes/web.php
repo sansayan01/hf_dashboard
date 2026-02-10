@@ -178,6 +178,10 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/transfer', [App\Http\Controllers\InventoryController::class, 'transfer'])->name('transfer');
         Route::post('/transfer', [App\Http\Controllers\InventoryController::class, 'processTransfer'])->name('process-transfer');
 
+        // Stock Adjustment
+        Route::get('/stocks/{stock}/adjust', [App\Http\Controllers\InventoryController::class, 'adjust'])->name('adjust');
+        Route::post('/stocks/{stock}/adjust', [App\Http\Controllers\InventoryController::class, 'processAdjust'])->name('process-adjust');
+
         // Medicine CRUD
         Route::prefix('medicines')->name('medicines.')->group(function () {
             Route::get('/', [App\Http\Controllers\MedicineController::class, 'index'])->name('index');
