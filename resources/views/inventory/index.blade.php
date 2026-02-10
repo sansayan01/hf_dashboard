@@ -460,9 +460,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="p-4 border-t border-slate-100 dark:border-white/5">
-                    {{ $stocks->links() }}
-                </div>
+
             </div>
          </div>
          

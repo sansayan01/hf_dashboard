@@ -310,16 +310,8 @@ class InventoryController extends Controller
         // Fetch categories for the filter
         $categories = MedicineCategory::orderBy('name')->get();
 
-        // --- Final Result Pagination for the View (Table) ---
-        $page = $request->input('page', 1);
-        $perPage = 15;
-        $stocks = new \Illuminate\Pagination\LengthAwarePaginator(
-            $allAggregatedStocks->slice(($page - 1) * $perPage, $perPage)->values(),
-            $allAggregatedStocks->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
+        // --- Final Result for the View (Table) ---
+        $stocks = $allAggregatedStocks;
 
         return view('inventory.index', compact(
             'stocks',
@@ -1284,7 +1276,7 @@ class InventoryController extends Controller
             });
         }
 
-        return $query->orderBy('expiry_date')->get()
+        return $query->get()
             ->groupBy(function ($stock) {
                 return $stock->medicine_id . '-' . $stock->warehouse_id . '-' . $stock->batch_number . '-' . $stock->expiry_date->format('Y-m-d');
             })
@@ -1292,7 +1284,11 @@ class InventoryController extends Controller
                 $mainStock = $group->first();
                 $mainStock->quantity = $group->sum('quantity');
                 return $mainStock;
-            })->values();
+            })
+            ->sortBy(function ($stock) {
+                return $stock->medicine->name ?? '';
+            })
+            ->values();
     }
 
     private function getLowStockMedicines(Request $request, $selectedWarehouseId)
