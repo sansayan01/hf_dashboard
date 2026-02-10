@@ -328,152 +328,138 @@
                         </div>
                     </div>
 
-                    <!-- UPI Payment Section (Primary) -->
-                    <div id="upi-payment-section">
-                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-6">
+                    <!-- Payment Mode Selection -->
+                    <div id="payment-mode-section" class="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Payment Mode</label>
+                        <div class="relative">
+                            <select id="payment-mode-select"
+                                class="w-full h-12 pl-4 pr-10 rounded-xl border border-slate-200 bg-white text-sm font-bold focus:ring-2 focus:ring-accent/50 outline-none transition appearance-none">
+                                <option value="" disabled>Choose Payment Mode...</option>
+                                <option value="upi_app">📱 Pay via UPI App</option>
+                                <option value="upi_qr" selected>📷 Scan QR Code</option>
+                                <option value="coupon">🎟️ Redeem Coupon Code</option>
+                            </select>
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UPI Payment Wrapper -->
+                    <div id="upi-payment-wrapper" class="hidden">
+                        
+                        <!-- UPI App Container -->
+                        <div id="upi-app-container" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-8 mb-8">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 <div>
-                                    <p class="text-sm font-medium text-slate-500">Pay via UPI</p>
-                                    <p class="text-xs text-slate-400 mt-1">Click the button below to open your UPI app</p>
+                                    <h5 class="font-black text-slate-800 text-sm uppercase tracking-wider">Pay via UPI App</h5>
+                                    <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Click the button below to open your UPI app</p>
                                 </div>
-                                
-                                <a id="upi-pay-button" href="#" class="inline-flex items-center px-6 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                                    <svg class="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
-                                        <path d="M11 7H13V13H11V7ZM11 15H13V17H11V15Z" fill="currentColor"/>
+
+                                <a id="upi-pay-link" href="#"
+                                    class="inline-flex items-center px-10 py-5 bg-accent text-white font-black rounded-2xl shadow-xl shadow-accent/25 hover:shadow-accent/40 hover:-translate-y-1 transition-all group">
+                                    <svg class="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" viewBox="0 0 24 24"
+                                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor" />
+                                        <path d="M11 7H13V13H11V7ZM11 15H13V17H11V15Z" fill="currentColor" />
                                     </svg>
                                     Pay using UPI App
                                 </a>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Coupon Code Toggle Link -->
-                    <div class="text-center mb-6">
-                        <button type="button" onclick="toggleCouponSection()" id="coupon-toggle-btn" 
-                            class="group text-sm text-accent hover:text-accent/80 font-bold inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/5 hover:bg-accent/10 border border-accent/20 transition-all duration-300">
-                            <span class="p-1 bg-accent/10 rounded-full group-hover:bg-accent/20 transition-all">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
-                                </svg>
-                            </span>
-                            <span>Redeem Coupon Code</span>
-                            <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Coupon Code Section (Hidden by default) -->
-                    <div id="coupon-code-section" class="hidden relative group/coupon mb-8">
-                        <!-- Background Glow Effect -->
-                        <div class="absolute -inset-1 bg-gradient-to-r from-accent/20 to-purple-500/20 rounded-[2rem] blur-xl opacity-50 group-hover/coupon:opacity-100 transition duration-500"></div>
                         
-                        <div class="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl p-6 shadow-2xl shadow-accent/5 overflow-hidden">
-                            <!-- Background Pattern -->
-                            <div class="absolute top-0 right-0 -m-4 w-24 h-24 bg-accent/5 rounded-full blur-3xl"></div>
-                            
+                        <!-- QR Code Container -->
+                        <div id="upi-qr-container" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-8 mb-8">
+                            <div class="p-6 bg-white rounded-xl border-2 border-dashed border-accent/30 max-w-sm mx-auto">
+                                <div class="text-center">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Scan QR Code to Pay</p>
+                                    <div id="qr-code" class="inline-block p-4 bg-white rounded-xl shadow-lg"></div>
+                                    <div class="mt-4 space-y-1">
+                                        <p class="text-xs text-slate-500">UPI ID: <span class="font-bold text-slate-700">9735563157-4@ybl</span></p>
+                                        <p class="text-xs text-slate-500">Amount: <span class="font-black text-accent text-lg">₹<span id="qr-amount-display">199.00</span></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Coupon Code Section -->
+                    <div id="coupon-code-section" class="hidden relative group/coupon mb-8 max-w-2xl mx-auto">
+                        <div class="relative bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl">
                             <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center space-x-3">
-                                    <div class="p-2.5 bg-accent/10 dark:bg-accent/10 rounded-xl">
-                                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-black text-slate-800 dark:text-white text-sm uppercase tracking-wider">Coupon Redemption</h4>
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Enter your unique 12-digit code</p>
-                                    </div>
-                                </div>
-                                <button type="button" onclick="toggleCouponSection()" 
-                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-300">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
+                                <h4 class="font-black text-slate-800 text-sm uppercase tracking-wider">Redeem Coupon Code</h4>
                             </div>
-                            
+
                             <div class="flex flex-col sm:flex-row gap-3">
-                                <div class="relative flex-1">
-                                    <input type="text" id="coupon_code_input" name="coupon_code" placeholder="HF-CASH-XXXXX" 
-                                        class="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent dark:focus:border-accent/50 transition-all outline-none font-mono text-lg font-bold tracking-widest uppercase placeholder:opacity-30 dark:text-white"
-                                        oninput="this.value = this.value.toUpperCase()">
-                                </div>
+                                <input type="text" id="coupon_code_input" name="coupon_code" placeholder="HF-MEMB-XXXXX"
+                                    class="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:border-accent transition-all outline-none font-mono text-lg font-bold tracking-widest uppercase">
                                 <button type="button" onclick="validateCoupon()" id="apply-coupon-btn"
-                                    class="relative group/btn px-8 py-4 bg-accent hover:bg-accent-dark text-white font-black rounded-xl shadow-lg shadow-accent/25 hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 overflow-hidden whitespace-nowrap">
-                                    <span class="relative z-10 flex items-center justify-center gap-2">
-                                        <span>Apply Code</span>
-                                        <svg class="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                        </svg>
-                                    </span>
-                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+                                    class="px-8 py-4 bg-accent hover:bg-accent/90 text-white font-black rounded-2xl shadow-lg transition-all active:scale-95">
+                                    Apply Code
                                 </button>
                             </div>
-                            
-                            <!-- Success Message -->
-                            <div id="coupon-success-message" class="hidden mt-6 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-500">
-                                <div class="bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl p-5">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="w-12 h-12 flex-shrink-0 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h5 class="text-emerald-800 dark:text-emerald-400 font-black text-sm uppercase tracking-wider">Coupon Applied!</h5>
-                                            <p class="text-emerald-600/80 dark:text-emerald-400/60 text-xs font-bold" id="coupon-success-text"></p>
-                                        </div>
-                                    </div>
-                                </div>
+
+                            <div id="coupon-success-message" class="hidden mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
+                                <p class="text-emerald-700 text-sm font-bold" id="coupon-success-text"></p>
                             </div>
-                            
-                            <!-- Error Message -->
-                            <div id="coupon-error-message" class="hidden mt-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                                <div class="bg-rose-50 dark:bg-rose-500/5 border border-rose-200 dark:border-rose-500/20 rounded-2xl p-5">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-8 h-8 flex-shrink-0 bg-rose-500 rounded-lg flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p class="text-rose-700 dark:text-rose-400 text-sm font-bold" id="coupon-error-text"></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-6 flex items-center gap-2 px-1">
-                                <span class="flex h-2 w-2 rounded-full bg-accent animate-pulse"></span>
-                                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">
-                                    For cash payments, use the code provided by your area manager
-                                </p>
+
+                            <div id="coupon-error-message" class="hidden mt-6 p-4 bg-rose-50 border border-rose-200 rounded-2xl">
+                                <p class="text-rose-700 text-sm font-bold" id="coupon-error-text"></p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- OR Divider -->
-                    <div class="relative mb-6" id="payment-or-divider">
-                        <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-slate-200"></div>
-                        </div>
-                        <div class="relative flex justify-center text-sm">
-                            <span class="px-4 bg-white text-slate-500 font-bold uppercase tracking-wider">OR</span>
-                        </div>
-                    </div>
+                    <!-- Hidden Payment Method Input -->
+                    <input type="hidden" name="payment_method" id="payment_method_input" value="">
 
-                    <div id="payment-details-section" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Upload Payment Screenshot</label>
-                            <input type="file" name="payment_screenshot" id="payment_screenshot_input" accept="image/*"
-                                class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#6739B7] file:text-white hover:file:bg-[#6739B7]/80">
-                            <p class="text-[10px] text-slate-400 mt-2">Please upload a clear screenshot of the payment success screen from your UPI app.</p>
+                    <!-- Verification Section -->
+                    <div id="payment-verification-section"
+                        class="hidden space-y-4 animate-in fade-in duration-300 max-w-3xl mx-auto pt-8 border-t border-slate-100">
+                        <div class="space-y-4">
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest text-center">Upload Payment Evidence <span class="text-danger">*</span></label>
+                            
+                            <div class="relative group w-full">
+                                <input type="file" name="payment_screenshot" id="payment_screenshot_input" accept="image/*"
+                                    class="absolute inset-0 w-full h-32 opacity-0 cursor-pointer z-10">
+                                <div
+                                    class="w-full h-32 flex flex-col items-center justify-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl group-hover:border-accent group-hover:bg-accent/5 transition-all">
+                                    <div class="flex flex-col items-center gap-2" id="upload-placeholder">
+                                        <div class="p-3 bg-white rounded-full shadow-sm text-slate-400 group-hover:text-accent transition-colors">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M16 8l-4-4m0 0L8 8m4-4v12" />
+                                            </svg>
+                                        </div>
+                                        <div class="text-center">
+                                            <span class="block text-xs font-black uppercase tracking-widest text-slate-600">Click to Upload Screenshot</span>
+                                            <span class="block text-[10px] text-slate-400 font-medium mt-0.5">Supports JPG, PNG</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Selected File State -->
+                                    <div id="file-selected-state" class="hidden flex flex-col items-center gap-2">
+                                        <div class="p-2 bg-emerald-500/10 text-emerald-500 rounded-full">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <span class="text-xs font-bold text-slate-700" id="selected-filename">Filename.jpg</span>
+                                        <span class="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Ready to Upload</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex items-end">
-                            <label class="flex items-center space-x-3 cursor-pointer p-4 bg-white border border-slate-200 rounded-xl w-full">
-                                <input type="checkbox" id="payment_confirmation_checkbox" class="w-5 h-5 text-accent rounded border-slate-300 focus:ring-accent">
-                                <span class="text-sm font-medium text-slate-600">I confirm that I have paid the specified amount.</span>
+
+                        <!-- Confirmation Check -->
+                        <div id="final-confirmation-section" class="hidden pt-2">
+                            <label
+                                class="flex items-center justify-center space-x-3 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-all select-none">
+                                <input type="checkbox" name="payment_confirmed" id="payment_confirmed"
+                                    class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent">
+                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wide">I confirm the payment is genuine</span>
                             </label>
                         </div>
                     </div>
@@ -496,6 +482,7 @@
 
 @section('js')
     <script src="{{ asset('js/locations.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         function togglePasswordVisibility(inputId, iconId) {
             const input = document.getElementById(inputId);
@@ -827,15 +814,145 @@
                     }
                 }
 
-                // Donation Logic
-                const donationSection = document.getElementById('donation-section');
-                const donationAmountDisplay = document.getElementById('donation-amount-display');
-                const upiPayButton = document.getElementById('upi-pay-button');
-                const paymentDetailsSection = document.getElementById('payment-details-section');
-                const registerButton = document.getElementById('register-button');
-                const paymentScreenshotInput = document.getElementById('payment_screenshot_input');
-                const paymentConfirmationCheckbox = document.getElementById('payment_confirmation_checkbox');
+            });
+            @endif
+            let currentAmount = 0;
 
+            // Define payment UI elements
+            const paymentModeSection = document.getElementById('payment-mode-section');
+            const modeSelect = document.getElementById('payment-mode-select');
+            const upiWrapper = document.getElementById('upi-payment-wrapper');
+            const upiAppContainer = document.getElementById('upi-app-container');
+            const upiQrContainer = document.getElementById('upi-qr-container');
+            const couponSection = document.getElementById('coupon-code-section');
+            const verifySection = document.getElementById('payment-verification-section');
+            const finalConfirm = document.getElementById('final-confirmation-section');
+            const methodInput = document.getElementById('payment_method_input');
+            const orDivider = document.getElementById('payment-or-divider');
+            const registerButton = document.getElementById('register-button');
+            const donationSection = document.getElementById('donation-section');
+            const donationAmountDisplay = document.getElementById('donation-amount-display');
+            
+            // Payment Inputs
+            const screenshotInput = document.getElementById('payment_screenshot_input');
+            const confirmationCheck = document.getElementById('payment_confirmation_checkbox'); // Likely renamed or removed in HTML, checking...
+            const paymentConfirmedCheck = document.getElementById('payment_confirmed'); // This is the new one
+
+            // File Upload UI
+            const uploadPlaceholder = document.getElementById('upload-placeholder');
+            const fileSelectedState = document.getElementById('file-selected-state');
+            const selectedFilename = document.getElementById('selected-filename');
+
+            // Handle Designation Change (Super Admin / Office In Charge)
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+            
+            // ... (Previous logic for Parent/Upline remains same) ...
+
+            designationSelect.addEventListener('change', function() {
+                const designation = this.value;
+                parentSelect.innerHTML = '<option value="">Select Parent</option>';
+
+                // ... (Location / Parent Logic - keep existing) ...
+                // Update Hint
+                const hintMap = {
+                    'super_admin': 'SA',
+                    'office_in_charge': 'OI',
+                    'hs': 'HS',
+                    'dm': 'DM',
+                    'bm': 'BM',
+                    'rm': 'RM',
+                    'ro': 'RO',
+                    'staff': 'PH'
+                };
+                hintDesignation.innerText = hintMap[designation] || 'XX';
+
+                @if(auth()->user()->isSuperAdmin())
+                if (designation === 'office_in_charge') {
+                    officeInChargeUplineSection.classList.remove('hidden');
+                    uplineDesignationSelect.required = true;
+                    uplinePersonSelect.required = true;
+                    uplineDesignationSelect.disabled = false;
+                    uplinePersonSelect.disabled = false;
+                } else {
+                    officeInChargeUplineSection.classList.add('hidden');
+                    uplineDesignationSelect.required = false;
+                    uplinePersonSelect.required = false;
+                    uplineDesignationSelect.disabled = true;
+                    uplinePersonSelect.disabled = true;
+                    uplineDesignationSelect.value = '';
+                    uplinePersonSelect.innerHTML = '<option value="">Select Upline Designation First</option>';
+                }
+                @endif
+
+                // Default state for Parent & Camp
+                const parentWrapper = document.getElementById('parent-selection-wrapper');
+                const campWrapper = document.getElementById('camp-selection-wrapper');
+                const campSelect = document.getElementById('camp-select');
+
+                if (parentWrapper) parentWrapper.classList.remove('hidden');
+                if (campWrapper) campWrapper.classList.add('hidden');
+                if (campSelect) campSelect.required = false;
+                
+                if (parentSelect) {
+                    parentSelect.disabled = false;
+                    const parentDiv = parentSelect.closest('div');
+                    if (parentDiv) parentDiv.classList.remove('opacity-50');
+                }
+
+                if (designation === 'super_admin' || designation === 'hs' || designation === 'staff') {
+                   if (parentSelect) {
+                        parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
+                        parentSelect.required = false;
+                    }
+                    if (designation === 'staff') {
+                        if (parentWrapper) parentWrapper.classList.add('hidden');
+                        if (campWrapper) campWrapper.classList.remove('hidden');
+                        if (campSelect) campSelect.required = true;
+                    } else {
+                        if (parentSelect) {
+                            parentSelect.disabled = true;
+                            const parentDiv = parentSelect.closest('div');
+                            if (parentDiv) parentDiv.classList.add('opacity-50');
+                        }
+                    }
+                } else if (designation === 'office_in_charge') {
+                    if (parentSelect) {
+                        parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
+                        parentSelect.required = false;
+                        parentSelect.disabled = true;
+                        const parentDiv = parentSelect.closest('div');
+                        if (parentDiv) parentDiv.classList.add('opacity-50');
+                    }
+                     const ups = document.getElementById('upline-person-select');
+                    if (ups && ups.value && parentSelect) {
+                        const opt = ups.options[ups.selectedIndex];
+                        parentSelect.innerHTML = '';
+                        parentSelect.add(new Option(opt.text, opt.value, true, true));
+                    }
+                } else {
+                    if (parentSelect) parentSelect.required = true;
+                     let targetParentDesignation = '';
+                    if (designation === 'dm') targetParentDesignation = 'hs';
+                    else if (designation === 'bm') targetParentDesignation = 'dm';
+                    else if (designation === 'rm') targetParentDesignation = 'bm';
+                    else if (designation === 'ro') targetParentDesignation = 'rm';
+
+                    if (targetParentDesignation && potentialParents[targetParentDesignation]) {
+                        potentialParents[targetParentDesignation].forEach(parent => {
+                           const name = parent.profile ? parent.profile.full_name : parent.email;
+                            const option = new Option(`${name} (${parent.employee_id})`, parent.id);
+                            if (parent.id == "{{ old('parent_id') }}") {
+                                option.selected = true;
+                            }
+                            parentSelect.add(option);
+                        });
+                         if (potentialParents[targetParentDesignation].length === 1 && !parentSelect.value) {
+                            parentSelect.selectedIndex = 1;
+                        }
+                    }
+                }
+
+                // --- PAYMENTS LOGIC ---
                 const amounts = {
                     'dm': 999,
                     'bm': 999,
@@ -843,180 +960,259 @@
                     'ro': 199
                 };
 
-                // Reset visibility of additional fields and register button on role change
-                paymentDetailsSection.classList.add('hidden');
-                paymentScreenshotInput.required = false;
-                paymentConfirmationCheckbox.required = false;
+                // Remove hidden from register button initially, will be handled by sections
+                registerButton.classList.add('hidden'); 
+                 // Reset Coupon
+                resetCouponUI();
 
                 if (amounts[designation]) {
-                    const amount = amounts[designation];
+                    currentAmount = amounts[designation];
                     donationSection.classList.remove('hidden');
-                    donationAmountDisplay.innerText = amount;
-                    registerButton.classList.add('hidden'); // Hide register button until payment action
+                    donationAmountDisplay.innerText = currentAmount;
                     
-                    // Update UPI Link
-                    const pa = "9735563157-4@ybl";
-                    const pn = "Payment";
-                    const cu = "INR";
-                    const upiLink = `upi://pay?pa=${pa}&pn=${pn}&am=${amount}&cu=${cu}`;
-                    upiPayButton.href = upiLink;
-
-                    // Click listener to reveal fields after 30 seconds
-                    upiPayButton.onclick = function() {
-                        const originalContent = upiPayButton.innerHTML;
-                        upiPayButton.classList.add('opacity-50', 'pointer-events-none');
-                        
-                        let secondsLeft = 30;
-                        const timer = setInterval(() => {
-                            secondsLeft--;
-                            upiPayButton.innerHTML = `Wait ${secondsLeft}s...`;
-                            if (secondsLeft <= 0) {
-                                clearInterval(timer);
-                                upiPayButton.innerHTML = originalContent;
-                                upiPayButton.classList.remove('opacity-50', 'pointer-events-none');
-                                paymentDetailsSection.classList.remove('hidden');
-                                registerButton.classList.remove('hidden');
-                                paymentScreenshotInput.required = true;
-                                paymentConfirmationCheckbox.required = true;
-                            }
-                        }, 1000);
-                    };
+                    // Show Payment Mode Section
+                    paymentModeSection.classList.remove('hidden');
+                    
+                    // Trigger section toggle to refresh view (e.g. valid QR code amount)
+                    if (modeSelect.value) {
+                        toggleSections(modeSelect.value);
+                    } else {
+                        // Default to QR
+                        modeSelect.value = 'upi_qr';
+                        toggleSections('upi_qr');
+                    }
                 } else {
+                    currentAmount = 0;
                     donationSection.classList.add('hidden');
-                    registerButton.classList.remove('hidden'); // Show for roles without donation
+                    // Hide all payment stuff
+                    paymentModeSection.classList.add('hidden');
+                    upiWrapper.classList.add('hidden');
+                    couponSection.classList.add('hidden');
+                    verifySection.classList.add('hidden');
+                    
+                    registerButton.classList.remove('hidden'); // Free registration
                 }
             });
-
-            if (designationSelect.value) {
-                triggerSelectChange(designationSelect);
-            }
-
-            @if(auth()->user()->isSuperAdmin())
-            // Trigger upline designation change if old value exists
-            if (uplineDesignationSelect.value) {
-                triggerSelectChange(uplineDesignationSelect);
-            }
             @endif
-            
-            @else
-            // For regular users (RM, BM, DM) who create a fixed designation
-            const allowedDesignation = '{{ $allowedDesignation }}';
-            const donationSection = document.getElementById('donation-section');
-            const donationAmountDisplay = document.getElementById('donation-amount-display');
-            const upiPayButton = document.getElementById('upi-pay-button');
-            const paymentDetailsSection = document.getElementById('payment-details-section');
-            const registerButton = document.getElementById('register-button');
-            const paymentScreenshotInput = document.getElementById('payment_screenshot_input');
-            const paymentConfirmationCheckbox = document.getElementById('payment_confirmation_checkbox');
 
+            // Regular User Logic
+            @if(!auth()->user()->isSuperAdmin() && !auth()->user()->isOfficeInCharge())
+            const allowedDesignation = '{{ $allowedDesignation }}';
             const amounts = {
                 'dm': 999,
                 'bm': 999,
                 'rm': 499,
                 'ro': 199
             };
-
-            if (amounts[allowedDesignation]) {
-                const amount = amounts[allowedDesignation];
+            
+             if (amounts[allowedDesignation]) {
+                currentAmount = amounts[allowedDesignation];
                 donationSection.classList.remove('hidden');
-                donationAmountDisplay.innerText = amount;
-                registerButton.classList.add('hidden'); // Hide register button until payment action
+                donationAmountDisplay.innerText = currentAmount;
+                paymentModeSection.classList.remove('hidden');
                 
-                // Update UPI Link
-                const pa = "9735563157-4@ybl";
-                const pn = "Payment";
-                const cu = "INR";
-                const upiLink = `upi://pay?pa=${pa}&pn=${pn}&am=${amount}&cu=${cu}`;
-                upiPayButton.href = upiLink;
+                // Default to QR
+                if (!modeSelect.value) {
+                     modeSelect.value = 'upi_qr';
+                }
+                toggleSections(modeSelect.value);
 
-                // Click listener to reveal fields after 30 seconds
-                upiPayButton.onclick = function() {
-                    const originalContent = upiPayButton.innerHTML;
-                    upiPayButton.classList.add('opacity-50', 'pointer-events-none');
-                    
-                    let secondsLeft = 30;
-                    const timer = setInterval(() => {
-                        secondsLeft--;
-                        upiPayButton.innerHTML = `Wait ${secondsLeft}s...`;
-                        if (secondsLeft <= 0) {
-                            clearInterval(timer);
-                            upiPayButton.innerHTML = originalContent;
-                            upiPayButton.classList.remove('opacity-50', 'pointer-events-none');
-                            paymentDetailsSection.classList.remove('hidden');
-                            registerButton.classList.remove('hidden');
-                            paymentScreenshotInput.required = true;
-                            paymentConfirmationCheckbox.required = true;
-                        }
-                    }, 1000);
-                };
             } else {
+                currentAmount = 0;
                 donationSection.classList.add('hidden');
-                registerButton.classList.remove('hidden'); // Show for roles without donation
-                paymentScreenshotInput.required = false;
-                paymentConfirmationCheckbox.required = false;
+                paymentModeSection.classList.add('hidden');
+                upiWrapper.classList.add('hidden');
+                couponSection.classList.add('hidden');
+                verifySection.classList.add('hidden');
+                registerButton.classList.remove('hidden');
             }
             @endif
+
+
+            // --- TOGGLE SECTIONS LOGIC ---
+            modeSelect.addEventListener('change', function() {
+                toggleSections(this.value);
+            });
+
+            function toggleSections(mode) {
+                // Hide All First
+                upiWrapper.classList.add('hidden');
+                upiAppContainer.classList.add('hidden');
+                upiQrContainer.classList.add('hidden');
+                couponSection.classList.add('hidden');
+                verifySection.classList.add('hidden');
+                finalConfirm.classList.add('hidden');
+                
+                // Reset Requirements
+                if(screenshotInput) screenshotInput.required = false;
+                if(paymentConfirmedCheck) paymentConfirmedCheck.required = false;
+
+                // Reset Coupon if switching away (optional, but good for cleanliness)
+                if (mode !== 'coupon') {
+                     // resetCouponUI(); // Maybe too aggressive? Let's keep input but hide logic
+                }
+                
+                if (currentAmount <= 0) {
+                     registerButton.classList.remove('hidden');
+                     return; 
+                }
+                
+                // Hide register button by default in payment flows until complete
+                registerButton.classList.add('hidden');
+
+                if (mode === 'upi_app') {
+                    upiWrapper.classList.remove('hidden');
+                    upiAppContainer.classList.remove('hidden');
+                    methodInput.value = 'upi_app';
+                    
+                    // Update Link
+                    const upiPayLink = document.getElementById('upi-pay-link');
+                    // Calculate LINK
+                    const pa = "9735563157-4@ybl";
+                    const pn = "Humanity Foundation";
+                    const cu = "INR";
+                    upiPayLink.href = `upi://pay?pa=${pa}&pn=${pn}&am=${currentAmount}&cu=${cu}`;
+
+                    // Click listener for App flow
+                    upiPayLink.onclick = function() {
+                        const btn = this;
+                         const original = btn.innerHTML;
+                         btn.classList.add('opacity-50', 'pointer-events-none');
+                         let sec = 30;
+                         const t = setInterval(() => {
+                             sec--;
+                             btn.innerHTML = `Wait ${sec}s...`;
+                             if(sec <= 0){
+                                 clearInterval(t);
+                                 btn.innerHTML = original;
+                                 btn.classList.remove('opacity-50', 'pointer-events-none');
+                                 
+                                 // Show verify
+                                 verifySection.classList.remove('hidden');
+                                 finalConfirm.classList.remove('hidden');
+                                 screenshotInput.required = true;
+                                 // Checkboxes are usually required manually or ignored
+                                 if(paymentConfirmedCheck) paymentConfirmedCheck.required = true; // Use new one
+                             }
+                         }, 1000);
+                    };
+
+                } else if (mode === 'upi_qr') {
+                    upiWrapper.classList.remove('hidden');
+                    upiQrContainer.classList.remove('hidden');
+                    methodInput.value = 'upi_qr';
+                    
+                    // Show verify immediately
+                    verifySection.classList.remove('hidden');
+                    finalConfirm.classList.remove('hidden');
+                    screenshotInput.required = true;
+                    if(paymentConfirmedCheck) paymentConfirmedCheck.required = true;
+
+                    setTimeout(() => generateUPIQR(currentAmount), 100);
+
+                } else if (mode === 'coupon') {
+                    couponSection.classList.remove('hidden');
+                    methodInput.value = 'coupon';
+                    // Register button only shows if valdiation success
+                }
+            }
+
+            function generateUPIQR(amount) {
+                const qrContainer = document.getElementById('qr-code');
+                const qrAmountDisplay = document.getElementById('qr-amount-display');
+                if(qrAmountDisplay) qrAmountDisplay.innerText = amount.toFixed(2);
+                
+                qrContainer.innerHTML = '';
+                const pa = "9735563157-4@ybl";
+                const pn = "Humanity Foundation";
+                const upiUrl = `upi://pay?pa=${pa}&pn=${pn}&am=${amount.toFixed(2)}&cu=INR`;
+                
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(qrContainer, {
+                        text: upiUrl,
+                        width: 180,
+                        height: 180,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+                }
+            }
+
+            // File Input Change
+            if (screenshotInput) {
+                screenshotInput.addEventListener('change', function() {
+                    if (this.files && this.files.length > 0) {
+                        const file = this.files[0];
+                        if (selectedFilename) selectedFilename.textContent = file.name;
+                        if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden');
+                        if (fileSelectedState) fileSelectedState.classList.remove('hidden');
+                        
+                        // Show Submit Button
+                        registerButton.classList.remove('hidden');
+                    } else {
+                        if (uploadPlaceholder) uploadPlaceholder.classList.remove('hidden');
+                        if (fileSelectedState) fileSelectedState.classList.add('hidden');
+                        registerButton.classList.add('hidden');
+                    }
+                });
+            }
+            
+            function resetCouponUI() {
+                const ci = document.getElementById('coupon_code_input');
+                const btn = document.getElementById('apply-coupon-btn');
+                const sMsg = document.getElementById('coupon-success-message');
+                const eMsg = document.getElementById('coupon-error-message');
+                if(ci) { ci.value = ''; ci.readOnly = false; }
+                if(btn) { btn.disabled = false; btn.innerHTML = 'Apply Code'; btn.classList.remove('bg-emerald-500'); btn.classList.add('bg-accent'); }
+                if(sMsg) sMsg.classList.add('hidden');
+                if(eMsg) eMsg.classList.add('hidden');
+            }
+
+
+            // Initialize for Super Admin if designation already selected
+            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+             if (designationSelect && designationSelect.value) {
+                triggerSelectChange(designationSelect);
+                if (uplineDesignationSelect && uplineDesignationSelect.value) {
+                    triggerSelectChange(uplineDesignationSelect);
+                }
+             }
+            @endif
+
 
             // PAN Validation on Submit
             const form = document.querySelector('form');
             form.addEventListener('submit', function(e) {
+                
+                // ... (Existing PAN checks etc) ...
                 const panInput = document.querySelector('input[name="pan_number"]');
                 const panPattern = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
                 if (panInput && panInput.value && !panPattern.test(panInput.value)) {
                     e.preventDefault();
-                    alert('Invalid PAN Card format!\n\nRules:\n1. First 5 must be LETTERS\n2. Next 4 must be DIGITS\n3. Last 1 must be a LETTER\n\nExample: ABCDE1234F');
+                    alert('Invalid PAN Card format!');
                     panInput.focus();
                     return false;
                 }
-
+                // ... (Aadhaar, Phone, Pin Code checks) ...
                 const aadhaarInput = document.querySelector('input[name="aadhaar_number"]');
                 if (aadhaarInput && aadhaarInput.value && aadhaarInput.value.length !== 12) {
-                    e.preventDefault();
-                    alert('Aadhaar Number must be exactly 12 digits.');
-                    aadhaarInput.focus();
-                    return false;
+                     e.preventDefault(); alert('Aadhaar must be 12 digits'); aadhaarInput.focus(); return false;
                 }
-
-                const phoneInput = document.querySelector('input[name="phone_number"]');
+                 const phoneInput = document.querySelector('input[name="phone_number"]');
                 if (phoneInput && phoneInput.value && phoneInput.value.length !== 10) {
-                    e.preventDefault();
-                    alert('Phone Number must be exactly 10 digits.');
-                    phoneInput.focus();
-                    return false;
+                    e.preventDefault(); alert('Phone must be 10 digits'); phoneInput.focus(); return false;
                 }
-
                 const pinInput = document.querySelector('input[name="pin_code"]');
                 if (pinInput && pinInput.value && pinInput.value.length !== 6) {
-                    e.preventDefault();
-                    alert('Pin Code must be exactly 6 digits.');
-                    pinInput.focus();
-                    return false;
+                    e.preventDefault(); alert('Pin Code must be 6 digits'); pinInput.focus(); return false;
                 }
             });
+
+
         });
 
-        // Toggle Coupon Code Section
-        window.toggleCouponSection = function() {
-            const couponSection = document.getElementById('coupon-code-section');
-            const toggleBtn = document.getElementById('coupon-toggle-btn');
-            
-            if (couponSection.classList.contains('hidden')) {
-                couponSection.classList.remove('hidden');
-                toggleBtn.classList.add('hidden');
-            } else {
-                couponSection.classList.add('hidden');
-                toggleBtn.classList.remove('hidden');
-                
-                // Clear coupon input and messages when closing
-                document.getElementById('coupon_code_input').value = '';
-                document.getElementById('coupon-success-message').classList.add('hidden');
-                document.getElementById('coupon-error-message').classList.add('hidden');
-            }
-        };
-
         // Coupon Code Validation
-        let couponValid = false;
-        
         window.validateCoupon = async function() {
             const couponInput = document.getElementById('coupon_code_input');
             const couponCode = couponInput.value.trim();
@@ -1024,49 +1220,37 @@
             const successMsg = document.getElementById('coupon-success-message');
             const errorMsg = document.getElementById('coupon-error-message');
             const errorText = document.getElementById('coupon-error-text');
-            const upiSection = document.getElementById('upi-payment-section');
-            const paymentDetailsSection = document.getElementById('payment-details-section');
             const registerButton = document.getElementById('register-button');
-            const orDivider = document.getElementById('payment-or-divider');
-            
-            // Get designation
+            const paymentModeSection = document.getElementById('payment-mode-section');
+            const upiWrapper = document.getElementById('upi-payment-wrapper');
+            const verifySection = document.getElementById('payment-verification-section');
+
+            // Designation logic for determining validity
             let designation;
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
                 designation = document.getElementById('designation-select').value;
             @else
                 designation = '{{ $allowedDesignation }}';
             @endif
-            
+
             if (!couponCode) {
-                errorText.textContent = 'Please enter a coupon code.';
-                errorMsg.classList.remove('hidden');
-                successMsg.classList.add('hidden');
-                couponInput.focus();
+                if(errorText) errorText.textContent = 'Please enter a coupon code.';
+                if(errorMsg) errorMsg.classList.remove('hidden');
                 return;
             }
-            
-            if (!designation) {
-                errorText.textContent = 'Please select a designation first.';
-                errorMsg.classList.remove('hidden');
-                successMsg.classList.add('hidden');
+             if (!designation) {
+                if(errorText) errorText.textContent = 'Please select a designation first.';
+                 if(errorMsg) errorMsg.classList.remove('hidden');
                 return;
             }
-            
-            // Show loading state
+
+            // Loading UI
             const originalContent = applyBtn.innerHTML;
             applyBtn.disabled = true;
-            applyBtn.innerHTML = `
-                <div class="flex items-center justify-center gap-2">
-                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Verifying...</span>
-                </div>
-            `;
-            successMsg.classList.add('hidden');
-            errorMsg.classList.add('hidden');
-            
+            applyBtn.innerHTML = 'Verifying...';
+            if(successMsg) successMsg.classList.add('hidden');
+            if(errorMsg) errorMsg.classList.add('hidden');
+
             try {
                 const response = await fetch('{{ route("coupons.validate") }}', {
                     method: 'POST',
@@ -1083,66 +1267,55 @@
                 const data = await response.json();
                 
                 if (response.ok && data.valid) {
-                    // Coupon is valid
-                    couponValid = true;
-                    successMsg.classList.remove('hidden');
-                    errorMsg.classList.add('hidden');
+                    // Success
+                    if(successMsg) successMsg.classList.remove('hidden');
+                    document.getElementById('coupon-success-text').textContent = data.message || 'Coupon Applied!';
                     
-                    // Update success text
-                    document.getElementById('coupon-success-text').textContent = data.message || 'Coupon applied! Payment has been waived.';
+                    // Hide Payment Sections
+                    if(paymentModeSection) paymentModeSection.classList.add('hidden');
+                    if(upiWrapper) upiWrapper.classList.add('hidden');
+                    if(verifySection) verifySection.classList.add('hidden');
                     
-                    // Hide UPI payment section
-                    upiSection.classList.add('hidden');
-                    if (orDivider) orDivider.classList.add('hidden');
-                    if (paymentDetailsSection) paymentDetailsSection.classList.add('hidden');
-                    
-                    // Show register button immediately
+                    // Show Submit
                     registerButton.classList.remove('hidden');
                     
-                    // Disable requirements since coupon is used
+                    // Disable requirements
                     const screenInput = document.getElementById('payment_screenshot_input');
-                    const confirmCheck = document.getElementById('payment_confirmation_checkbox');
-                    if (screenInput) screenInput.required = false;
-                    if (confirmCheck) confirmCheck.required = false;
-                    
-                    // Make coupon input read-only (so it still submits)
+                    const confirmCheck = document.getElementById('payment_confirmed');
+                    if(screenInput) screenInput.required = false;
+                    if(confirmCheck) confirmCheck.required = false;
+
+                    // Lock Coupon UI
                     couponInput.readOnly = true;
                     applyBtn.disabled = true;
                     applyBtn.classList.remove('bg-accent');
-                    applyBtn.classList.add('bg-emerald-500', 'shadow-emerald-500/25');
-                    applyBtn.innerHTML = `
-                        <div class="flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>Applied ✓</span>
-                        </div>
-                    `;
-                    
+                    applyBtn.classList.add('bg-emerald-500');
+                    applyBtn.innerHTML = 'Applied ✓';
+
                 } else {
-                    // Coupon is invalid
-                    couponValid = false;
-                    errorText.textContent = data.message || 'Invalid coupon code.';
-                    errorMsg.classList.remove('hidden');
-                    applyBtn.disabled = false;
-                    applyBtn.innerHTML = originalContent;
+                     if(errorText) errorText.textContent = data.message || 'Invalid Coupon';
+                     if(errorMsg) errorMsg.classList.remove('hidden');
+                     applyBtn.disabled = false;
+                     applyBtn.innerHTML = originalContent;
                 }
-                
+
             } catch (error) {
-                console.error('Coupon validation error:', error);
-                errorText.textContent = 'Connection error. Please try again.';
-                errorMsg.classList.remove('hidden');
+                console.error(error);
+                if(errorText) errorText.textContent = 'Network Error';
+                if(errorMsg) errorMsg.classList.remove('hidden');
                 applyBtn.disabled = false;
                 applyBtn.innerHTML = originalContent;
             }
         };
-        
+
         // Allow Enter key to validate coupon
-        document.getElementById('coupon_code_input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                validateCoupon();
-            }
-        });
+        if(document.getElementById('coupon_code_input')){
+            document.getElementById('coupon_code_input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    validateCoupon();
+                }
+            });
+        }
     </script>
 @endsection
