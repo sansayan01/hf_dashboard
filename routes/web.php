@@ -115,6 +115,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::get('/membership', [App\Http\Controllers\MembershipController::class, 'index'])->name('membership.index');
 
     // Global Appointments (Accessible from Sidebar)
+    Route::get('/appointments/export', [AppointmentController::class, 'export'])->name('appointments.export');
     Route::get('/appointments', [AppointmentController::class, 'all'])->name('appointments.all');
     Route::post('/appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('appointments.complete');
     Route::post('/appointments/{appointment}/report-missed', [AppointmentController::class, 'reportMissed'])->name('appointments.report_missed');

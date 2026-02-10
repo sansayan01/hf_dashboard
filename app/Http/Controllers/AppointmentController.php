@@ -104,6 +104,131 @@ class AppointmentController extends Controller
     }
 
     /**
+     * Export a listing of all appointments the user has access to.
+     */
+    public function export(Request $request)
+    {
+        // Permission Check
+        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $user = auth()->user();
+        $allowedIds = $user->getDataVisibilityIds();
+
+        $view = $request->get('view', 'scheduled');
+
+        if ($view === 'successful') {
+            $status = 'successful';
+        } elseif ($view === 'not_attended') {
+            $status = 'not_attended';
+        } else {
+            $status = 'scheduled';
+        }
+
+        $query = Appointment::with(['survey', 'creator.profile'])
+            ->whereIn('created_by', $allowedIds)
+            ->whereHas('survey');
+
+        if ($view === 'not_attended') {
+            $query->whereIn('status', ['not_attended', 'missed_reported']);
+        } else {
+            $query->where('status', $status);
+        }
+
+        // Filter by Date Range
+        if ($request->filled('date')) {
+            $query->whereDate('appointment_date', $request->date);
+        }
+
+        // Apply Geographic Filters
+        if ($request->filled('district')) {
+            $query->whereHas('creator.profile', function ($q) use ($request) {
+                $q->where('district', $request->district);
+            });
+        }
+
+        if ($request->filled('block')) {
+            $query->whereHas('creator.profile', function ($q) use ($request) {
+                $q->where('block', $request->block);
+            });
+        }
+
+        if ($request->filled('gp')) {
+            $query->whereHas('creator.profile', function ($q) use ($request) {
+                $q->where('gram_panchayat', $request->gp);
+            });
+        }
+
+        // Filter by Doctor Type / Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('doctor_type', 'like', "%{$search}%")
+                    ->orWhere('location', 'like', "%{$search}%")
+                    ->orWhereHas('survey', function ($sq) use ($search) {
+                        $sq->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('patient_id', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $appointments = $query->latest('appointment_date')->latest('appointment_time')->get();
+
+        $filename = "appointments_" . $view . "_" . date('Ymd_His') . ".csv";
+        $headers = [
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function () use ($appointments) {
+            $file = fopen('php://output', 'w');
+
+            // Add BOM for Excel UTF-8 support
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($file, [
+                'SL',
+                'Appt ID',
+                'Patient Name',
+                'Patient ID',
+                'Phone',
+                'Appointment Date',
+                'Appointment Time',
+                'Clinic Type',
+                'Location',
+                'Status',
+                'Recorded By',
+                'Employee ID'
+            ]);
+
+            foreach ($appointments as $index => $a) {
+                fputcsv($file, [
+                    $index + 1,
+                    $a->appointment_id,
+                    $a->survey->full_name ?? 'N/A',
+                    $a->survey->patient_id ?? 'N/A',
+                    $a->survey->phone_number ?? 'N/A',
+                    $a->appointment_date->format('Y-m-d'),
+                    \Carbon\Carbon::parse($a->appointment_time)->format('h:i A'),
+                    $a->doctor_type,
+                    $a->location,
+                    ucfirst(str_replace('_', ' ', $a->status)),
+                    $a->creator->profile->full_name ?? 'N/A',
+                    $a->creator->employee_id ?? 'N/A'
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
      * Show the form for creating a new appointment.
      */
     public function create(Survey $patient)
