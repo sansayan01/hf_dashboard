@@ -385,7 +385,7 @@
 
                         <!-- Search Input -->
                         <div class="relative group w-full md:w-auto">
-                            <input type="text" name="search" value="{{ request('search') }}"
+                            <input type="text" name="search" id="inventory-search-input" value="{{ request('search') }}"
                                 placeholder="Search medicine, batch..."
                                 class="h-10 w-full pl-11 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all shadow-sm">
                             <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-accent transition-colors">
@@ -412,14 +412,15 @@
                                 <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-100 dark:divide-white/5">
                             @forelse($stocks as $stock)
-                                <tr class="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                                <tr class="inventory-row hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors" 
+                                    data-search="{{ strtolower($stock->medicine?->name . ' ' . $stock->batch_number) }}">
                                     <td class="p-4">
                                         <div class="flex flex-col">
-                                            <span class="font-bold text-sm">{{ $stock->medicine?->name ?? 'Unknown' }}</span>
+                                            <span class="font-bold text-sm medicine-name">{{ $stock->medicine?->name ?? 'Unknown' }}</span>
                                             <div class="flex items-center space-x-2 mt-1">
-                                                <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded text-[9px]">#{{ $stock->batch_number }}</code>
+                                                <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded text-[9px] batch-number">#{{ $stock->batch_number }}</code>
                                                 <span class="text-slate-200 dark:text-white/10 text-[10px]">•</span>
                                                 <span class="text-[10px] text-slate-500">{{ $stock->warehouse?->name ?? 'Main' }}</span>
                                             </div>
@@ -615,5 +616,29 @@
             }
             initTomSelect();
         }
+
+        // --- Live Search Implementation ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('inventory-search-input');
+            const tableRows = document.querySelectorAll('.inventory-row');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase().trim();
+                    
+                    tableRows.forEach(row => {
+                        const searchText = row.getAttribute('data-search') || '';
+                        if (searchText.includes(query)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+                
+                // Prevent form from reloading page when pressing enter in search if wanted
+                // searchInput.addEventListener('keypress', function(e) { if(e.which == 13) e.preventDefault(); });
+            }
+        });
     </script>
 @endsection
