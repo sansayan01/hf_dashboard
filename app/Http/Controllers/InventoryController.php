@@ -31,24 +31,23 @@ class InventoryController extends Controller
         // Retroactive fix: Ensure all active stocks have a sponsor_id
         $this->ensureStockSponsors();
 
-        // Query for stocks
-        $stocks = $this->getStocks($request, $selectedWarehouseId);
+        // Get ALL aggregated stocks for metrics and charts
+        $allAggregatedStocks = $this->getAggregatedStocks($request, $selectedWarehouseId);
 
-        // --- Dashboard Metrics Calculation ---
+        // --- Dashboard Metrics Calculation (on Full Set) ---
 
         // 1. Total Inventory Value & Count
         $totalValue = 0;
-        $totalMedicines = $stocks->count();
-        $stockIds = [];
+        $activeMedicineIds = $allAggregatedStocks->pluck('medicine_id')->unique();
+        $totalMedicines = $activeMedicineIds->count();
 
-        foreach ($stocks as $stock) {
+        foreach ($allAggregatedStocks as $stock) {
             if ($stock->quantity > 0 && $stock->medicine) {
                 // Calculate value: (Market Price / Unit Count) * Quantity
                 $unitPrice = ($stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
                     ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
                     : 0;
                 $totalValue += $unitPrice * $stock->quantity;
-                $stockIds[] = $stock->id; // Collect IDs for further queries if needed
             }
         }
 
@@ -60,9 +59,9 @@ class InventoryController extends Controller
         $threeMonthsFromNow = now()->addMonths(3);
 
         // We need to check low stock based on aggregate quantity per medicine
-        $medicineStockMap = [];
+        $medicineStockSum = [];
 
-        foreach ($stocks as $stock) {
+        foreach ($allAggregatedStocks as $stock) {
             // Expiry check (per batch)
             if ($stock->expiry_date->isPast()) {
                 $expiredCount++;
@@ -71,16 +70,16 @@ class InventoryController extends Controller
             }
 
             // Group for low stock check
-            if (!isset($medicineStockMap[$stock->medicine_id])) {
-                $medicineStockMap[$stock->medicine_id] = [
+            if (!isset($medicineStockSum[$stock->medicine_id])) {
+                $medicineStockSum[$stock->medicine_id] = [
                     'total_qty' => 0,
                     'min_level' => $stock->medicine->min_stock_level ?? 0
                 ];
             }
-            $medicineStockMap[$stock->medicine_id]['total_qty'] += $stock->quantity;
+            $medicineStockSum[$stock->medicine_id]['total_qty'] += $stock->quantity;
         }
 
-        foreach ($medicineStockMap as $data) {
+        foreach ($medicineStockSum as $data) {
             if ($data['total_qty'] <= $data['min_level']) {
                 $lowStockCount++;
             }
@@ -90,7 +89,7 @@ class InventoryController extends Controller
 
         // Chart 1: Stock Value by Category
         $categoryDataRaw = [];
-        foreach ($stocks as $stock) {
+        foreach ($allAggregatedStocks as $stock) {
             if ($stock->medicine && $stock->medicine->category) {
                 $catName = $stock->medicine->category->name;
                 if (!isset($categoryDataRaw[$catName])) {
@@ -112,7 +111,7 @@ class InventoryController extends Controller
         $warehouseChartData = [];
         if (!$selectedWarehouseId) {
             $warehouseDataRaw = [];
-            foreach ($stocks as $stock) {
+            foreach ($allAggregatedStocks as $stock) {
                 $whName = $stock->warehouse->name ?? 'Unknown';
                 if (!isset($warehouseDataRaw[$whName])) {
                     $warehouseDataRaw[$whName] = 0;
@@ -310,6 +309,17 @@ class InventoryController extends Controller
 
         // Fetch categories for the filter
         $categories = MedicineCategory::orderBy('name')->get();
+
+        // --- Final Result Pagination for the View (Table) ---
+        $page = $request->input('page', 1);
+        $perPage = 15;
+        $stocks = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allAggregatedStocks->slice(($page - 1) * $perPage, $perPage)->values(),
+            $allAggregatedStocks->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return view('inventory.index', compact(
             'stocks',
@@ -1225,7 +1235,7 @@ class InventoryController extends Controller
         }
     }
 
-    private function getStocks(Request $request, $selectedWarehouseId)
+    private function getAggregatedStocks(Request $request, $selectedWarehouseId)
     {
         $query = InventoryStock::with(['medicine.category', 'warehouse', 'sponsor'])
             ->where('quantity', '>', 0);
@@ -1233,7 +1243,7 @@ class InventoryController extends Controller
         if ($selectedWarehouseId) {
             $query->where('warehouse_id', $selectedWarehouseId);
 
-            // "Only available at" requirement: Filter for medicines that exist ONLY in the selected warehouse
+            // "Only available at" requirement
             if ($request->has('exclusive') && $request->exclusive == '1') {
                 $query->whereNotExists(function ($q) use ($selectedWarehouseId) {
                     $q->select(DB::raw(1))
@@ -1274,7 +1284,7 @@ class InventoryController extends Controller
             });
         }
 
-        $collection = $query->orderBy('expiry_date')->get()
+        return $query->orderBy('expiry_date')->get()
             ->groupBy(function ($stock) {
                 return $stock->medicine_id . '-' . $stock->warehouse_id . '-' . $stock->batch_number . '-' . $stock->expiry_date->format('Y-m-d');
             })
@@ -1283,18 +1293,6 @@ class InventoryController extends Controller
                 $mainStock->quantity = $group->sum('quantity');
                 return $mainStock;
             })->values();
-
-        $page = $request->input('page', 1);
-        $perPage = 15;
-        $sliced = $collection->slice(($page - 1) * $perPage, $perPage)->values();
-
-        return new \Illuminate\Pagination\LengthAwarePaginator(
-            $sliced,
-            $collection->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
     }
 
     private function getLowStockMedicines(Request $request, $selectedWarehouseId)
