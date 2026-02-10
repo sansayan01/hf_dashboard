@@ -218,22 +218,14 @@
         <!-- 4. Advanced Analytics & Trackers -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            <!-- 1. Stock Health Overview (New) -->
-            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
-                <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Batch Health Status</h3>
-                <div class="flex-1 flex flex-col justify-center">
-                    <div class="relative h-52 w-full">
-                        <canvas id="batchHealthChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Top Medicines by Value -->
-            <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
-                 <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Top Medicines (Value)</h3>
+            <!-- 1. All Medicines by Value (Span 2 cols) -->
+            <div class="md:col-span-2 bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
+                 <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Medicine Stock Value</h3>
                  <div class="flex-1 flex flex-col justify-center">
-                      <div class="relative h-52 w-full mb-4">
-                        <canvas id="medicineValueChart"></canvas>
+                      <div class="relative w-full mb-4 overflow-x-auto pb-4">
+                        <div id="medicineChartContainer" class="relative h-[350px]">
+                            <canvas id="medicineValueChart"></canvas>
+                        </div>
                       </div>
                       <div class="text-center">
                           <span class="text-[10px] font-bold text-slate-400">Total Asset Value: ₹{{ number_format($totalValue, 0) }}</span>
@@ -241,11 +233,11 @@
                  </div>
             </div>
 
-             <!-- 3. Category Distribution (Quantity) -->
+             <!-- 2. Category Distribution (Quantity) -->
              <div class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm p-6 flex flex-col">
                 <h3 class="font-bold text-sm text-slate-800 dark:text-white mb-6 uppercase tracking-wider">Category Mix (Qty)</h3>
                 <div class="flex-1 flex flex-col justify-center">
-                    <div class="relative h-52 w-full">
+                    <div class="relative h-[300px] w-full">
                         <canvas id="categoryQtyChart"></canvas>
                     </div>
                 </div>
@@ -547,7 +539,6 @@
         const categoryQtyData = @json($categoryQtyChartData);
         const paymentData = @json($paymentMethods);
         const sponsorData = @json($sponsorChartData);
-        const batchHealthData = @json($batchHealthData);
 
         Chart.defaults.font.family = "'Outfit', sans-serif";
         Chart.defaults.color = '#94a3b8';
@@ -558,17 +549,32 @@
             '#EF4444', '#06B6D4', '#F97316', '#84CC16', '#A855F7'
         ];
 
-        // 1. Medicine Value Chart (Doughnut)
+        // 1. Medicine Value Chart (Vertical Bar - Horizontal Scroll)
         if (document.getElementById('medicineValueChart')) {
+            // Calculate dynamic width: 40px per bar or min 100%
+            const medCount = medicineValueData.length;
+            const barWidth = 40; 
+            const neededWidth = medCount * barWidth;
+            // Ensure meaningful width, prevent squishing
+            const finalWidth = Math.max(document.getElementById('medicineChartContainer').parentElement.offsetWidth, neededWidth);
+
+            const chartContainer = document.getElementById('medicineChartContainer');
+            if(chartContainer) {
+                chartContainer.style.width = finalWidth + 'px';
+                chartContainer.style.height = '350px'; // Ensure height is maintained
+            }
+
             new Chart(document.getElementById('medicineValueChart'), {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
                     labels: medicineValueData.map(d => d.name),
                     datasets: [{
+                        label: 'Value (₹)',
                         data: medicineValueData.map(d => d.value),
-                        backgroundColor: vibrantColors,
-                        borderWidth: 0,
-                        hoverOffset: 4
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8
                     }]
                 },
                 options: {
@@ -579,12 +585,32 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.label + ': ' + new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumSignificantDigits: 3 }).format(context.parsed);
+                                    return context.label + ': ' + new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumSignificantDigits: 3 }).format(context.parsed.y);
                                 }
                             }
                         }
                     },
-                    cutout: '70%', // Slightly thicker donut
+                    scales: {
+                        x: { 
+                            grid: { display: false },
+                            ticks: { 
+                                font: { size: 10, weight: 'bold' },
+                                autoSkip: false,
+                                maxRotation: 90,
+                                minRotation: 45
+                            } 
+                        },
+                        y: { 
+                            beginAtZero: true,
+                            grid: { display: true, borderDash: [2, 2] },
+                            ticks: { 
+                                font: { size: 10, weight: 'bold' },
+                                callback: function(value) {
+                                    return '₹' + new Intl.NumberFormat('en-IN', { notation: "compact" }).format(value);
+                                }
+                            } 
+                        }
+                    }
                 }
             });
         }
@@ -690,28 +716,6 @@
             });
         }
 
-        // 6. Batch Health Chart (Doughnut)
-        if (document.getElementById('batchHealthChart')) {
-            new Chart(document.getElementById('batchHealthChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Healthy', 'Near Expiry', 'Expired'],
-                    datasets: [{
-                        data: [batchHealthData['Healthy'], batchHealthData['Near Expiry'], batchHealthData['Expired']],
-                        backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right', labels: { boxWidth: 8, usePointStyle: true, font: {size: 10} } }
-                    },
-                    cutout: '50%',
-                }
-            });
-        }
 
         // 2. Warehouse Value Chart (Bar)
         if (document.getElementById('warehouseChart')) {

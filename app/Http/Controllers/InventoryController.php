@@ -279,18 +279,6 @@ class InventoryController extends Controller
         // Warehouses - pharmacists/OICs only see their camp
         $warehouses = $this->getAccessibleWarehouses($user);
 
-        // 8. Top Medicines by Value (Replaces Category Chart)
-        $medicineValueChartData = InventoryStock::query()
-            ->join('medicines', 'inventory_stocks.medicine_id', '=', 'medicines.id')
-            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
-                return $q->where('inventory_stocks.warehouse_id', $selectedWarehouseId);
-            })
-            ->selectRaw('medicines.name, SUM(inventory_stocks.quantity * (medicines.market_price / GREATEST(COALESCE(medicines.market_price_unit_count, 1), 1))) as value')
-            ->where('inventory_stocks.quantity', '>', 0)
-            ->groupBy('medicines.id', 'medicines.name')
-            ->orderByDesc('value')
-            ->take(10)
-            ->get();
 
         // Get medicine quantities for legacy chart - respect selected warehouse and exclusivity
         $medicineData = $this->getMedicineChartData($request, $selectedWarehouseId);
@@ -375,25 +363,18 @@ class InventoryController extends Controller
             ->take(5)
             ->values();
 
-        // 12. Batch Health Status (Chart Data)
-        // Categorize every single batch into Healthy, Near Expiry, Expired
-        $batchHealthData = [
-            'Healthy' => 0,
-            'Near Expiry' => 0,
-            'Expired' => 0
-        ];
-
-        foreach ($allAggregatedStocks as $stock) {
-            if ($stock->quantity > 0) {
-                if ($stock->expiry_date->isPast()) {
-                    $batchHealthData['Expired']++;
-                } elseif ($stock->expiry_date->lte($threeMonthsFromNow)) {
-                    $batchHealthData['Near Expiry']++;
-                } else {
-                    $batchHealthData['Healthy']++;
-                }
-            }
-        }
+        // 8. All Medicines by Value (Replaces Category Chart)
+        $medicineValueChartData = InventoryStock::query()
+            ->join('medicines', 'inventory_stocks.medicine_id', '=', 'medicines.id')
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('inventory_stocks.warehouse_id', $selectedWarehouseId);
+            })
+            ->selectRaw('medicines.name, SUM(inventory_stocks.quantity * (medicines.market_price / GREATEST(COALESCE(medicines.market_price_unit_count, 1), 1))) as value')
+            ->where('inventory_stocks.quantity', '>', 0)
+            ->groupBy('medicines.id', 'medicines.name')
+            ->orderByDesc('value')
+            // ->take(10) // Removed limit to show all medicines
+            ->get();
 
         // --- Final Result for the View (Table) ---
         $stocks = $allAggregatedStocks;
@@ -421,8 +402,7 @@ class InventoryController extends Controller
             'deadStockCount',
             'expiryBreakdown',
             'categoryQtyChartData',
-            'sponsorChartData',
-            'batchHealthData'
+            'sponsorChartData'
         ));
     }
 
