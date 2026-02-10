@@ -368,7 +368,13 @@
 
         <!-- Dynamic Body Content -->
         <div class="content-body">
-            @if ($user->isDM())
+            @if ($user->isSuperAdmin())
+                <p>We are pleased to offer you the position of <span class="highlight">{{ $user->post ?? 'Super Admin' }}</span>. 
+                This appointment is effective immediately. We are confident that your leadership and vision will significantly contribute to the Humanity Foundation's mission and growth.</p>
+
+                <p><strong>Role & Responsibilities:</strong><br>
+                Your position as a central administrator involves strategic decision-making, operational oversight, and providing guidance to the broader management team (DM, BM, RM) to ensure the effective delivery of our health and social welfare programs.</p>
+            @elseif ($user->isDM())
                 <p>We are pleased to offer you the position of <span class="highlight">District Manager (DM)</span> under
                 <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. This appointment is effective immediately upon the commencement of your team's performance. 
                 We are confident that your leadership will drive our mission forward, and we assure you of our full support for your professional growth.</p>

@@ -175,7 +175,7 @@
             </div>
             @if(auth()->user()->isSuperAdmin())
                 <div class="flex items-center space-x-2">
-                    <span class="px-3 py-1 bg-accent/10 text-accent text-[10px] font-black uppercase tracking-widest rounded-full border border-accent/20">System Administrator</span>
+                    <span class="px-3 py-1 bg-accent/10 text-accent text-[10px] font-black uppercase tracking-widest rounded-full border border-accent/20">{{ auth()->user()->getDesignationLabel() }}</span>
                 </div>
             @endif
         </div>
@@ -328,7 +328,7 @@
                                             @csrf
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div class="space-y-1.5">
-                                                    <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Full Name (Super Admin)</label>
+                                                    <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pl-1">Full Name ({{ auth()->user()->getDesignationLabel() }})</label>
                                                     <input type="text" name="full_name" value="{{ old('full_name', $user->profile->full_name ?? '') }}" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all text-sm font-medium text-slate-700 dark:text-slate-200 outline-none">
                                                 </div>
                                                 <div class="space-y-1.5">
