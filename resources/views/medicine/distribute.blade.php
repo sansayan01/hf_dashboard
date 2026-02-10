@@ -145,6 +145,7 @@
                         <tbody id="itemsBody" class="text-sm font-bold text-slate-700 dark:text-slate-300">
                             <!-- Rows -->
                         </tbody>
+                        </tfoot>
                         <tfoot>
                             <tr class="border-t border-slate-200 dark:border-white/10">
                                 <td colspan="4"
@@ -167,10 +168,31 @@
                             </tr>
                             <tr class="border-t-2 border-slate-200 dark:border-white/10">
                                 <td colspan="4"
-                                    class="py-6 text-right font-black uppercase tracking-widest text-xs text-slate-500">
+                                    class="py-4 text-right font-black uppercase tracking-widest text-xs text-slate-500">
                                     Final Total</td>
-                                <td colspan="1" class="py-6 text-right font-black text-2xl text-accent pr-2">₹<span
+                                <td colspan="1" class="py-4 text-right font-black text-2xl text-accent pr-2">₹<span
                                         id="grandTotal">0.00</span></td>
+                                <td></td>
+                            </tr>
+                            <!-- Amount Paid & Due -->
+                            <tr>
+                                <td colspan="4"
+                                    class="py-2 text-right font-black uppercase tracking-widest text-[10px] text-slate-400">
+                                    Amount Paid</td>
+                                <td colspan="1" class="py-2 text-right pr-2">
+                                    <input type="number" step="0.01" name="amount_paid" id="amountPaidInput"
+                                        class="w-24 h-8 text-right rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold outline-none focus:ring-2 focus:ring-accent/50"
+                                        placeholder="0.00" oninput="isManualPayment = true; updateDueAmount();">
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4"
+                                    class="py-2 text-right font-black uppercase tracking-widest text-[10px] text-rose-500">
+                                    Due Amount</td>
+                                <td colspan="1" class="py-2 text-right font-black text-lg text-rose-500 pr-2">
+                                    ₹<span id="dueAmount">0.00</span>
+                                </td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -182,7 +204,8 @@
 
                 <!-- Payment Method Selection -->
                 <div class="mb-8 p-6 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5">
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Payment Method</label>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Payment
+                        Method</label>
                     <div class="relative">
                         <select name="payment_method" id="payment_method"
                             class="w-full h-12 pl-4 pr-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold focus:ring-2 focus:ring-accent/50 outline-none transition appearance-none">
@@ -197,13 +220,17 @@
                     </div>
 
                     <!-- UPI QR Code Container -->
-                    <div id="upi-qr-container" class="hidden mt-6 p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-dashed border-accent/30">
+                    <div id="upi-qr-container"
+                        class="hidden mt-6 p-6 bg-white dark:bg-slate-800 rounded-xl border-2 border-dashed border-accent/30">
                         <div class="text-center">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Scan to Pay via UPI</p>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Scan to Pay via
+                                UPI</p>
                             <div id="qr-code" class="inline-block p-4 bg-white rounded-xl shadow-lg"></div>
                             <div class="mt-4 space-y-1">
-                                <p class="text-xs text-slate-500">UPI ID: <span class="font-bold text-slate-700 dark:text-slate-300">9735563157-4@ybl</span></p>
-                                <p class="text-xs text-slate-500">Amount: <span class="font-black text-accent text-lg">₹<span id="qr-amount">0.00</span></span></p>
+                                <p class="text-xs text-slate-500">UPI ID: <span
+                                        class="font-bold text-slate-700 dark:text-slate-300">9735563157-4@ybl</span></p>
+                                <p class="text-xs text-slate-500">Amount: <span
+                                        class="font-black text-accent text-lg">₹<span id="qr-amount">0.00</span></span></p>
                             </div>
                         </div>
                     </div>
@@ -223,10 +250,11 @@
 
     <!-- QRCode.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
+
     <script>
         let addedItems = {}; // { medId: {price: x, qty: y, name: 'z'} }
         let isManualDiscount = false;
+        let isManualPayment = false;
         let selectedCamp = null;
 
         const campSelect = document.getElementById('camp_id');
@@ -278,16 +306,16 @@
                                 const disabled = available <= 0;
 
                                 div.innerHTML = `
-                                                            <div class="flex items-center justify-between ${disabled ? 'opacity-50' : ''}">
-                                                                <div>
-                                                                    <div class="font-bold text-slate-700 dark:text-slate-200">${item.text.split(' - ')[0]}</div>
-                                                                    <div class="text-[10px] text-slate-400 uppercase font-black tracking-wider">Rate: ₹${item.market_price} / unit • Stock: ${item.available_stock}</div>
-                                                                </div>
-                                                                <div class="${available > 0 ? 'text-emerald-500' : 'text-rose-500'} font-black text-xs">
-                                                                    ${available > 0 ? 'Add +' : 'Out of Stock'}
-                                                                </div>
-                                                            </div>
-                                                        `;
+                                                                        <div class="flex items-center justify-between ${disabled ? 'opacity-50' : ''}">
+                                                                            <div>
+                                                                                <div class="font-bold text-slate-700 dark:text-slate-200">${item.text.split(' - ')[0]}</div>
+                                                                                <div class="text-[10px] text-slate-400 uppercase font-black tracking-wider">Rate: ₹${item.market_price} / unit • Stock: ${item.available_stock}</div>
+                                                                            </div>
+                                                                            <div class="${available > 0 ? 'text-emerald-500' : 'text-rose-500'} font-black text-xs">
+                                                                                ${available > 0 ? 'Add +' : 'Out of Stock'}
+                                                                            </div>
+                                                                        </div>
+                                                                    `;
 
                                 if (!disabled) {
                                     div.addEventListener('click', () => {
@@ -383,6 +411,30 @@
 
             document.getElementById('discountAmt').innerText = discount.toFixed(2);
             document.getElementById('grandTotal').innerText = finalTotal.toFixed(2);
+
+            // Update Payment Fields
+            const amountPaidInput = document.getElementById('amountPaidInput');
+            if (!isManualPayment) {
+                amountPaidInput.value = finalTotal.toFixed(2);
+            }
+            updateDueAmount();
+        }
+
+        function updateDueAmount() {
+            const finalTotal = parseFloat(document.getElementById('grandTotal').innerText) || 0;
+            const amountPaidInput = document.getElementById('amountPaidInput');
+            let amountPaid = parseFloat(amountPaidInput.value);
+
+            if (isNaN(amountPaid)) {
+                amountPaid = 0;
+            }
+
+            // Optional: Warn if paid > total? For now, we allow it (change/tip) but due shouldn't be negative generally unless we want to show change.
+            // Let's assume due amount is 0 if paid > total.
+            let due = finalTotal - amountPaid;
+            if (due < 0) due = 0;
+
+            document.getElementById('dueAmount').innerText = due.toFixed(2);
         }
 
         function renderCart() {
@@ -397,24 +449,24 @@
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group';
                 tr.innerHTML = `
-                                                    <td class="py-4 pl-2">
-                                                        <input type="hidden" name="medicines[${count}][id]" value="${item.id}">
-                                                        <div class="font-bold">${item.name}</div>
-                                                    </td>
-                                                    <td class="py-4 text-center text-slate-500">${item.price.toFixed(2)}</td>
-                                                    <td class="py-4 text-center text-xs text-slate-400 font-mono bg-slate-100 dark:bg-white/5 rounded-lg py-1">${item.stock}</td>
-                                                    <td class="py-4 text-center">
-                                                        <input type="number" id="qty-input-${item.id}" name="medicines[${count}][quantity]" value="${item.qty}" min="1" max="${item.stock}"
-                                                            oninput="updateQty(${item.id}, this.value)"
-                                                            class="w-16 h-8 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-accent/50 outline-none font-bold text-sm">
-                                                    </td>
-                                                    <td class="py-4 text-right pr-2 font-mono">₹<span id="row-total-${item.id}">${total.toFixed(2)}</span></td>
-                                                    <td class="py-4 text-right">
-                                                        <button type="button" onclick="removeItem(${item.id})" class="text-slate-400 hover:text-rose-500 transition px-2">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                        </button>
-                                                    </td>
-                                                `;
+                                                                <td class="py-4 pl-2">
+                                                                    <input type="hidden" name="medicines[${count}][id]" value="${item.id}">
+                                                                    <div class="font-bold">${item.name}</div>
+                                                                </td>
+                                                                <td class="py-4 text-center text-slate-500">${item.price.toFixed(2)}</td>
+                                                                <td class="py-4 text-center text-xs text-slate-400 font-mono bg-slate-100 dark:bg-white/5 rounded-lg py-1">${item.stock}</td>
+                                                                <td class="py-4 text-center">
+                                                                    <input type="number" id="qty-input-${item.id}" name="medicines[${count}][quantity]" value="${item.qty}" min="1" max="${item.stock}"
+                                                                        oninput="updateQty(${item.id}, this.value)"
+                                                                        class="w-16 h-8 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-accent/50 outline-none font-bold text-sm">
+                                                                </td>
+                                                                <td class="py-4 text-right pr-2 font-mono">₹<span id="row-total-${item.id}">${total.toFixed(2)}</span></td>
+                                                                <td class="py-4 text-right">
+                                                                    <button type="button" onclick="removeItem(${item.id})" class="text-slate-400 hover:text-rose-500 transition px-2">
+                                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                                    </button>
+                                                                </td>
+                                                            `;
                 tbody.appendChild(tr);
             });
 
@@ -473,16 +525,16 @@
         function generateUPIQR(amount) {
             const qrContainer = document.getElementById('qr-code');
             const qrAmountEl = document.getElementById('qr-amount');
-            
+
             // Update displayed amount
             qrAmountEl.innerText = amount.toFixed(2);
-            
+
             // Generate UPI deep link
             const upiLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount.toFixed(2)}&cu=INR`;
-            
+
             // Clear previous QR code
             qrContainer.innerHTML = '';
-            
+
             // Generate new QR code
             if (typeof QRCode !== 'undefined') {
                 qrCodeInstance = new QRCode(qrContainer, {
@@ -499,7 +551,7 @@
         function toggleUPIQR() {
             const paymentMethod = document.getElementById('payment_method').value;
             const qrContainer = document.getElementById('upi-qr-container');
-            
+
             if (paymentMethod === 'upi') {
                 qrContainer.classList.remove('hidden');
                 const finalTotal = parseFloat(document.getElementById('grandTotal').innerText) || 0;
@@ -514,7 +566,7 @@
 
         // Override updateTotals to also update QR code
         const originalUpdateTotals = updateTotals;
-        updateTotals = function() {
+        updateTotals = function () {
             originalUpdateTotals();
             // Update QR if UPI is selected
             if (document.getElementById('payment_method').value === 'upi') {

@@ -27,7 +27,9 @@ class MedicineDistribution extends Model
         'discount_percentage',
         'discount_amount',
         'final_amount',
-        'payment_method'
+        'payment_method',
+        'amount_paid',
+        'due_amount'
     ];
 
     public function patient()

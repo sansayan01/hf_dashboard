@@ -201,6 +201,12 @@ class MedicineDistributionController extends Controller
             $distribution->discount_percentage = $discountPercentage;
             $distribution->discount_amount = $discountAmount;
             $distribution->final_amount = $finalAmount;
+
+            // Handle Payment & Due Amount
+            $amountPaid = $request->has('amount_paid') ? (float) $request->amount_paid : $finalAmount;
+            $distribution->amount_paid = $amountPaid;
+            $distribution->due_amount = max(0, $finalAmount - $amountPaid);
+
             // Safely add payment_method only if column exists
             if (Schema::hasColumn('medicine_distributions', 'payment_method')) {
                 $distribution->payment_method = $request->input('payment_method', 'cash');
