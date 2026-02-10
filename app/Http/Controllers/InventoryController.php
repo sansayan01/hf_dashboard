@@ -161,7 +161,7 @@ class InventoryController extends Controller
         $topMovers = MedicineDistributionItem::whereDate('created_at', '>=', now()->subDays(30))
             ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
                 // Filter distributions that happened in this warehouse (via transaction linkage if possible, or simple constraint)
-                // Since items don't strictly link to warehouse in this model easily without joining transactions, 
+                // Since items don't strictly link to warehouse in this model easily without joining transactions,
                 // we'll approximation or use the transaction-based approach if critical.
                 // For now, global moving items or simple approach:
                 return $q->whereHas('distribution.camp', function ($cq) use ($selectedWarehouseId) {
@@ -174,6 +174,31 @@ class InventoryController extends Controller
             ->take(5)
             ->with('medicine')
             ->get();
+
+        // Calculate average daily consumption over last 30 days for coverage analysis
+        $consumptionStats = MedicineDistributionItem::whereDate('created_at', '>=', now()->subDays(30))
+            ->select('medicine_id', DB::raw('SUM(quantity) as total_dispensed'))
+            ->groupBy('medicine_id')
+            ->pluck('total_dispensed', 'medicine_id')
+            ->toArray();
+
+        // Attach coverage days to Top Movers
+        $topMovers->each(function ($item) use ($consumptionStats, $selectedWarehouseId) {
+            $avgDaily = ($consumptionStats[$item->medicine_id] ?? 0) / 30;
+            $medicine = $item->medicine;
+            if ($medicine) {
+                if ($selectedWarehouseId) {
+                    $stockQuery = $medicine->stocks()->where('warehouse_id', $selectedWarehouseId);
+                    $currentStock = $stockQuery->sum('quantity');
+                } else {
+                    $currentStock = $medicine->totalStock;
+                }
+
+                $item->coverage_days = $avgDaily > 0 ? round($currentStock / $avgDaily) : 999;
+            } else {
+                $item->coverage_days = 0;
+            }
+        });
 
         // 5. Recent Activity Log (Last 5 Transactions)
         $recentActivity = InventoryTransaction::latest()

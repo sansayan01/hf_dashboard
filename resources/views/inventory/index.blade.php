@@ -198,7 +198,13 @@
                                 </div>
                                 <div>
                                     <div class="font-bold text-slate-800 dark:text-white text-sm">{{ $item->medicine->name ?? 'Unknown' }}</div>
-                                    <div class="text-[10px] text-slate-500 font-bold">{{ $item->medicine->category->name ?? 'Medicine' }}</div>
+                                    <div class="text-[10px] text-slate-500 font-bold">
+                                        {{ $item->medicine->category->name ?? 'Medicine' }}
+                                        <span class="text-slate-300 dark:text-slate-600 mx-1">•</span>
+                                        <span class="{{ $item->coverage_days < 10 ? 'text-red-500' : ($item->coverage_days < 30 ? 'text-amber-500' : 'text-emerald-500') }}">
+                                            {{ $item->coverage_days > 90 ? '90+ Days Stock' : $item->coverage_days . ' Days Stock' }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="text-right">
