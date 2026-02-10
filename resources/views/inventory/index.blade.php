@@ -571,7 +571,7 @@
                     datasets: [{
                         label: 'Value (₹)',
                         data: medicineValueData.map(d => d.value),
-                        backgroundColor: '#3B82F6',
+                        backgroundColor: medicineValueData.map((_, i) => vibrantColors[i % vibrantColors.length]),
                         borderRadius: 4,
                         barPercentage: 0.6,
                         categoryPercentage: 0.8
@@ -606,7 +606,10 @@
                             ticks: { 
                                 font: { size: 10, weight: 'bold' },
                                 callback: function(value) {
-                                    return '₹' + new Intl.NumberFormat('en-IN', { notation: "compact" }).format(value);
+                                    if (value >= 1000) {
+                                        return '₹' + (value / 1000).toFixed(0) + 'k';
+                                    }
+                                    return '₹' + value;
                                 }
                             } 
                         }
