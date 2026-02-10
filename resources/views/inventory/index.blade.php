@@ -402,7 +402,7 @@
                     </form>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto overflow-y-auto max-h-[500px]">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/50 dark:bg-white/5">
