@@ -337,8 +337,8 @@
              </div>
 
              <!-- Main Inventory Table (2 cols) -->
-            <div id="inventory-section" class="lg:col-span-2 bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden text-slate-800 dark:text-white flex flex-col h-full">
-                <div class="p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div id="inventory-section" class="lg:col-span-2 bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden text-slate-800 dark:text-white flex flex-col h-[450px]">
+                <div class="p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
                     <h3 class="font-bold text-lg whitespace-nowrap">Batch-wise Inventory</h3>
                     <form id="inventory-filter-form" action="{{ route('inventory.index') }}" method="GET"
                         class="flex flex-wrap items-center gap-3 no-loader flex-1 justify-end">
@@ -402,9 +402,9 @@
                     </form>
                 </div>
 
-                <div class="overflow-x-auto overflow-y-auto max-h-[400px] flex-1 scrollbar-thin scrollbar-thumb-slate-200">
+                <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
                     <table class="w-full text-left border-collapse">
-                        <thead class="sticky top-0 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm z-10 border-b border-slate-100 dark:border-white/5">
+                        <thead class="sticky top-0 bg-white dark:bg-slate-900 z-10 border-b border-slate-100 dark:border-white/5">
                             <tr>
                                 <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Medicine & Location</th>
                                 <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
