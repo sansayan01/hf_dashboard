@@ -344,44 +344,50 @@
                     <input type="hidden" name="payment_method" id="payment_method_input" value="">
 
                     <div id="payment-verification-section"
-                        class="hidden space-y-4 animate-in fade-in duration-300 max-w-2xl mx-auto">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-                            <div class="space-y-4">
-                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Upload
-                                    Screenshot <span class="text-danger">*</span></label>
-                                <div class="relative group">
-                                    <input type="file" name="payment_screenshot" id="payment_screenshot" accept="image/*"
-                                        class="w-full px-5 py-4 bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-white/10 rounded-2xl focus:border-accent outline-none transition-all cursor-pointer file:hidden">
-                                    <div
-                                        class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-slate-400 group-hover:text-accent transition-colors">
-                                        <div class="flex items-center gap-2 mb-1">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="hidden space-y-4 animate-in fade-in duration-300 max-w-3xl mx-auto pt-8 border-t border-slate-100 dark:border-white/5">
+                        <div class="space-y-4">
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest text-center">Upload Payment Evidence <span class="text-danger">*</span></label>
+                            
+                            <div class="relative group w-full">
+                                <input type="file" name="payment_screenshot" id="payment_screenshot" accept="image/*"
+                                    class="absolute inset-0 w-full h-32 opacity-0 cursor-pointer z-10">
+                                <div
+                                    class="w-full h-32 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-white/10 rounded-2xl group-hover:border-accent group-hover:bg-accent/5 transition-all">
+                                    <div class="flex flex-col items-center gap-2" id="upload-placeholder">
+                                        <div class="p-3 bg-white dark:bg-white/5 rounded-full shadow-sm text-slate-400 group-hover:text-accent transition-colors">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M16 8l-4-4m0 0L8 8m4-4v12" />
                                             </svg>
-                                            <span class="text-xs font-black uppercase tracking-widest">Upload
-                                                Evidence</span>
                                         </div>
-                                        <div
-                                            class="flex items-center gap-1.5 px-3 py-1 bg-accent/5 rounded-full border border-accent/10">
-                                            <div class="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></div>
-                                            <span class="text-[9px] font-bold text-accent uppercase tracking-tighter">Smart
-                                                AI Verification Active</span>
+                                        <div class="text-center">
+                                            <span class="block text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Click to Upload Screenshot</span>
+                                            <span class="block text-[10px] text-slate-400 font-medium mt-0.5">Supports JPG, PNG</span>
                                         </div>
+                                    </div>
+                                    
+                                    <!-- Selected File State -->
+                                    <div id="file-selected-state" class="hidden flex flex-col items-center gap-2">
+                                        <div class="p-2 bg-emerald-500/10 text-emerald-500 rounded-full">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <span class="text-xs font-bold text-slate-700 dark:text-white" id="selected-filename">Filename.jpg</span>
+                                        <span class="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Ready to Upload</span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Confirmation Check -->
-                            <div id="final-confirmation-section" class="hidden">
-                                <label
-                                    class="flex items-center space-x-4 p-5 bg-blue-500/5 border-2 border-dashed border-blue-500/20 rounded-2xl cursor-pointer w-full hover:bg-blue-500/10 transition-all">
-                                    <input type="checkbox" name="payment_confirmed" id="payment_confirmed"
-                                        class="w-6 h-6 rounded border-slate-300 text-accent focus:ring-accent accent-accent">
-                                    <span class="text-sm font-bold text-slate-700 dark:text-slate-300">I confirm the payment
-                                        is genuine.</span>
-                                </label>
-                            </div>
+                        <!-- Confirmation Check -->
+                        <div id="final-confirmation-section" class="hidden pt-2">
+                            <label
+                                class="flex items-center justify-center space-x-3 p-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl cursor-pointer hover:bg-slate-100 transition-all select-none">
+                                <input type="checkbox" name="payment_confirmed" id="payment_confirmed"
+                                    class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent">
+                                <span class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">I confirm the payment is genuine</span>
+                            </label>
                         </div>
                     </div>
 
@@ -609,11 +615,27 @@
             // Coupon Code Handlers
             // (Old toggleCouponSection function removed as it is replaced by Dropdown)
 
-            // Submit Button Visibility
+            // File Upload UI & Submit Button Visibility
+            const uploadPlaceholder = document.getElementById('upload-placeholder');
+            const fileSelectedState = document.getElementById('file-selected-state');
+            const selectedFilename = document.getElementById('selected-filename');
+
             screenshotInput.addEventListener('change', function () {
                 if (this.files && this.files.length > 0) {
+                    // Update UI
+                    const file = this.files[0];
+                    selectedFilename.textContent = file.name;
+                    uploadPlaceholder.classList.add('hidden');
+                    fileSelectedState.classList.remove('hidden');
+                    
+                    // Show Submit Btn
                     submitBtn.classList.remove('hidden');
                 } else {
+                    // Reset UI
+                    uploadPlaceholder.classList.remove('hidden');
+                    fileSelectedState.classList.add('hidden');
+                    
+                    // Hide Submit Btn
                     submitBtn.classList.add('hidden');
                 }
             });
