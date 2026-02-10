@@ -314,9 +314,11 @@
                 style="font-weight: 900; font-size: {{ $nameFontSize }}; white-space: nowrap; line-height: 1.1;">
                 {{ $name }}
             </h2>
-            <p class="font-bold text-gray-800" style="font-size: {{ $id_fontSize }}; margin-top: 0.5mm;">
-                Emp. ID : <span class="text-red-500 font-black">{{ $user->employee_id }}</span>
-            </p>
+            @if(!$user->isSuperAdmin())
+                <p class="font-bold text-gray-800" style="font-size: {{ $id_fontSize }}; margin-top: 0.5mm;">
+                    Emp. ID : <span class="text-red-500 font-black">{{ $user->employee_id }}</span>
+                </p>
+            @endif
 
             <div class="designation-text text-center">
                 {{ $user->getDesignationLabel() }}

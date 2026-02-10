@@ -297,9 +297,11 @@
                         <h2 class="text-red-600 uppercase leading-none mb-1"
                             style="font-weight: 900; font-size: {{ $c_nameFontSize }}; white-space: nowrap;">{{ $c_name }}
                         </h2>
-                        <p class="text-sm font-bold text-gray-800" style="margin-top: 2px;">
-                            Emp. ID : <span class="text-red-500 font-black">{{ $user->employee_id }}</span>
-                        </p>
+                        @if(!$user->isSuperAdmin())
+                            <p class="text-sm font-bold text-gray-800" style="margin-top: 2px;">
+                                Emp. ID : <span class="text-red-500 font-black">{{ $user->employee_id }}</span>
+                            </p>
+                        @endif
 
                         <div class="designation-text">
                             {{ $user->getDesignationLabel() }}
