@@ -672,6 +672,10 @@ class User extends Authenticatable
     // Get designation label
     public function getDesignationLabel()
     {
+        if ($this->isSuperAdmin() && $this->post) {
+            return $this->post;
+        }
+
         $labels = [
             'super_admin' => 'Super Admin',
             'office_in_charge' => 'Office In-Charge',
