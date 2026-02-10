@@ -307,7 +307,7 @@
                     <h3 class="font-bold text-lg text-slate-800 dark:text-white">Recent Activity</h3>
                     <a href="{{ route('inventory.transactions') }}" class="text-xs font-bold text-accent hover:underline">View All</a>
                 </div>
-                <div class="divide-y divide-slate-100 dark:divide-white/5 overflow-y-auto max-h-[90vh]">
+                <div class="divide-y divide-slate-100 dark:divide-white/5 overflow-y-auto max-h-[400px]">
                     @forelse($recentActivity as $activity)
                         <div class="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition">
                              <div class="flex items-center space-x-3">
@@ -402,7 +402,7 @@
                     </form>
                 </div>
 
-                <div class="overflow-x-auto overflow-y-auto max-h-[90vh] flex-1 scrollbar-thin scrollbar-thumb-slate-200">
+                <div class="overflow-x-auto overflow-y-auto max-h-[400px] flex-1 scrollbar-thin scrollbar-thumb-slate-200">
                     <table class="w-full text-left border-collapse">
                         <thead class="sticky top-0 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm z-10 border-b border-slate-100 dark:border-white/5">
                             <tr>
