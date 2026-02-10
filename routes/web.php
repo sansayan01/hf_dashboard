@@ -169,6 +169,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/transactions/export', [App\Http\Controllers\InventoryController::class, 'exportTransactions'])->name('transactions.export');
         Route::put('/transactions/{transaction}', [App\Http\Controllers\InventoryController::class, 'updateTransaction'])->name('transactions.update');
         Route::delete('/transactions/{transaction}', [App\Http\Controllers\InventoryController::class, 'destroyTransaction'])->name('transactions.destroy');
+        Route::post('/transactions/pay/{id}', [App\Http\Controllers\InventoryController::class, 'clearDue'])->name('dispense.pay');
 
         // Dispensing to patients
         Route::get('/dispense/{patient?}', [App\Http\Controllers\InventoryController::class, 'dispense'])->name('dispense');

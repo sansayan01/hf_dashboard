@@ -104,7 +104,7 @@
 
             <!-- Filter Bar -->
             <div id="filterSection"
-                class="{{ request()->anyFilled(['search', 'date_from', 'date_to']) ? '' : 'hidden' }} bg-slate-50/50 dark:bg-white/5 p-6 border-b border-slate-100 dark:border-white/5">
+                class="{{ request()->anyFilled(['search', 'date_from', 'date_to', 'payment_method']) ? '' : 'hidden' }} bg-slate-50/50 dark:bg-white/5 p-6 border-b border-slate-100 dark:border-white/5">
                 <form action="{{ route('inventory.transactions') }}" method="GET"
                     class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <input type="hidden" name="view" value="{{ $view }}">
@@ -129,6 +129,18 @@
                                         {{ $sponsor->name }}
                                     </option>
                                 @endforeach
+                            </select>
+                        </div>
+                    @elseif($view === 'dispenses')
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Payment Method</label>
+                            <select name="payment_method"
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                <option value="">All Methods</option>
+                                <option value="upi" {{ request('payment_method') == 'upi' ? 'selected' : '' }}>UPI</option>
+                                <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
+                                <option value="due" {{ request('payment_method') == 'due' ? 'selected' : '' }}>Due / Unpaid</option>
                             </select>
                         </div>
                     @endif
@@ -326,36 +338,44 @@
                                     </span>
                                 </td>
                                 <td class="p-4 text-right">
-                                    <div class="flex justify-end items-center space-x-1">
-                                        @if($view === 'dispenses')
-                                            {{-- PDF/Invoice Button --}}
-                                            <a href="{{ route('medicine.invoice', $transaction->id) }}" target="_blank"
-                                                class="p-2 text-slate-400 hover:text-accent transition" title="Download Invoice">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                                </svg>
-                                            </a>
-                                            {{-- Edit Button --}}
-                                            @if(!$isStaff)
-                                                <a href="{{ route('medicine.distribution.edit', $transaction->id) }}"
-                                                    class="p-2 text-slate-400 hover:text-accent transition" title="Edit Distribution">
+                                        <div class="flex justify-end items-center space-x-1">
+                                            @if($view === 'dispenses')
+                                                @if($transaction->due_amount > 0)
+                                                    <button type="button" onclick="openPayDueModal('{{ $transaction->id }}', '{{ $transaction->final_amount }}', '{{ $transaction->amount_paid }}', '{{ $transaction->due_amount }}')"
+                                                        class="p-2 text-slate-400 hover:text-emerald-500 transition" title="Pay Due">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                                        </svg>
+                                                    </button>
+                                                @endif
+                                                {{-- PDF/Invoice Button --}}
+                                                <a href="{{ route('medicine.invoice', $transaction->id) }}" target="_blank"
+                                                    class="p-2 text-slate-400 hover:text-accent transition" title="Download Invoice">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                                     </svg>
                                                 </a>
-                                            @endif
-                                            {{-- Delete Button --}}
-                                            <form action="{{ route('medicine.distribution.destroy', $transaction->id) }}"
-                                                method="POST" class="inline"
-                                                onsubmit="return confirm('Are you sure you want to delete this distribution? Stock will be reverted.')">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="p-2 text-slate-400 hover:text-red-500 transition" title="Delete Distribution">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                    </svg>
-                                                </button>
-                                            </form>
-                                        @else
+                                                {{-- Edit Button --}}
+                                                @if(!$isStaff)
+                                                    <a href="{{ route('medicine.distribution.edit', $transaction->id) }}"
+                                                        class="p-2 text-slate-400 hover:text-accent transition" title="Edit Distribution">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                        </svg>
+                                                    </a>
+                                                @endif
+                                                {{-- Delete Button --}}
+                                                <form action="{{ route('medicine.distribution.destroy', $transaction->id) }}"
+                                                    method="POST" class="inline"
+                                                    onsubmit="return confirm('Are you sure you want to delete this distribution? Stock will be reverted.')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="p-2 text-slate-400 hover:text-red-500 transition" title="Delete Distribution">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @else
                                             @if(!$isStaff)
                                                 <button type="button" onclick="openEditModal('{{ $transaction->id }}', '{{ $transaction->quantity }}', '{{ addslashes($transaction->notes) }}')"
                                                     class="p-2 text-slate-400 hover:text-accent transition" title="Edit Transaction">
@@ -446,6 +466,76 @@
         </div>
     </div>
 
+    <!-- Pay Due Modal -->
+    <div id="pay-due-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75" aria-hidden="true"
+                onclick="closePayDueModal()"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div
+                class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-3xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form id="pay-due-form" method="POST">
+                    @csrf 
+                    <div class="bg-white dark:bg-slate-800 px-8 pt-8 pb-4">
+                        <h3 class="text-lg font-black text-slate-900 dark:text-white mb-6" id="modal-title">Clear Due Payment</h3>
+
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-3 gap-4 text-center mb-4">
+                                <div class="bg-slate-50 dark:bg-white/5 p-3 rounded-xl">
+                                    <span class="block text-[10px] uppercase text-slate-400 font-bold">Total</span>
+                                    <span class="text-sm font-black text-slate-700 dark:text-slate-200" id="pd-total">₹0</span>
+                                </div>
+                                <div class="bg-emerald-50 dark:bg-emerald-500/10 p-3 rounded-xl">
+                                    <span class="block text-[10px] uppercase text-emerald-600/70 font-bold">Paid</span>
+                                    <span class="text-sm font-black text-emerald-600" id="pd-paid">₹0</span>
+                                </div>
+                                <div class="bg-red-50 dark:bg-red-500/10 p-3 rounded-xl">
+                                    <span class="block text-[10px] uppercase text-red-600/70 font-bold">Due</span>
+                                    <span class="text-sm font-black text-red-600" id="pd-due">₹0</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Amount to Pay</label>
+                                <input type="number" name="amount" id="pd-amount" required step="0.01" min="0.01"
+                                    class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition uppercase font-bold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Payment Method</label>
+                                <select name="payment_method" required
+                                    class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                    <option value="cash">Cash</option>
+                                    <option value="upi">UPI</option>
+                                    <option value="card">Card</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Notes</label>
+                                <textarea name="notes" rows="2"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800/50 px-8 py-6 flex flex-row-reverse space-x-2 space-x-reverse">
+                        <button type="submit"
+                            class="inline-flex justify-center px-6 py-2.5 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/20 hover:opacity-90 transition">
+                            Confirm Payment
+                        </button>
+                        <button type="button" onclick="closePayDueModal()"
+                            class="inline-flex justify-center px-6 py-2.5 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold border border-slate-200 dark:border-slate-600 hover:bg-slate-50 transition">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         function toggleFilters() {
             const section = document.getElementById('filterSection');
@@ -468,6 +558,33 @@
 
         function closeEditModal() {
             const modal = document.getElementById('edit-modal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openPayDueModal(id, total, paid, due) {
+            const modal = document.getElementById('pay-due-modal');
+            const form = document.getElementById('pay-due-form');
+            
+            document.getElementById('pd-total').innerText = '₹' + parseFloat(total).toFixed(2);
+            document.getElementById('pd-paid').innerText = '₹' + parseFloat(paid).toFixed(2);
+            document.getElementById('pd-due').innerText = '₹' + parseFloat(due).toFixed(2);
+            
+            const amountInput = document.getElementById('pd-amount');
+            amountInput.max = due;
+            amountInput.value = due; // Default to full due amount
+
+            // Ensure the route matches the one defined in web.php
+            // Route: Route::post('/transactions/pay/{id}', ...) -> 'dispense.pay' inside 'inventory' prefix
+            // URL structure: /inventory/transactions/pay/{id}
+            form.action = `/inventory/transactions/pay/${id}`;
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePayDueModal() {
+            const modal = document.getElementById('pay-due-modal');
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
         }

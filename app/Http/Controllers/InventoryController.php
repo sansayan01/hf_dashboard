@@ -379,6 +379,14 @@ class InventoryController extends Controller
         // --- Final Result for the View (Table) ---
         $stocks = $allAggregatedStocks;
 
+        // 12. Recent Patients Dues
+        $recentDues = MedicineDistribution::whereIn('payment_method', ['due', 'credit', 'later'])
+            ->where('final_amount', '>', 0)
+            ->with('patient')
+            ->latest()
+            ->take(5)
+            ->get();
+
         return view('inventory.index', compact(
             'stocks',
             'lowStockMedicines',
@@ -402,7 +410,8 @@ class InventoryController extends Controller
             'deadStockCount',
             'expiryBreakdown',
             'categoryQtyChartData',
-            'sponsorChartData'
+            'sponsorChartData',
+            'recentDues'
         ));
     }
 
@@ -525,6 +534,18 @@ class InventoryController extends Controller
 
         if (request('date_to')) {
             $query->whereDate('created_at', '<=', request('date_to'));
+        }
+
+        if ($view === 'dispenses' && request('payment_method')) {
+            $method = request('payment_method');
+            if ($method === 'due') {
+                $query->where(function ($q) {
+                    $q->whereIn('payment_method', ['due', 'credit', 'later'])
+                        ->orWhere('due_amount', '>', 0);
+                });
+            } else {
+                $query->where('payment_method', $method);
+            }
         }
 
         $transactions = $query->get();
@@ -801,6 +822,18 @@ class InventoryController extends Controller
 
         if (request('date_to')) {
             $query->whereDate('created_at', '<=', request('date_to'));
+        }
+
+        if ($view === 'dispenses' && request('payment_method')) {
+            $method = request('payment_method');
+            if ($method === 'due') {
+                $query->where(function ($q) {
+                    $q->whereIn('payment_method', ['due', 'credit', 'later'])
+                        ->orWhere('due_amount', '>', 0);
+                });
+            } else {
+                $query->where('payment_method', $method);
+            }
         }
 
         $perPage = request('per_page', 20);
@@ -1488,5 +1521,33 @@ class InventoryController extends Controller
             ->sortByDesc('quantity')
             ->take(10) // Show top 10 medicines
             ->values();
+    }
+
+    /**
+     * Clear due amount for a medicine distribution.
+     */
+    public function clearDue(Request $request, $id)
+    {
+        $distribution = MedicineDistribution::findOrFail($id);
+
+        // Ensure due amount is greater than 0
+        if ($distribution->due_amount <= 0) {
+            return back()->with('error', 'No due amount to clear.');
+        }
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1|max:' . $distribution->due_amount,
+            'payment_method' => 'required|string|in:cash,upi,card',
+            'notes' => 'nullable|string'
+        ]);
+
+        $amount = $validated['amount'];
+
+        $distribution->amount_paid += $amount;
+        $distribution->due_amount = max(0, $distribution->due_amount - $amount);
+
+        $distribution->save();
+
+        return back()->with('success', 'Due amount updated successfully.');
     }
 }

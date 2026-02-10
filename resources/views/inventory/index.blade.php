@@ -328,24 +328,33 @@
                 </div>
             </div>
 
-            <!-- Inventory Summary Text/Quick Data -->
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-xl shadow-blue-500/20 flex flex-col justify-between">
-                <div>
-                    <h3 class="font-bold text-sm uppercase tracking-wider opacity-80 mb-4">Stock Health Index</h3>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-end border-b border-white/10 pb-2">
-                             <span class="text-xs font-bold opacity-70">Dead Stock (90d)</span>
-                             <span class="text-xl font-black">{{ $deadStockCount }} Items</span>
-                        </div>
-                        <div class="flex justify-between items-end border-b border-white/10 pb-2">
-                             <span class="text-xs font-bold opacity-70">Daily Turnover</span>
-                             <span class="text-xl font-black">₹{{ number_format($todaySales, 0) }}</span>
-                        </div>
-                    </div>
+            <!-- Recent Patients Dues -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-xl shadow-blue-500/20 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-sm uppercase tracking-wider opacity-80">Recent Dues</h3>
+                    <a href="{{ route('inventory.transactions', ['view' => 'dispenses', 'payment_method' => 'due']) }}" class="text-[10px] font-bold bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition">View All</a>
                 </div>
-                <div class="mt-4 flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">System Health Optimized</span>
+                
+                <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar" style="max-height: 200px;">
+                    @forelse($recentDues as $due)
+                        <div class="flex justify-between items-center border-b border-white/10 pb-2 mb-2 last:border-0 last:mb-0 last:pb-0 group">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-sm">{{ $due->patient->full_name ?? 'Unknown' }}</span>
+                                <span class="text-[10px] opacity-70">{{ $due->created_at->diffForHumans() }}</span>
+                            </div>
+                            <div class="flex flex-col items-end">
+                                <span class="font-black text-lg">₹{{ number_format($due->final_amount, 0) }}</span>
+                                <a href="{{ route('patients.show', $due->patient_id) }}" class="text-[10px] font-bold bg-white text-indigo-600 px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                    View Profile
+                                </a>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="flex flex-col items-center justify-center h-full opacity-70">
+                            <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span class="text-xs font-bold">No recent dues found.</span>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
