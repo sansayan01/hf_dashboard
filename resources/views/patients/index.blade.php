@@ -101,7 +101,7 @@
                     <div class="lg:col-span-3">
                         <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Search Records</label>
                         <div class="relative">
-                            <input type="text" name="search" value="{{ request('search') }}" 
+                            <input type="text" name="search" id="search-input" value="{{ request('search') }}" 
                                 placeholder="Patient Name, Phone, or Collector ID..."
                                 class="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                             <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -208,6 +208,7 @@
             </div>
         @endif
 
+<div id="patients-container">
         @if($patients->isEmpty())
             <div class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl p-20 text-center">
                 <div class="w-24 h-24 bg-accent/10 text-accent rounded-3xl flex items-center justify-center mx-auto mb-8">
@@ -376,6 +377,7 @@
                 </div>
             @endif
         @endif
+        </div>
         <script>
             function toggleFilters() {
                 const filters = document.getElementById('filter-panel');
@@ -416,6 +418,55 @@
                 document.getElementById('collector_search').value = name;
                 hideCollectorList();
             }
+
+            // Live Search Implementation
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.getElementById('search-input');
+                const searchForm = searchInput ? searchInput.closest('form') : null;
+                const patientsContainer = document.getElementById('patients-container');
+                let debounceTimer;
+
+                if (searchInput && searchForm && patientsContainer) {
+                    searchInput.addEventListener('input', function() {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(() => {
+                            const formData = new FormData(searchForm);
+                            const params = new URLSearchParams(formData);
+                            params.delete('page'); // Reset pagination on new search
+                            
+                            const url = `${searchForm.action}?${params.toString()}`;
+
+                            // Add loading state opacity
+                            if (patientsContainer) {
+                                    patientsContainer.classList.add('opacity-50', 'transition-opacity', 'duration-200');
+                            }
+
+                            fetch(url, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.text())
+                            .then(html => {
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+                                const newContainer = doc.getElementById('patients-container');
+                                
+                                if (newContainer && patientsContainer) {
+                                    patientsContainer.innerHTML = newContainer.innerHTML;
+                                    window.history.pushState({}, '', url);
+                                }
+                            })
+                            .catch(error => console.error('Error fetching patients:', error))
+                            .finally(() => {
+                                if (patientsContainer) {
+                                    patientsContainer.classList.remove('opacity-50');
+                                }
+                            });
+                        }, 300); // 300ms debounce
+                    });
+                }
+            });
         </script>
     </div>
 @endsection
