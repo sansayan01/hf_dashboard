@@ -466,7 +466,11 @@ class UserController extends Controller
             'ifsc_code' => 'required|string|max:11',
             'profile_picture' => 'nullable|image|max:10000',
             'camp_id' => 'nullable|exists:inventory_warehouses,id',
-        ]));
+        ]), [
+            'phone_number.unique' => 'This phone number is already registered. If the member already exists, please edit their profile instead of creating a new one.',
+            'aadhaar_number.unique' => 'This Aadhaar number is already registered. If the member already exists, please edit their profile instead of creating a new one.',
+            'pan_number.unique' => 'This PAN number is already registered. If the member already exists, please edit their profile instead of creating a new one.',
+        ]);
 
         if ($request->designation === 'staff' && empty($request->camp_id)) {
             return back()->withInput()->with('error', 'Please select a Camp Location for the Pharmacist.');
