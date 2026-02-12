@@ -1460,4 +1460,42 @@ class UserController extends Controller
 
         return back()->with('success', "User " . ($user->is_office_in_charge ? "assigned as" : "removed from") . " Officer in Charge successfully.");
     }
+
+    /**
+     * Check for uniqueness of fields via AJAX
+     */
+    public function checkUniqueness(Request $request)
+    {
+        $field = $request->field; // phone_number, aadhaar_number, pan_number
+        $value = $request->value;
+
+        if (!$field || !$value) {
+            return response()->json(['exists' => false]);
+        }
+
+        // Map frontend field names to database columns if needed (they match here)
+        $allowedFields = ['phone_number', 'aadhaar_number', 'pan_number'];
+        if (!in_array($field, $allowedFields)) {
+            return response()->json(['exists' => false]);
+        }
+
+        $exists = UserProfile::where($field, $value)->exists();
+
+        if ($exists) {
+            $fieldNameReadable = str_replace('_', ' ', $field);
+            // Capitalize first letter
+            $fieldNameReadable = ucfirst($fieldNameReadable);
+            if ($field === 'aadhaar_number')
+                $fieldNameReadable = 'Aadhaar number';
+            if ($field === 'pan_number')
+                $fieldNameReadable = 'PAN number';
+
+            return response()->json([
+                'exists' => true,
+                'message' => "This {$fieldNameReadable} is already registered. If the member already exists, please edit their profile instead of creating a new one."
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
+    }
 }

@@ -18,8 +18,34 @@
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.tsx'])
 
-    <!-- Old CDN (Commented out for React Integration) -->
-    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <!-- Tailwind CSS CDN (Fallback for when Vite build is not available) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1C2434',
+                        secondary: '#313D4A',
+                        accent: '#3C50E0',
+                        success: '#10B981',
+                        danger: '#FB4848',
+                        warning: '#F2994A',
+                        body: '#F5EEDC',
+                        bodydark: '#8A99AF',
+                        darkbg: '#0F172A',
+                        darkcard: '#1E293B',
+                        darkaccent: '#3C50E0',
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
 
     <style>
         .glass {
@@ -33,7 +59,7 @@
         }
 
         .gradient-bg {
-            background-color: #ffdfaf;
+            background-color: #ffdfaf !important;
             /* Solid color requested by user */
             transition: background-color 0.3s ease;
         }
@@ -604,17 +630,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                    }).then((result) => {
+                                                                                                                                                                                                                                        }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                    });
+                                                                                                                                                                                                                                        });
         @endif
 
         @if(session('error'))

@@ -35,357 +35,49 @@ class InventoryController extends Controller
         $allAggregatedStocks = $this->getAggregatedStocks($request, $selectedWarehouseId);
 
         // --- Dashboard Metrics Calculation (on Full Set) ---
+        $totalValue = $this->calculateTotalValue($allAggregatedStocks);
+        $totalMedicines = $allAggregatedStocks->pluck('medicine_id')->unique()->count();
 
-        // 1. Total Inventory Value & Count
-        $totalValue = 0;
-        $activeMedicineIds = $allAggregatedStocks->pluck('medicine_id')->unique();
-        $totalMedicines = $activeMedicineIds->count();
+        $stockHealth = $this->calculateStockHealth($allAggregatedStocks);
+        $lowStockCount = $stockHealth['lowStockCount'];
+        $nearExpiryCount = $stockHealth['nearExpiryCount'];
+        $expiredCount = $stockHealth['expiredCount'];
 
-        foreach ($allAggregatedStocks as $stock) {
-            if ($stock->quantity > 0 && $stock->medicine) {
-                // Calculate value: (Market Price / Unit Count) * Quantity
-                $unitPrice = ($stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
-                    ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
-                    : 0;
-                $totalValue += $unitPrice * $stock->quantity;
-            }
-        }
+        // Chart Data
+        $categoryChartData = $this->prepareCategoryChart($allAggregatedStocks);
+        $warehouseChartData = $this->prepareWarehouseChart($allAggregatedStocks, $selectedWarehouseId);
+        $trendChartData = $this->prepareTrendChart($selectedWarehouseId);
+        $topMovers = $this->getTopMovers($selectedWarehouseId);
+        $recentActivity = $this->getRecentActivity($selectedWarehouseId);
+        $medicineValueChartData = $this->getMedicineValueChartData($selectedWarehouseId);
+        $categoryQtyChartData = $this->getCategoryQtyChartData($allAggregatedStocks);
+        $sponsorChartData = $this->getSponsorChartData($allAggregatedStocks);
+        $expiryBreakdown = $this->getExpiryBreakdown($allAggregatedStocks);
 
-        // 2. Stock Health Metrics
-        $lowStockCount = 0;
-        $nearExpiryCount = 0;
-        $expiredCount = 0;
-        $now = now();
-        $threeMonthsFromNow = now()->addMonths(3);
+        // Financials
+        $todaySales = $this->getTodaySales($selectedWarehouseId);
+        $todayPurchases = $this->getTodayPurchases($selectedWarehouseId);
+        $paymentMethods = $this->getPaymentMethods($selectedWarehouseId);
+        $receivables = $this->getReceivables($selectedWarehouseId);
+        $recentDues = $this->getRecentDues();
 
-        // We need to check low stock based on aggregate quantity per medicine
-        $medicineStockSum = [];
-
-        foreach ($allAggregatedStocks as $stock) {
-            // Expiry check (per batch)
-            if ($stock->expiry_date->isPast()) {
-                $expiredCount++;
-            } elseif ($stock->expiry_date->lte($threeMonthsFromNow)) {
-                $nearExpiryCount++;
-            }
-
-            // Group for low stock check
-            if (!isset($medicineStockSum[$stock->medicine_id])) {
-                $medicineStockSum[$stock->medicine_id] = [
-                    'total_qty' => 0,
-                    'min_level' => $stock->medicine->min_stock_level ?? 0
-                ];
-            }
-            $medicineStockSum[$stock->medicine_id]['total_qty'] += $stock->quantity;
-        }
-
-        foreach ($medicineStockSum as $data) {
-            if ($data['total_qty'] <= $data['min_level']) {
-                $lowStockCount++;
-            }
-        }
-
-        // 3. Chart Data Preparation
-
-        // Chart 1: Stock Value by Category
-        $categoryDataRaw = [];
-        foreach ($allAggregatedStocks as $stock) {
-            if ($stock->medicine && $stock->medicine->category) {
-                $catName = $stock->medicine->category->name;
-                if (!isset($categoryDataRaw[$catName])) {
-                    $categoryDataRaw[$catName] = 0;
-                }
-                $unitPrice = ($stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
-                    ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
-                    : 0;
-                $categoryDataRaw[$catName] += $unitPrice * $stock->quantity;
-            }
-        }
-        $categoryChartData = collect($categoryDataRaw)
-            ->map(function ($value, $key) {
-                return ['name' => $key, 'value' => round($value, 2)];
-            })->values();
-
-
-        // Chart 2: Top Warehouses by Value (if no warehouse selected)
-        $warehouseChartData = [];
-        if (!$selectedWarehouseId) {
-            $warehouseDataRaw = [];
-            foreach ($allAggregatedStocks as $stock) {
-                $whName = $stock->warehouse->name ?? 'Unknown';
-                if (!isset($warehouseDataRaw[$whName])) {
-                    $warehouseDataRaw[$whName] = 0;
-                }
-                $unitPrice = ($stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
-                    ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
-                    : 0;
-                $warehouseDataRaw[$whName] += $unitPrice * $stock->quantity;
-            }
-            $warehouseChartData = collect($warehouseDataRaw)
-                ->map(function ($value, $key) {
-                    return ['name' => $key, 'value' => round($value, 2)];
-                })->sortByDesc('value')->take(5)->values();
-        }
-
-        // Chart 3: Transaction Trends (Last 30 Days)
-        $dates = collect(range(29, 0))->map(function ($days) {
-            return now()->subDays($days)->format('Y-m-d');
-        });
-
-        $transactions = InventoryTransaction::whereDate('created_at', '>=', now()->subDays(30))
-            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
-                return $q->where('warehouse_id', $selectedWarehouseId);
-            })
-            ->selectRaw('DATE(created_at) as date, type, COUNT(*) as count')
-            ->groupBy('date', 'type')
-            ->get();
-
-        $trendChartData = [
-            'labels' => $dates->map(function ($d) {
-                return \Carbon\Carbon::parse($d)->format('M d');
-            }),
-            'in' => $dates->map(function ($date) use ($transactions) {
-                return $transactions->where('date', $date)->where('type', 'in')->first()->count ?? 0;
-            }),
-            'out' => $dates->map(function ($date) use ($transactions) {
-                // specific 'out' type or transfers
-                return $transactions->where('date', $date)->where('type', 'out')->first()->count ?? 0;
-            }),
-            'dispense' => $dates->map(function ($date) use ($transactions) {
-                return $transactions->where('date', $date)->where('type', 'dispense')->first()->count ?? 0;
-            }),
-        ];
-
-
-        // 4. Top 5 Moving Items (Last 30 Days)
-        $topMovers = MedicineDistributionItem::whereDate('created_at', '>=', now()->subDays(30))
-            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
-                // Filter distributions that happened in this warehouse (via transaction linkage if possible, or simple constraint)
-                // Since items don't strictly link to warehouse in this model easily without joining transactions,
-                // we'll approximation or use the transaction-based approach if critical.
-                // For now, global moving items or simple approach:
-                return $q->whereHas('distribution.camp', function ($cq) use ($selectedWarehouseId) {
-                    $cq->where('id', $selectedWarehouseId);
-                });
-            })
-            ->select('medicine_id', DB::raw('SUM(quantity) as total_qty'))
-            ->groupBy('medicine_id')
-            ->orderByDesc('total_qty')
-            ->take(5)
-            ->with('medicine')
-            ->get();
-
-        // Calculate average daily consumption over last 30 days for coverage analysis
-        $consumptionStats = MedicineDistributionItem::whereDate('created_at', '>=', now()->subDays(30))
-            ->select('medicine_id', DB::raw('SUM(quantity) as total_dispensed'))
-            ->groupBy('medicine_id')
-            ->pluck('total_dispensed', 'medicine_id')
-            ->toArray();
-
-        // Attach coverage days to Top Movers
-        $topMovers->each(function ($item) use ($consumptionStats, $selectedWarehouseId) {
-            $avgDaily = ($consumptionStats[$item->medicine_id] ?? 0) / 30;
-            $medicine = $item->medicine;
-            if ($medicine) {
-                if ($selectedWarehouseId) {
-                    $stockQuery = $medicine->stocks()->where('warehouse_id', $selectedWarehouseId);
-                    $currentStock = $stockQuery->sum('quantity');
-                } else {
-                    $currentStock = $medicine->totalStock;
-                }
-
-                $item->coverage_days = $avgDaily > 0 ? round($currentStock / $avgDaily) : 999;
-            } else {
-                $item->coverage_days = 0;
-            }
-        });
-
-        // 5. Recent Activity Log (Last 5 Transactions)
-        $recentActivity = InventoryTransaction::latest()
-            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
-                return $q->where('warehouse_id', $selectedWarehouseId);
-            })
-            ->take(5)
-            ->with(['user.profile', 'stock.medicine'])
-            ->get();
-
-        // 6. Stock Coverage Calculation (for Low Stock List / General Insight)
-        // Calculate average daily consumption over last 30 days for each medicine
-        $consumptionStats = MedicineDistributionItem::whereDate('created_at', '>=', now()->subDays(30))
-            ->select('medicine_id', DB::raw('SUM(quantity) as total_dispensed'))
-            ->groupBy('medicine_id')
-            ->pluck('total_dispensed', 'medicine_id')
-            ->toArray();
-
-        // Attach coverage days to low stock medicines (and potentially others if needed)
-        $lowStockMedicines = $this->getLowStockMedicines($request, $selectedWarehouseId);
-        $lowStockMedicines->each(function ($medicine) use ($consumptionStats, $selectedWarehouseId) {
-            $avgDaily = ($consumptionStats[$medicine->id] ?? 0) / 30;
-            $currentStock = $selectedWarehouseId
-                ? $medicine->stocks()->where('warehouse_id', $selectedWarehouseId)->sum('quantity')
-                : $medicine->totalStock;
-
-            $medicine->coverage_days = $avgDaily > 0 ? round($currentStock / $avgDaily) : 999; // 999 = infinite/no usage
-        });
-
-        // 7. Today's Metrics & Financials
-        $todaySales = MedicineDistribution::whereDate('created_at', now())
-            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
-                return $q->where('camp_id', $selectedWarehouseId);
-            })
-            ->sum('final_amount');
-
-        // Today's Stock In Value (Purchases/Received)
-        $todayPurchasesRaw = InventoryTransaction::where('type', 'in')
-            ->whereDate('created_at', now())
-            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
-                return $q->where('warehouse_id', $selectedWarehouseId);
-            })
-            ->with('stock.medicine')
-            ->get();
-
-        $todayPurchases = 0;
-        foreach ($todayPurchasesRaw as $tx) {
-            $med = $tx->stock->medicine;
-            if ($med && $med->market_price_unit_count > 0) {
-                $unitPrice = $med->market_price / $med->market_price_unit_count;
-                $todayPurchases += $unitPrice * $tx->quantity;
-            }
-        }
-
-        // Payment Overview (All Time or filtered by date if needed, usually dashboard shows current snapshot or recent)
-        // Let's show Today's Payment Balance for the "Payment Overview" widget
-        $paymentMethods = [];
-        $receivables = 0;
-
-        if (Schema::hasColumn('medicine_distributions', 'payment_method')) {
-            $paymentMethods = MedicineDistribution::whereDate('created_at', now())
-                ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
-                    return $q->where('camp_id', $selectedWarehouseId);
-                })
-                ->select('payment_method', DB::raw('sum(final_amount) as total'))
-                ->groupBy('payment_method')
-                ->pluck('total', 'payment_method')
-                ->toArray();
-
-            // Receivables (Total Unpaid/Credit)
-            $receivables = MedicineDistribution::whereIn('payment_method', ['credit', 'due', 'later'])
-                ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
-                    return $q->where('camp_id', $selectedWarehouseId);
-                })
-                ->sum('final_amount');
-        }
+        // Dead Stock
+        $deadStockCount = $this->getDeadStockCount($selectedWarehouseId);
 
         // Warehouses - pharmacists/OICs only see their camp
         $warehouses = $this->getAccessibleWarehouses($user);
 
-
         // Get medicine quantities for legacy chart - respect selected warehouse and exclusivity
         $medicineData = $this->getMedicineChartData($request, $selectedWarehouseId);
-
-        // Dead Stock: Medicines with stock but no sales in last 90 days
-        $deadStockCount = Medicine::whereHas('stocks', function ($q) use ($selectedWarehouseId) {
-            $q->where('quantity', '>', 0);
-            if ($selectedWarehouseId) {
-                $q->where('warehouse_id', $selectedWarehouseId);
-            }
-        })
-            ->whereDoesntHave('distributionItems', function ($q) {
-                $q->where('created_at', '>=', now()->subDays(90));
-            })
-            ->count();
 
         // Fetch categories for the filter
         $categories = MedicineCategory::orderBy('name')->get();
 
-        // 9. Expiry Breakdown (Next 30, 60, 90 Days)
-        $expiryBreakdown = [
-            '30_days' => 0,
-            '60_days' => 0,
-            '90_days' => 0,
-        ];
+        // Low stock list (with coverage days)
+        $lowStockMedicines = $this->getLowStockMedicines($request, $selectedWarehouseId);
+        $lowStockMedicines = $this->attachCoverageDays($lowStockMedicines, $selectedWarehouseId);
 
-        $now = now();
-        $thirtyDays = now()->addDays(30);
-        $sixtyDays = now()->addDays(60);
-        $ninetyDays = now()->addDays(90);
-
-        foreach ($allAggregatedStocks as $stock) {
-            if ($stock->quantity > 0) {
-                if ($stock->expiry_date->gt($now)) {
-                    if ($stock->expiry_date->lte($thirtyDays)) {
-                        $expiryBreakdown['30_days']++;
-                    } elseif ($stock->expiry_date->lte($sixtyDays)) {
-                        $expiryBreakdown['60_days']++;
-                    } elseif ($stock->expiry_date->lte($ninetyDays)) {
-                        $expiryBreakdown['90_days']++;
-                    }
-                }
-            }
-        }
-
-        // 10. Category Distribution by Quantity
-        $categoryQtyDataRaw = [];
-        foreach ($allAggregatedStocks as $stock) {
-            if ($stock->medicine && $stock->medicine->category) {
-                $catName = $stock->medicine->category->name;
-                if (!isset($categoryQtyDataRaw[$catName])) {
-                    $categoryQtyDataRaw[$catName] = 0;
-                }
-                $categoryQtyDataRaw[$catName] += $stock->quantity;
-            }
-        }
-        $categoryQtyChartData = collect($categoryQtyDataRaw)
-            ->map(function ($value, $key) {
-                return ['name' => $key, 'value' => $value];
-            })->sortByDesc('value')->take(5)->values();
-
-        // 11. Sponsor Analytics (Top 5 by Value)
-        $sponsorData = [];
-        // Grouping by sponsor from the aggregated stock list
-        // Note: This relies on stocks having valid sponsor_ids (ensured by ensureStockSponsors)
-        foreach ($allAggregatedStocks as $stock) {
-            $sponsorName = $stock->sponsor->name ?? 'Direct Purchase/Unknown';
-            if (!isset($sponsorData[$sponsorName])) {
-                $sponsorData[$sponsorName] = 0;
-            }
-            $unitPrice = ($stock->medicine && $stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
-                ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
-                : 0;
-            $sponsorData[$sponsorName] += $unitPrice * $stock->quantity;
-        }
-
-        $sponsorChartData = collect($sponsorData)
-            ->map(function ($value, $key) {
-                return ['name' => $key, 'value' => round($value, 2)];
-            })
-            ->sortByDesc('value')
-            ->take(5)
-            ->values();
-
-        // 8. All Medicines by Value (Replaces Category Chart)
-        $medicineValueChartData = InventoryStock::query()
-            ->join('medicines', 'inventory_stocks.medicine_id', '=', 'medicines.id')
-            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
-                return $q->where('inventory_stocks.warehouse_id', $selectedWarehouseId);
-            })
-            ->selectRaw('medicines.name, SUM(inventory_stocks.quantity * (medicines.market_price / GREATEST(COALESCE(medicines.market_price_unit_count, 1), 1))) as value')
-            ->where('inventory_stocks.quantity', '>', 0)
-            ->groupBy('medicines.id', 'medicines.name')
-            ->orderByDesc('value')
-            // ->take(10) // Removed limit to show all medicines
-            ->get();
-
-        // --- Final Result for the View (Table) ---
         $stocks = $allAggregatedStocks;
-
-        // 12. Recent Patients Dues
-        $recentDues = MedicineDistribution::whereIn('payment_method', ['due', 'credit', 'later'])
-            ->where('final_amount', '>', 0)
-            ->with('patient')
-            ->latest()
-            ->take(5)
-            ->get();
 
         return view('inventory.index', compact(
             'stocks',
@@ -1549,5 +1241,351 @@ class InventoryController extends Controller
         $distribution->save();
 
         return back()->with('success', 'Due amount updated successfully.');
+    }
+
+    // --- Private Helper Methods ---
+
+    /**
+     * Calculate total inventory value.
+     */
+    private function calculateTotalValue($stocks)
+    {
+        $totalValue = 0;
+        foreach ($stocks as $stock) {
+            if ($stock->quantity > 0 && $stock->medicine) {
+                $unitPrice = ($stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
+                    ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
+                    : 0;
+                $totalValue += $unitPrice * $stock->quantity;
+            }
+        }
+        return $totalValue;
+    }
+
+    private function calculateStockHealth($stocks)
+    {
+        $lowStockCount = 0;
+        $nearExpiryCount = 0;
+        $expiredCount = 0;
+        $threeMonthsFromNow = now()->addMonths(3);
+        $medicineStockSum = [];
+        foreach ($stocks as $stock) {
+            if ($stock->expiry_date->isPast()) {
+                $expiredCount++;
+            } elseif ($stock->expiry_date->lte($threeMonthsFromNow)) {
+                $nearExpiryCount++;
+            }
+            if (!isset($medicineStockSum[$stock->medicine_id])) {
+                $medicineStockSum[$stock->medicine_id] = [
+                    'total_qty' => 0,
+                    'min_level' => $stock->medicine->min_stock_level ?? 0
+                ];
+            }
+            $medicineStockSum[$stock->medicine_id]['total_qty'] += $stock->quantity;
+        }
+        foreach ($medicineStockSum as $data) {
+            if ($data['total_qty'] <= $data['min_level']) {
+                $lowStockCount++;
+            }
+        }
+        return compact('lowStockCount', 'nearExpiryCount', 'expiredCount');
+    }
+
+    private function prepareCategoryChart($stocks)
+    {
+        $categoryDataRaw = [];
+        foreach ($stocks as $stock) {
+            if ($stock->medicine && $stock->medicine->category) {
+                $catName = $stock->medicine->category->name;
+                if (!isset($categoryDataRaw[$catName])) {
+                    $categoryDataRaw[$catName] = 0;
+                }
+                $unitPrice = ($stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
+                    ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
+                    : 0;
+                $categoryDataRaw[$catName] += $unitPrice * $stock->quantity;
+            }
+        }
+        return collect($categoryDataRaw)
+            ->map(function ($value, $key) {
+                return ['name' => $key, 'value' => round($value, 2)];
+            })->values();
+    }
+
+    private function prepareWarehouseChart($stocks, $selectedWarehouseId)
+    {
+        if ($selectedWarehouseId) {
+            return [];
+        }
+        $warehouseDataRaw = [];
+        foreach ($stocks as $stock) {
+            $whName = $stock->warehouse->name ?? 'Unknown';
+            if (!isset($warehouseDataRaw[$whName])) {
+                $warehouseDataRaw[$whName] = 0;
+            }
+            $unitPrice = ($stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
+                ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
+                : 0;
+            $warehouseDataRaw[$whName] += $unitPrice * $stock->quantity;
+        }
+        return collect($warehouseDataRaw)
+            ->map(function ($value, $key) {
+                return ['name' => $key, 'value' => round($value, 2)];
+            })->sortByDesc('value')->take(5)->values();
+    }
+
+    private function prepareTrendChart($selectedWarehouseId)
+    {
+        $dates = collect(range(29, 0))->map(function ($days) {
+            return now()->subDays($days)->format('Y-m-d');
+        });
+        $transactions = InventoryTransaction::whereDate('created_at', '>=', now()->subDays(30))
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('warehouse_id', $selectedWarehouseId);
+            })
+            ->selectRaw('DATE(created_at) as date, type, COUNT(*) as count')
+            ->groupBy('date', 'type')
+            ->get();
+        return [
+            'labels' => $dates->map(function ($d) {
+                return \Carbon\Carbon::parse($d)->format('M d');
+            }),
+            'in' => $dates->map(function ($date) use ($transactions) {
+                return $transactions->where('date', $date)->where('type', 'in')->first()->count ?? 0;
+            }),
+            'out' => $dates->map(function ($date) use ($transactions) {
+                return $transactions->where('date', $date)->where('type', 'out')->first()->count ?? 0;
+            }),
+            'dispense' => $dates->map(function ($date) use ($transactions) {
+                return $transactions->where('date', $date)->where('type', 'dispense')->first()->count ?? 0;
+            }),
+        ];
+    }
+
+    private function getTopMovers($selectedWarehouseId)
+    {
+        $topMovers = MedicineDistributionItem::whereDate('created_at', '>=', now()->subDays(30))
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->whereHas('distribution.camp', function ($cq) use ($selectedWarehouseId) {
+                    $cq->where('id', $selectedWarehouseId);
+                });
+            })
+            ->select('medicine_id', DB::raw('SUM(quantity) as total_qty'))
+            ->groupBy('medicine_id')
+            ->orderByDesc('total_qty')
+            ->take(5)
+            ->with('medicine')
+            ->get();
+        $consumptionStats = $this->getConsumptionStats();
+        $topMovers->each(function ($item) use ($consumptionStats, $selectedWarehouseId) {
+            $avgDaily = ($consumptionStats[$item->medicine_id] ?? 0) / 30;
+            $medicine = $item->medicine;
+            if ($medicine) {
+                if ($selectedWarehouseId) {
+                    $stockQuery = $medicine->stocks()->where('warehouse_id', $selectedWarehouseId);
+                    $currentStock = $stockQuery->sum('quantity');
+                } else {
+                    $currentStock = $medicine->totalStock;
+                }
+                $item->coverage_days = $avgDaily > 0 ? round($currentStock / $avgDaily) : 999;
+            } else {
+                $item->coverage_days = 0;
+            }
+        });
+        return $topMovers;
+    }
+
+    private function getConsumptionStats()
+    {
+        return MedicineDistributionItem::whereDate('created_at', '>=', now()->subDays(30))
+            ->select('medicine_id', DB::raw('SUM(quantity) as total_dispensed'))
+            ->groupBy('medicine_id')
+            ->pluck('total_dispensed', 'medicine_id')
+            ->toArray();
+    }
+
+    private function getRecentActivity($selectedWarehouseId)
+    {
+        return InventoryTransaction::latest()
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('warehouse_id', $selectedWarehouseId);
+            })
+            ->take(5)
+            ->with(['user.profile', 'stock.medicine'])
+            ->get();
+    }
+
+    private function getMedicineValueChartData($selectedWarehouseId)
+    {
+        return InventoryStock::query()
+            ->join('medicines', 'inventory_stocks.medicine_id', '=', 'medicines.id')
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('inventory_stocks.warehouse_id', $selectedWarehouseId);
+            })
+            ->selectRaw('medicines.name, SUM(inventory_stocks.quantity * (medicines.market_price / GREATEST(COALESCE(medicines.market_price_unit_count, 1), 1))) as value')
+            ->where('inventory_stocks.quantity', '>', 0)
+            ->groupBy('medicines.id', 'medicines.name')
+            ->orderByDesc('value')
+            ->get();
+    }
+
+    private function getCategoryQtyChartData($stocks)
+    {
+        $categoryQtyDataRaw = [];
+        foreach ($stocks as $stock) {
+            if ($stock->medicine && $stock->medicine->category) {
+                $catName = $stock->medicine->category->name;
+                if (!isset($categoryQtyDataRaw[$catName])) {
+                    $categoryQtyDataRaw[$catName] = 0;
+                }
+                $categoryQtyDataRaw[$catName] += $stock->quantity;
+            }
+        }
+        return collect($categoryQtyDataRaw)
+            ->map(function ($value, $key) {
+                return ['name' => $key, 'value' => $value];
+            })->sortByDesc('value')->take(5)->values();
+    }
+
+    private function getSponsorChartData($stocks)
+    {
+        $sponsorData = [];
+        foreach ($stocks as $stock) {
+            $sponsorName = $stock->sponsor->name ?? 'Direct Purchase/Unknown';
+            if (!isset($sponsorData[$sponsorName])) {
+                $sponsorData[$sponsorName] = 0;
+            }
+            $unitPrice = ($stock->medicine && $stock->medicine->market_price > 0 && $stock->medicine->market_price_unit_count > 0)
+                ? ($stock->medicine->market_price / $stock->medicine->market_price_unit_count)
+                : 0;
+            $sponsorData[$sponsorName] += $unitPrice * $stock->quantity;
+        }
+        return collect($sponsorData)
+            ->map(function ($value, $key) {
+                return ['name' => $key, 'value' => round($value, 2)];
+            })
+            ->sortByDesc('value')
+            ->take(5)
+            ->values();
+    }
+
+    private function getExpiryBreakdown($stocks)
+    {
+        $expiryBreakdown = [
+            '30_days' => 0,
+            '60_days' => 0,
+            '90_days' => 0,
+        ];
+        $now = now();
+        $thirtyDays = now()->addDays(30);
+        $sixtyDays = now()->addDays(60);
+        $ninetyDays = now()->addDays(90);
+        foreach ($stocks as $stock) {
+            if ($stock->quantity > 0) {
+                if ($stock->expiry_date->gt($now)) {
+                    if ($stock->expiry_date->lte($thirtyDays)) {
+                        $expiryBreakdown['30_days']++;
+                    } elseif ($stock->expiry_date->lte($sixtyDays)) {
+                        $expiryBreakdown['60_days']++;
+                    } elseif ($stock->expiry_date->lte($ninetyDays)) {
+                        $expiryBreakdown['90_days']++;
+                    }
+                }
+            }
+        }
+        return $expiryBreakdown;
+    }
+
+    private function getRecentDues()
+    {
+        return MedicineDistribution::whereIn('payment_method', ['due', 'credit', 'later'])
+            ->where('final_amount', '>', 0)
+            ->with('patient')
+            ->latest()
+            ->take(5)
+            ->get();
+    }
+
+    private function attachCoverageDays($medicines, $selectedWarehouseId)
+    {
+        $consumptionStats = $this->getConsumptionStats();
+        $medicines->each(function ($medicine) use ($consumptionStats, $selectedWarehouseId) {
+            $avgDaily = ($consumptionStats[$medicine->id] ?? 0) / 30;
+            $currentStock = $selectedWarehouseId
+                ? $medicine->stocks()->where('warehouse_id', $selectedWarehouseId)->sum('quantity')
+                : $medicine->totalStock;
+            $medicine->coverage_days = $avgDaily > 0 ? round($currentStock / $avgDaily) : 999;
+        });
+        return $medicines;
+    }
+
+    private function getTodaySales($selectedWarehouseId)
+    {
+        return MedicineDistribution::whereDate('created_at', now())
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('camp_id', $selectedWarehouseId);
+            })
+            ->sum('final_amount');
+    }
+
+    private function getTodayPurchases($selectedWarehouseId)
+    {
+        $todayPurchasesRaw = InventoryTransaction::where('type', 'in')
+            ->whereDate('created_at', now())
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('warehouse_id', $selectedWarehouseId);
+            })
+            ->with('stock.medicine')
+            ->get();
+        $todayPurchases = 0;
+        foreach ($todayPurchasesRaw as $tx) {
+            $med = $tx->stock->medicine;
+            if ($med && $med->market_price_unit_count > 0) {
+                $unitPrice = $med->market_price / $med->market_price_unit_count;
+                $todayPurchases += $unitPrice * $tx->quantity;
+            }
+        }
+        return $todayPurchases;
+    }
+
+    private function getPaymentMethods($selectedWarehouseId)
+    {
+        if (!Schema::hasColumn('medicine_distributions', 'payment_method')) {
+            return [];
+        }
+        return MedicineDistribution::whereDate('created_at', now())
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('camp_id', $selectedWarehouseId);
+            })
+            ->select('payment_method', DB::raw('sum(final_amount) as total'))
+            ->groupBy('payment_method')
+            ->pluck('total', 'payment_method')
+            ->toArray();
+    }
+
+    private function getReceivables($selectedWarehouseId)
+    {
+        if (!Schema::hasColumn('medicine_distributions', 'payment_method')) {
+            return 0;
+        }
+        return MedicineDistribution::whereIn('payment_method', ['credit', 'due', 'later'])
+            ->when($selectedWarehouseId, function ($q) use ($selectedWarehouseId) {
+                return $q->where('camp_id', $selectedWarehouseId);
+            })
+            ->sum('final_amount');
+    }
+
+    private function getDeadStockCount($selectedWarehouseId)
+    {
+        return Medicine::whereHas('stocks', function ($q) use ($selectedWarehouseId) {
+            $q->where('quantity', '>', 0);
+            if ($selectedWarehouseId) {
+                $q->where('warehouse_id', $selectedWarehouseId);
+            }
+        })
+            ->whereDoesntHave('distributionItems', function ($q) {
+                $q->where('created_at', '>=', now()->subDays(90));
+            })
+            ->count();
     }
 }

@@ -9,6 +9,36 @@ use Illuminate\Notifications\Notifiable;
 use Carbon\Carbon;
 use App\Models\Conversation;
 
+/**
+ * @property int $id
+ * @property string $employee_id
+ * @property string $email
+ * @property string $password
+ * @property string $designation
+ * @property string|null $post
+ * @property int|null $parent_id
+ * @property string $status
+ * @property bool $is_office_in_charge
+ * @property int|null $office_in_charge_creator_id
+ * @property string|null $office_in_charge_type
+ * @property \Illuminate\Support\Carbon|null $office_in_charge_end_date
+ * @property int|null $upline_id
+ * @property string|null $upline_designation
+ * @property bool $can_create_users
+ * @property bool $can_edit_user_details
+ * @property float $joining_donation
+ * @property string $payment_status
+ * @property string|null $payment_reference
+ * @property int|null $camp_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \App\Models\UserProfile|null $profile
+ * @property-read \App\Models\BankDetail|null $bankDetails
+ * @property-read \App\Models\User|null $parent
+ * @property-read \App\Models\User|null $upline
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\User[] $children
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;

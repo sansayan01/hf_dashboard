@@ -5,6 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $full_name
+ * @property string|null $profile_picture
+ * @property string $phone_number
+ * @property string|null $blood_group
+ * @property string $aadhaar_number
+ * @property string|null $pan_number
+ * @property string $address
+ * @property string $state
+ * @property string $district
+ * @property string $block
+ * @property string $gram_panchayat
+ * @property string $pin_code
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User $user
+ */
 class UserProfile extends Model
 {
     use HasFactory;

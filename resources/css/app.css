@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Humanity Foundation Custom Styles */
 
 /* 3D Dial Toggle - Exact Match to Image */

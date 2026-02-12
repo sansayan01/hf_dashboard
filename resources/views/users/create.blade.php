@@ -1330,5 +1330,39 @@
                 }
             });
         }
+        // Real-time Uniqueness Check
+        const uniqueFields = ['phone_number', 'aadhaar_number', 'pan_number'];
+        uniqueFields.forEach(field => {
+            const input = document.querySelector(`input[name="${field}"]`);
+            if (input) {
+                input.addEventListener('blur', function() {
+                    const value = this.value;
+                    if (value) {
+                        fetch('{{ route("users.check-uniqueness") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ field: field, value: value })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.exists) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Duplicate Entry',
+                                    text: data.message,
+                                    confirmButtonColor: '#3C50E0',
+                                });
+                                this.value = ''; // Clear input
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                    }
+                });
+            }
+        });
+
     </script>
 @endsection

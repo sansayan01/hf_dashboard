@@ -64,6 +64,9 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::post('/{user}/toggle-oic', [UserController::class, 'toggleOic'])->name('toggle-oic');
 
         Route::match(['get', 'post'], '/bulk/print-all', [UserController::class, 'printAllIdCards'])->name('print-all-id-cards');
+
+        // Real-time Uniqueness Check
+        Route::post('/check-uniqueness', [UserController::class, 'checkUniqueness'])->name('check-uniqueness');
     });
 
     // Survey Management
