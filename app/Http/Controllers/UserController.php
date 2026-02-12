@@ -412,10 +412,10 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed',
             'full_name' => 'required|string|max:255',
-            'phone_number' => 'required|digits:10',
+            'phone_number' => 'required|digits:10|unique:user_profiles,phone_number',
             'blood_group' => 'nullable|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
-            'aadhaar_number' => 'required|digits:12',
-            'pan_number' => 'nullable|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
+            'aadhaar_number' => 'required|digits:12|unique:user_profiles,aadhaar_number',
+            'pan_number' => 'nullable|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/|unique:user_profiles,pan_number',
         ];
 
         // Additional validation for Super Admin and Office In-Charge
