@@ -541,6 +541,17 @@
                             class="h-10 px-4 rounded-2xl bg-accent text-white text-xs font-bold hover:bg-opacity-90 transition-all shadow-md shadow-accent/20 flex items-center space-x-2">
                             <span>Filter</span>
                         </button>
+
+                        <a href="#" id="download-batch-csv"
+                            onclick="event.preventDefault(); downloadBatchCSV();"
+                            class="h-10 px-4 rounded-2xl bg-emerald-500 text-white text-xs font-bold hover:bg-opacity-90 transition-all shadow-md shadow-emerald-500/20 flex items-center space-x-2"
+                            title="Download CSV">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span>CSV</span>
+                        </a>
                     </form>
                 </div>
 
@@ -948,5 +959,22 @@
                 // searchInput.addEventListener('keypress', function(e) { if(e.which == 13) e.preventDefault(); });
             }
         });
+
+        // Download Batch Inventory CSV with current filters
+        function downloadBatchCSV() {
+            const params = new URLSearchParams();
+            const status = document.getElementById('status-filter')?.value;
+            const category = document.getElementById('category_id')?.value;
+            const warehouse = document.getElementById('warehouse_id')?.value;
+            const search = document.getElementById('inventory-search-input')?.value;
+
+            if (status) params.set('status', status);
+            if (category) params.set('category_id', category);
+            if (warehouse) params.set('warehouse_id', warehouse);
+            if (search) params.set('search', search);
+
+            const url = "{{ route('inventory.export-batch') }}" + (params.toString() ? '?' + params.toString() : '');
+            window.location.href = url;
+        }
     </script>
 @endsection

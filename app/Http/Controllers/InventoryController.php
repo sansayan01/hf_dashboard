@@ -107,6 +107,54 @@ class InventoryController extends Controller
         ));
     }
 
+    /**
+     * Export batch-wise inventory as CSV (respects current filters).
+     */
+    public function exportBatchInventory(Request $request)
+    {
+        $user = auth()->user();
+        $selectedWarehouseId = $this->resolveSelectedWarehouseId($user, $request);
+        $stocks = $this->getAggregatedStocks($request, $selectedWarehouseId);
+
+        $filename = "batch_inventory_" . date('Ymd_His') . ".csv";
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function () use ($stocks) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Medicine', 'Batch Number', 'Warehouse', 'Category', 'Status', 'Expiry Date', 'Quantity', 'Unit']);
+
+            foreach ($stocks as $stock) {
+                $status = 'Healthy';
+                if ($stock->expiry_date->isPast()) {
+                    $status = 'Expired';
+                } elseif ($stock->expiry_date->diffInMonths(now()) < 3) {
+                    $status = 'Near Expiry';
+                }
+
+                fputcsv($file, [
+                    $stock->medicine->name ?? 'Unknown',
+                    $stock->batch_number,
+                    $stock->warehouse->name ?? 'Main',
+                    $stock->medicine->category->name ?? 'N/A',
+                    $status,
+                    $stock->expiry_date->format('Y-m-d'),
+                    $stock->quantity,
+                    $stock->medicine->unit ?? 'Tablet',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
 
     /**
      * Show form to add new stock.

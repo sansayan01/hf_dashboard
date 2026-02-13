@@ -166,6 +166,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::prefix('inventory')->name('inventory.')->group(function () {
         // Stock management
         Route::get('/', [App\Http\Controllers\InventoryController::class, 'index'])->name('index');
+        Route::get('/export-batch', [App\Http\Controllers\InventoryController::class, 'exportBatchInventory'])->name('export-batch');
         Route::get('/create', [App\Http\Controllers\InventoryController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\InventoryController::class, 'store'])->name('store');
         Route::get('/transactions', [App\Http\Controllers\InventoryController::class, 'transactions'])->name('transactions');
