@@ -473,86 +473,127 @@
             <!-- Main Inventory Table (2 cols) -->
             <div id="inventory-section"
                 class="lg:col-span-2 bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden text-slate-800 dark:text-white flex flex-col h-[750px] lg:h-[450px]">
-                <div
-                    class="p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
-                    <h3 class="font-bold text-lg whitespace-nowrap">Batch-wise Inventory</h3>
-                    <form id="inventory-filter-form" action="{{ route('inventory.index') }}" method="GET"
-                        class="flex flex-wrap items-center gap-3 no-loader flex-1 justify-end">
-
-                        <!-- Status Filter -->
-                        <div class="relative w-full md:w-auto">
-                            <select name="status" id="status-filter"
-                                class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm w-full md:w-[130px]">
-                                <option value="">All Status</option>
-                                <option value="healthy" {{ request('status') == 'healthy' ? 'selected' : '' }}>Healthy
-                                </option>
-                                <option value="low_stock" {{ request('status') == 'low_stock' ? 'selected' : '' }}>Low Stock
-                                </option>
-                                <option value="near_expiry" {{ request('status') == 'near_expiry' ? 'selected' : '' }}>Near
-                                    Expiry</option>
-                                <option value="expired" {{ request('status') == 'expired' ? 'selected' : '' }}>Expired
-                                </option>
-                            </select>
+                <div class="border-b border-slate-100 dark:border-white/5 shrink-0">
+                    {{-- Title Bar with Toggle --}}
+                    <div class="p-6 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <h3 class="font-bold text-lg whitespace-nowrap">Batch-wise Inventory</h3>
+                            @php
+                                $activeFilterCount = collect([request('status'), request('category_id'), request('warehouse_id'), request('search')])->filter()->count();
+                            @endphp
+                            @if($activeFilterCount > 0)
+                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white text-[9px] font-black">{{ $activeFilterCount }}</span>
+                            @endif
                         </div>
-
-                        <!-- Category Selector -->
-                        <div class="relative w-full md:w-auto">
-                            <select name="category_id" id="category_id"
-                                class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm w-full md:w-[150px]">
-                                <option value="">All Categories</option>
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
-                                        {{ $cat->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        @if(!auth()->user()->camp_id)
-                            <!-- Warehouse Selector -->
-                            <div class="relative w-full md:w-auto">
-                                <select name="warehouse_id" id="warehouse_id"
-                                    class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm w-full md:w-[150px]">
-                                    <option value="">All Warehouses</option>
-                                    @foreach($warehouses as $wh)
-                                        <option value="{{ $wh->id }}" {{ request('warehouse_id') == $wh->id ? 'selected' : '' }}>
-                                            {{ $wh->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
-
-                        <!-- Search Input -->
-                        <div class="relative group w-full md:w-auto">
-                            <input type="text" name="search" id="inventory-search-input" value="{{ request('search') }}"
-                                placeholder="Search medicine, batch..."
-                                class="h-10 w-full pl-11 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all shadow-sm">
-                            <div
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-accent transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <button type="submit"
-                            class="h-10 px-4 rounded-2xl bg-accent text-white text-xs font-bold hover:bg-opacity-90 transition-all shadow-md shadow-accent/20 flex items-center space-x-2">
-                            <span>Filter</span>
-                        </button>
-
-                        <a href="#" id="download-batch-csv"
-                            onclick="event.preventDefault(); downloadBatchCSV();"
-                            class="h-10 px-4 rounded-2xl bg-emerald-500 text-white text-xs font-bold hover:bg-opacity-90 transition-all shadow-md shadow-emerald-500/20 flex items-center space-x-2"
-                            title="Download CSV">
+                        <button type="button" id="toggle-inventory-filters"
+                            class="h-8 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs font-bold transition-all flex items-center gap-2 group"
+                            aria-expanded="false" aria-controls="inventory-filters-panel">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                             </svg>
-                            <span>CSV</span>
-                        </a>
-                    </form>
+                            <span>Filters</span>
+                            <svg id="filter-chevron" class="w-3.5 h-3.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {{-- Collapsible Filter Panel --}}
+                    <div id="inventory-filters-panel"
+                        class="overflow-hidden transition-all duration-300 ease-in-out"
+                        style="max-height: 0; opacity: 0;">
+                        <div class="px-6 pb-5">
+                            <form id="inventory-filter-form" action="{{ route('inventory.index') }}" method="GET"
+                                class="flex flex-wrap items-center gap-3 no-loader">
+
+                                <!-- Status Filter -->
+                                <div class="relative w-full md:w-auto">
+                                    <select name="status" id="status-filter"
+                                        class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm w-full md:w-[130px]">
+                                        <option value="">All Status</option>
+                                        <option value="healthy" {{ request('status') == 'healthy' ? 'selected' : '' }}>Healthy
+                                        </option>
+                                        <option value="low_stock" {{ request('status') == 'low_stock' ? 'selected' : '' }}>Low Stock
+                                        </option>
+                                        <option value="near_expiry" {{ request('status') == 'near_expiry' ? 'selected' : '' }}>Near
+                                            Expiry</option>
+                                        <option value="expired" {{ request('status') == 'expired' ? 'selected' : '' }}>Expired
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Category Selector -->
+                                <div class="relative w-full md:w-auto">
+                                    <select name="category_id" id="category_id"
+                                        class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm w-full md:w-[150px]">
+                                        <option value="">All Categories</option>
+                                        @foreach($categories as $cat)
+                                            <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
+                                                {{ $cat->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                @if(!auth()->user()->camp_id)
+                                    <!-- Warehouse Selector -->
+                                    <div class="relative w-full md:w-auto">
+                                        <select name="warehouse_id" id="warehouse_id"
+                                            class="h-10 pl-3 pr-8 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 outline-none transition-all appearance-none cursor-pointer shadow-sm w-full md:w-[150px]">
+                                            <option value="">All Warehouses</option>
+                                            @foreach($warehouses as $wh)
+                                                <option value="{{ $wh->id }}" {{ request('warehouse_id') == $wh->id ? 'selected' : '' }}>
+                                                    {{ $wh->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+
+                                <!-- Search Input -->
+                                <div class="relative group w-full md:w-auto flex-1 min-w-[200px]">
+                                    <input type="text" name="search" id="inventory-search-input" value="{{ request('search') }}"
+                                        placeholder="Search medicine, batch..."
+                                        class="h-10 w-full pl-11 pr-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-xs font-bold focus:ring-2 focus:ring-accent/20 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all shadow-sm">
+                                    <div
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-accent transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <button type="submit"
+                                    class="h-10 px-4 rounded-2xl bg-accent text-white text-xs font-bold hover:bg-opacity-90 transition-all shadow-md shadow-accent/20 flex items-center space-x-2">
+                                    <span>Filter</span>
+                                </button>
+
+                                <a href="#" id="download-batch-csv"
+                                    onclick="event.preventDefault(); downloadBatchCSV();"
+                                    class="h-10 px-4 rounded-2xl bg-emerald-500 text-white text-xs font-bold hover:bg-opacity-90 transition-all shadow-md shadow-emerald-500/20 flex items-center space-x-2"
+                                    title="Download CSV">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    <span>CSV</span>
+                                </a>
+
+                                @if($activeFilterCount > 0)
+                                    <a href="{{ route('inventory.index') }}"
+                                        class="h-10 px-3 rounded-2xl border border-red-200 dark:border-red-500/30 text-red-500 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 transition-all flex items-center space-x-1"
+                                        title="Clear all filters">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        <span>Clear</span>
+                                    </a>
+                                @endif
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
@@ -976,5 +1017,48 @@
             const url = "{{ route('inventory.export-batch') }}" + (params.toString() ? '?' + params.toString() : '');
             window.location.href = url;
         }
+
+        // --- Collapsible Filter Panel ---
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleBtn = document.getElementById('toggle-inventory-filters');
+            const panel = document.getElementById('inventory-filters-panel');
+            const chevron = document.getElementById('filter-chevron');
+
+            if (toggleBtn && panel) {
+                let isOpen = false;
+
+                function openFilters() {
+                    isOpen = true;
+                    panel.style.maxHeight = panel.scrollHeight + 'px';
+                    panel.style.opacity = '1';
+                    chevron?.classList.add('rotate-180');
+                    toggleBtn.setAttribute('aria-expanded', 'true');
+                    toggleBtn.classList.add('bg-accent/10', 'text-accent', 'dark:bg-accent/20', 'dark:text-accent');
+                }
+
+                function closeFilters() {
+                    isOpen = false;
+                    panel.style.maxHeight = '0';
+                    panel.style.opacity = '0';
+                    chevron?.classList.remove('rotate-180');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                    toggleBtn.classList.remove('bg-accent/10', 'text-accent', 'dark:bg-accent/20', 'dark:text-accent');
+                }
+
+                toggleBtn.addEventListener('click', function () {
+                    if (isOpen) {
+                        closeFilters();
+                    } else {
+                        openFilters();
+                    }
+                });
+
+                // Auto-expand if there are active filters
+                const hasActiveFilters = {{ $activeFilterCount > 0 ? 'true' : 'false' }};
+                if (hasActiveFilters) {
+                    openFilters();
+                }
+            }
+        });
     </script>
 @endsection
