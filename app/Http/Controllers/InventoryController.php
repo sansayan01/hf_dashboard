@@ -127,7 +127,7 @@ class InventoryController extends Controller
 
         $callback = function () use ($stocks) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['Medicine', 'Batch Number', 'Warehouse', 'Category', 'Status', 'Expiry Date', 'Quantity', 'Unit']);
+            fputcsv($file, ['Medicine', 'Quantity', 'Unit', 'Batch Number', 'Warehouse', 'Category', 'Status', 'Expiry Date']);
 
             foreach ($stocks as $stock) {
                 $status = 'Healthy';
@@ -139,13 +139,13 @@ class InventoryController extends Controller
 
                 fputcsv($file, [
                     $stock->medicine->name ?? 'Unknown',
+                    $stock->quantity,
+                    $stock->medicine->unit ?? 'Tablet',
                     $stock->batch_number,
                     $stock->warehouse->name ?? 'Main',
                     $stock->medicine->category->name ?? 'N/A',
                     $status,
                     $stock->expiry_date->format('Y-m-d'),
-                    $stock->quantity,
-                    $stock->medicine->unit ?? 'Tablet',
                 ]);
             }
 
