@@ -89,11 +89,11 @@
                                         <label
                                             class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Select
                                             Medicine</label>
-                                        <select name="items[0][medicine_id]" required
+                                        <select name="items[0][medicine_id]" required onchange="setDefaultQty(this)"
                                             class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
                                             <option value="">Choose medicine...</option>
                                             @foreach($medicines as $med)
-                                                <option value="{{ $med->id }}">
+                                                <option value="{{ $med->id }}" data-unit="{{ strtolower($med->unit) }}">
                                                     {{ $med->name }} ({{ $med->totalStock }} {{ $med->unit }}s available)
                                                 </option>
                                             @endforeach
@@ -149,35 +149,46 @@
             const newItem = document.createElement('div');
             newItem.className = 'dispense-item grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-slate-50/50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/5 animate-fadeIn';
             newItem.innerHTML = `
-                    <div class="md:col-span-7">
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Select Medicine</label>
-                        <select name="items[${itemIndex}][medicine_id]" required
-                            class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition focus:border-accent">
-                            <option value="">Choose medicine...</option>
-                            @foreach($medicines as $med)
-                                <option value="{{ $med->id }}">
-                                    {{ $med->name }} ({{ $med->totalStock }} {{ $med->unit }}s available)
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="md:col-span-3">
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Qty</label>
-                        <input type="number" name="items[${itemIndex}][quantity]" required min="1" placeholder="0"
-                            class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition focus:border-accent">
-                    </div>
-                    <div class="md:col-span-2 text-right">
-                        <button type="button" onclick="removeItem(this)" class="p-3 text-slate-400 hover:text-red-500 transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                    </div>
-                `;
+                        <div class="md:col-span-7">
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Select Medicine</label>
+                            <select name="items[${itemIndex}][medicine_id]" required onchange="setDefaultQty(this)"
+                                class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition focus:border-accent">
+                                <option value="">Choose medicine...</option>
+                                @foreach($medicines as $med)
+                                    <option value="{{ $med->id }}" data-unit="{{ strtolower($med->unit) }}">
+                                        {{ $med->name }} ({{ $med->totalStock }} {{ $med->unit }}s available)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Qty</label>
+                            <input type="number" name="items[${itemIndex}][quantity]" required min="1" placeholder="0"
+                                class="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition focus:border-accent">
+                        </div>
+                        <div class="md:col-span-2 text-right">
+                            <button type="button" onclick="removeItem(this)" class="p-3 text-slate-400 hover:text-red-500 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    `;
             container.appendChild(newItem);
             itemIndex++;
         }
 
         function removeItem(button) {
             button.closest('.dispense-item').remove();
+        }
+
+        function setDefaultQty(selectEl) {
+            const selected = selectEl.options[selectEl.selectedIndex];
+            const unit = (selected.getAttribute('data-unit') || '').toLowerCase();
+            const qtyInput = selectEl.closest('.dispense-item').querySelector('input[type="number"]');
+            if (qtyInput && (unit === 'tablet' || unit === 'capsule')) {
+                qtyInput.value = 10;
+            } else if (qtyInput) {
+                qtyInput.value = '';
+            }
         }
     </script>
     <style>

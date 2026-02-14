@@ -82,7 +82,8 @@ class MedicineDistributionController extends Controller
                     'id' => $medicine->id,
                     'text' => $medicine->name . ($medicine->generic_name ? ' [' . $medicine->generic_name . ']' : '') . ' (' . ($medicine->dosage ?? $medicine->unit) . ') - Stock: ' . $availableStock,
                     'market_price' => number_format($unitPrice, 2, '.', ''),
-                    'available_stock' => $availableStock
+                    'available_stock' => $availableStock,
+                    'unit' => $medicine->unit
                 ];
             });
 
