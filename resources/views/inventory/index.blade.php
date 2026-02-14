@@ -599,7 +599,7 @@
                 <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
                     <table class="w-full text-left border-collapse">
                         <thead
-                            class="sticky top-0 bg-white dark:bg-slate-900 z-10 border-b border-slate-100 dark:border-white/5">
+                            class="sticky top-0 bg-white dark:bg-slate-800/90 z-10 border-b border-slate-100 dark:border-white/5">
                             <tr>
                                 <th class="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Medicine &
                                     Location</th>
@@ -631,13 +631,13 @@
                                         <div class="flex flex-col items-start gap-1">
                                             @if($stock->expiry_date->isPast())
                                                 <span
-                                                    class="px-2 py-1 bg-red-100 text-red-600 text-[9px] font-black rounded uppercase tracking-tight">Expired</span>
+                                                    class="px-2 py-1 bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400 text-[9px] font-black rounded uppercase tracking-tight">Expired</span>
                                             @elseif($stock->expiry_date->diffInMonths(now()) < 3)
                                                 <span
-                                                    class="px-2 py-1 bg-amber-100 text-amber-600 text-[9px] font-black rounded uppercase tracking-tight">Expiring</span>
+                                                    class="px-2 py-1 bg-amber-100 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-black rounded uppercase tracking-tight">Expiring</span>
                                             @else
                                                 <span
-                                                    class="px-2 py-1 bg-emerald-100 text-emerald-600 text-[9px] font-black rounded uppercase tracking-tight">Healthy</span>
+                                                    class="px-2 py-1 bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[9px] font-black rounded uppercase tracking-tight">Healthy</span>
                                             @endif
                                             <span
                                                 class="text-[9px] text-slate-400 font-bold">{{ $stock->expiry_date->format('M Y') }}</span>

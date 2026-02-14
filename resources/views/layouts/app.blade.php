@@ -48,6 +48,7 @@
 
 
     <style>
+        /* Glass card styling */
         .glass {
             border: 1px solid rgba(0, 0, 0, 0.05);
         }
@@ -67,7 +68,7 @@
         .dark .gradient-bg {
             background: radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1), transparent 50%),
                 radial-gradient(circle at 20% 20%, rgba(30, 58, 138, 0.15), transparent 50%),
-                #0f172a;
+                #0f172a !important;
         }
 
         /* Global Dark Mode Comfort Adjustments */
@@ -164,6 +165,121 @@
 
         .dark input::placeholder {
             color: #64748b !important;
+        }
+
+        /* Select/Option dark mode text fix */
+        .dark select option {
+            background-color: #1E293B !important;
+            color: #F8FAFC !important;
+        }
+
+        /* Badge/Label backgrounds in dark mode */
+        .dark .bg-red-100 {
+            background-color: rgba(239, 68, 68, 0.15) !important;
+        }
+
+        .dark .bg-amber-100 {
+            background-color: rgba(245, 158, 11, 0.15) !important;
+        }
+
+        .dark .bg-emerald-100 {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+        }
+
+        .dark .bg-blue-100 {
+            background-color: rgba(59, 130, 246, 0.15) !important;
+        }
+
+        .dark .bg-rose-100 {
+            background-color: rgba(244, 63, 94, 0.15) !important;
+        }
+
+        .dark .bg-indigo-100 {
+            background-color: rgba(99, 102, 241, 0.15) !important;
+        }
+
+        .dark .bg-orange-100 {
+            background-color: rgba(249, 115, 22, 0.15) !important;
+        }
+
+        .dark .bg-violet-100 {
+            background-color: rgba(139, 92, 246, 0.15) !important;
+        }
+
+        .dark .bg-pink-100 {
+            background-color: rgba(236, 72, 153, 0.15) !important;
+        }
+
+        .dark .bg-cyan-100 {
+            background-color: rgba(6, 182, 212, 0.15) !important;
+        }
+
+        .dark .bg-teal-100 {
+            background-color: rgba(20, 184, 166, 0.15) !important;
+        }
+
+        .dark .bg-purple-100 {
+            background-color: rgba(168, 85, 247, 0.15) !important;
+        }
+
+        .dark .bg-lime-100 {
+            background-color: rgba(132, 204, 22, 0.15) !important;
+        }
+
+        .dark .bg-rose-50 {
+            background-color: rgba(244, 63, 94, 0.1) !important;
+        }
+
+        .dark .bg-emerald-50 {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+        }
+
+        .dark .bg-blue-50 {
+            background-color: rgba(59, 130, 246, 0.1) !important;
+        }
+
+        .dark .bg-amber-50 {
+            background-color: rgba(245, 158, 11, 0.1) !important;
+        }
+
+        .dark .bg-indigo-50 {
+            background-color: rgba(99, 102, 241, 0.1) !important;
+        }
+
+        /* Hover state overrides for dark mode */
+        .dark .hover\:bg-slate-50:hover {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+        }
+
+        .dark .hover\:bg-slate-100:hover {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .dark .hover\:bg-slate-200:hover {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        /* Divide color overrides for dark mode */
+        .dark .divide-slate-50> :not([hidden])~ :not([hidden]),
+        .dark .divide-slate-100> :not([hidden])~ :not([hidden]) {
+            border-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        /* Shadow override for dark mode - reduce harsh shadows */
+        .dark .shadow-sm,
+        .dark .shadow-md {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* Code/pre elements */
+        .dark code {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            color: #cbd5e1 !important;
+        }
+
+        /* Ring color overrides */
+        .dark .ring-black\/5 {
+            --tw-ring-color: rgba(255, 255, 255, 0.05) !important;
         }
 
         .sidebar-scroll::-webkit-scrollbar {
@@ -415,7 +531,8 @@
                                 d="M4 6h16M4 12h16m-7 6h7"></path>
                         </svg>
                     </button>
-                    <h2 class="text-xl font-bold text-slate-800">@yield('header_title', 'Dashboard')</h2>
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-white">@yield('header_title', 'Dashboard')
+                    </h2>
                 </div>
 
                 <div class="flex items-center space-x-4 md:space-x-6">
@@ -630,17 +747,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                        }).then((result) => {
+                                                                                                                                                                                                                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                        });
+                                                                                                                                                                                                                                                });
         @endif
 
         @if(session('error'))
