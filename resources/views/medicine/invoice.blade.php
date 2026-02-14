@@ -123,6 +123,35 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Pending Dues Section: only visible when there is an outstanding balance --}}
+            @if($distribution->due_amount > 0)
+                <div class="mt-6 border-2 border-dashed border-red-200 rounded-2xl p-6 bg-red-50/50">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h4 class="text-sm font-black text-red-600 uppercase tracking-widest">Pending Dues</h4>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                            <span class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Grand Total</span>
+                            <span class="text-lg font-black text-slate-800">₹{{ number_format($distribution->final_amount, 2) }}</span>
+                        </div>
+                        <div class="bg-emerald-50 rounded-xl p-4 shadow-sm border border-emerald-100">
+                            <span class="block text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1">Amount Paid</span>
+                            <span class="text-lg font-black text-emerald-600">₹{{ number_format($distribution->amount_paid, 2) }}</span>
+                        </div>
+                        <div class="bg-red-50 rounded-xl p-4 shadow-sm border border-red-200">
+                            <span class="block text-[10px] font-black uppercase tracking-widest text-red-500 mb-1">Balance Due</span>
+                            <span class="text-xl font-black text-red-600">₹{{ number_format($distribution->due_amount, 2) }}</span>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-red-400 font-bold mt-3 text-center uppercase tracking-wider">
+                        This invoice has an outstanding balance. Please clear the dues at the pharmacy counter.
+                    </p>
+                </div>
+            @endif
         </div>
     </div>
 
