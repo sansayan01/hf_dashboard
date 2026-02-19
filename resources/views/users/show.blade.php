@@ -7,12 +7,25 @@
     <div class="max-w-5xl mx-auto space-y-8">
         <!-- Header Section Card -->
         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-            <div class="h-32 bg-primary relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-accent/20 to-transparent"></div>
+            <div class="h-40 bg-primary relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-accent/30 via-primary to-transparent opacity-60"></div>
+                <div
+                    class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10">
+                </div>
+
+                <!-- Premium Watermark -->
+                <div
+                    class="absolute right-0 bottom-0 translate-y-1/3 translate-x-1/4 opacity-[0.03] select-none hidden md:block">
+                    <h1 class="text-[12rem] font-black text-white uppercase tracking-tighter">
+                        {{ $user->profile?->full_name }}
+                    </h1>
+                </div>
+
+                <div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent md:hidden"></div>
             </div>
             <div class="px-8 pb-8">
                 <div
-                    class="relative flex flex-col md:flex-row md:items-end -mt-16 mb-6 space-y-4 md:space-y-0 md:space-x-6">
+                    class="relative flex flex-col md:flex-row md:items-center -mt-20 mb-6 space-y-4 md:space-y-0 md:space-x-6">
                     <!-- Profile Picture -->
                     <div class="w-32 h-32 rounded-3xl bg-white p-2 shadow-xl ring-1 ring-slate-100">
                         <div class="w-full h-full rounded-2xl overflow-hidden bg-slate-50 flex items-center justify-center">
@@ -27,28 +40,30 @@
 
                     <div class="flex-1">
                         <div class="flex flex-wrap items-center gap-3 mb-2">
-                            <h2 class="text-3xl font-black text-slate-800">
+                            <h2 class="text-3xl font-black text-slate-800 md:text-white drop-shadow-md">
                                 {{ $user->profile?->full_name ?? 'Incomplete Profile' }}
                             </h2>
                             <span
-                                class="px-3 py-1 bg-accent/10 text-accent rounded-full text-[10px] font-black uppercase tracking-widest">
+                                class="px-3 py-1 bg-accent/10 text-accent md:bg-white/20 md:text-white rounded-full text-[10px] font-black uppercase tracking-widest border border-accent/20 md:border-white/20">
                                 {{ $user->getDesignationLabel() }}
                             </span>
                             @if($user->is_office_in_charge && $user->designation !== 'office_in_charge')
                                 <span
-                                    class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-200">
+                                    class="px-3 py-1 bg-amber-100 text-amber-700 md:bg-amber-500/20 md:text-amber-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-200 md:border-amber-500/30">
                                     Officer In Charge
                                 </span>
                             @endif
                             @if($user->status === 'active')
                                 <span
-                                    class="px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-black uppercase tracking-widest">Active</span>
+                                    class="px-3 py-1 bg-success/10 text-success md:bg-success/20 md:text-emerald-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-success/20 md:border-success/40">Active</span>
                             @else
                                 <span
-                                    class="px-3 py-1 bg-warning/10 text-warning rounded-full text-[10px] font-black uppercase tracking-widest">Pending</span>
+                                    class="px-3 py-1 bg-warning/10 text-warning md:bg-warning/20 md:text-amber-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-warning/20 md:border-warning/40">Pending</span>
                             @endif
                         </div>
-                        <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">{{ $user->employee_id }}</p>
+                        <p class="text-slate-500 md:text-white/70 font-bold uppercase tracking-widest text-xs">
+                            {{ $user->employee_id }}
+                        </p>
                     </div>
 
                     <div class="flex flex-wrap gap-2 md:gap-3">
