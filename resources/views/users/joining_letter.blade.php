@@ -382,7 +382,7 @@
                 <p><strong>Compensation & Responsibilities:</strong><br>
                 You will receive a Monthly Honorarium of <span class="highlight">₹90,000</span> + <span class="highlight">₹5,000</span> (Travel Allowance), plus potential spot incentives. 
                 Your primary duty is to lead Relationship Managers (RM) to expand HF membership, conduct surveys, and deliver essential services (Health, Banking, Govt Projects). 
-                <strong>Target:</strong> Maintain a minimum of 625 active ROs in your team.</p>
+                <strong>Task:</strong> Maintain a minimum of 625 active ROs in your team.</p>
             @elseif($user->isBM())
                 <p>We are pleased to offer you the position of <span class="highlight">Block Manager (BM)</span> for
                 <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block, <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. 
@@ -391,7 +391,7 @@
                 <p><strong>Compensation & Responsibilities:</strong><br>
                 You will receive a Monthly Honorarium of <span class="highlight">₹37,500</span>, plus potential spot incentives. 
                 Your primary duty is to lead Relationship Managers (RM) in expanding membership and delivering services.
-                <strong>Target:</strong> Maintain a minimum of 125 active ROs in your team.</p>
+                <strong>Task:</strong> Maintain a minimum of 125 active ROs in your team.</p>
             @elseif($user->isRM())
                 <p>We are pleased to offer you the position of <span class="highlight">Relationship Manager (RM)</span> for
                 <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block, <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. 
@@ -400,7 +400,7 @@
                 <p><strong>Compensation & Responsibilities:</strong><br>
                 You will receive a Monthly Honorarium of <span class="highlight">₹18,750</span>, plus potential spot incentives. 
                 Your role involves leading Relationship Officers (RO) to expand membership and facilitate service delivery.
-                <strong>Target:</strong> Maintain a minimum of 25 active ROs in your team.</p>
+                <strong>Task:</strong> Maintain a minimum of 25 active ROs in your team.</p>
             @else
                 <p>We are pleased to offer you the position of <span class="highlight">Relationship Officer (RO)</span> at
                 <strong>{{ $user->profile?->gram_panchayat ?? 'N/A' }}</strong> Gram Panchayat, <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block. 
@@ -408,8 +408,7 @@
 
                 <p><strong>Compensation & Responsibilities:</strong><br>
                 Humanity Foundation is a Govt. Registered Trust. You will receive a Monthly Honorarium of <span class="highlight">₹6,000</span> + <span class="highlight">₹1,500</span> (Travel Allowance).
-                <strong>Daily Targets:</strong> Conduct 20 family surveys and generate 8 doctor appointments. 
-                <strong>Monthly Targets:</strong> 200 appointments + 100 memberships. Daily reporting to your senior is mandatory.</p>
+                Conduct 25 surveys and generate 8 doctor appointments a day. <strong>Monthly Tasks:</strong> 200 appointments + 130 membership cards. Daily reporting to your senior is mandatory.</p>
             @endif
             
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 15px;">
@@ -448,7 +447,7 @@
                         'The notice period is one month. The Trust may terminate immediately for non-performance.',
                         'Management reserves the right to switch to POP (Payment On Performance) mode anytime.',
                         'Flexible shift/process reallocation is mandatory as per Trust requirement.',
-                        'Incomplete targets will proportionally affect Honorarium volume.',
+                        'Incomplete tasks will proportionally affect Honorarium volume.',
                         'Minimum 40 days service required to claim any salary or dues.',
                         'Formal dress and ID card are mandatory during duty.',
                         'Unauthorized offering of products/services is strictly prohibited.',
