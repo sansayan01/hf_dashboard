@@ -11,7 +11,9 @@
     @if (!$is_pdf)
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+            rel="stylesheet">
     @endif
     <style>
         :root {
@@ -31,9 +33,13 @@
         }
 
         body {
-            background-color: {{ $is_pdf ? '#ffffff' : '#e2e8f0' }};
+            background-color:
+                {{ $is_pdf ? '#ffffff' : '#e2e8f0' }}
+            ;
             color: var(--text-main);
-            font-family: {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Inter', sans-serif" }};
+            font-family:
+                {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Inter', sans-serif" }}
+            ;
             -webkit-font-smoothing: antialiased;
             @if (!$is_pdf)
                 display: flex;
@@ -46,8 +52,13 @@
 
         /* Page Container */
         .letter-page {
-            width: {{ $is_pdf ? '100%' : '210mm' }};
-            height: {{ $is_pdf ? 'auto' : '296.8mm' }}; /* A4 Height */
+            width:
+                {{ $is_pdf ? '100%' : '210mm' }}
+            ;
+            height:
+                {{ $is_pdf ? 'auto' : '296.8mm' }}
+            ;
+            /* A4 Height */
             background: white;
             position: relative;
             overflow: hidden;
@@ -62,8 +73,15 @@
         }
 
         /* Typography Override for Headings */
-        h1, h2, h3, h4, h5, h6 {
-            font-family: {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Outfit', sans-serif" }};
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family:
+                {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Outfit', sans-serif" }}
+            ;
         }
 
         /* Header Section */
@@ -79,7 +97,8 @@
         }
 
         .header-logo {
-            width: 110px; /* Significantly larger */
+            width: 110px;
+            /* Significantly larger */
             height: auto;
         }
 
@@ -90,7 +109,8 @@
         }
 
         .brand-name {
-            font-size: 32px; /* Much larger */
+            font-size: 32px;
+            /* Much larger */
             font-weight: 800;
             color: var(--brand-green);
             text-transform: uppercase;
@@ -100,7 +120,8 @@
         }
 
         .brand-sub {
-            font-size: 13px; /* Increased */
+            font-size: 13px;
+            /* Increased */
             color: var(--text-main);
             font-weight: 700;
             text-transform: uppercase;
@@ -109,7 +130,8 @@
         }
 
         .brand-details {
-            font-size: 11px; /* Increased */
+            font-size: 11px;
+            /* Increased */
             color: var(--text-muted);
             line-height: 1.4;
             font-weight: 500;
@@ -153,7 +175,8 @@
 
         /* Content Body */
         .content-body {
-            font-size: 14.5px; /* Increased for better visibility */
+            font-size: 14.5px;
+            /* Increased for better visibility */
             line-height: 1.65;
             text-align: justify;
             margin-bottom: 25px;
@@ -180,14 +203,16 @@
             border-radius: 8px;
             padding: 15px;
             background: #fff;
-            flex-grow: 1; /* Fills remaining space */
+            flex-grow: 1;
+            /* Fills remaining space */
             display: flex;
             flex-direction: column;
             margin-bottom: 15px;
         }
 
         .terms-title {
-            font-size: 16px; /* Increased */
+            font-size: 16px;
+            /* Increased */
             font-weight: 800;
             color: var(--brand-red);
             text-transform: uppercase;
@@ -206,19 +231,23 @@
 
         .term-item {
             font-size: 12px;
-            line-height: {{ $user->isRO() ? '1.6' : '1.35' }};
+            line-height:
+                {{ $user->isRO() ? '1.6' : '1.35' }}
+            ;
             color: var(--text-muted);
-            margin-bottom: {{ $user->isRO() ? '8px' : '3px' }};
+            margin-bottom:
+                {{ $user->isRO() ? '8px' : '3px' }}
+            ;
             padding-left: 0;
             display: flex;
             align-items: flex-start;
         }
 
         .term-number {
-             font-weight: 700;
-             color: var(--brand-green);
-             min-width: 20px;
-             margin-right: 5px;
+            font-weight: 700;
+            color: var(--brand-green);
+            min-width: 20px;
+            margin-right: 5px;
         }
 
         /* Footer */
@@ -301,16 +330,24 @@
                 align-items: center;
                 gap: 6px;
                 transition: transform 0.2s, box-shadow 0.2s;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             }
 
             .btn:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             }
 
-            .btn-primary { background: var(--brand-green); color: white; }
-            .btn-secondary { background: white; color: var(--text-main); }
+            .btn-primary {
+                background: var(--brand-green);
+                color: white;
+            }
+
+            .btn-secondary {
+                background: white;
+                color: var(--text-main);
+            }
+
         @endif
     </style>
 </head>
@@ -319,15 +356,25 @@
     @if (!$is_pdf && !($hide_controls ?? false))
         <div class="controls">
             <button onclick="window.print()" class="btn btn-primary">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                    </path>
+                </svg>
                 Print Letter
             </button>
             <button onclick="downloadPDF()" class="btn btn-secondary">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
                 Download PDF
             </button>
             <a href="{{ route('users.show', $user->id) }}" class="btn btn-secondary">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                    </path>
+                </svg>
                 Back
             </a>
         </div>
@@ -358,7 +405,7 @@
             <div class="recipient-info">
                 <h3>{{ $user->profile?->full_name ?? 'N/A' }}</h3>
                 <div class="recipient-details">
-                    <span>Emp ID: <strong>{{ $user->employee_id }}</strong></span>
+                    <span>Vol ID: <strong>{{ $user->employee_id }}</strong></span>
                     <span style="margin: 0 8px; color: #cbd5e1;">|</span>
                     <span>Aadhar: <strong>{{ $user->profile?->aadhaar_number ?? 'N/A' }}</strong></span>
                 </div>
@@ -370,65 +417,98 @@
         <div class="content-body">
             @if ($user->isDM())
                 <p>We are pleased to offer you the position of <span class="highlight">District Manager (DM)</span> under
-                <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. This appointment is effective immediately upon the commencement of your team's performance. 
-                We are confident that your leadership will drive our mission forward, and we assure you of our full support for your professional growth.</p>
+                    <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. This appointment is effective
+                    immediately upon the commencement of your team's performance.
+                    We are confident that your leadership will drive our mission forward, and we assure you of our full
+                    support for your professional growth.
+                </p>
 
                 <p><strong>Compensation & Responsibilities:</strong><br>
-                You will receive a Monthly Honorarium of <span class="highlight">₹90,000</span> + <span class="highlight">₹5,000</span> (Travel Allowance), plus potential spot incentives. 
-                Your primary duty is to lead Relationship Managers (RM) to expand HF membership, conduct surveys, and deliver essential services (Health, Banking, Govt Projects). 
-                <strong>Task:</strong> Maintain a minimum of 625 active ROs in your team.</p>
+                    You will receive a Monthly Honorarium of <span class="highlight">₹90,000</span> + <span
+                        class="highlight">₹5,000</span> (Travel Allowance), plus potential spot incentives.
+                    Your primary duty is to lead Relationship Managers (RM) to expand HF membership, conduct surveys, and
+                    deliver essential services (Health, Banking, Govt Projects).
+                    <strong>Task:</strong> Maintain a minimum of 625 active ROs in your team.
+                </p>
             @elseif($user->isBM())
                 <p>We are pleased to offer you the position of <span class="highlight">Block Manager (BM)</span> for
-                <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block, <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. 
-                This appointment is effective immediately upon the commencement of your team's performance. We look forward to your contributions.</p>
+                    <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block,
+                    <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District.
+                    This appointment is effective immediately upon the commencement of your team's performance. We look
+                    forward to your contributions.
+                </p>
 
                 <p><strong>Compensation & Responsibilities:</strong><br>
-                You will receive a Monthly Honorarium of <span class="highlight">₹37,500</span>, plus potential spot incentives. 
-                Your primary duty is to lead Relationship Managers (RM) in expanding membership and delivering services.
-                <strong>Task:</strong> Maintain a minimum of 125 active ROs in your team.</p>
+                    You will receive a Monthly Honorarium of <span class="highlight">₹37,500</span>, plus potential spot
+                    incentives.
+                    Your primary duty is to lead Relationship Managers (RM) in expanding membership and delivering services.
+                    <strong>Task:</strong> Maintain a minimum of 125 active ROs in your team.
+                </p>
             @elseif($user->isRM())
                 <p>We are pleased to offer you the position of <span class="highlight">Relationship Manager (RM)</span> for
-                <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block, <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. 
-                This appointment is effective immediately upon the commencement of your team's performance.</p>
+                    <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block,
+                    <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District.
+                    This appointment is effective immediately upon the commencement of your team's performance.
+                </p>
 
                 <p><strong>Compensation & Responsibilities:</strong><br>
-                You will receive a Monthly Honorarium of <span class="highlight">₹18,750</span>, plus potential spot incentives. 
-                Your role involves leading Relationship Officers (RO) to expand membership and facilitate service delivery.
-                <strong>Task:</strong> Maintain a minimum of 25 active ROs in your team.</p>
+                    You will receive a Monthly Honorarium of <span class="highlight">₹18,750</span>, plus potential spot
+                    incentives.
+                    Your role involves leading Relationship Officers (RO) to expand membership and facilitate service
+                    delivery.
+                    <strong>Task:</strong> Maintain a minimum of 25 active ROs in your team.
+                </p>
             @elseif($user->isRO())
                 <p>We are pleased to offer you the position of <span class="highlight">Relationship Officer (RO)</span> at
-                <strong>{{ $user->profile?->gram_panchayat ?? 'N/A' }}</strong> Gram Panchayat, <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block. 
-                This appointment is effective from your start date.</p>
+                    <strong>{{ $user->profile?->gram_panchayat ?? 'N/A' }}</strong> Gram Panchayat,
+                    <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block.
+                    This appointment is effective from your start date.
+                </p>
 
                 <p><strong>Compensation & Responsibilities:</strong><br>
-                Humanity Foundation is a Govt. Registered Trust. You will receive a Monthly Honorarium of <span class="highlight">₹6,000</span> + <span class="highlight">₹1,500</span> (Travel Allowance).
-                Conduct 25 surveys and generate 8 doctor appointments a day. <strong>Monthly Tasks:</strong> 200 appointments + 130 membership cards. Daily reporting to your senior is mandatory.</p>
+                    Humanity Foundation is a Govt. Registered Trust. You will receive a Monthly Honorarium of <span
+                        class="highlight">₹6,000</span> + <span class="highlight">₹1,500</span> (Travel Allowance).
+                    Conduct 25 surveys and generate 8 doctor appointments a day. <strong>Monthly Tasks:</strong> 200
+                    appointments + 130 membership cards. Daily reporting to your senior is mandatory.</p>
             @elseif($user->isSuperAdmin())
-                <p>We are pleased to offer you the position of <span class="highlight">{{ $user->post ?? 'Super Admin' }}</span>. 
-                This appointment is effective immediately. We are confident that your leadership and vision will significantly contribute to the Humanity Foundation's mission and growth.</p>
+                <p>We are pleased to offer you the position of <span
+                        class="highlight">{{ $user->post ?? 'Super Admin' }}</span>.
+                    This appointment is effective immediately. We are confident that your leadership and vision will
+                    significantly contribute to the Humanity Foundation's mission and growth.</p>
 
                 <p><strong>Role & Responsibilities:</strong><br>
-                As {{ $user->post ?? 'a Super Admin' }}, your role involves strategic leadership, organizational oversight, and providing critical guidance to the broader management team. You are responsible for ensuring the foundation's core objectives are met with the highest standards of integrity and operational excellence.</p>
+                    As {{ $user->post ?? 'a Super Admin' }}, your role involves strategic leadership, organizational
+                    oversight, and providing critical guidance to the broader management team. You are responsible for
+                    ensuring the foundation's core objectives are met with the highest standards of integrity and
+                    operational excellence.</p>
             @elseif($user->designation === 'staff')
-                <p>We are pleased to offer you the position of <span class="highlight">Pharmacist</span>. 
-                This appointment is effective immediately. Your professional expertise is vital to our healthcare mission.</p>
+                <p>We are pleased to offer you the position of <span class="highlight">Pharmacist</span>.
+                    This appointment is effective immediately. Your professional expertise is vital to our healthcare
+                    mission.</p>
 
                 <p><strong>Role & Responsibilities:</strong><br>
-                Your role involves the precise management of the medicine registry, overseeing pharmaceutical stock levels, ensuring accurate dispensing to beneficiaries, and maintaining meticulous inventory records to support our health welfare programs.</p>
+                    Your role involves the precise management of the medicine registry, overseeing pharmaceutical stock
+                    levels, ensuring accurate dispensing to beneficiaries, and maintaining meticulous inventory records to
+                    support our health welfare programs.</p>
             @elseif($user->isOfficeInCharge())
-                <p>We are pleased to offer you the position of <span class="highlight">Office In-Charge</span>. 
-                This appointment is effective immediately. You will lead the administrative operations of your assigned unit.</p>
+                <p>We are pleased to offer you the position of <span class="highlight">Office In-Charge</span>.
+                    This appointment is effective immediately. You will lead the administrative operations of your assigned
+                    unit.</p>
 
                 <p><strong>Role & Responsibilities:</strong><br>
-                You are responsible for branch administration, supervising office staff, managing day-to-day facility operations, and serving as the primary liaison between field personnel and central management.</p>
+                    You are responsible for branch administration, supervising office staff, managing day-to-day facility
+                    operations, and serving as the primary liaison between field personnel and central management.</p>
             @else
-                <p>We are pleased to offer you the position of <span class="highlight">{{ $user->getDesignationLabel() }}</span>. 
-                This appointment is effective immediately. We look forward to your contributions to the Humanity Foundation.</p>
+                <p>We are pleased to offer you the position of <span
+                        class="highlight">{{ $user->getDesignationLabel() }}</span>.
+                    This appointment is effective immediately. We look forward to your contributions to the Humanity
+                    Foundation.</p>
 
                 <p><strong>Role & Responsibilities:</strong><br>
-                Your position involves performing duties assigned by the management team to ensure the smooth operation of our social welfare projects and maintaining the foundation's commitment to community service.</p>
+                    Your position involves performing duties assigned by the management team to ensure the smooth operation
+                    of our social welfare projects and maintaining the foundation's commitment to community service.</p>
             @endif
-            
+
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 15px;">
                 * This offer is contingent upon the verification of documents furnished by you.
             </p>
@@ -442,7 +522,7 @@
                 // Use standard User model methods 
                 if ($user->isDM() || $user->isBM() || $user->isRM()) {
                     $terms = [
-                         'Organization isn’t liable to pay you the above Honorarium, if you found guilty or non compliance.',
+                        'Organization isn’t liable to pay you the above Honorarium, if you found guilty or non compliance.',
                         'You should have minimum ' . ($user->isDM() ? '625' : ($user->isBM() ? '125' : '25')) . ' active ROs in your team.',
                         'The notice period is one month. The Trust may terminate immediately for non-performance or integrity issues.',
                         'No payout for days with stopped work or non-performance.',
@@ -460,7 +540,7 @@
                         'Honorarium is disbursed by the 10th of the following month.'
                     ];
                 } elseif ($user->isSuperAdmin() || $user->isOfficeInCharge() || $user->designation === 'staff') {
-                     $terms = [
+                    $terms = [
                         'Organization isn’t liable to pay you the above Honorarium, if you found guilty of non-compliance or breach of trust.',
                         'The notice period is one month. The Trust may terminate immediately for serious misconduct or integrity issues.',
                         'No honorarium for periods of unapproved absence or non-performance of duties.',
@@ -535,4 +615,5 @@
         </script>
     @endif
 </body>
+
 </html>

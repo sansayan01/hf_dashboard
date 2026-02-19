@@ -19,12 +19,12 @@
 
     <h3>Your Official Details:</h3>
     <ul>
-        <li><strong>Employee ID:</strong> {{ $user->employee_id }}</li>
+        <li><strong>Volunteer ID:</strong> {{ $user->employee_id }}</li>
         <li><strong>Designation:</strong> {{ ucwords(str_replace('_', ' ', $user->designation)) }}</li>
         <li><strong>Password:</strong> <em>(The password set during registration)</em></li>
     </ul>
 
-    <p>You may now access your dashboard using your registered email or employee ID as the user name and with the
+    <p>You may now access your dashboard using your registered email or volunteer ID as the user name and with the
         password.</p>
 
     <p style="margin-top: 30px;">

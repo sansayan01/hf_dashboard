@@ -468,7 +468,7 @@
                         <p class="mb-3">To reset your password, please contact your administrator:</p>
                         <ul class="list-disc list-inside space-y-2 text-sm">
                             <li>Email your supervisor or HR department</li>
-                            <li>Provide your Employee ID for verification</li>
+                            <li>Provide your Volunteer ID for verification</li>
                             <li>Request a password reset link</li>
                         </ul>
                         <p class="mt-4 text-xs text-gray-500">For security reasons, password resets must be verified by an administrator.</p>

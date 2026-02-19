@@ -299,7 +299,7 @@
                         </h2>
                         @if(!$user->isSuperAdmin())
                             <p class="text-sm font-bold text-gray-800" style="margin-top: 2px;">
-                                Emp. ID : <span class="text-red-500 font-black">{{ $user->employee_id }}</span>
+                                Vol. ID : <span class="text-red-500 font-black">{{ $user->employee_id }}</span>
                             </p>
                         @endif
 

@@ -24,14 +24,15 @@
                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             <h4 class="text-sm font-black uppercase tracking-widest">
-                                {{ auth()->user()->isSuperAdmin() ? 'Register Behalf Of' : 'Register for Team Member' }}</h4>
+                                {{ auth()->user()->isSuperAdmin() ? 'Register Behalf Of' : 'Register for Team Member' }}
+                            </h4>
                         </div>
                         <div class="space-y-2">
                             <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Team
                                 Member (Search by Name or ID)</label>
                             <input list="team_members" name="created_by_user_search" id="created_by_user_search"
                                 class="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none text-sm font-bold text-slate-700 dark:text-white transition-all focus:border-indigo-500"
-                                placeholder="Start typing name or employee ID..." oninput="updateUserId(this.value)">
+                                placeholder="Start typing name or volunteer ID..." oninput="updateUserId(this.value)">
                             <input type="hidden" name="created_by_user" id="created_by_user"
                                 value="{{ old('created_by_user') }}">
                             <datalist id="team_members">
