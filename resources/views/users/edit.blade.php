@@ -469,6 +469,25 @@
     <script src="{{ asset('js/locations.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const stateSelect = document.getElementById('state-select');
+            const districtSelect = document.getElementById('district-select');
+            const blockSelect = document.getElementById('block-select');
+            const gpSelect = document.getElementById('gp-select');
+
+            // Current Values
+            const currentState = "{{ old('state', $user->profile->state ?? '') }}";
+            const currentDistrict = "{{ old('district', $user->profile->district ?? '') }}";
+            const currentBlock = "{{ old('block', $user->profile->block ?? '') }}";
+            const currentGP = "{{ old('gram_panchayat', $user->profile->gram_panchayat ?? '') }}";
+
+            // 1. Populate States (Moved to top for robustness)
+            if (window.locationData) {
+                for (const state in window.locationData) {
+                    const option = new Option(state, state);
+                    if (state === currentState) option.selected = true;
+                    stateSelect.add(option);
+                }
+            }
 
             // Admin Role Management Logic
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
@@ -636,25 +655,6 @@
 
             @endif
 
-            const stateSelect = document.getElementById('state-select');
-            const districtSelect = document.getElementById('district-select');
-            const blockSelect = document.getElementById('block-select');
-            const gpSelect = document.getElementById('gp-select');
-
-            // Current Values
-            const currentState = "{{ old('state', $user->profile->state) }}";
-            const currentDistrict = "{{ old('district', $user->profile->district) }}";
-            const currentBlock = "{{ old('block', $user->profile->block) }}";
-            const currentGP = "{{ old('gram_panchayat', $user->profile->gram_panchayat) }}";
-
-            // Populate States
-            if (window.locationData) {
-                for (const state in window.locationData) {
-                    const option = new Option(state, state);
-                    if (state === currentState) option.selected = true;
-                    stateSelect.add(option);
-                }
-            }
 
             function updateDistricts(state, selectedDistrict = null) {
                 districtSelect.innerHTML = '<option value="">Select District</option>';
@@ -812,5 +812,6 @@
                 input.type = "password";
             }
         }
+    </script>
     @include('layouts.partials.image_cropper')
 @endsection
