@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Survey;
 use App\Models\Appointment;
+use App\Models\ChatbotTrainingData;
 use Illuminate\Support\Facades\Log;
 
 class AIController extends Controller
@@ -105,6 +106,85 @@ class AIController extends Controller
         }
     }
 
+    // ========== CHATBOT TRAINING CRUD (Super Admin Only) ==========
+
+    public function trainingIndex()
+    {
+        $user = auth()->user();
+        if (!$user || !$user->isSuperAdmin()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $entries = ChatbotTrainingData::with('createdBy:id,employee_id')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($entry) {
+                return [
+                    'id' => $entry->id,
+                    'question' => $entry->question,
+                    'answer' => $entry->answer,
+                    'is_active' => $entry->is_active,
+                    'created_at' => $entry->created_at->format('d M Y'),
+                ];
+            });
+
+        return response()->json($entries);
+    }
+
+    public function trainingStore(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || !$user->isSuperAdmin()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'question' => 'required|string|max:1000',
+            'answer' => 'required|string|max:5000',
+        ]);
+
+        $entry = ChatbotTrainingData::create([
+            'question' => $request->question,
+            'answer' => $request->answer,
+            'is_active' => true,
+            'created_by' => $user->id,
+        ]);
+
+        return response()->json(['success' => true, 'id' => $entry->id]);
+    }
+
+    public function trainingUpdate(Request $request, $id)
+    {
+        $user = auth()->user();
+        if (!$user || !$user->isSuperAdmin()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $entry = ChatbotTrainingData::findOrFail($id);
+
+        $request->validate([
+            'question' => 'sometimes|string|max:1000',
+            'answer' => 'sometimes|string|max:5000',
+            'is_active' => 'sometimes|boolean',
+        ]);
+
+        $entry->update($request->only(['question', 'answer', 'is_active']));
+
+        return response()->json(['success' => true]);
+    }
+
+    public function trainingDestroy($id)
+    {
+        $user = auth()->user();
+        if (!$user || !$user->isSuperAdmin()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        ChatbotTrainingData::findOrFail($id)->delete();
+
+        return response()->json(['success' => true]);
+    }
+
     private function handleThemeToggle(Request $request)
     {
         if (preg_match('/(dark mode|dark theme|enable dark|switch to dark|go dark)/i', $request->message)) {
@@ -193,6 +273,9 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
         $this->augmentTeamContext($request, $user, $context);
         $this->augmentSpecificUserContext($request, $user, $context);
         $this->augmentSystemStatusContext($request, $context);
+
+        // 4. Custom Training Data (from super admin)
+        $this->augmentTrainingContext($context);
     }
 
     private function ensureSystemMessage(array &$context, string $content)
@@ -730,6 +813,30 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
         }
     }
 
+
+    /**
+     * Inject custom training Q&A pairs into the system prompt.
+     */
+    private function augmentTrainingContext(array &$context)
+    {
+        try {
+            $entries = ChatbotTrainingData::where('is_active', true)->get();
+
+            if ($entries->isEmpty()) {
+                return;
+            }
+
+            $trainingBlock = "\n\nCUSTOM KNOWLEDGE BASE (Use these as authoritative answers when the user asks a matching question):\n";
+            foreach ($entries as $entry) {
+                $trainingBlock .= "Q: {$entry->question}\nA: {$entry->answer}\n\n";
+            }
+
+            $this->appendToSystemPrompt($context, $trainingBlock);
+        } catch (\Exception $e) {
+            // Table may not exist yet — silently skip
+            Log::info("Training context skipped: " . $e->getMessage());
+        }
+    }
 
     /**
      * Helper to append content to the system prompt in the context array.

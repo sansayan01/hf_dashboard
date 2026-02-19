@@ -162,6 +162,12 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // AI Assistant
     Route::post('/ai/chat', [\App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');
 
+    // Chatbot Training (Super Admin only)
+    Route::get('/ai/training', [\App\Http\Controllers\AIController::class, 'trainingIndex'])->name('ai.training.index');
+    Route::post('/ai/training', [\App\Http\Controllers\AIController::class, 'trainingStore'])->name('ai.training.store');
+    Route::put('/ai/training/{id}', [\App\Http\Controllers\AIController::class, 'trainingUpdate'])->name('ai.training.update');
+    Route::delete('/ai/training/{id}', [\App\Http\Controllers\AIController::class, 'trainingDestroy'])->name('ai.training.destroy');
+
     // Medicine Inventory Management
     Route::prefix('inventory')->name('inventory.')->group(function () {
         // Stock management

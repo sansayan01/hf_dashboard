@@ -368,13 +368,7 @@
 
         <!-- Dynamic Body Content -->
         <div class="content-body">
-            @if ($user->isSuperAdmin())
-                <p>We are pleased to offer you the position of <span class="highlight">{{ $user->post ?? 'Super Admin' }}</span>. 
-                This appointment is effective immediately. We are confident that your leadership and vision will significantly contribute to the Humanity Foundation's mission and growth.</p>
-
-                <p><strong>Role & Responsibilities:</strong><br>
-                Your position as a central administrator involves strategic decision-making, operational oversight, and providing guidance to the broader management team (DM, BM, RM) to ensure the effective delivery of our health and social welfare programs.</p>
-            @elseif ($user->isDM())
+            @if ($user->isDM())
                 <p>We are pleased to offer you the position of <span class="highlight">District Manager (DM)</span> under
                 <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. This appointment is effective immediately upon the commencement of your team's performance. 
                 We are confident that your leadership will drive our mission forward, and we assure you of our full support for your professional growth.</p>
@@ -401,7 +395,7 @@
                 You will receive a Monthly Honorarium of <span class="highlight">₹18,750</span>, plus potential spot incentives. 
                 Your role involves leading Relationship Officers (RO) to expand membership and facilitate service delivery.
                 <strong>Task:</strong> Maintain a minimum of 25 active ROs in your team.</p>
-            @else
+            @elseif($user->isRO())
                 <p>We are pleased to offer you the position of <span class="highlight">Relationship Officer (RO)</span> at
                 <strong>{{ $user->profile?->gram_panchayat ?? 'N/A' }}</strong> Gram Panchayat, <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block. 
                 This appointment is effective from your start date.</p>
@@ -409,6 +403,30 @@
                 <p><strong>Compensation & Responsibilities:</strong><br>
                 Humanity Foundation is a Govt. Registered Trust. You will receive a Monthly Honorarium of <span class="highlight">₹6,000</span> + <span class="highlight">₹1,500</span> (Travel Allowance).
                 Conduct 25 surveys and generate 8 doctor appointments a day. <strong>Monthly Tasks:</strong> 200 appointments + 130 membership cards. Daily reporting to your senior is mandatory.</p>
+            @elseif($user->isSuperAdmin())
+                <p>We are pleased to offer you the position of <span class="highlight">{{ $user->post ?? 'Super Admin' }}</span>. 
+                This appointment is effective immediately. We are confident that your leadership and vision will significantly contribute to the Humanity Foundation's mission and growth.</p>
+
+                <p><strong>Role & Responsibilities:</strong><br>
+                As {{ $user->post ?? 'a Super Admin' }}, your role involves strategic leadership, organizational oversight, and providing critical guidance to the broader management team. You are responsible for ensuring the foundation's core objectives are met with the highest standards of integrity and operational excellence.</p>
+            @elseif($user->designation === 'staff')
+                <p>We are pleased to offer you the position of <span class="highlight">Pharmacist</span>. 
+                This appointment is effective immediately. Your professional expertise is vital to our healthcare mission.</p>
+
+                <p><strong>Role & Responsibilities:</strong><br>
+                Your role involves the precise management of the medicine registry, overseeing pharmaceutical stock levels, ensuring accurate dispensing to beneficiaries, and maintaining meticulous inventory records to support our health welfare programs.</p>
+            @elseif($user->isOfficeInCharge())
+                <p>We are pleased to offer you the position of <span class="highlight">Office In-Charge</span>. 
+                This appointment is effective immediately. You will lead the administrative operations of your assigned unit.</p>
+
+                <p><strong>Role & Responsibilities:</strong><br>
+                You are responsible for branch administration, supervising office staff, managing day-to-day facility operations, and serving as the primary liaison between field personnel and central management.</p>
+            @else
+                <p>We are pleased to offer you the position of <span class="highlight">{{ $user->getDesignationLabel() }}</span>. 
+                This appointment is effective immediately. We look forward to your contributions to the Humanity Foundation.</p>
+
+                <p><strong>Role & Responsibilities:</strong><br>
+                Your position involves performing duties assigned by the management team to ensure the smooth operation of our social welfare projects and maintaining the foundation's commitment to community service.</p>
             @endif
             
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 15px;">
@@ -439,6 +457,20 @@
                         'Ensure daily deposit of all collected bills/fees.',
                         'Retention of collected fees is strictly prohibited.',
                         'Maintain professional behavior with all stakeholders.',
+                        'Honorarium is disbursed by the 10th of the following month.'
+                    ];
+                } elseif ($user->isSuperAdmin() || $user->isOfficeInCharge() || $user->designation === 'staff') {
+                     $terms = [
+                        'Organization isn’t liable to pay you the above Honorarium, if you found guilty of non-compliance or breach of trust.',
+                        'The notice period is one month. The Trust may terminate immediately for serious misconduct or integrity issues.',
+                        'No honorarium for periods of unapproved absence or non-performance of duties.',
+                        'Strict adherence to high confidentiality and professional ethics is mandatory.',
+                        'Flexible shift/process reallocation is mandatory as per Trust requirement.',
+                        'Minimum 40 days service required to claim any salary or dues upon separation.',
+                        'Formal dress and ID card are mandatory during duty hours.',
+                        'Unauthorized offering of external products/services is strictly prohibited.',
+                        'Daily reporting and attendance marking are mandatory.',
+                        'Maintain professional behavior with all members and stakeholders.',
                         'Honorarium is disbursed by the 10th of the following month.'
                     ];
                 } else {

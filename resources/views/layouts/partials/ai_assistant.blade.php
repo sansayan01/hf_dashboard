@@ -330,6 +330,199 @@
     .dark .user-msg-bubble {
         background-color: #3B82F6 !important;
     }
+
+    /* Training Panel Styles */
+    #ai-training-panel {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: white;
+        z-index: 10;
+        display: none;
+        flex-direction: column;
+        transition: transform 0.3s ease;
+    }
+
+    .dark #ai-training-panel {
+        background: #1C2434;
+        color: #F1F5F9;
+    }
+
+    #ai-training-panel.active {
+        display: flex !important;
+    }
+
+    .training-header {
+        padding: 14px 16px;
+        background: #1C2434;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .training-header h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .training-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+    }
+
+    .training-form {
+        background: #F8FAFC;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+        border: 1px solid #E2E8F0;
+    }
+
+    .dark .training-form {
+        background: #0F172A;
+        border-color: #334155;
+    }
+
+    .training-form input,
+    .training-form textarea {
+        width: 100%;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        margin-bottom: 8px;
+        background: white;
+        color: #1C2434;
+        box-sizing: border-box;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .dark .training-form input,
+    .dark .training-form textarea {
+        background: #1E293B;
+        border-color: #334155;
+        color: #F1F5F9;
+    }
+
+    .training-form textarea {
+        resize: vertical;
+        min-height: 60px;
+    }
+
+    .training-form button {
+        width: 100%;
+        padding: 8px;
+        background: #2b3bb3;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .training-form button:hover {
+        background: #1e2d8f;
+    }
+
+    .training-entry {
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        transition: all 0.2s;
+    }
+
+    .dark .training-entry {
+        background: #1E293B;
+        border-color: #334155;
+    }
+
+    .training-entry.inactive {
+        opacity: 0.5;
+    }
+
+    .training-entry-q {
+        font-weight: 600;
+        color: #2b3bb3;
+        margin-bottom: 4px;
+    }
+
+    .dark .training-entry-q {
+        color: #60A5FA;
+    }
+
+    .training-entry-a {
+        color: #64748B;
+        line-height: 1.4;
+    }
+
+    .dark .training-entry-a {
+        color: #94A3B8;
+    }
+
+    .training-entry-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .training-entry-actions button {
+        padding: 4px 10px;
+        border: none;
+        border-radius: 6px;
+        font-size: 11px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .train-btn-toggle {
+        background: #DBEAFE;
+        color: #1D4ED8;
+    }
+
+    .dark .train-btn-toggle {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93C5FD;
+    }
+
+    .train-btn-edit {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .dark .train-btn-edit {
+        background: rgba(245, 158, 11, 0.2);
+        color: #FCD34D;
+    }
+
+    .train-btn-delete {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .dark .train-btn-delete {
+        background: rgba(239, 68, 68, 0.2);
+        color: #FCA5A5;
+    }
+
+    .training-empty {
+        text-align: center;
+        padding: 24px;
+        color: #94A3B8;
+        font-size: 13px;
+    }
 </style>
 
 <div id="ai-assistant-container">
@@ -383,7 +576,7 @@
                         stroke-width="1.5" stroke-linecap="round" />
                 </svg>
             </div>
-            <div>
+            <div style="flex: 1;">
                 <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: white;">HF Assistant</h3>
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></span>
@@ -391,6 +584,18 @@
                         Humanity Foundation</span>
                 </div>
             </div>
+            @if(auth()->user()->isSuperAdmin())
+                <button id="ai-train-btn" title="Train Bot"
+                    style="background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; padding: 4px; border-radius: 6px; display: flex; align-items: center; transition: all 0.2s;"
+                    onmouseover="this.style.color='white';this.style.background='rgba(255,255,255,0.1)'"
+                    onmouseout="this.style.color='rgba(255,255,255,0.7)';this.style.background='none'">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                        </path>
+                    </svg>
+                </button>
+            @endif
         </div>
 
         <div id="ai-messages">
@@ -409,7 +614,11 @@
                 </div>
                 <div class="bot-msg-bubble"
                     style="padding: 12px; border-radius: 12px; border-top-left-radius: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E2E8F0; max-width: 85%; transition: all 0.3s ease;">
-                    <p style="margin:0; font-size: 13px; line-height: 1.5;">Hello {{ explode(' ', auth()->user()->profile->full_name ?? 'there')[0] }}! I am your HF Assistant. How can I help you today?</p>
+                    <p style="margin:0; font-size: 13px; line-height: 1.5;">Hello
+                        {{ explode(' ', auth()->user()->profile->full_name ?? 'there')[0] }}! I am your HF Assistant.
+                        How
+                        can I help you today?
+                    </p>
                 </div>
             </div>
         </div>
@@ -429,11 +638,32 @@
                     style="position: absolute; right: 5px; top: 5px; width: 36px; height: 36px; background: #2b3bb3; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease-in-out;">
                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                            d="M13 5l7 7-7 7M5 5l7 7-7 7">
+                        </path>
                     </svg>
                 </button>
             </form>
         </div>
+
+        <!-- Training Panel (Super Admin Only) -->
+        @if(auth()->user()->isSuperAdmin())
+            <div id="ai-training-panel">
+                <div class="training-header">
+                    <h3>🧠 Train Bot</h3>
+                    <button id="ai-train-close"
+                        style="background:none;border:none;color:white;cursor:pointer;font-size:18px;">&times;</button>
+                </div>
+                <div class="training-body">
+                    <div class="training-form">
+                        <input type="text" id="train-question"
+                            placeholder="Question or topic (e.g., What is the office address?)">
+                        <textarea id="train-answer" placeholder="Answer the bot should give..."></textarea>
+                        <button id="train-save-btn">➕ Add Training Entry</button>
+                    </div>
+                    <div id="training-list"></div>
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -727,6 +957,139 @@
             aiMessages.scrollTop = aiMessages.scrollHeight;
             return div;
         }
+
+        // ========== TRAINING PANEL LOGIC (Super Admin) ==========
+        const trainBtn = document.getElementById('ai-train-btn');
+        const trainPanel = document.getElementById('ai-training-panel');
+        const trainClose = document.getElementById('ai-train-close');
+        const trainSaveBtn = document.getElementById('train-save-btn');
+        const trainList = document.getElementById('training-list');
+        const csrfToken = '{{ csrf_token() }}';
+
+        if (trainBtn && trainPanel) {
+            trainBtn.addEventListener('click', () => {
+                trainPanel.classList.add('active');
+                loadTrainingEntries();
+            });
+
+            trainClose.addEventListener('click', () => {
+                trainPanel.classList.remove('active');
+            });
+
+            trainSaveBtn.addEventListener('click', async () => {
+                const q = document.getElementById('train-question').value.trim();
+                const a = document.getElementById('train-answer').value.trim();
+                if (!q || !a) return alert('Both question and answer are required.');
+
+                trainSaveBtn.disabled = true;
+                trainSaveBtn.textContent = 'Saving...';
+
+                try {
+                    const res = await fetch("{{ route('ai.training.store') }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                        body: JSON.stringify({ question: q, answer: a })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        document.getElementById('train-question').value = '';
+                        document.getElementById('train-answer').value = '';
+                        loadTrainingEntries();
+                    } else {
+                        alert(data.error || 'Failed to save.');
+                    }
+                } catch (err) {
+                    alert('Error saving training entry.');
+                } finally {
+                    trainSaveBtn.disabled = false;
+                    trainSaveBtn.textContent = '➕ Add Training Entry';
+                }
+            });
+
+            async function loadTrainingEntries() {
+                try {
+                    const res = await fetch("{{ route('ai.training.index') }}");
+                    const entries = await res.json();
+
+                    if (entries.length === 0) {
+                        trainList.innerHTML = '<div class="training-empty">No training entries yet.<br>Add Q&A pairs above to teach the bot!</div>';
+                        return;
+                    }
+
+                    trainList.innerHTML = entries.map(e => `
+                        <div class="training-entry ${e.is_active ? '' : 'inactive'}" data-id="${e.id}">
+                            <div class="training-entry-q">Q: ${escapeHtml(e.question)}</div>
+                            <div class="training-entry-a">A: ${escapeHtml(e.answer)}</div>
+                            <div class="training-entry-actions">
+                                <button class="train-btn-toggle" onclick="toggleTraining(${e.id}, ${e.is_active ? 'false' : 'true'})">${e.is_active ? '⏸ Disable' : '▶ Enable'}</button>
+                                <button class="train-btn-edit" onclick="editTraining(${e.id})">✏️ Edit</button>
+                                <button class="train-btn-delete" onclick="deleteTraining(${e.id})">🗑 Delete</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } catch (err) {
+                    trainList.innerHTML = '<div class="training-empty">Error loading entries.</div>';
+                }
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            window.toggleTraining = async function (id, newState) {
+                try {
+                    await fetch(`/ai/training/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                        body: JSON.stringify({ is_active: newState })
+                    });
+                    loadTrainingEntries();
+                } catch (err) {
+                    alert('Error toggling entry.');
+                }
+            };
+
+            window.editTraining = async function (id) {
+                const entry = trainList.querySelector(`[data-id="${id}"]`);
+                if (!entry) return;
+
+                const currentQ = entry.querySelector('.training-entry-q').textContent.replace('Q: ', '');
+                const currentA = entry.querySelector('.training-entry-a').textContent.replace('A: ', '');
+
+                const newQ = prompt('Edit Question:', currentQ);
+                if (newQ === null) return;
+                const newA = prompt('Edit Answer:', currentA);
+                if (newA === null) return;
+
+                try {
+                    await fetch(`/ai/training/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                        body: JSON.stringify({ question: newQ, answer: newA })
+                    });
+                    loadTrainingEntries();
+                } catch (err) {
+                    alert('Error updating entry.');
+                }
+            };
+
+            window.deleteTraining = async function (id) {
+                if (!confirm('Delete this training entry?')) return;
+
+                try {
+                    await fetch(`/ai/training/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': csrfToken }
+                    });
+                    loadTrainingEntries();
+                } catch (err) {
+                    alert('Error deleting entry.');
+                }
+            };
+        }
+
         // Show label temporarily on load
         const label = document.getElementById('ai-label');
         if (label) {
