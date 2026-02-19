@@ -710,3 +710,26 @@ Route::get('/diag/profile-pictures', function () {
 
     return $html;
 })->middleware('auth');
+
+// One-time migration route for chatbot training table (visit once on live server, then remove)
+Route::get('/run-training-migration', function () {
+    try {
+        if (\Illuminate\Support\Facades\Schema::hasTable('chatbot_training_data')) {
+            return '<h2 style="color:green;">✅ Table `chatbot_training_data` already exists! You\'re all set.</h2>';
+        }
+
+        \Illuminate\Support\Facades\Schema::create('chatbot_training_data', function ($table) {
+            $table->id();
+            $table->text('question');
+            $table->text('answer');
+            $table->boolean('is_active')->default(true);
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->timestamps();
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
+        });
+
+        return '<h2 style="color:green;">✅ Table `chatbot_training_data` created successfully! Train Bot is ready to use.</h2>';
+    } catch (\Exception $e) {
+        return '<h2 style="color:red;">❌ Error: ' . $e->getMessage() . '</h2>';
+    }
+})->middleware('auth');
