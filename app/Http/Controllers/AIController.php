@@ -826,9 +826,9 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                 return;
             }
 
-            $trainingBlock = "\n\nCUSTOM KNOWLEDGE BASE (Use these as authoritative answers when the user asks a matching question):\n";
+            $trainingBlock = "\n\nCUSTOM KNOWLEDGE BASE (Use the following as reference knowledge. When the user asks a related question, use this information as context to form a natural, conversational answer in your own words. Do NOT copy the answer verbatim — understand the information and respond naturally):\n";
             foreach ($entries as $entry) {
-                $trainingBlock .= "Q: {$entry->question}\nA: {$entry->answer}\n\n";
+                $trainingBlock .= "Topic: {$entry->question}\nInfo: {$entry->answer}\n\n";
             }
 
             $this->appendToSystemPrompt($context, $trainingBlock);
