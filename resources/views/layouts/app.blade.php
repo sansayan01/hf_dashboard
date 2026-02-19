@@ -14,6 +14,10 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Cropper.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
     <!-- Tailwind CSS (Vite Build) -->
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.tsx'])
@@ -752,17 +756,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                                            }).then((result) => {
+                                                                                                                                                                                                                                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                                            });
+                                                                                                                                                                                                                                                                });
         @endif
 
         @if(session('error'))

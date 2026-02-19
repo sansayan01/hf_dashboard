@@ -310,15 +310,32 @@
                             </select>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Profile Picture</label>
-                            <div class="flex items-center space-x-4">
-                                @if($user->profile->profile_picture)
-                                    <img src="{{ $user->profile->getProfilePictureUrl() }}"
-                                        class="w-12 h-12 rounded-xl object-cover border border-slate-200">
-                                @endif
-                                <input type="file" name="profile_picture" accept="image/*"
-                                    class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-accent file:text-white">
+                        <div class="space-y-4">
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Profile Picture</label>
+                            <div class="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-300 dark:border-white/10">
+                                <div class="relative w-24 h-24 flex-shrink-0 group cursor-pointer" onclick="handlePreviewClick('profile_picture_input', 'profile-preview')">
+                                    @if($user->profile->profile_picture)
+                                        <img id="profile-preview" src="{{ $user->profile->getProfilePictureUrl() }}"
+                                            class="w-full h-full rounded-2xl object-cover border-2 border-accent/20 shadow-lg transition-all group-hover:scale-105">
+                                    @else
+                                        <div class="initials-placeholder w-full h-full rounded-2xl bg-accent/10 border-2 border-accent/20 flex items-center justify-center text-accent text-2xl font-bold transition-all group-hover:scale-105">
+                                            {{ substr($user->profile->full_name ?? $user->employee_id, 0, 1) }}
+                                        </div>
+                                        <img id="profile-preview" src="#" alt="Preview" class="hidden w-full h-full rounded-2xl object-cover border-2 border-accent/20 shadow-lg transition-all group-hover:scale-105">
+                                    @endif
+                                    <div class="absolute -bottom-2 -right-2 bg-accent text-white p-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-1 w-full">
+                                    <input type="file" name="profile_picture" id="profile_picture_input" accept="image/*"
+                                        class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-4 focus:ring-accent/10 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-accent file:text-white hover:file:bg-accent/80 cursor-pointer"
+                                        onchange="initCropper(this, document.getElementById('profile-preview'))">
+                                    <p class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">Capture a new picture or upload a file. JPG/PNG, Max 10MB.</p>
+                                </div>
                             </div>
                         </div>
 
@@ -795,5 +812,5 @@
                 input.type = "password";
             }
         }
-    </script>
+    @include('layouts.partials.image_cropper')
 @endsection
