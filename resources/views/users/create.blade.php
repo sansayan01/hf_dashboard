@@ -7,7 +7,7 @@
     <div class="max-w-4xl mx-auto">
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div class="p-8 border-b border-slate-50">
-                <h3 class="font-bold text-xl text-slate-800">Registration Form</h3>
+                <h3 class="font-bold text-xl text-slate-800">Donation Form</h3>
                 <p class="text-sm text-slate-500 mt-1">Fill in the details below to add a new
                     {{ strtoupper($allowedDesignation) }} to your downline.</p>
             </div>
