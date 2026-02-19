@@ -600,8 +600,8 @@
 
         <!-- Lottie Animation -->
         <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
-        <dotlottie-wc src="https://lottie.host/0bda0bba-5419-462b-ba6c-64c49a01587a/QfBd3IAVeP.lottie"
-            style="width: 200px; height: 200px" autoplay loop>
+        <dotlottie-wc src="https://lottie.host/1aa4a8a0-06f1-430b-ab43-fe7ca72f6c9a/cSwkMGw50G.lottie"
+            style="width: 300px; height: 300px" autoplay loop>
         </dotlottie-wc>
 
     </div>
@@ -633,7 +633,12 @@
         window.addEventListener('load', () => {
             const loader = document.getElementById('global-loader');
             if (loader) {
-                setTimeout(hideGlobalLoader, 1000); // 1.0s of branded splash
+                @if(session('success') || session('error') || $errors->any())
+                    // Hide loader immediately when a flash message exists (SweetAlert will show instead)
+                    hideGlobalLoader();
+                @else
+                    setTimeout(hideGlobalLoader, 200); // 0.2s of branded splash
+                @endif
             }
         });
 
@@ -747,17 +752,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                                }).then((result) => {
+                                                                                                                                                                                                                                                            }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                                });
+                                                                                                                                                                                                                                                            });
         @endif
 
         @if(session('error'))
