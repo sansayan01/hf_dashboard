@@ -338,7 +338,7 @@
                 throw new Error('AI library failed to load. Please check your internet or refresh the page.');
             }
 
-            const canvas = cropper.getCanvas();
+            const canvas = cropper.getCroppedCanvas();
             const selfieSegmentation = new SelfieSegmentation({
                 locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
             });
@@ -360,7 +360,7 @@
                     personCanvas.width = finalCanvas.width;
                     personCanvas.height = finalCanvas.height;
                     const pctx = personCanvas.getContext('2d');
-                    
+
                     pctx.drawImage(results.segmentationMask, 0, 0, personCanvas.width, personCanvas.height);
                     pctx.globalCompositeOperation = 'source-in'; // Mask the image
                     pctx.drawImage(results.image, 0, 0);
