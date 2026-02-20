@@ -40,7 +40,7 @@ class UserController extends Controller
         }
 
         // Exclude Staff and Office In-Charge from My Team view (managed in Staff section)
-        $query->whereNotIn('designation', ['staff', 'office_in_charge'])
+        $query->whereNotIn('designation', ['staff', 'office_in_charge', 'camp_organizer'])
             ->where('is_office_in_charge', false);
 
         // Apply filters
@@ -134,7 +134,7 @@ class UserController extends Controller
         }
 
         $query = User::with('profile')->where(function ($q) {
-            $q->whereIn('designation', ['staff', 'office_in_charge'])
+            $q->whereIn('designation', ['staff', 'office_in_charge', 'camp_organizer'])
                 ->orWhere('is_office_in_charge', true);
         });
 
@@ -166,7 +166,7 @@ class UserController extends Controller
                 abort(403, 'Unauthorized access');
             }
             $query->where(function ($q) {
-                $q->whereIn('designation', ['staff', 'office_in_charge'])
+                $q->whereIn('designation', ['staff', 'office_in_charge', 'camp_organizer'])
                     ->orWhere('is_office_in_charge', true);
             });
         } else {
@@ -180,7 +180,7 @@ class UserController extends Controller
             } else {
                 $query->where('id', '!=', $currentUser->id);
             }
-            $query->whereNotIn('designation', ['staff', 'office_in_charge'])
+            $query->whereNotIn('designation', ['staff', 'office_in_charge', 'camp_organizer'])
                 ->where('is_office_in_charge', false);
         }
 
@@ -262,7 +262,7 @@ class UserController extends Controller
             foreach ($users as $user) {
                 /** @var \App\Models\User $user */
                 $parentName = 'N/A';
-                if ($type === 'staff' && ($user->designation === 'office_in_charge' || $user->is_office_in_charge)) {
+                if ($type === 'staff' && ($user->designation === 'office_in_charge' || $user->designation === 'camp_organizer' || $user->is_office_in_charge)) {
                     $parentName = $user->upline->profile->full_name ?? $user->upline->employee_id ?? 'N/A';
                 } else {
                     $parentName = $user->parent->profile->full_name ?? $user->parent->employee_id ?? 'N/A';
@@ -316,6 +316,7 @@ class UserController extends Controller
         $allDesignations = [
             'super_admin' => 'Super Admin',
             'office_in_charge' => 'Office In-Charge',
+            'camp_organizer' => 'Camp Organizer',
             'hs' => 'Head of State',
             'dm' => 'District Manager',
             'bm' => 'Block Manager',
@@ -343,6 +344,7 @@ class UserController extends Controller
                 $allDesignations = [
                     'super_admin' => 'Super Admin',
                     'office_in_charge' => 'Office In-Charge',
+                    'camp_organizer' => 'Camp Organizer',
                     'staff' => 'Pharmacist',
                 ];
             } else {
@@ -359,6 +361,7 @@ class UserController extends Controller
             if ($currentUser->isOfficeInCharge()) {
                 unset($allDesignations['super_admin']);
                 unset($allDesignations['office_in_charge']);
+                unset($allDesignations['camp_organizer']);
             }
 
             // Get potential parents grouped by their designation
@@ -422,17 +425,17 @@ class UserController extends Controller
         if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) {
             $allowed = 'hs,dm,bm,rm,ro';
             if ($currentUser->isSuperAdmin()) {
-                $allowed .= ',super_admin,office_in_charge,staff';
+                $allowed .= ',super_admin,office_in_charge,camp_organizer,staff';
             }
             $rules['designation'] = "required|in:$allowed";
 
             // Parent ID required unless creating SA, Office In-Charge, or HS (if top level) or Staff
-            $rules['parent_id'] = 'required_unless:designation,super_admin,office_in_charge,hs,staff|nullable|exists:users,id';
+            $rules['parent_id'] = 'required_unless:designation,super_admin,office_in_charge,camp_organizer,hs,staff|nullable|exists:users,id';
 
             // Office In-Charge specific validation (only Super Admin can create)
             if ($currentUser->isSuperAdmin()) {
-                $rules['upline_designation'] = 'nullable|required_if:designation,office_in_charge|in:super_admin,hs,dm,bm,rm';
-                $rules['upline_id'] = 'nullable|required_if:designation,office_in_charge|exists:users,id';
+                $rules['upline_designation'] = 'nullable|required_if:designation,office_in_charge|required_if:designation,camp_organizer|in:super_admin,hs,dm,bm,rm';
+                $rules['upline_id'] = 'nullable|required_if:designation,office_in_charge|required_if:designation,camp_organizer|exists:users,id';
             }
 
             // Post validation for Super Admin
@@ -487,7 +490,7 @@ class UserController extends Controller
                 if ($designation === 'super_admin') {
                     // Super Admin doesn't need a parent
                     $parentId = null;
-                } elseif ($designation === 'office_in_charge') {
+                } elseif ($designation === 'office_in_charge' || $designation === 'camp_organizer') {
                     // Office In-Charge reports to Upline
                     $parentId = $request->upline_id;
                 } elseif ($designation === 'hs') {
@@ -559,7 +562,7 @@ class UserController extends Controller
                 'post' => ($designation === 'super_admin') ? $request->post : null,
                 'parent_id' => $parentId,
                 'status' => 'pending',
-                'is_office_in_charge' => ($designation === 'office_in_charge'),
+                'is_office_in_charge' => ($designation === 'office_in_charge' || $designation === 'camp_organizer'),
                 'joining_donation' => User::getJoiningDonationAmount($designation),
                 'camp_id' => $request->camp_id,
             ];
@@ -610,7 +613,7 @@ class UserController extends Controller
             }
 
             // If creating Office In-Charge, add upline information
-            if ($designation === 'office_in_charge' && $currentUser->isSuperAdmin()) {
+            if (($designation === 'office_in_charge' || $designation === 'camp_organizer') && $currentUser->isSuperAdmin()) {
                 $userData['upline_id'] = $request->upline_id;
                 $userData['upline_designation'] = $request->upline_designation;
 
@@ -733,6 +736,7 @@ class UserController extends Controller
         $allDesignations = [
             'super_admin' => 'Super Admin',
             'office_in_charge' => 'Office In-Charge',
+            'camp_organizer' => 'Camp Organizer',
             'hs' => 'Head of State',
             'dm' => 'District Manager',
             'bm' => 'Block Manager',

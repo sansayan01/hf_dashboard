@@ -253,7 +253,7 @@ class User extends Authenticatable
     // Check if user is Office In-Charge
     public function isOfficeInCharge()
     {
-        return $this->designation === 'office_in_charge' || $this->is_office_in_charge;
+        return in_array($this->designation, ['office_in_charge', 'camp_organizer']) || $this->is_office_in_charge;
     }
 
     // Check if user is strictly a regular Staff (Pharmacist)
@@ -416,7 +416,7 @@ class User extends Authenticatable
             return $this->upline->getDashboardChildrenCount();
         }
 
-        return $this->children()->whereNotIn('designation', ['office_in_charge', 'staff'])->count();
+        return $this->children()->whereNotIn('designation', ['office_in_charge', 'camp_organizer', 'staff'])->count();
     }
 
     // Get all downline users (entire tree)
@@ -521,6 +521,7 @@ class User extends Authenticatable
         $designationCodes = [
             'super_admin' => 'SA',
             'office_in_charge' => 'OI',
+            'camp_organizer' => 'CO',
             'hs' => 'HS',
             'dm' => 'DM',
             'bm' => 'BM',
@@ -709,6 +710,7 @@ class User extends Authenticatable
         $labels = [
             'super_admin' => 'Super Admin',
             'office_in_charge' => 'Office In-Charge',
+            'camp_organizer' => 'Camp Organizer',
             'hs' => 'Head of State',
             'dm' => 'District Manager',
             'bm' => 'Block Manager',

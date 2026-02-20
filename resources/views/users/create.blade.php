@@ -72,7 +72,7 @@
                                 <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                                 </svg>
-                                Office In-Charge Configuration: Select the upline this Office In-Charge will represent
+                                Office In-Charge / Camp Organizer Configuration: Select the upline this user will represent
                             </p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -704,7 +704,7 @@
                 }
                 
                 // Sync parent if Office In-Charge is selected
-                if (designationSelect.value === 'office_in_charge') {
+                if (designationSelect.value === 'office_in_charge' || designationSelect.value === 'camp_organizer') {
                      const selectedOption = uplinePersonSelect.options[uplinePersonSelect.selectedIndex];
                      parentSelect.innerHTML = '';
                      if (uplinePersonSelect.value) {
@@ -717,7 +717,7 @@
             
             // Allow manual upline change to update parent
             uplinePersonSelect.addEventListener('change', function() {
-                if (designationSelect.value === 'office_in_charge') {
+                if (designationSelect.value === 'office_in_charge' || designationSelect.value === 'camp_organizer') {
                      const selectedOption = this.options[this.selectedIndex];
                      parentSelect.innerHTML = '';
                      if (this.value) {
@@ -737,6 +737,7 @@
                 const hintMap = {
                     'super_admin': 'SA',
                     'office_in_charge': 'OI',
+                    'camp_organizer': 'CO',
                     'hs': 'HS',
                     'dm': 'DM',
                     'bm': 'BM',
@@ -748,7 +749,7 @@
 
                 @if(auth()->user()->isSuperAdmin())
                 // Show/hide Office In-Charge upline section
-                if (designation === 'office_in_charge') {
+                if (designation === 'office_in_charge' || designation === 'camp_organizer') {
                     officeInChargeUplineSection.classList.remove('hidden');
                     uplineDesignationSelect.required = true;
                     uplinePersonSelect.required = true;
@@ -892,6 +893,7 @@
                 const hintMap = {
                     'super_admin': 'SA',
                     'office_in_charge': 'OI',
+                    'camp_organizer': 'CO',
                     'hs': 'HS',
                     'dm': 'DM',
                     'bm': 'BM',
@@ -902,7 +904,7 @@
                 hintDesignation.innerText = hintMap[designation] || 'XX';
 
                 @if(auth()->user()->isSuperAdmin())
-                if (designation === 'office_in_charge') {
+                if (designation === 'office_in_charge' || designation === 'camp_organizer') {
                     officeInChargeUplineSection.classList.remove('hidden');
                     uplineDesignationSelect.required = true;
                     uplinePersonSelect.required = true;
@@ -950,7 +952,7 @@
                             if (parentDiv) parentDiv.classList.add('opacity-50');
                         }
                     }
-                } else if (designation === 'office_in_charge') {
+                } else if (designation === 'office_in_charge' || designation === 'camp_organizer') {
                     if (parentSelect) {
                         parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
                         parentSelect.required = false;
