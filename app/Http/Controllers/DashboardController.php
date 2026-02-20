@@ -15,11 +15,6 @@ class DashboardController extends Controller
     {
         $currentUser = auth()->user();
 
-        // Pharmacist (Staff) Specific Dashboard Redirection
-        if ($currentUser->designation === 'staff') {
-            return redirect()->route('inventory.index');
-        }
-
         $targetUserId = $request->get('as_user', $currentUser->id);
 
         if ($targetUserId != $currentUser->id) {
@@ -35,10 +30,16 @@ class DashboardController extends Controller
             session()->forget('view_as_user_id');
         }
 
-        // Check Permissions
-        $canViewDownline = $currentUser->canViewDownline();
-        $canViewReports = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_view_reports');
-        $canApprove = $currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_approve_users');
+        // Pharmacist (Staff) Specific Dashboard Redirection
+        // Move this AFTER establishing context to allow viewing as staff
+        if ($user->designation === 'staff') {
+            return redirect()->route('inventory.index');
+        }
+
+        // Check Permissions for the effective user context
+        $canViewDownline = $user->canViewDownline();
+        $canViewReports = $user->isSuperAdmin() || \App\Models\RolePermission::check($user->designation, 'can_view_reports');
+        $canApprove = $user->isSuperAdmin() || \App\Models\RolePermission::check($user->designation, 'can_approve_users');
 
         // Optimization: Fetch IDs once
         $downlineIds = $canViewDownline ? $user->getAllDownlineIds() : [];

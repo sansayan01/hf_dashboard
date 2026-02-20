@@ -775,26 +775,26 @@
                         </button>
                     </div>
 
-                    <a href="{{ route('users.show', auth()->user()) }}"
+                    <a href="{{ route('users.show', $effectiveUser) }}"
                         class="flex items-center space-x-3 md:space-x-6 hover:opacity-80 transition-all duration-300 group">
                         <div class="text-right hidden sm:block">
                             <p
                                 class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-accent transition-colors">
-                                {{ auth()->user()->profile->full_name ?? 'User' }}
+                                {{ $effectiveUser->profile->full_name ?? 'User' }}
                             </p>
                             <p class="text-[10px] text-bodydark font-bold uppercase tracking-wider">
-                                {{ auth()->user()->getDesignationLabel() }}
+                                {{ $effectiveUser->getDesignationLabel() }}
                             </p>
                         </div>
                         <div class="nav-avatar-ring">
                             <div class="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                @if(auth()->user()->profile && auth()->user()->profile->profile_picture)
-                                    <img src="{{ auth()->user()->profile->getProfilePictureUrl() }}" alt="Avatar"
+                                @if($effectiveUser->profile && $effectiveUser->profile->profile_picture)
+                                    <img src="{{ $effectiveUser->profile->getProfilePictureUrl() }}" alt="Avatar"
                                         class="w-full h-full object-cover">
                                 @else
                                     <div
                                         class="w-full h-full flex items-center justify-center bg-accent/5 text-accent font-bold text-xs">
-                                        {{ substr(auth()->user()->profile->full_name ?? auth()->user()->employee_id, 0, 1) }}
+                                        {{ substr($effectiveUser->profile->full_name ?? $effectiveUser->employee_id, 0, 1) }}
                                     </div>
                                 @endif
                             </div>
@@ -1026,17 +1026,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                                                                            }).then((result) => {
+                                                                                                                                                                                                                                                                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                                                                            });
+                                                                                                                                                                                                                                                                                                });
         @endif
 
         @if(session('error'))
