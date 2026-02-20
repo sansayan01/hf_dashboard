@@ -178,7 +178,7 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">{{ in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Employee ID' : 'Volunteer ID' }}</label>
+                            <label class="block text-sm font-bold text-slate-700 mb-2 id-label">{{ in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Employee ID' : 'Volunteer ID' }}</label>
                             @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
                                 <input type="text" name="employee_id" value="{{ old('employee_id', $user->employee_id) }}" 
                                     class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
@@ -468,26 +468,40 @@
 @section('js')
     <script src="{{ asset('js/locations.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        function initStateLogic() {
             const stateSelect = document.getElementById('state-select');
             const districtSelect = document.getElementById('district-select');
             const blockSelect = document.getElementById('block-select');
             const gpSelect = document.getElementById('gp-select');
 
             // Current Values
-            const currentState = "{{ old('state', $user->profile->state ?? '') }}";
-            const currentDistrict = "{{ old('district', $user->profile->district ?? '') }}";
-            const currentBlock = "{{ old('block', $user->profile->block ?? '') }}";
-            const currentGP = "{{ old('gram_panchayat', $user->profile->gram_panchayat ?? '') }}";
+            const currentState = @json(old('state', $user->profile->state ?? ''));
+            const currentDistrict = @json(old('district', $user->profile->district ?? ''));
+            const currentBlock = @json(old('block', $user->profile->block ?? ''));
+            const currentGP = @json(old('gram_panchayat', $user->profile->gram_panchayat ?? ''));
 
-            // 1. Populate States (Moved to top for robustness)
-            if (window.locationData) {
+            // 1. Populate States (Improved robustness)
+            function populateStates() {
+                if (!window.locationData) {
+                    console.warn("locationData not found, retrying in 100ms...");
+                    setTimeout(populateStates, 100);
+                    return;
+                }
+                
+                stateSelect.innerHTML = '<option value="">Select State</option>';
                 for (const state in window.locationData) {
                     const option = new Option(state, state);
                     if (state === currentState) option.selected = true;
                     stateSelect.add(option);
                 }
+                
+                // Initial trigger if we have a current state
+                if (currentState) {
+                    updateDistricts(currentState, currentDistrict);
+                }
             }
+
+            populateStates();
 
             // Admin Role Management Logic
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
@@ -549,82 +563,65 @@
                         postWrapper.classList.remove('hidden');
                     } else {
                         postWrapper.classList.add('hidden');
+                        document.getElementById('post-input').value = '';
                     }
                 }
-                parentSelect.innerHTML = '<option value="">Select Parent</option>';
 
-                @if(auth()->user()->isSuperAdmin())
-                // Show/hide Office In-Charge upline section
-                if (designation === 'office_in_charge' || designation === 'camp_organizer') {
-                    if (officeInChargeUplineSection) {
-                        officeInChargeUplineSection.classList.remove('hidden');
-                        uplineDesignationSelect.required = true;
-                        uplinePersonSelect.required = true;
-                        uplineDesignationSelect.disabled = false;
-                        uplinePersonSelect.disabled = false;
-                    }
-                    // O.I.C. gets parent from Upline. Disable parent select.
-                    parentSelect.disabled = true;
-                    parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
-                    // If an upline is already selected, sync it now
-                    if (uplinePersonSelect.value && uplinePersonSelect.options[uplinePersonSelect.selectedIndex]) {
-                        const opt = uplinePersonSelect.options[uplinePersonSelect.selectedIndex];
-                         parentSelect.innerHTML = '';
-                         parentSelect.add(new Option(opt.text, opt.value, true, true));
-                    }
-                } else {
-                    if (officeInChargeUplineSection) {
-                        officeInChargeUplineSection.classList.add('hidden');
-                        uplineDesignationSelect.required = false;
-                        uplinePersonSelect.required = false;
-                        uplineDesignationSelect.disabled = true;
-                        uplinePersonSelect.disabled = true;
-                    }
-                    parentSelect.disabled = false;
-                }
-                
-                // Top Level Roles and Staff (Pharmacist)
-                if (designation === 'super_admin' || designation === 'hs' || designation === 'staff') {
-                    parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
-                    parentSelect.required = false;
-                    
-                    // For Staff (Pharmacist), hide Parent select and Show Camp Select
-                    if (designation === 'staff') {
-                        document.getElementById('parent-selection-wrapper').classList.add('hidden');
-                        document.getElementById('camp-selection-wrapper').classList.remove('hidden');
-                        document.getElementById('camp-select').required = true;
-                    } else {
-                        document.getElementById('parent-selection-wrapper').classList.remove('hidden');
-                        document.getElementById('camp-selection-wrapper').classList.add('hidden');
-                        document.getElementById('camp-select').required = false;
-                        
-                        parentSelect.closest('div').classList.add('opacity-50');
+                const parentWrapper = document.getElementById('parent-selection-wrapper');
+                const campWrapper = document.getElementById('camp-selection-wrapper');
+                const campSelect = document.getElementById('camp-select');
+
+                if (['office_in_charge', 'camp_organizer'].includes(designation)) {
+                    @if(auth()->user()->isSuperAdmin())
+                        if (officeInChargeUplineSection) officeInChargeUplineSection.classList.remove('hidden');
+                    @endif
+                    if (parentWrapper) parentWrapper.classList.remove('hidden');
+                    if (parentSelect) {
+                        parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
                         parentSelect.disabled = true;
+                        const parentDiv = parentSelect.closest('div');
+                        if (parentDiv) parentDiv.classList.add('opacity-50');
                     }
+                } else if (designation === 'staff') {
+                    if (parentWrapper) parentWrapper.classList.add('hidden');
+                    if (campWrapper) campWrapper.classList.remove('hidden');
+                    if (campSelect) campSelect.required = true;
+                    @if(auth()->user()->isSuperAdmin())
+                        if (officeInChargeUplineSection) officeInChargeUplineSection.classList.add('hidden');
+                    @endif
                 } else {
-                    // Reset visibility for other designations
-                    document.getElementById('parent-selection-wrapper').classList.remove('hidden');
-                    document.getElementById('camp-selection-wrapper').classList.add('hidden');
-                    document.getElementById('camp-select').required = false;
-                    parentSelect.closest('div').classList.remove('opacity-50');
-                    parentSelect.disabled = false;
-                    parentSelect.required = true;
-                    
-                    let targetParentDesignation = '';
-                    if (designation === 'dm') targetParentDesignation = 'hs';
-                    else if (designation === 'bm') targetParentDesignation = 'dm';
-                    else if (designation === 'rm') targetParentDesignation = 'bm';
-                    else if (designation === 'ro') targetParentDesignation = 'rm';
+                    @if(auth()->user()->isSuperAdmin())
+                        if (officeInChargeUplineSection) officeInChargeUplineSection.classList.add('hidden');
+                    @endif
+                    if (parentWrapper) parentWrapper.classList.remove('hidden');
+                    if (campWrapper) campWrapper.classList.add('hidden');
+                    if (campSelect) campSelect.required = false;
 
-                    if (targetParentDesignation && potentialParents[targetParentDesignation]) {
-                        potentialParents[targetParentDesignation].forEach(parent => {
-                            const name = parent.profile ? parent.profile.full_name : parent.email;
-                            const option = new Option(`${name} (${parent.employee_id || 'ID'})`, parent.id);
-                            if (parent.id == currentParentId) {
-                                option.selected = true;
-                            }
-                            parentSelect.add(option);
-                        });
+                    const targetMap = {
+                        'hs': 'super_admin',
+                        'dm': 'hs',
+                        'bm': 'dm',
+                        'rm': 'bm',
+                        'ro': 'rm'
+                    };
+
+                    const targetParentDesignation = targetMap[designation];
+                    if (parentSelect) {
+                        parentSelect.innerHTML = '<option value="">Select Parent</option>';
+                        parentSelect.disabled = false;
+                        const parentDiv = parentSelect.closest('div');
+                        if (parentDiv) parentDiv.classList.remove('opacity-50');
+
+                        if (targetParentDesignation && potentialParents[targetParentDesignation]) {
+                            potentialParents[targetParentDesignation].forEach(parent => {
+                                const name = parent.profile ? parent.profile.full_name : parent.email;
+                                const option = new Option(`${name} (${parent.employee_id})`, parent.id);
+                                if (parent.id == currentParentId) {
+                                    option.selected = true;
+                                }
+                                parentSelect.add(option);
+                            });
+                        }
                     }
                 }
 
@@ -643,7 +640,31 @@
 
             if (designationSelect) {
                 designationSelect.addEventListener('change', function() {
-                    updateParents(this.value);
+                    const designation = this.value;
+                    
+                    // Auto-update ID when designation changes
+                    const idInput = document.querySelector('input[name="employee_id"]');
+                    const idLabel = document.querySelector('.id-label');
+                    
+                    if (idInput && designation) {
+                        // Update Label Text
+                        if (['office_in_charge', 'staff', 'camp_organizer'].includes(designation)) {
+                            if (idLabel) idLabel.innerText = 'Employee ID';
+                        } else {
+                            if (idLabel) idLabel.innerText = 'Volunteer ID';
+                        }
+
+                        fetch(`{{ route('users.next-id') }}?designation=${designation}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.id) {
+                                    idInput.value = data.id;
+                                }
+                            })
+                            .catch(error => console.error('Error fetching ID:', error));
+                    }
+
+                    updateParents(designation);
                 });
                 
                 // Initial run to populate compatible list if not changed
@@ -651,8 +672,6 @@
                 // But we want to preserve current selection on load if it matches logic.
                 updateParents(designationSelect.value);
             }
-            @endif
-
             @endif
 
 
@@ -710,10 +729,10 @@
                 }
             }
 
-            // Initial trigger
-            if (currentState) {
+            // Initial trigger moved to populateStates for robustness
+            /* if (currentState) {
                 updateDistricts(currentState, currentDistrict);
-            }
+            } */
 
             stateSelect.addEventListener('change', function () {
                 updateDistricts(this.value);
@@ -766,7 +785,7 @@
                 });
             }
 
-            // PAN Validation on Submit
+            // Validations on Submit
             const form = document.querySelector('form');
             form.addEventListener('submit', function(e) {
                 const panInput = document.querySelector('input[name="pan_number"]');
@@ -802,7 +821,13 @@
                     return false;
                 }
             });
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initStateLogic);
+        } else {
+            initStateLogic();
+        }
 
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);

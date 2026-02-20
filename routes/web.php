@@ -69,6 +69,9 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
         // Real-time Uniqueness Check
         Route::post('/check-uniqueness', [UserController::class, 'checkUniqueness'])->name('check-uniqueness');
+
+        // Next Available ID
+        Route::get('/next-id', [UserController::class, 'getNextId'])->name('next-id');
     });
 
     // Survey Management

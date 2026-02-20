@@ -887,6 +887,9 @@ class UserController extends Controller
 
                 $userData['designation'] = $designation;
                 $userData['parent_id'] = $parentId;
+
+                // Auto-generate new employee ID when designation changes
+                $userData['employee_id'] = User::generateEmployeeId($designation);
             } elseif (($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) && $request->has('parent_id') && $request->parent_id != $user->parent_id) {
                 // Just changing parent not designation
                 $designation = $user->designation; // Current
@@ -1501,5 +1504,19 @@ class UserController extends Controller
         }
 
         return response()->json(['exists' => false]);
+    }
+
+    /**
+     * Get next available ID for internal use (API)
+     */
+    public function getNextId(Request $request)
+    {
+        $designation = $request->get('designation');
+        if (!$designation) {
+            return response()->json(['error' => 'Designation required'], 400);
+        }
+
+        $id = User::generateEmployeeId($designation);
+        return response()->json(['id' => $id]);
     }
 }

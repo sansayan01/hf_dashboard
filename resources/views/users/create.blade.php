@@ -538,83 +538,99 @@
                 autoHint.classList.remove('hidden');
             }
         }
-        document.addEventListener('DOMContentLoaded', function() {
+        function initStateLogic() {
             const stateSelect = document.getElementById('state-select');
             const districtSelect = document.getElementById('district-select');
             const blockSelect = document.getElementById('block-select');
             const gpSelect = document.getElementById('gp-select');
 
             // Populate States
-            if (window.locationData) {
+            function populateStates() {
+                if (!window.locationData) {
+                    setTimeout(populateStates, 100);
+                    return;
+                }
+                
+                stateSelect.innerHTML = '<option value="">Select State</option>';
+                const oldState = @json(old('state'));
                 for (const state in window.locationData) {
                     const option = new Option(state, state);
-                    if (state === "{{ old('state') }}") {
+                    if (state === oldState) {
                         option.selected = true;
                     }
                     stateSelect.add(option);
                 }
+                
+                if (oldState) {
+                    triggerSelectChange(stateSelect);
+                }
             }
+
+            populateStates();
 
             function triggerSelectChange(element) {
                 const event = new Event('change', { bubbles: true });
                 element.dispatchEvent(event);
             }
 
-            stateSelect.addEventListener('change', function() {
-                const selectedState = this.value;
+            function updateDistricts(state) {
                 districtSelect.innerHTML = '<option value="">Select District</option>';
                 blockSelect.innerHTML = '<option value="">Select Block</option>';
                 gpSelect.innerHTML = '<option value="">Select GP</option>';
 
-                if (selectedState && window.locationData[selectedState]) {
+                if (state && window.locationData[state]) {
                     districtSelect.disabled = false;
-                    for (const district in window.locationData[selectedState]) {
+                    const oldDistrict = @json(old('district'));
+                    for (const district in window.locationData[state]) {
                         const option = new Option(district, district);
-                        if (district === "{{ old('district') }}") {
+                        if (district === oldDistrict) {
                             option.selected = true;
                         }
                         districtSelect.add(option);
+                    }
+                    if (oldDistrict) {
+                        triggerSelectChange(districtSelect);
                     }
                 } else {
                     districtSelect.disabled = true;
                     blockSelect.disabled = true;
                     gpSelect.disabled = true;
                 }
-            });
+            }
 
-            districtSelect.addEventListener('change', function() {
-                const selectedState = stateSelect.value;
-                const selectedDistrict = this.value;
+            function updateBlocks(state, district) {
                 blockSelect.innerHTML = '<option value="">Select Block</option>';
                 gpSelect.innerHTML = '<option value="">Select GP</option>';
 
-                if (selectedDistrict && window.locationData[selectedState][selectedDistrict]) {
+                if (district && window.locationData[state][district]) {
                     blockSelect.disabled = false;
-                    for (const block in window.locationData[selectedState][selectedDistrict]) {
+                    const oldBlock = @json(old('block'));
+                    for (const block in window.locationData[state][district]) {
                         const option = new Option(block, block);
-                        if (block === "{{ old('block') }}") {
+                        if (block === oldBlock) {
                             option.selected = true;
                         }
                         blockSelect.add(option);
+                    }
+                    if (oldBlock) {
+                        triggerSelectChange(blockSelect);
                     }
                 } else {
                     blockSelect.disabled = true;
                     gpSelect.disabled = true;
                 }
-            });
+            }
 
-            blockSelect.addEventListener('change', function() {
-                const selectedState = stateSelect.value;
-                const selectedDistrict = districtSelect.value;
-                const selectedBlock = this.value;
+            function updateGPs(state, district, block) {
                 gpSelect.innerHTML = '<option value="">Select GP</option>';
 
-                if (selectedBlock && window.locationData[selectedState][selectedDistrict][selectedBlock]) {
+                if (block && window.locationData[state][district][block]) {
                     gpSelect.disabled = false;
-                    const gps = window.locationData[selectedState][selectedDistrict][selectedBlock];
+                    const gps = window.locationData[state][district][block];
+                    const oldGP = @json(old('gram_panchayat'));
                     gps.forEach(gp => {
                         const option = new Option(gp, gp);
-                        if (gp === "{{ old('gram_panchayat') }}") {
+                        if (gp === oldGP) {
                             option.selected = true;
                         }
                         gpSelect.add(option);
@@ -622,18 +638,23 @@
                 } else {
                     gpSelect.disabled = true;
                 }
+            }
+
+            stateSelect.addEventListener('change', function() {
+                updateDistricts(this.value);
             });
 
-            // Re-trigger location changes if old values exist
-            if (stateSelect.value) {
-                triggerSelectChange(stateSelect);
-                if ("{{ old('district') }}") {
-                    triggerSelectChange(districtSelect);
-                    if ("{{ old('block') }}") {
-                        triggerSelectChange(blockSelect);
-                    }
-                }
-            }
+            districtSelect.addEventListener('change', function() {
+                updateBlocks(stateSelect.value, this.value);
+            });
+
+            blockSelect.addEventListener('change', function() {
+                updateGPs(stateSelect.value, districtSelect.value, this.value);
+            });
+        }
+
+        const init = () => {
+            initStateLogic();
 
             // PAN Formatting helper
             window.validatePAN = function(input) {
@@ -696,7 +717,7 @@
                     potentialUplines[uplineDesignation].forEach(upline => {
                         const name = upline.profile ? upline.profile.full_name : upline.email;
                         const option = new Option(`${name} (${upline.employee_id})`, upline.id);
-                        if (upline.id == "{{ old('upline_id') }}") {
+                        if (upline.id == @json(old('upline_id'))) {
                             option.selected = true;
                         }
                         uplinePersonSelect.add(option);
@@ -705,26 +726,26 @@
                 
                 // Sync parent if Office In-Charge is selected
                 if (designationSelect.value === 'office_in_charge' || designationSelect.value === 'camp_organizer') {
-                     const selectedOption = uplinePersonSelect.options[uplinePersonSelect.selectedIndex];
-                     parentSelect.innerHTML = '';
-                     if (uplinePersonSelect.value) {
-                         parentSelect.add(new Option(selectedOption.text, selectedOption.value, true, true));
-                     } else {
-                         parentSelect.add(new Option("Auto-assigned from Upline", ""));
-                     }
+                    const selectedOption = uplinePersonSelect.options[uplinePersonSelect.selectedIndex];
+                    parentSelect.innerHTML = '';
+                    if (uplinePersonSelect.value) {
+                        parentSelect.add(new Option(selectedOption.text, selectedOption.value, true, true));
+                    } else {
+                        parentSelect.add(new Option("Auto-assigned from Upline", ""));
+                    }
                 }
             });
             
             // Allow manual upline change to update parent
             uplinePersonSelect.addEventListener('change', function() {
                 if (designationSelect.value === 'office_in_charge' || designationSelect.value === 'camp_organizer') {
-                     const selectedOption = this.options[this.selectedIndex];
-                     parentSelect.innerHTML = '';
-                     if (this.value) {
-                         parentSelect.add(new Option(selectedOption.text, selectedOption.value, true, true));
-                     } else {
-                         parentSelect.add(new Option("Auto-assigned from Upline", ""));
-                     }
+                    const selectedOption = this.options[this.selectedIndex];
+                    parentSelect.innerHTML = '';
+                    if (this.value) {
+                        parentSelect.add(new Option(selectedOption.text, selectedOption.value, true, true));
+                    } else {
+                        parentSelect.add(new Option("Auto-assigned from Upline", ""));
+                    }
                 }
             });
             @endif
@@ -753,6 +774,25 @@
                     'staff': 'PH'
                 };
                 hintDesignation.innerText = hintMap[designation] || 'XX';
+
+                // Fetch actual next available ID for hint
+                if (designation) {
+                    fetch(`{{ route('users.next-id') }}?designation=${designation}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.id) {
+                                const hintEl = document.getElementById('auto_id_hint');
+                                if (hintEl) {
+                                    hintEl.innerHTML = `System will generate: <span class="font-black text-accent">${data.id}</span>`;
+                                }
+                                const idInput = document.querySelector('input[name="employee_id"]');
+                                if (idInput) {
+                                    idInput.value = data.id;
+                                }
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                }
 
                 @if(auth()->user()->isSuperAdmin())
                 // Show/hide Office In-Charge upline section
@@ -814,7 +854,7 @@
                             if (parentDiv) parentDiv.classList.add('opacity-50');
                         }
                     }
-                } else if (designation === 'office_in_charge') {
+                } else if (designation === 'office_in_charge' || designation === 'camp_organizer') {
                     // Office In-Charge gets parent from Upline
                     if (parentSelect) {
                         parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
@@ -844,7 +884,7 @@
                         potentialParents[targetParentDesignation].forEach(parent => {
                             const name = parent.profile ? parent.profile.full_name : parent.email;
                             const option = new Option(`${name} (${parent.employee_id})`, parent.id);
-                            if (parent.id == "{{ old('parent_id') }}") {
+                            if (parent.id == @json(old('parent_id'))) {
                                 option.selected = true;
                             }
                             parentSelect.add(option);
@@ -857,8 +897,11 @@
                     }
                 }
 
+                // PAYMENTS Logic inside change listener
+                handlePaymentSections(designation);
             });
             @endif
+
             let currentAmount = 0;
 
             // Define payment UI elements
@@ -871,222 +914,52 @@
             const verifySection = document.getElementById('payment-verification-section');
             const finalConfirm = document.getElementById('final-confirmation-section');
             const methodInput = document.getElementById('payment_method_input');
-            const orDivider = document.getElementById('payment-or-divider');
             const registerButton = document.getElementById('register-button');
             const donationSection = document.getElementById('donation-section');
             const donationAmountDisplay = document.getElementById('donation-amount-display');
-            
-            // Payment Inputs
             const screenshotInput = document.getElementById('payment_screenshot_input');
-            const confirmationCheck = document.getElementById('payment_confirmation_checkbox'); // Likely renamed or removed in HTML, checking...
-            const paymentConfirmedCheck = document.getElementById('payment_confirmed'); // This is the new one
-
-            // File Upload UI
+            const paymentConfirmedCheck = document.getElementById('payment_confirmed');
             const uploadPlaceholder = document.getElementById('upload-placeholder');
             const fileSelectedState = document.getElementById('file-selected-state');
             const selectedFilename = document.getElementById('selected-filename');
 
-            // Handle Designation Change (Super Admin / Office In Charge)
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
-            
-            // ... (Previous logic for Parent/Upline remains same) ...
-
-            designationSelect.addEventListener('change', function() {
-                const designation = this.value;
-                parentSelect.innerHTML = '<option value="">Select Parent</option>';
-
-                // Update ID label based on designation
-                const idLabel2 = document.getElementById('id-generation-label');
-                if (idLabel2) {
-                    const empDesignations2 = ['office_in_charge', 'staff', 'camp_organizer'];
-                    idLabel2.innerText = empDesignations2.includes(designation) ? 'Employee ID Generation' : 'Volunteer ID Generation';
-                }
-
-                // ... (Location / Parent Logic - keep existing) ...
-                // Update Hint
-                const hintMap = {
-                    'super_admin': 'SA',
-                    'office_in_charge': 'OI',
-                    'camp_organizer': 'CO',
-                    'hs': 'HS',
-                    'dm': 'DM',
-                    'bm': 'BM',
-                    'rm': 'RM',
-                    'ro': 'RO',
-                    'staff': 'PH'
-                };
-                hintDesignation.innerText = hintMap[designation] || 'XX';
-
-                @if(auth()->user()->isSuperAdmin())
-                if (designation === 'office_in_charge' || designation === 'camp_organizer') {
-                    officeInChargeUplineSection.classList.remove('hidden');
-                    uplineDesignationSelect.required = true;
-                    uplinePersonSelect.required = true;
-                    uplineDesignationSelect.disabled = false;
-                    uplinePersonSelect.disabled = false;
-                } else {
-                    officeInChargeUplineSection.classList.add('hidden');
-                    uplineDesignationSelect.required = false;
-                    uplinePersonSelect.required = false;
-                    uplineDesignationSelect.disabled = true;
-                    uplinePersonSelect.disabled = true;
-                    uplineDesignationSelect.value = '';
-                    uplinePersonSelect.innerHTML = '<option value="">Select Upline Designation First</option>';
-                }
-                @endif
-
-                // Default state for Parent & Camp
-                const parentWrapper = document.getElementById('parent-selection-wrapper');
-                const campWrapper = document.getElementById('camp-selection-wrapper');
-                const campSelect = document.getElementById('camp-select');
-
-                if (parentWrapper) parentWrapper.classList.remove('hidden');
-                if (campWrapper) campWrapper.classList.add('hidden');
-                if (campSelect) campSelect.required = false;
-                
-                if (parentSelect) {
-                    parentSelect.disabled = false;
-                    const parentDiv = parentSelect.closest('div');
-                    if (parentDiv) parentDiv.classList.remove('opacity-50');
-                }
-
-                if (designation === 'super_admin' || designation === 'hs' || designation === 'staff') {
-                   if (parentSelect) {
-                        parentSelect.innerHTML = '<option value="">None (Top Level)</option>';
-                        parentSelect.required = false;
-                    }
-                    if (designation === 'staff') {
-                        if (parentWrapper) parentWrapper.classList.add('hidden');
-                        if (campWrapper) campWrapper.classList.remove('hidden');
-                        if (campSelect) campSelect.required = true;
-                    } else {
-                        if (parentSelect) {
-                            parentSelect.disabled = true;
-                            const parentDiv = parentSelect.closest('div');
-                            if (parentDiv) parentDiv.classList.add('opacity-50');
-                        }
-                    }
-                } else if (designation === 'office_in_charge' || designation === 'camp_organizer') {
-                    if (parentSelect) {
-                        parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
-                        parentSelect.required = false;
-                        parentSelect.disabled = true;
-                        const parentDiv = parentSelect.closest('div');
-                        if (parentDiv) parentDiv.classList.add('opacity-50');
-                    }
-                     const ups = document.getElementById('upline-person-select');
-                    if (ups && ups.value && parentSelect) {
-                        const opt = ups.options[ups.selectedIndex];
-                        parentSelect.innerHTML = '';
-                        parentSelect.add(new Option(opt.text, opt.value, true, true));
-                    }
-                } else {
-                    if (parentSelect) parentSelect.required = true;
-                     let targetParentDesignation = '';
-                    if (designation === 'dm') targetParentDesignation = 'hs';
-                    else if (designation === 'bm') targetParentDesignation = 'dm';
-                    else if (designation === 'rm') targetParentDesignation = 'bm';
-                    else if (designation === 'ro') targetParentDesignation = 'rm';
-
-                    if (targetParentDesignation && potentialParents[targetParentDesignation]) {
-                        potentialParents[targetParentDesignation].forEach(parent => {
-                           const name = parent.profile ? parent.profile.full_name : parent.email;
-                            const option = new Option(`${name} (${parent.employee_id})`, parent.id);
-                            if (parent.id == "{{ old('parent_id') }}") {
-                                option.selected = true;
-                            }
-                            parentSelect.add(option);
-                        });
-                         if (potentialParents[targetParentDesignation].length === 1 && !parentSelect.value) {
-                            parentSelect.selectedIndex = 1;
-                        }
-                    }
-                }
-
-                // --- PAYMENTS LOGIC ---
-                const amounts = {
-                    'dm': 999,
-                    'bm': 999,
-                    'rm': 499,
-                    'ro': 199
-                };
-
-                // Remove hidden from register button initially, will be handled by sections
+            function handlePaymentSections(designation) {
+                const amounts = { 'dm': 999, 'bm': 999, 'rm': 499, 'ro': 199 };
                 registerButton.classList.add('hidden'); 
-                 // Reset Coupon
                 resetCouponUI();
 
                 if (amounts[designation]) {
                     currentAmount = amounts[designation];
-                    donationSection.classList.remove('hidden');
-                    donationAmountDisplay.innerText = currentAmount;
+                    if (donationSection) donationSection.classList.remove('hidden');
+                    if (donationAmountDisplay) donationAmountDisplay.innerText = currentAmount;
+                    if (paymentModeSection) paymentModeSection.classList.remove('hidden');
                     
-                    // Show Payment Mode Section
-                    paymentModeSection.classList.remove('hidden');
-                    
-                    // Trigger section toggle to refresh view (e.g. valid QR code amount)
                     if (modeSelect.value) {
                         toggleSections(modeSelect.value);
                     } else {
-                        // Default to QR
                         modeSelect.value = 'upi_qr';
                         toggleSections('upi_qr');
                     }
                 } else {
                     currentAmount = 0;
-                    donationSection.classList.add('hidden');
-                    // Hide all payment stuff
-                    paymentModeSection.classList.add('hidden');
-                    upiWrapper.classList.add('hidden');
-                    couponSection.classList.add('hidden');
-                    verifySection.classList.add('hidden');
-                    
-                    registerButton.classList.remove('hidden'); // Free registration
+                    if (donationSection) donationSection.classList.add('hidden');
+                    if (paymentModeSection) paymentModeSection.classList.add('hidden');
+                    if (upiWrapper) upiWrapper.classList.add('hidden');
+                    if (couponSection) couponSection.classList.add('hidden');
+                    if (verifySection) verifySection.classList.add('hidden');
+                    registerButton.classList.remove('hidden');
                 }
-            });
-            @endif
-
-            // Regular User Logic
-            @if(!auth()->user()->isSuperAdmin() && !auth()->user()->isOfficeInCharge())
-            const allowedDesignation = '{{ $allowedDesignation }}';
-            const amounts = {
-                'dm': 999,
-                'bm': 999,
-                'rm': 499,
-                'ro': 199
-            };
-            
-             if (amounts[allowedDesignation]) {
-                currentAmount = amounts[allowedDesignation];
-                donationSection.classList.remove('hidden');
-                donationAmountDisplay.innerText = currentAmount;
-                paymentModeSection.classList.remove('hidden');
-                
-                // Default to QR
-                if (!modeSelect.value) {
-                     modeSelect.value = 'upi_qr';
-                }
-                toggleSections(modeSelect.value);
-
-            } else {
-                currentAmount = 0;
-                donationSection.classList.add('hidden');
-                paymentModeSection.classList.add('hidden');
-                upiWrapper.classList.add('hidden');
-                couponSection.classList.add('hidden');
-                verifySection.classList.add('hidden');
-                registerButton.classList.remove('hidden');
             }
+
+            @if(!auth()->user()->isSuperAdmin() && !auth()->user()->isOfficeInCharge())
+            handlePaymentSections('{{ $allowedDesignation }}');
             @endif
 
-
-            // --- TOGGLE SECTIONS LOGIC ---
             modeSelect.addEventListener('change', function() {
                 toggleSections(this.value);
             });
 
             function toggleSections(mode) {
-                // Hide All First
                 upiWrapper.classList.add('hidden');
                 upiAppContainer.classList.add('hidden');
                 upiQrContainer.classList.add('hidden');
@@ -1094,39 +967,23 @@
                 verifySection.classList.add('hidden');
                 finalConfirm.classList.add('hidden');
                 
-                // Reset Requirements
                 if(screenshotInput) screenshotInput.required = false;
                 if(paymentConfirmedCheck) paymentConfirmedCheck.required = false;
 
-                // Reset Coupon if switching away (optional, but good for cleanliness)
-                if (mode !== 'coupon') {
-                     // resetCouponUI(); // Maybe too aggressive? Let's keep input but hide logic
-                }
-                
                 if (currentAmount <= 0) {
                      registerButton.classList.remove('hidden');
                      return; 
                 }
-                
-                // Hide register button by default in payment flows until complete
                 registerButton.classList.add('hidden');
 
                 if (mode === 'upi_app') {
                     upiWrapper.classList.remove('hidden');
                     upiAppContainer.classList.remove('hidden');
                     methodInput.value = 'upi_app';
-                    
-                    // Update Link
                     const upiPayLink = document.getElementById('upi-pay-link');
-                    // Calculate LINK
-                    const pa = "9735563157-4@ybl";
-                    const pn = "Humanity Foundation";
-                    const cu = "INR";
-                    upiPayLink.href = `upi://pay?pa=${pa}&pn=${pn}&am=${currentAmount}&cu=${cu}`;
-
-                    // Click listener for App flow
+                    upiPayLink.href = `upi://pay?pa=9735563157-4@ybl&pn=Humanity Foundation&am=${currentAmount}&cu=INR`;
                     upiPayLink.onclick = function() {
-                        const btn = this;
+                         const btn = this;
                          const original = btn.innerHTML;
                          btn.classList.add('opacity-50', 'pointer-events-none');
                          let sec = 30;
@@ -1137,34 +994,25 @@
                                  clearInterval(t);
                                  btn.innerHTML = original;
                                  btn.classList.remove('opacity-50', 'pointer-events-none');
-                                 
-                                 // Show verify
                                  verifySection.classList.remove('hidden');
                                  finalConfirm.classList.remove('hidden');
                                  screenshotInput.required = true;
-                                 // Checkboxes are usually required manually or ignored
-                                 if(paymentConfirmedCheck) paymentConfirmedCheck.required = true; // Use new one
+                                 if(paymentConfirmedCheck) paymentConfirmedCheck.required = true;
                              }
                          }, 1000);
                     };
-
                 } else if (mode === 'upi_qr') {
                     upiWrapper.classList.remove('hidden');
                     upiQrContainer.classList.remove('hidden');
                     methodInput.value = 'upi_qr';
-                    
-                    // Show verify immediately
                     verifySection.classList.remove('hidden');
                     finalConfirm.classList.remove('hidden');
                     screenshotInput.required = true;
                     if(paymentConfirmedCheck) paymentConfirmedCheck.required = true;
-
                     setTimeout(() => generateUPIQR(currentAmount), 100);
-
                 } else if (mode === 'coupon') {
                     couponSection.classList.remove('hidden');
                     methodInput.value = 'coupon';
-                    // Register button only shows if valdiation success
                 }
             }
 
@@ -1172,25 +1020,17 @@
                 const qrContainer = document.getElementById('qr-code');
                 const qrAmountDisplay = document.getElementById('qr-amount-display');
                 if(qrAmountDisplay) qrAmountDisplay.innerText = amount.toFixed(2);
-                
                 qrContainer.innerHTML = '';
-                const pa = "9735563157-4@ybl";
-                const pn = "Humanity Foundation";
-                const upiUrl = `upi://pay?pa=${pa}&pn=${pn}&am=${amount.toFixed(2)}&cu=INR`;
-                
+                const upiUrl = `upi://pay?pa=9735563157-4@ybl&pn=Humanity Foundation&am=${amount.toFixed(2)}&cu=INR`;
                 if (typeof QRCode !== 'undefined') {
                     new QRCode(qrContainer, {
-                        text: upiUrl,
-                        width: 180,
-                        height: 180,
-                        colorDark : "#000000",
-                        colorLight : "#ffffff",
+                        text: upiUrl, width: 180, height: 180,
+                        colorDark : "#000000", colorLight : "#ffffff",
                         correctLevel : QRCode.CorrectLevel.H
                     });
                 }
             }
 
-            // File Input Change
             if (screenshotInput) {
                 screenshotInput.addEventListener('change', function() {
                     if (this.files && this.files.length > 0) {
@@ -1198,8 +1038,6 @@
                         if (selectedFilename) selectedFilename.textContent = file.name;
                         if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden');
                         if (fileSelectedState) fileSelectedState.classList.remove('hidden');
-                        
-                        // Show Submit Button
                         registerButton.classList.remove('hidden');
                     } else {
                         if (uploadPlaceholder) uploadPlaceholder.classList.remove('hidden');
@@ -1224,9 +1062,10 @@
             // Initialize for Super Admin if designation already selected
             @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
              if (designationSelect && designationSelect.value) {
-                triggerSelectChange(designationSelect);
-                if (uplineDesignationSelect && uplineDesignationSelect.value) {
-                    triggerSelectChange(uplineDesignationSelect);
+                const event = new Event('change', { bubbles: true });
+                designationSelect.dispatchEvent(event);
+                if (typeof uplineDesignationSelect !== 'undefined' && uplineDesignationSelect && uplineDesignationSelect.value) {
+                     uplineDesignationSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 }
              }
             @endif
@@ -1259,9 +1098,13 @@
                     e.preventDefault(); alert('Pin Code must be 6 digits'); pinInput.focus(); return false;
                 }
             });
+        };
 
-
-        });
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
 
         // Coupon Code Validation
         window.validateCoupon = async function() {
