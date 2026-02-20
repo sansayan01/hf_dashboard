@@ -262,10 +262,41 @@
     function handlePreviewClick(inputId, previewId) {
         const input = document.getElementById(inputId);
         const preview = document.getElementById(previewId);
-        
+
         // If a file is already selected client-side, re-open the cropper
         if (input && input.files && input.files[0]) {
             initCropper(input, preview);
+        } else if (preview && preview.src && !preview.src.endsWith('#')) {
+            // If it's an existing image (either from server or previously cropped)
+            const image = document.getElementById('cropper-image');
+
+            // Set up the load listener
+            image.onload = function () {
+                document.getElementById('cropper-modal').classList.remove('hidden');
+                setTimeout(() => {
+                    if (cropper) cropper.destroy();
+                    cropper = new Cropper(image, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        dragMode: 'move',
+                        responsive: true,
+                        restore: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
+                }, 50);
+                image.onload = null;
+            };
+
+            // Trigger load from current preview source
+            image.src = preview.src;
+            currentInput = input;
+            currentPreview = preview;
         } else {
             // Otherwise, trigger the file browser
             if (input) input.click();

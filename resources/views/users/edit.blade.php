@@ -332,7 +332,7 @@
                                 </div>
                                 <div class="flex-1 w-full">
                                     <input type="file" name="profile_picture" id="profile_picture_input" accept="image/*"
-                                        class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-4 focus:ring-accent/10 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-accent file:text-white hover:file:bg-accent/80 cursor-pointer"
+                                        class="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-4 focus:ring-accent/10 transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-accent/10 file:text-accent hover:file:bg-accent/20 cursor-pointer"
                                         onchange="initCropper(this, document.getElementById('profile-preview'))">
                                     <p class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">Capture a new picture or upload a file. JPG/PNG, Max 10MB.</p>
                                 </div>
