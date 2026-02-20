@@ -110,7 +110,7 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
-                            <label class="block text-sm font-bold text-slate-700">Volunteer ID Generation</label>
+                            <label id="id-generation-label" class="block text-sm font-bold text-slate-700">Volunteer ID Generation</label>
                             
                             @if(auth()->user()->isSuperAdmin())
                                 <div class="flex space-x-4">
@@ -733,6 +733,13 @@
                 const designation = this.value;
                 parentSelect.innerHTML = '<option value="">Select Parent</option>';
                 
+                // Update ID label based on designation
+                const idLabel = document.getElementById('id-generation-label');
+                if (idLabel) {
+                    const empDesignations = ['office_in_charge', 'staff', 'camp_organizer'];
+                    idLabel.innerText = empDesignations.includes(designation) ? 'Employee ID Generation' : 'Volunteer ID Generation';
+                }
+                
                 // Update Hint
                 const hintMap = {
                     'super_admin': 'SA',
@@ -887,6 +894,13 @@
             designationSelect.addEventListener('change', function() {
                 const designation = this.value;
                 parentSelect.innerHTML = '<option value="">Select Parent</option>';
+
+                // Update ID label based on designation
+                const idLabel2 = document.getElementById('id-generation-label');
+                if (idLabel2) {
+                    const empDesignations2 = ['office_in_charge', 'staff', 'camp_organizer'];
+                    idLabel2.innerText = empDesignations2.includes(designation) ? 'Employee ID Generation' : 'Volunteer ID Generation';
+                }
 
                 // ... (Location / Parent Logic - keep existing) ...
                 // Update Hint
