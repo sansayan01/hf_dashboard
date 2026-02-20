@@ -218,6 +218,7 @@ HF-CASH-XXXXX
 ✅ Comprehensive filtering and search
 ✅ CSV export for printing
 ✅ Full audit trail
+✅ Automatic cleanup: Redeemed and expired coupons deleted after 24 hours
 ✅ User-friendly interface
 ✅ Mobile responsive
 ✅ Dark mode support

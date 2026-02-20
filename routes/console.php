@@ -8,3 +8,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('backup:run --only-db')->everyThirtyMinutes();
+Schedule::command('hf:cleanup-coupons')->hourly();

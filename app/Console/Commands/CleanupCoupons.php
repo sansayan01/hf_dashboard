@@ -20,34 +20,41 @@ class CleanupCoupons extends Command
      *
      * @var string
      */
-    protected $description = 'Permanently delete coupon codes that were used more than 7 days ago';
+    protected $description = 'Permanently delete coupon codes that were redeemed or expired more than 24 hours ago';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $cutoffDate = Carbon::now()->subDays(7);
+        $cutoffDate = Carbon::now()->subHours(24);
 
-        // Fetch coupons that are marked as used and were used at or before the cutoff date
-        $couponsToDelete = CouponCode::where('is_used', true)
+        // 1. Fetch coupons that are marked as used and were used at or before the cutoff date
+        $redeemedCoupons = CouponCode::where('is_used', true)
             ->where(function ($query) use ($cutoffDate) {
                 $query->where('used_at', '<=', $cutoffDate)
-                      ->orWhere(function ($q) use ($cutoffDate) {
-                          // Fallback to updated_at if used_at is somehow missing but is_used is true
-                          $q->whereNull('used_at')->where('updated_at', '<=', $cutoffDate);
-                      });
-            })
-            ->get();
+                    ->orWhere(function ($q) use ($cutoffDate) {
+                        // Fallback to updated_at if used_at is somehow missing but is_used is true
+                        $q->whereNull('used_at')->where('updated_at', '<=', $cutoffDate);
+                    });
+            });
 
-        $count = $couponsToDelete->count();
+        // 2. Fetch coupons that are expired and are beyond the 24-hour grace period
+        $expiredCoupons = CouponCode::where('is_used', false)
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<=', $cutoffDate);
 
-        foreach ($couponsToDelete as $coupon) {
-            $coupon->delete();
-        }
+        // Count for logging
+        $redeemedCount = $redeemedCoupons->count();
+        $expiredCount = $expiredCoupons->count();
+        $totalCount = $redeemedCount + $expiredCount;
 
-        if ($count > 0) {
-            $this->info("Successfully cleaned up {$count} used coupons.");
+        // Perform deletion
+        $redeemedCoupons->delete();
+        $expiredCoupons->delete();
+
+        if ($totalCount > 0) {
+            $this->info("Successfully cleaned up {$totalCount} coupons ({$redeemedCount} redeemed, {$expiredCount} expired).");
         } else {
             $this->info("No coupons required cleanup.");
         }
