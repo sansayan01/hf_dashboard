@@ -3,389 +3,810 @@
 @section('title', 'Member Profile')
 @section('header_title', 'Member Profile')
 
+@section('css')
+    <style>
+        /* === Profile Page Custom Styles === */
+        .profile-hero {
+            position: relative;
+            background: linear-gradient(135deg, #1C2434 0%, #1e1b4b 40%, #1C2434 100%);
+            overflow: hidden;
+        }
+
+        .profile-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 70% 50%, rgba(60, 80, 224, 0.35) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(124, 58, 237, 0.25) 0%, transparent 50%);
+        }
+
+        .profile-hero .mesh-grid {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Stat cards inside hero - strong glassy look */
+        .hero-stat-card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .hero-stat-card:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 200px;
+            height: 200px;
+            background: rgba(99, 102, 241, 0.3);
+            top: -60px;
+            right: -40px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 150px;
+            height: 150px;
+            background: rgba(139, 92, 246, 0.25);
+            bottom: -40px;
+            left: 40%;
+            animation-delay: 2s;
+        }
+
+        .orb-3 {
+            width: 120px;
+            height: 120px;
+            background: rgba(59, 130, 246, 0.2);
+            top: 20px;
+            left: 30%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) scale(1);
+            }
+
+            50% {
+                transform: translateY(-15px) scale(1.05);
+            }
+        }
+
+        .profile-avatar-ring {
+            position: relative;
+            padding: 3px;
+            border-radius: 28px;
+            background: conic-gradient(from var(--ring-angle, 0deg), #6366f1, #8b5cf6, #ec4899, #f59e0b, #10b981, #6366f1);
+            animation: ring-spin 1.8s linear infinite, ring-glow 3s ease-in-out infinite alternate;
+            box-shadow:
+                0 0 18px 4px rgba(99, 102, 241, 0.6),
+                0 0 36px 8px rgba(139, 92, 246, 0.35),
+                0 0 60px 12px rgba(236, 72, 153, 0.2);
+        }
+
+        @property --ring-angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        @keyframes ring-spin {
+            from {
+                --ring-angle: 0deg;
+            }
+
+            to {
+                --ring-angle: 360deg;
+            }
+        }
+
+        @keyframes ring-glow {
+            from {
+                box-shadow:
+                    0 0 18px 4px rgba(99, 102, 241, 0.7),
+                    0 0 36px 8px rgba(139, 92, 246, 0.4),
+                    0 0 60px 14px rgba(236, 72, 153, 0.25);
+            }
+
+            to {
+                box-shadow:
+                    0 0 24px 6px rgba(236, 72, 153, 0.7),
+                    0 0 48px 12px rgba(245, 158, 11, 0.4),
+                    0 0 80px 20px rgba(16, 185, 129, 0.25);
+            }
+        }
+
+        /* Ensure the image NEVER inherits any filter from parent */
+        .profile-avatar-ring img,
+        .profile-avatar-ring>div {
+            filter: none !important;
+        }
+
+        .stat-card {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px) scale(1.02);
+        }
+
+        .info-card {
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            /* Strong shadow to pop against the cream #F5EEDC body */
+            box-shadow: 0 2px 12px 0 rgba(28, 36, 52, 0.08), 0 0 0 1px rgba(28, 36, 52, 0.06);
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #3C50E0, #8b5cf6, transparent);
+            transition: left 0.5s ease;
+        }
+
+        .info-card:hover::before {
+            left: 100%;
+        }
+
+        .info-card:hover {
+            box-shadow: 0 16px 48px 0 rgba(28, 36, 52, 0.14), 0 0 0 1px rgba(60, 80, 224, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-action {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .btn-action:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .timeline-dot {
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            }
+
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 4px rgba(99, 102, 241, 0);
+            }
+        }
+
+        .donation-card {
+            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 50%, #5b21b6 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .donation-card::after {
+            content: '₹';
+            position: absolute;
+            right: -10px;
+            bottom: -20px;
+            font-size: 8rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.06);
+            line-height: 1;
+        }
+
+        .network-card {
+            background: linear-gradient(145deg, #1C2434 0%, #1e1b4b 60%, #1C2434 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(28, 36, 52, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .network-stat {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: default;
+        }
+
+        .network-stat:hover {
+            transform: scale(1.06);
+            background: rgba(60, 80, 224, 0.2) !important;
+            border-color: rgba(60, 80, 224, 0.4) !important;
+        }
+
+        .data-field {
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            padding: 8px;
+            margin: -8px;
+        }
+
+        .data-field:hover {
+            background: rgba(99, 102, 241, 0.04);
+        }
+
+        .badge-shine {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge-shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 30%;
+            height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+            transform: rotate(20deg);
+            animation: shine 3s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                left: -50%;
+            }
+
+            100% {
+                left: 150%;
+            }
+        }
+
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+@endsection
+
 @section('content')
-    <div class="max-w-5xl mx-auto space-y-8">
-        <!-- Header Section Card -->
-        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-            <div class="h-40 bg-primary relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-accent/30 via-primary to-transparent opacity-60"></div>
-                <div
-                    class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10">
-                </div>
+    <div class="max-w-5xl mx-auto space-y-6 pb-12">
 
-                <!-- Premium Watermark -->
-                <div
-                    class="absolute right-0 bottom-0 translate-y-1/3 translate-x-1/4 opacity-[0.03] select-none hidden md:block">
-                    <h1 class="text-[12rem] font-black text-white uppercase tracking-tighter">
-                        {{ $user->profile?->full_name }}
-                    </h1>
-                </div>
+        {{-- ===== HERO HEADER CARD ===== --}}
+        <div class="rounded-3xl shadow-2xl overflow-hidden scroll-reveal"
+            style="background: linear-gradient(135deg, #1C2434 0%, #1e1b4b 45%, #1C2434 100%); box-shadow: 0 25px 60px rgba(28,36,52,0.5);">
+            <div class="mesh-grid"></div>
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
 
-                <div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent md:hidden"></div>
+            {{-- Watermark --}}
+            <div class="absolute right-0 top-0 select-none pointer-events-none opacity-[0.04] hidden lg:block">
+                <span class="text-[15rem] font-black text-white uppercase tracking-tighter leading-none">
+                    {{ substr($user->profile?->full_name ?? $user->employee_id, 0, 2) }}
+                </span>
             </div>
-            <div class="px-8 pb-8">
-                <div
-                    class="relative flex flex-col md:flex-row md:items-center -mt-20 mb-6 space-y-4 md:space-y-0 md:space-x-6">
-                    <!-- Profile Picture -->
-                    <div class="w-32 h-32 rounded-3xl bg-white p-2 shadow-xl ring-1 ring-slate-100">
-                        <div class="w-full h-full rounded-2xl overflow-hidden bg-slate-50 flex items-center justify-center">
-                            @if($user->profile?->profile_picture)
-                                <img src="{{ $user->profile->getProfilePictureUrl() }}" class="w-full h-full object-cover">
-                            @else
-                                <span
-                                    class="text-4xl font-black text-accent">{{ substr($user->profile?->full_name ?? $user->employee_id, 0, 1) }}</span>
-                            @endif
+
+            <div class="relative p-8">
+                {{-- Top Row: Avatar + Info + Actions --}}
+                <div class="flex flex-col lg:flex-row lg:items-start gap-6">
+
+                    {{-- Avatar --}}
+                    <div class="flex-shrink-0">
+                        <div class="profile-avatar-ring w-28 h-28">
+                            <div
+                                class="w-full h-full rounded-3xl bg-slate-900 overflow-hidden flex items-center justify-center">
+                                @if($user->profile?->profile_picture)
+                                    <img src="{{ $user->profile->getProfilePictureUrl() }}"
+                                        class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+                                @else
+                                    <span class="text-4xl font-black text-white">
+                                        {{ substr($user->profile?->full_name ?? $user->employee_id, 0, 1) }}
+                                    </span>
+                                @endif
+                            </div>
                         </div>
+                        @if($user->status === 'active')
+                            <div class="flex justify-center mt-2">
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 rounded-full">
+                                    <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                                    <span
+                                        class="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Active</span>
+                                </span>
+                            </div>
+                        @else
+                            <div class="flex justify-center mt-2">
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full">
+                                    <span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                                    <span class="text-[10px] font-black text-amber-300 uppercase tracking-widest">Pending</span>
+                                </span>
+                            </div>
+                        @endif
                     </div>
 
-                    <div class="flex-1">
-                        <div class="flex flex-wrap items-center gap-3 mb-2">
-                            <h2 class="text-3xl font-black text-slate-800 md:text-white drop-shadow-md">
+                    {{-- Name & Info --}}
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap items-start gap-3 mb-2">
+                            <h2 class="text-4xl font-black text-white tracking-tight leading-none">
                                 {{ $user->profile?->full_name ?? 'Incomplete Profile' }}
                             </h2>
                             <span
-                                class="px-3 py-1 bg-accent/10 text-accent md:bg-white/20 md:text-white rounded-full text-[10px] font-black uppercase tracking-widest border border-accent/20 md:border-white/20">
+                                class="badge-shine mt-1 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-[10px] font-black text-white uppercase tracking-widest backdrop-blur-sm">
                                 {{ $user->getDesignationLabel() }}
                             </span>
                             @if($user->is_office_in_charge && $user->designation !== 'office_in_charge')
                                 <span
-                                    class="px-3 py-1 bg-amber-100 text-amber-700 md:bg-amber-500/20 md:text-amber-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-200 md:border-amber-500/30">
+                                    class="mt-1 px-3 py-1.5 bg-amber-500/20 border border-amber-500/30 rounded-full text-[10px] font-black text-amber-300 uppercase tracking-widest">
                                     Officer In Charge
                                 </span>
                             @endif
-                            @if($user->status === 'active')
-                                <span
-                                    class="px-3 py-1 bg-success/10 text-success md:bg-success/20 md:text-emerald-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-success/20 md:border-success/40">Active</span>
-                            @else
-                                <span
-                                    class="px-3 py-1 bg-warning/10 text-warning md:bg-warning/20 md:text-amber-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-warning/20 md:border-warning/40">Pending</span>
+                        </div>
+
+                        {{-- Employee ID pill --}}
+                        <div
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl mb-5">
+                            <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            <span class="text-white font-black tracking-widest text-sm">{{ $user->employee_id }}</span>
+                        </div>
+
+                        {{-- Action Buttons --}}
+                        <div class="flex flex-wrap gap-2">
+                            @if(auth()->user()->canAccess($user) && auth()->user()->id !== $user->id)
+                                <a href="{{ route('dashboard', ['as_user' => $user->id]) }}"
+                                    class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-indigo-600/30 hover:bg-indigo-500">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    View Dashboard
+                                </a>
+                            @endif
+
+                            @if(auth()->user()->isSuperAdmin())
+                                <div class="relative">
+                                    <button type="button" onclick="toggleIDCardDropdown()"
+                                        class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-violet-600/30 hover:bg-violet-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3 0 00-2.83 2M15 11h3m-3 4h2" />
+                                        </svg>
+                                        ID Card
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div id="id-card-dropdown"
+                                        class="hidden absolute top-full mt-2 left-0 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 min-w-[190px] p-1">
+                                        <a href="{{ route('users.id-card', ['user' => $user->id, 'format' => 'png']) }}"
+                                            target="_blank"
+                                            class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition rounded-xl">
+                                            <div class="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            PNG Image
+                                        </a>
+                                        <a href="{{ route('users.id-card', ['user' => $user->id, 'format' => 'pdf']) }}"
+                                            target="_blank"
+                                            class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition rounded-xl">
+                                            <div class="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            PDF Document
+                                        </a>
+                                        <a href="{{ route('users.id-card', ['user' => $user->id, 'format' => 'jpg']) }}"
+                                            target="_blank"
+                                            class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition rounded-xl">
+                                            <div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            JPG (Canva)
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <a href="{{ route('users.joining-letter', $user->id) }}" target="_blank"
+                                    class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-amber-500/30 hover:bg-amber-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Joining Letter
+                                </a>
+                            @endif
+
+                            @if($user->isRO() && (auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_assign_oic')))
+                                <form action="{{ route('users.toggle-oic', $user->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit"
+                                        class="btn-action inline-flex items-center gap-2 px-5 py-2.5 font-bold rounded-xl text-xs shadow-lg transition
+                                                        {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                        {{ $user->is_office_in_charge ? 'Remove OIC' : 'Assign OIC' }}
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if($currentUser->canEdit($user))
+                                <a href="{{ route('users.edit', $user->id) }}"
+                                    class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-white/20 text-white font-bold rounded-xl text-xs hover:bg-white/20 backdrop-blur-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Edit Profile
+                                </a>
+                            @endif
+
+                            @if($user->status === 'pending' && auth()->user()->canApprove($user))
+                                <form action="{{ route('users.approve', $user->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit"
+                                        class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-500/30 hover:bg-emerald-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Approve Member
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if(auth()->user()->isSuperAdmin() && auth()->user()->id !== $user->id)
+                                <form action="{{ route('users.destroy', $user->id) }}" method="POST"
+                                    onsubmit="return confirm('Are you sure you want to move this user to BIN?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 font-bold rounded-xl text-xs hover:bg-red-500/20">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        Delete
+                                    </button>
+                                </form>
                             @endif
                         </div>
-                        <p class="text-slate-500 md:text-white/70 font-bold uppercase tracking-widest text-xs">
-                            {{ $user->employee_id }}
-                        </p>
-                    </div>
-
-                    <div class="flex flex-wrap gap-2 md:gap-3">
-                        @if(auth()->user()->canAccess($user) && auth()->user()->id !== $user->id)
-                            <a href="{{ route('dashboard', ['as_user' => $user->id]) }}"
-                                class="px-5 py-3 bg-indigo-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition flex items-center space-x-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                                <span>View Dashboard</span>
-                            </a>
-                        @endif
-
-                        @if(auth()->user()->isSuperAdmin())
-                            <div class="relative group">
-                                <button type="button" onclick="toggleIDCardDropdown()"
-                                    class="px-6 py-3 bg-violet-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-violet-600/20 hover:bg-violet-700 transition flex items-center space-x-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                                    </svg>
-                                    <span>ID Card</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div id="id-card-dropdown"
-                                    class="hidden absolute top-full mt-2 right-0 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50 min-w-[180px]">
-                                    <a href="{{ route('users.id-card', ['user' => $user->id, 'format' => 'png']) }}"
-                                        target="_blank"
-                                        class="block px-4 py-3 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition flex items-center space-x-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <span>PNG Image</span>
-                                    </a>
-                                    <a href="{{ route('users.id-card', ['user' => $user->id, 'format' => 'pdf']) }}"
-                                        target="_blank"
-                                        class="block px-4 py-3 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition flex items-center space-x-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                        </svg>
-                                        <span>PDF Document</span>
-                                    </a>
-                                    <a href="{{ route('users.id-card', ['user' => $user->id, 'format' => 'jpg']) }}"
-                                        target="_blank"
-                                        class="block px-4 py-3 text-sm font-bold text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition flex items-center space-x-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <span>JPG (Canva Compatible)</span>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <a href="{{ route('users.joining-letter', $user->id) }}" target="_blank"
-                                class="px-6 py-3 bg-amber-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-amber-600/20 hover:bg-amber-700 transition flex items-center space-x-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <span>Joining Letter</span>
-                            </a>
-                        @endif
-                        @if($user->isRO() && (auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_assign_oic')))
-                            <form action="{{ route('users.toggle-oic', $user->id) }}" method="POST">
-                                @csrf
-                                <button type="submit"
-                                    class="px-6 py-3 {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200' : 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' }} font-bold rounded-xl text-sm hover:opacity-90 transition flex items-center space-x-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                    </svg>
-                                    <span>{{ $user->is_office_in_charge ? 'Remove OIC' : 'Assign OIC' }}</span>
-                                </button>
-                            </form>
-                        @endif
-
-                        @if($currentUser->canEdit($user))
-                            <a href="{{ route('users.edit', $user->id) }}"
-                                class="px-6 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl text-sm hover:bg-slate-50 transition">Edit
-                                Profile</a>
-                        @endif
-                        @if($user->status === 'pending' && auth()->user()->canApprove($user))
-                            <form action="{{ route('users.approve', $user->id) }}" method="POST">
-                                @csrf
-                                <button type="submit"
-                                    class="px-6 py-3 bg-success text-white font-bold rounded-xl text-sm shadow-lg shadow-success/20 hover:opacity-90 transition">Approve
-                                    Member</button>
-                            </form>
-                        @endif
-
-                        @if(auth()->user()->isSuperAdmin() && auth()->user()->id !== $user->id)
-                            <form action="{{ route('users.destroy', $user->id) }}" method="POST"
-                                onsubmit="return confirm('Are you sure you want to move this user to BIN?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                    class="px-6 py-3 bg-red-50 text-red-600 border border-red-100 font-bold rounded-xl text-sm hover:bg-red-100 transition">
-                                    Delete User
-                                </button>
-                            </form>
-                        @endif
                     </div>
                 </div>
 
-                <!-- Vital Stats Row -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-slate-50">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Upline Manager</p>
-                        @php
-                            $uplineUser = null;
-                            if ($user->isOfficeInCharge()) {
-                                $uplineUser = $user->upline ?? $user->parent;
-                            } else {
-                                $uplineUser = $user->parent;
-                            }
-                            $uplineName = $uplineUser?->profile?->full_name ?? 'ROOT / Super Admin';
-                        @endphp
-
+                {{-- ===== VITAL STATS BAR ===== --}}
+                @php
+                    $uplineUser = null;
+                    if ($user->isOfficeInCharge()) {
+                        $uplineUser = $user->upline ?? $user->parent;
+                    } else {
+                        $uplineUser = $user->parent;
+                    }
+                    $uplineName = $uplineUser?->profile?->full_name ?? 'ROOT / Super Admin';
+                @endphp
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-8 pt-6 border-t border-white/10">
+                    <div class="hero-stat-card rounded-2xl p-4 cursor-default">
+                        <p class="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Upline Manager</p>
                         @if((auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()) && $uplineUser)
                             <a href="{{ route('users.show', $uplineUser->id) }}"
-                                class="text-sm font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
-                                <span>{{ $uplineName }}</span>
-                                <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"
+                                class="flex items-center gap-1 text-sm font-black text-accent hover:text-white transition-colors group">
+                                <span class="truncate">{{ $uplineName }}</span>
+                                <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 transform group-hover:translate-x-0.5 transition-all flex-shrink-0"
                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                                 </svg>
                             </a>
                         @else
-                            <p class="text-sm font-bold text-slate-700">{{ $uplineName }}</p>
+                            <p class="text-sm font-black text-white truncate">{{ $uplineName }}</p>
                         @endif
                     </div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Direct Downline</p>
-                        <p class="text-sm font-bold text-slate-700">{{ $user->children->count() }} Members</p>
+                    <div class="hero-stat-card rounded-2xl p-4 cursor-default">
+                        <p class="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Direct Downline</p>
+                        <p class="text-sm font-black text-white">
+                            <span class="text-xl" style="color:#3C50E0">{{ $user->children->count() }}</span>&nbsp;Members
+                        </p>
                     </div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date Joined</p>
-                        <p class="text-sm font-bold text-slate-700">{{ $user->created_at->format('d M, Y') }}</p>
+                    <div class="hero-stat-card rounded-2xl p-4 cursor-default">
+                        <p class="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Date Joined</p>
+                        <p class="text-sm font-black text-white">{{ $user->created_at->format('d M, Y') }}</p>
                     </div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Contact No.</p>
-                        <p class="text-sm font-bold text-slate-700">{{ $user->profile?->phone_number ?? 'N/A' }}</p>
+                    <div class="hero-stat-card rounded-2xl p-4 cursor-default">
+                        <p class="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Contact No.</p>
+                        <p class="text-sm font-black text-white">{{ $user->profile?->phone_number ?? 'N/A' }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Details Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Personal Information -->
-            <div class="lg:col-span-2 space-y-8">
-                <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                    <div class="flex items-center space-x-3 mb-8">
-                        <div class="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {{-- ===== DETAILS GRID ===== --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {{-- LEFT: 2-col details --}}
+            <div class="lg:col-span-2 space-y-6">
+
+                {{-- Identity Details --}}
+                <div class="info-card scroll-reveal bg-white rounded-3xl p-8">
+                    <div class="flex items-center gap-3 mb-8">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-200">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                         </div>
-                        <h3 class="font-bold text-lg text-slate-800">Identity Details</h3>
+                        <div>
+                            <h3 class="font-black text-xl text-slate-900">Identity Details</h3>
+                            <p class="text-xs text-slate-400 font-medium">Personal & contact information</p>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-y-8 gap-x-12">
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Email Address
-                            </p>
-                            <p class="font-bold text-slate-800">{{ $user->email }}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="data-field space-y-1.5">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Email Address</p>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                <p class="font-bold text-slate-800 truncate">{{ $user->email }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Blood Group</p>
-                            <p class="font-bold text-slate-800">{{ $user->profile?->blood_group ?? 'Not Specified' }}</p>
+                        <div class="data-field space-y-1.5">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Blood Group</p>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-red-500 ring-2 ring-red-100 flex-shrink-0"></span>
+                                <p class="font-bold text-slate-800">{{ $user->profile?->blood_group ?? 'Not Specified' }}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Aadhaar Card No.
+                        <div class="data-field space-y-1.5">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Aadhaar Card No.</p>
+                            <p class="font-bold text-slate-800 font-mono tracking-wider">
+                                {{ $user->profile?->aadhaar_number ?? 'N/A' }}
                             </p>
-                            <p class="font-bold text-slate-800">{{ $user->profile?->aadhaar_number ?? 'N/A' }}</p>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PAN Card No.</p>
-                            <p class="font-bold text-slate-800 uppercase">{{ $user->profile?->pan_number ?? 'N/A' }}</p>
+                        <div class="data-field space-y-1.5">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">PAN Card No.</p>
+                            <p class="font-bold text-slate-800 uppercase font-mono tracking-wider">
+                                {{ $user->profile?->pan_number ?? 'N/A' }}
+                            </p>
                         </div>
-                        <div class="col-span-2">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Current Address
-                            </p>
-                            <p class="font-bold text-slate-800 leading-relaxed">{{ $user->profile?->address ?? 'N/A' }}</p>
-                            <p class="text-xs text-slate-500 mt-1">
-                                {{ $user->profile?->gram_panchayat ?? '' }}, {{ $user->profile?->block ?? '' }},
-                                {{ $user->profile?->district ?? '' }}, {{ $user->profile?->state ?? '' }} -
-                                {{ $user->profile?->pin_code ?? '' }}
-                            </p>
+                        <div class="md:col-span-2 space-y-2">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Current Address</p>
+                            <div
+                                class="p-4 bg-slate-50 hover:bg-slate-100 transition-colors rounded-2xl border border-slate-100 group">
+                                <p class="font-bold text-slate-800 leading-relaxed">{{ $user->profile?->address ?? 'N/A' }}
+                                </p>
+                                <p class="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-accent flex-shrink-0" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span>{{ collect([$user->profile?->gram_panchayat, $user->profile?->block, $user->profile?->district, $user->profile?->state])->filter()->join(', ') }}{{ $user->profile?->pin_code ? ' - ' . $user->profile->pin_code : '' }}</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Banking Section -->
-                <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <div class="flex items-center space-x-3 mb-8">
-                                <div
-                                    class="w-10 h-10 bg-success/10 text-success rounded-xl flex items-center justify-center">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                                        </path>
-                                    </svg>
-                                </div>
-                                <h3 class="font-bold text-lg text-slate-800">Financial Records</h3>
-                            </div>
+                {{-- Financial Row --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                            <div class="grid grid-cols-1 gap-4">
-                                <div class="p-4 bg-slate-50 rounded-2xl">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Bank
-                                        Name</p>
-                                    <p class="font-bold text-slate-700">{{ $user->bankDetails?->bank_name ?? 'N/A' }}</p>
-                                </div>
-                                <div class="p-4 bg-slate-50 rounded-2xl">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">A/C
-                                        Number</p>
-                                    <p class="font-bold text-slate-700 italic">••••
-                                        {{ substr($user->bankDetails?->account_number ?? '0000', -4) }}
-                                    </p>
-                                </div>
-                                <div class="p-4 bg-slate-50 rounded-2xl">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">IFSC
-                                        Code</p>
-                                    <p class="font-bold text-slate-700">{{ $user->bankDetails?->ifsc_code ?? 'N/A' }}</p>
-                                </div>
+                    {{-- Bank Details --}}
+                    <div class="info-card scroll-reveal bg-white rounded-3xl p-6">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-black text-lg text-slate-900">Bank Details</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div
+                                class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank</span>
+                                <span
+                                    class="font-bold text-slate-700 text-sm">{{ $user->bankDetails?->bank_name ?? 'N/A' }}</span>
+                            </div>
+                            <div
+                                class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">A/C No.</span>
+                                <span class="font-black text-slate-700 text-sm font-mono tracking-widest">••••
+                                    {{ substr($user->bankDetails?->account_number ?? '0000', -4) }}</span>
+                            </div>
+                            <div
+                                class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">IFSC</span>
+                                <span
+                                    class="font-bold text-slate-700 text-sm font-mono uppercase">{{ $user->bankDetails?->ifsc_code ?? 'N/A' }}</span>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Donation Column -->
-                        <div>
-                            <div class="flex items-center space-x-3 mb-8">
+                    {{-- Donation --}}
+                    <div class="info-card scroll-reveal rounded-3xl overflow-hidden">
+                        <div class="donation-card p-6 h-full">
+                            <div class="flex items-center gap-3 mb-6">
                                 <div
-                                    class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
-                                <h3 class="font-bold text-lg text-slate-800">Joining Donation</h3>
+                                <h3 class="font-black text-lg text-white">Joining Donation</h3>
                             </div>
-
-                            <div class="grid grid-cols-1 gap-4">
-                                <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Donation
-                                        Amount</p>
-                                    <p class="text-2xl font-black text-indigo-700">
-                                        ₹{{ number_format($user->joining_donation, 0) }}</p>
-                                </div>
-                                <div class="p-4 bg-slate-50 rounded-2xl">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Payment
-                                        Status</p>
+                            <div class="relative mb-4">
+                                <p class="text-[9px] font-black text-white/50 uppercase tracking-widest mb-1">Amount</p>
+                                <p class="text-5xl font-black text-white">₹{{ number_format($user->joining_donation, 0) }}
+                                </p>
+                            </div>
+                            <div class="space-y-2">
+                                <div
+                                    class="flex items-center justify-between p-3 bg-white/10 border border-white/10 rounded-xl">
+                                    <span class="text-[9px] font-black text-white/50 uppercase tracking-widest">Payment
+                                        Status</span>
                                     @if($user->payment_status === 'completed')
-                                        <span
-                                            class="inline-flex mt-1 px-3 py-1 bg-success/10 text-success text-[10px] font-black uppercase tracking-widest rounded-full">Completed</span>
+                                        <span class="flex items-center gap-1.5 text-xs font-black text-emerald-300 uppercase">
+                                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                                            Completed
+                                        </span>
                                     @else
-                                        <span
-                                            class="inline-flex mt-1 px-3 py-1 bg-warning/10 text-warning text-[10px] font-black uppercase tracking-widest rounded-full">Verification
-                                            Pending</span>
+                                        <span class="flex items-center gap-1.5 text-xs font-black text-amber-300 uppercase">
+                                            <span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                                            Pending
+                                        </span>
                                     @endif
                                 </div>
-                                <div class="p-4 bg-slate-50 rounded-2xl">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                                        Transaction Ref ID</p>
-                                    <p class="font-bold text-slate-700">{{ $user->payment_reference ?? 'N/A' }}</p>
-                                </div>
-                                @if($user->payment_screenshot)
-                                    <div class="p-4 bg-slate-50 rounded-2xl">
-                                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Payment
-                                            Screenshot</p>
-                                        <a href="{{ asset('storage/' . $user->payment_screenshot) }}" target="_blank"
-                                            class="mt-2 inline-flex items-center text-xs font-bold text-accent hover:underline">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                            View Screenshot
-                                        </a>
+                                @if($user->payment_reference)
+                                    <div
+                                        class="flex items-center justify-between p-3 bg-white/10 border border-white/10 rounded-xl">
+                                        <span class="text-[9px] font-black text-white/50 uppercase tracking-widest">Ref
+                                            ID</span>
+                                        <span
+                                            class="text-xs font-bold text-white font-mono">{{ $user->payment_reference }}</span>
                                     </div>
+                                @endif
+                                @if($user->payment_screenshot)
+                                    <a href="{{ asset('storage/' . $user->payment_screenshot) }}" target="_blank"
+                                        class="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        View Screenshot
+                                    </a>
                                 @endif
                             </div>
                         </div>
                     </div>
                 </div>
-
-
             </div>
 
-            <!-- Hierarchy Context -->
-            <div class="space-y-8">
+            {{-- RIGHT: Sidebar --}}
+            <div class="space-y-6">
 
+                {{-- Network Overview --}}
+                @php
+                    $directCount = $user->children->count();
+                    $totalCount = $user->getDownlineCount();
+                @endphp
+                <div class="scroll-reveal relative rounded-3xl p-6"
+                    style="background: linear-gradient(145deg, #1C2434 0%, #1e1b4b 60%, #1C2434 100%); box-shadow: 0 20px 60px rgba(28,36,52,0.5), 0 0 0 1px rgba(255,255,255,0.05);">
+                    <div class="absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 pointer-events-none"
+                        style="background: rgba(60,80,224,0.15);"></div>
+                    <h3 class="relative font-black text-white text-lg mb-5 flex items-center gap-2">
+                        <span class="w-2 h-6 rounded-full" style="background:#3C50E0"></span>
+                        Network Overview
+                    </h3>
+                    <div class="relative grid grid-cols-2 gap-3 mb-4">
+                        <div class="rounded-2xl p-4 text-center transition-all duration-300 hover:scale-105 cursor-default"
+                            style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1);">
+                            <p class="text-3xl font-black text-white mb-1">{{ $directCount }}</p>
+                            <p class="text-[9px] font-black uppercase tracking-widest" style="color:rgba(255,255,255,0.4);">
+                                Direct</p>
+                        </div>
+                        <div class="rounded-2xl p-4 text-center transition-all duration-300 hover:scale-105 cursor-default"
+                            style="background:rgba(60,80,224,0.15); border:1px solid rgba(60,80,224,0.3);">
+                            <p class="text-3xl font-black mb-1" style="color:#3C50E0;">{{ $totalCount }}</p>
+                            <p class="text-[9px] font-black uppercase tracking-widest" style="color:rgba(255,255,255,0.4);">
+                                Total</p>
+                        </div>
+                    </div>
+                    @if($totalCount > 0)
+                        <div class="relative h-2 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.1);">
+                            <div class="h-full rounded-full transition-all duration-1000"
+                                style="width: {{ $directCount > 0 ? min(100, ($directCount / max($totalCount, 1)) * 100) : 0 }}%; background: linear-gradient(90deg, #3C50E0, #8b5cf6);">
+                            </div>
+                        </div>
+                        <p class="text-[9px] mt-2 text-center" style="color:rgba(255,255,255,0.3);">Direct / Total ratio</p>
+                    @endif
+                </div>
 
-                <!-- Activity Summary -->
-                <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                    <h3 class="font-bold text-slate-800 mb-6">Recent Actions</h3>
-                    <div class="space-y-6">
-                        @forelse($user->activityLogs()->latest()->take(3)->get() as $log)
-                            <div class="flex space-x-3">
-                                <div class="flex-shrink-0 w-1 bg-slate-100 rounded-full"></div>
-                                <div>
-                                    <p class="text-xs font-bold text-slate-700 leading-tight mb-1">{{ $log->description }}</p>
-                                    <p class="text-[10px] text-slate-400">{{ $log->created_at->diffForHumans() }}</p>
+                {{-- Recent Actions Timeline --}}
+                <div class="info-card scroll-reveal bg-white rounded-3xl p-6">
+                    <h3 class="font-black text-slate-900 mb-5 flex items-center gap-2">
+                        <span class="w-2 h-6 bg-violet-500 rounded-full"></span>
+                        Recent Actions
+                    </h3>
+                    <div class="space-y-4">
+                        @forelse($user->activityLogs()->latest()->take(5)->get() as $index => $log)
+                            <div class="flex gap-3 group">
+                                <div class="flex flex-col items-center flex-shrink-0">
+                                    <div class="timeline-dot w-3 h-3 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 ring-4 ring-indigo-50 group-hover:ring-indigo-100 transition-all"
+                                        style="animation-delay: {{ $index * 0.3 }}s"></div>
+                                    @if(!$loop->last)
+                                        <div class="w-px flex-1 bg-gradient-to-b from-indigo-100 to-transparent my-1 min-h-[1rem]">
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="pb-1 flex-1 min-w-0">
+                                    <p class="text-xs font-bold text-slate-800 leading-snug mb-0.5">{{ $log->description }}</p>
+                                    <p class="text-[10px] text-slate-400 font-medium">{{ $log->created_at->diffForHumans() }}
+                                    </p>
                                 </div>
                             </div>
                         @empty
-                            <p class="text-sm text-slate-400 italic">No recent activity logs.</p>
+                            <div class="text-center py-8">
+                                <div
+                                    class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-slate-100">
+                                    <svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <p class="text-sm text-slate-400 font-medium">No activity yet</p>
+                            </div>
                         @endforelse
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -393,19 +814,31 @@
 
 @section('js')
     <script>
+        // Dropdown toggle
         function toggleIDCardDropdown() {
             const dropdown = document.getElementById('id-card-dropdown');
             dropdown.classList.toggle('hidden');
         }
-
-        // Close dropdown when clicking outside
         document.addEventListener('click', function (event) {
             const dropdown = document.getElementById('id-card-dropdown');
             const button = event.target.closest('button[onclick="toggleIDCardDropdown()"]');
-
             if (!button && dropdown && !dropdown.contains(event.target)) {
                 dropdown.classList.add('hidden');
             }
         });
+
+        // Scroll reveal animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, i * 80);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
     </script>
 @endsection

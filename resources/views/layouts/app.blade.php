@@ -286,6 +286,56 @@
             --tw-ring-color: rgba(255, 255, 255, 0.05) !important;
         }
 
+        /* ===== Navbar Avatar Rainbow Ring ===== */
+        @property --nav-ring-angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        .nav-avatar-ring {
+            padding: 2px;
+            border-radius: 50%;
+            background: conic-gradient(from var(--nav-ring-angle, 0deg), #6366f1, #8b5cf6, #ec4899, #f59e0b, #10b981, #6366f1);
+            animation: nav-ring-spin 1.8s linear infinite, nav-ring-glow 3s ease-in-out infinite alternate;
+            box-shadow:
+                0 0 10px 2px rgba(99, 102, 241, 0.55),
+                0 0 22px 5px rgba(139, 92, 246, 0.3),
+                0 0 40px 8px rgba(236, 72, 153, 0.15);
+            flex-shrink: 0;
+        }
+
+        @keyframes nav-ring-spin {
+            from {
+                --nav-ring-angle: 0deg;
+            }
+
+            to {
+                --nav-ring-angle: 360deg;
+            }
+        }
+
+        @keyframes nav-ring-glow {
+            from {
+                box-shadow:
+                    0 0 10px 2px rgba(99, 102, 241, 0.65),
+                    0 0 22px 5px rgba(139, 92, 246, 0.35),
+                    0 0 40px 8px rgba(236, 72, 153, 0.2);
+            }
+
+            to {
+                box-shadow:
+                    0 0 14px 4px rgba(236, 72, 153, 0.65),
+                    0 0 30px 8px rgba(245, 158, 11, 0.35),
+                    0 0 55px 12px rgba(16, 185, 129, 0.2);
+            }
+        }
+
+        .nav-avatar-ring img,
+        .nav-avatar-ring>div {
+            filter: none !important;
+        }
+
         .sidebar-scroll::-webkit-scrollbar {
             width: 4px;
         }
@@ -565,17 +615,18 @@
                                 {{ auth()->user()->getDesignationLabel() }}
                             </p>
                         </div>
-                        <div
-                            class="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-700 shadow-sm overflow-hidden ring-2 ring-accent/10 group-hover:ring-accent/30 transition-all">
-                            @if(auth()->user()->profile && auth()->user()->profile->profile_picture)
-                                <img src="{{ auth()->user()->profile->getProfilePictureUrl() }}" alt="Avatar"
-                                    class="w-full h-full object-cover">
-                            @else
-                                <div
-                                    class="w-full h-full flex items-center justify-center bg-accent/5 text-accent font-bold text-xs">
-                                    {{ substr(auth()->user()->profile->full_name ?? auth()->user()->employee_id, 0, 1) }}
-                                </div>
-                            @endif
+                        <div class="nav-avatar-ring">
+                            <div class="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                @if(auth()->user()->profile && auth()->user()->profile->profile_picture)
+                                    <img src="{{ auth()->user()->profile->getProfilePictureUrl() }}" alt="Avatar"
+                                        class="w-full h-full object-cover">
+                                @else
+                                    <div
+                                        class="w-full h-full flex items-center justify-center bg-accent/5 text-accent font-bold text-xs">
+                                        {{ substr(auth()->user()->profile->full_name ?? auth()->user()->employee_id, 0, 1) }}
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </a>
                 </div>
@@ -756,17 +807,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                                                }).then((result) => {
+                                                                                                                                                                                                                                                                    }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                                                });
+                                                                                                                                                                                                                                                                    });
         @endif
 
         @if(session('error'))
