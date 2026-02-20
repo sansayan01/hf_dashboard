@@ -461,6 +461,31 @@
                 }
             }
 
+            /* ===== Full-page liquid spread overlay ===== */
+            #theme-liquid-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 99999;
+                pointer-events: none;
+                clip-path: circle(0px at 50% 50%);
+                transition: clip-path 1.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+                will-change: clip-path;
+            }
+
+            #theme-liquid-overlay.spreading {
+                clip-path: circle(200vmax at var(--ox, 50%) var(--oy, 50%));
+            }
+
+            /* Subtle wavy inner shimmer */
+            #theme-liquid-overlay::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(ellipse at var(--ox, 50%) var(--oy, 50%),
+                        rgba(255, 255, 255, 0.12) 0%,
+                        transparent 65%);
+            }
+
             .sidebar-scroll::-webkit-scrollbar {
                 width: 4px;
             }
@@ -507,6 +532,8 @@
 
 <body
     class="bg-body dark:bg-darkbg text-primary dark:text-slate-100 transition-colors duration-300 font-sans antialiased gradient-bg min-h-screen">
+    <!-- Liquid spread overlay for theme transition -->
+    <div id="theme-liquid-overlay"></div>
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
         <aside id="sidebar"
@@ -877,11 +904,12 @@
             }, 0);
         });
 
-        // Theme Toggle — Glassmorphic Orb
+        // Theme Toggle — Liquid Spread
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeToggleWrap = document.getElementById('theme-toggle-wrap');
         const tSun = themeToggleBtn.querySelector('.t-sun');
         const tMoon = themeToggleBtn.querySelector('.t-moon');
+        const liquidOverlay = document.getElementById('theme-liquid-overlay');
 
         function applyThemeToToggle(isDark) {
             if (isDark) {
@@ -897,25 +925,49 @@
             }
         }
 
-        themeToggleBtn.addEventListener('click', function () {
-            // Ripple burst
-            const ripple = document.createElement('span');
-            ripple.className = 'theme-orb-ripple';
-            ripple.style.cssText = `width:42px;height:42px;left:0;top:0;
-                background:${document.documentElement.classList.contains('dark')
-                    ? 'rgba(251,191,36,0.3)' : 'rgba(99,102,241,0.3)'};`;
-            themeToggleBtn.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 560);
+        function liquidToggle(nowDark) {
+            // Get button center position for the spread origin
+            const rect = themeToggleBtn.getBoundingClientRect();
+            const ox = Math.round(rect.left + rect.width / 2);
+            const oy = Math.round(rect.top + rect.height / 2);
 
+            // Set overlay color = the destination theme background
+            liquidOverlay.style.background = nowDark
+                ? 'linear-gradient(135deg, #1C2434 0%, #1e1b4b 50%, #0f0f23 100%)'
+                : 'linear-gradient(135deg, #F5EEDC 0%, #fffaf3 50%, #F5EEDC 100%)';
+
+            // Set the origin CSS vars
+            liquidOverlay.style.setProperty('--ox', ox + 'px');
+            liquidOverlay.style.setProperty('--oy', oy + 'px');
+            liquidOverlay.style.clipPath = `circle(0px at ${ox}px ${oy}px)`;
+
+            // Force reflow so transition triggers
+            liquidOverlay.getBoundingClientRect();
+
+            // Expand the liquid
+            liquidOverlay.classList.add('spreading');
+
+            // After half the spread, switch theme (invisible underneath)
+            setTimeout(() => {
+                applyThemeToToggle(nowDark);
+                localStorage.setItem('color-theme', nowDark ? 'dark' : 'light');
+                window.dispatchEvent(new Event('theme-changed'));
+            }, 700);
+
+            // After full spread, collapse back
+            setTimeout(() => {
+                liquidOverlay.classList.remove('spreading');
+                liquidOverlay.style.clipPath = `circle(0px at ${ox}px ${oy}px)`;
+            }, 1450);
+        }
+
+        themeToggleBtn.addEventListener('click', function () {
             // 3D flip on wrapper
             themeToggleWrap.classList.add('flipping');
             setTimeout(() => themeToggleWrap.classList.remove('flipping'), 520);
 
-            // Toggle
             const nowDark = !document.documentElement.classList.contains('dark');
-            applyThemeToToggle(nowDark);
-            localStorage.setItem('color-theme', nowDark ? 'dark' : 'light');
-            window.dispatchEvent(new Event('theme-changed'));
+            liquidToggle(nowDark);
         });
 
         // Initial state
@@ -955,17 +1007,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                                                                }).then((result) => {
+                                                                                                                                                                                                                                                                                    }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                                                                });
+                                                                                                                                                                                                                                                                                    });
         @endif
 
         @if(session('error'))
