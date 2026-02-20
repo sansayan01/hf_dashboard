@@ -115,26 +115,6 @@
     let currentPreview;
     let isApplyingCrop = false;
 
-    // AI Background Removal Configuration - LOCALIZED
-    const bgRemovalPublicPath = window.location.origin + '/vendor/background-removal/';
-
-    // Simple localized check with dynamic import fallback
-    async function getBGR() {
-        const check = () => window.imglyBackgroundRemoval || (window.imgly && window.imgly.backgroundRemoval);
-        
-        if (check()) return check();
-
-        try {
-            // Load the bundled ESM version
-            const module = await import(bgRemovalPublicPath + 'index.mjs');
-            // Support both default and named exports
-            window.imglyBackgroundRemoval = module.default || module;
-            return window.imglyBackgroundRemoval;
-        } catch (e) {
-            console.error('AI Loader Error:', e);
-            throw new Error('AI Engine failed to load. Please ensure your browser is up to date.');
-        }
-    }
 
     function initCropper(inputElement, previewElement) {
         // If we are currently applying a crop, don't re-initialize the modal
@@ -344,89 +324,88 @@
 
         try {
             formalBtn.disabled = true;
-            formalBtn.classList.remove('animate-pulse');
             formalBtn.innerHTML = `
                 <div class="flex items-center space-x-2">
                     <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span class="ml-2">Init AI...</span>
+                    <span class="ml-2">AI Working...</span>
                 </div>
             `;
 
-            // 1. Get library (with dynamic fallback)
-            const bgr = await getBGR();
+            if (typeof SelfieSegmentation === 'undefined') {
+                throw new Error('AI library failed to load. Please check your internet or refresh the page.');
+            }
 
-            formalBtn.querySelector('span').innerText = 'AI Thinking...';
-
-            // 2. Get current image from cropper
             const canvas = cropper.getCanvas();
-            const imageData = canvas.toDataURL('image/png');
-
-            // 3. Remove Background using AI
-            const config = {
-                model: 'small', // Faster and smaller download for better reliability
-                publicPath: bgRemovalPublicPath, // Dynamically matched to successful script CDN
-                fetchArgs: { mode: 'cors' },
-                progress: (msg, progress) => {
-                    const span = formalBtn.querySelector('span');
-                    if (span) {
-                        const percent = Math.round(progress * 100);
-                        span.innerText = `AI: ${percent}%`;
-                    }
-                }
-            };
-
-            const blob = await bgr.removeBackground(imageData, config);
-
-            // 4. Create result canvas
-            const resultImage = new Image();
-            const blobUrl = URL.createObjectURL(blob);
-            resultImage.src = blobUrl;
-
-            await new Promise((resolve, reject) => {
-                resultImage.onload = resolve;
-                resultImage.onerror = reject;
-                setTimeout(() => reject(new Error('Image processing timed out')), 10000);
+            const selfieSegmentation = new SelfieSegmentation({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
             });
 
-            const finalCanvas = document.createElement('canvas');
-            finalCanvas.width = resultImage.width;
-            finalCanvas.height = resultImage.height;
-            const ctx = finalCanvas.getContext('2d');
+            selfieSegmentation.setOptions({
+                modelSelection: 1, // High quality person segmentation
+                selfieMode: false,
+            });
 
-            // Professional Passport Blue (#3568b2)
-            ctx.fillStyle = '#3568b2';
-            ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-            ctx.drawImage(resultImage, 0, 0);
+            const resultPromise = new Promise((resolve) => {
+                selfieSegmentation.onResults((results) => {
+                    const finalCanvas = document.createElement('canvas');
+                    finalCanvas.width = results.image.width;
+                    finalCanvas.height = results.image.height;
+                    const ctx = finalCanvas.getContext('2d');
 
-            // 5. Update Cropper
-            const finalDataUrl = finalCanvas.toDataURL('image/jpeg', 0.9);
+                    // 1. Draw Passport Blue Background
+                    ctx.fillStyle = '#3568b2';
+                    ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+                    // 2. Apply Segmentation Mask
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.drawImage(results.segmentationMask, 0, 0, finalCanvas.width, finalCanvas.height);
+                    ctx.globalCompositeOperation = 'source-in'; // Keep only where mask is
+                    ctx.drawImage(results.image, 0, 0);
+                    ctx.restore();
+
+                    // 3. Composite over blue
+                    const compositeCanvas = document.createElement('canvas');
+                    compositeCanvas.width = finalCanvas.width;
+                    compositeCanvas.height = finalCanvas.height;
+                    const cctx = compositeCanvas.getContext('2d');
+                    cctx.fillStyle = '#3568b2';
+                    cctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+                    cctx.drawImage(finalCanvas, 0, 0);
+
+                    resolve(compositeCanvas.toDataURL('image/jpeg', 0.9));
+                });
+            });
+
+            await selfieSegmentation.send({ image: canvas });
+            const finalDataUrl = await resultPromise;
+
             cropper.replace(finalDataUrl);
-            URL.revokeObjectURL(blobUrl);
+            await selfieSegmentation.close();
 
             Swal.fire({
                 icon: 'success',
-                title: 'Ready!',
-                text: 'Background removed and passport blue applied.',
+                title: 'Done!',
+                text: 'Background removed successfully.',
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
-                timer: 3000
+                timer: 2000
             });
 
         } catch (error) {
-            console.error('Formalization failed:', error);
+            console.error('AI Error:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'AI Processing Failed',
-                text: error.message || 'Please check your connection and try again.',
+                title: 'Smooth Workflow Interrupted',
+                text: error.message || 'The AI encountered a temporary issue. Please try again.',
                 confirmButtonColor: '#3C50E0'
             });
         } finally {
             formalBtn.disabled = false;
-            formalBtn.classList.add('animate-pulse');
             formalBtn.innerHTML = originalContent;
         }
     }
