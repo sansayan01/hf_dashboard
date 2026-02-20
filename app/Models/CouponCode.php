@@ -130,6 +130,15 @@ class CouponCode extends Model
     }
 
     /**
+     * Scope: Get expired coupons
+     */
+    public function scopeExpired($query)
+    {
+        return $query->whereNotNull('expires_at')
+            ->where('expires_at', '<=', now());
+    }
+
+    /**
      * Generate a unique coupon code
      */
     public static function generateUniqueCode($designation = null)

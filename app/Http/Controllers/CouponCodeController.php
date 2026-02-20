@@ -31,7 +31,9 @@ class CouponCodeController extends Controller
             if ($request->status === 'used') {
                 $query->used();
             } elseif ($request->status === 'unused') {
-                $query->unused();
+                $query->unused()->notExpired();
+            } elseif ($request->status === 'expired') {
+                $query->unused()->expired();
             }
         }
 
@@ -60,9 +62,9 @@ class CouponCodeController extends Controller
         // Statistics
         $stats = [
             'total' => CouponCode::count(),
-            'unused' => CouponCode::unused()->count(),
+            'unused' => CouponCode::unused()->notExpired()->count(),
             'used' => CouponCode::used()->count(),
-            'expired' => CouponCode::unused()->where('expires_at', '<', now())->count(),
+            'expired' => CouponCode::unused()->expired()->count(),
         ];
 
         return view('admin.coupons.index', compact('coupons', 'stats'));
@@ -196,7 +198,9 @@ class CouponCodeController extends Controller
             if ($request->status === 'used') {
                 $query->used();
             } elseif ($request->status === 'unused') {
-                $query->unused();
+                $query->unused()->notExpired();
+            } elseif ($request->status === 'expired') {
+                $query->unused()->expired();
             }
         }
 
