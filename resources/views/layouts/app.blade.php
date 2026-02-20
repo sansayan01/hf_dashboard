@@ -298,76 +298,201 @@
             border-radius: 50%;
             background: conic-gradient(from var(--nav-ring-angle, 0deg), #6366f1, #8b5cf6, #ec4899, #f59e0b, #10b981, #6366f1);
             animation: nav-ring-spin 1.8s linear infinite, nav-ring-glow 3s ease-in-out infinite alternate;
-            box-shadow:
-                0 0 10px 2px rgba(99, 102, 241, 0.55),
-                0 0 22px 5px rgba(139, 92, 246, 0.3),
-                0 0 40px 8px rgba(236, 72, 153, 0.15);
-            flex-shrink: 0;
-        }
 
-        @keyframes nav-ring-spin {
-            from {
-                --nav-ring-angle: 0deg;
+            box-shadow: 0 0 10px 2px rgba(99, 102, 241, 0.55),
+            0 0 22px 5px rgba(139, 92, 246, 0.3),
+            @keyframes nav-ring-spin {
+                from {
+                    --nav-ring-angle: 0deg;
+                }
+
+                to {
+                    --nav-ring-angle: 360deg;
+                }
             }
 
-            to {
-                --nav-ring-angle: 360deg;
-            }
-        }
+            @keyframes nav-ring-glow {
+                from {
+                    box-shadow:
+                        0 0 10px 2px rgba(99, 102, 241, 0.65),
+                        0 0 22px 5px rgba(139, 92, 246, 0.35),
+                        0 0 40px 8px rgba(236, 72, 153, 0.2);
+                }
 
-        @keyframes nav-ring-glow {
-            from {
+                to {
+                    box-shadow:
+                        0 0 14px 4px rgba(236, 72, 153, 0.65),
+                        0 0 30px 8px rgba(245, 158, 11, 0.35),
+                        0 0 55px 12px rgba(16, 185, 129, 0.2);
+                }
+            }
+
+            .nav-avatar-ring img,
+            .nav-avatar-ring>div {
+                filter: none !important;
+            }
+
+            /* ===== Theme Toggle — Glassmorphic Orb ===== */
+            .theme-orb-wrap {
+                position: relative;
+                width: 42px;
+                height: 42px;
+                flex-shrink: 0;
+            }
+
+            /* Spinning arc ring — sits BEHIND the button */
+            .theme-orb-wrap::before {
+                content: '';
+                position: absolute;
+                inset: -3px;
+                border-radius: 50%;
+                background: conic-gradient(transparent 55%, rgba(251, 191, 36, 0.65) 75%, transparent 95%);
+                animation: orb-ring-spin 2.5s linear infinite;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                z-index: 0;
+            }
+
+            .theme-orb-wrap:hover::before {
+                opacity: 1;
+            }
+
+            .theme-orb-wrap.dark-mode::before {
+                background: conic-gradient(transparent 55%, rgba(99, 102, 241, 0.7) 75%, transparent 95%);
+            }
+
+            @keyframes orb-ring-spin {
+                from {
+                    transform: rotate(0deg);
+                }
+
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* The button itself */
+            .theme-orb {
+                position: relative;
+                z-index: 1;
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                cursor: pointer;
+                outline: none;
+                padding: 0;
+                background: rgba(255, 255, 255, 0.18);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+                transition: background 0.4s ease, border-color 0.4s ease,
+                    box-shadow 0.4s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                perspective: 400px;
+                overflow: visible;
+            }
+
+            .theme-orb-wrap:hover .theme-orb {
+                transform: scale(1.1);
                 box-shadow:
-                    0 0 10px 2px rgba(99, 102, 241, 0.65),
-                    0 0 22px 5px rgba(139, 92, 246, 0.35),
-                    0 0 40px 8px rgba(236, 72, 153, 0.2);
+                    0 0 0 5px rgba(251, 191, 36, 0.12),
+                    0 0 18px rgba(251, 191, 36, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
             }
 
-            to {
+            .theme-orb-wrap:active .theme-orb {
+                transform: scale(0.92);
+            }
+
+            /* Dark state */
+            .theme-orb-wrap.dark-mode .theme-orb {
+                background: rgba(99, 102, 241, 0.18);
+                border-color: rgba(99, 102, 241, 0.35);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            }
+
+            .theme-orb-wrap.dark-mode:hover .theme-orb {
+                transform: scale(1.1);
                 box-shadow:
-                    0 0 14px 4px rgba(236, 72, 153, 0.65),
-                    0 0 30px 8px rgba(245, 158, 11, 0.35),
-                    0 0 55px 12px rgba(16, 185, 129, 0.2);
+                    0 0 0 5px rgba(99, 102, 241, 0.15),
+                    0 0 18px rgba(99, 102, 241, 0.5),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
             }
-        }
 
-        .nav-avatar-ring img,
-        .nav-avatar-ring>div {
-            filter: none !important;
-        }
+            /* Icon flip wrapper */
+            .theme-orb-inner {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.5s cubic-bezier(0.68, -0.15, 0.32, 1.15);
+                transform-style: preserve-3d;
+            }
 
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 4px;
-        }
+            .theme-orb-wrap.flipping .theme-orb-inner {
+                transform: rotateY(180deg);
+            }
 
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
+            /* Sun & Moon icons — JS controls display directly */
+            .theme-orb .t-sun,
+            .theme-orb .t-moon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+            }
 
-        .sidebar-active {
-            background: linear-gradient(90deg, rgba(60, 80, 224, 0.15) 0%, rgba(60, 80, 224, 0) 100%);
-            border-left: 3px solid #3C50E0;
-        }
+            /* Ripple */
+            .theme-orb-ripple {
+                position: absolute;
+                border-radius: 50%;
+                transform: scale(0);
+                opacity: 0.6;
+                animation: orb-ripple 0.55s ease-out forwards;
+                pointer-events: none;
+                z-index: 2;
+            }
 
-        .dark .sidebar-active {
-            background: linear-gradient(90deg, rgba(60, 80, 224, 0.2) 0%, rgba(60, 80, 224, 0) 100%);
-            border-left: 3px solid #3C50E0;
-        }
+            @keyframes orb-ripple {
+                to {
+                    transform: scale(3.5);
+                    opacity: 0;
+                }
+            }
 
-        .sidebar {
-            transition: all 0.3s ease;
-        }
+            .sidebar-scroll::-webkit-scrollbar {
+                width: 4px;
+            }
 
-        @media (max-width: 1024px) {
+            .sidebar-scroll::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+            }
+
+            .sidebar-active {
+                background: linear-gradient(90deg, rgba(60, 80, 224, 0.15) 0%, rgba(60, 80, 224, 0) 100%);
+                border-left: 3px solid #3C50E0;
+            }
+
+            .dark .sidebar-active {
+                background: linear-gradient(90deg, rgba(60, 80, 224, 0.2) 0%, rgba(60, 80, 224, 0) 100%);
+                border-left: 3px solid #3C50E0;
+            }
+
             .sidebar {
-                transform: translateX(-100%);
+                transition: all 0.3s ease;
             }
 
-            .sidebar.show {
-                transform: translateX(0);
+            @media (max-width: 1024px) {
+                .sidebar {
+                    transform: translateX(-100%);
+                }
+
+                .sidebar.show {
+                    transform: translateX(0);
+                }
             }
-        }
     </style>
     <script>
         // On page load or when changing themes, best to add inline in `head` to avoid FOUC
@@ -590,19 +715,38 @@
                 </div>
 
                 <div class="flex items-center space-x-4 md:space-x-6">
-                    <!-- Theme Toggle Button -->
-                    <button id="theme-toggle" type="button"
-                        class="text-slate-500 dark:text-bodydark hover:bg-slate-100 dark:hover:bg-slate-700/50 focus:outline-none focus:ring-4 focus:ring-slate-200 dark:focus:ring-slate-700 rounded-xl text-sm p-2.5 transition-all">
-                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                        </svg>
-                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor"
-                            viewBox="0 0 20 20">
-                            <path
-                                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464l-.707-.707a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414-1.414zm2.12 10.607a1 1 0 010-1.414l.706-.707a1 1 0 111.414 1.414l-.707.707a1 1 0 01-1.414 0zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z">
-                            </path>
-                        </svg>
-                    </button>
+                    <!-- Theme Toggle Orb -->
+                    <div id="theme-toggle-wrap" class="theme-orb-wrap">
+                        <button id="theme-toggle" type="button" class="theme-orb" aria-label="Toggle theme">
+                            <div class="theme-orb-inner">
+                                <!-- Sun -->
+                                <span class="t-sun">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="4" fill="#fbbf24" fill-opacity="0.3" />
+                                        <circle cx="12" cy="12" r="4" />
+                                        <line x1="12" y1="2" x2="12" y2="5" />
+                                        <line x1="12" y1="19" x2="12" y2="22" />
+                                        <line x1="4.93" y1="4.93" x2="7.05" y2="7.05" />
+                                        <line x1="16.95" y1="16.95" x2="19.07" y2="19.07" />
+                                        <line x1="2" y1="12" x2="5" y2="12" />
+                                        <line x1="19" y1="12" x2="22" y2="12" />
+                                        <line x1="4.93" y1="19.07" x2="7.05" y2="16.95" />
+                                        <line x1="16.95" y1="7.05" x2="19.07" y2="4.93" />
+                                    </svg>
+                                </span>
+                                <!-- Moon -->
+                                <span class="t-moon" style="display:none">
+                                    <svg width="17" height="17" viewBox="0 0 24 24" stroke="#a5b4fc" stroke-width="2"
+                                        fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#6366f1"
+                                            fill-opacity="0.4" />
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                                    </svg>
+                                </span>
+                            </div>
+                        </button>
+                    </div>
 
                     <a href="{{ route('users.show', auth()->user()) }}"
                         class="flex items-center space-x-3 md:space-x-6 hover:opacity-80 transition-all duration-300 group">
@@ -733,47 +877,51 @@
             }, 0);
         });
 
-        // Theme Toggle Script
-        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        // Theme Toggle — Glassmorphic Orb
         const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleWrap = document.getElementById('theme-toggle-wrap');
+        const tSun = themeToggleBtn.querySelector('.t-sun');
+        const tMoon = themeToggleBtn.querySelector('.t-moon');
 
-        // Initial icon state
-        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            themeToggleLightIcon.classList.remove('hidden');
-            document.documentElement.classList.add('dark');
-        } else {
-            themeToggleDarkIcon.classList.remove('hidden');
-            document.documentElement.classList.remove('dark');
+        function applyThemeToToggle(isDark) {
+            if (isDark) {
+                themeToggleWrap.classList.add('dark-mode');
+                document.documentElement.classList.add('dark');
+                tSun.style.display = 'none';
+                tMoon.style.display = 'flex';
+            } else {
+                themeToggleWrap.classList.remove('dark-mode');
+                document.documentElement.classList.remove('dark');
+                tSun.style.display = 'flex';
+                tMoon.style.display = 'none';
+            }
         }
 
         themeToggleBtn.addEventListener('click', function () {
-            // toggle icons
-            themeToggleDarkIcon.classList.toggle('hidden');
-            themeToggleLightIcon.classList.toggle('hidden');
+            // Ripple burst
+            const ripple = document.createElement('span');
+            ripple.className = 'theme-orb-ripple';
+            ripple.style.cssText = `width:42px;height:42px;left:0;top:0;
+                background:${document.documentElement.classList.contains('dark')
+                    ? 'rgba(251,191,36,0.3)' : 'rgba(99,102,241,0.3)'};`;
+            themeToggleBtn.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 560);
 
-            // if set via local storage previously
-            if (localStorage.getItem('color-theme')) {
-                if (localStorage.getItem('color-theme') === 'light') {
-                    document.documentElement.classList.add('dark');
-                    localStorage.setItem('color-theme', 'dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                    localStorage.setItem('color-theme', 'light');
-                }
-            } else {
-                if (document.documentElement.classList.contains('dark')) {
-                    document.documentElement.classList.remove('dark');
-                    localStorage.setItem('color-theme', 'light');
-                } else {
-                    document.documentElement.classList.add('dark');
-                    localStorage.setItem('color-theme', 'dark');
-                }
-            }
+            // 3D flip on wrapper
+            themeToggleWrap.classList.add('flipping');
+            setTimeout(() => themeToggleWrap.classList.remove('flipping'), 520);
 
-            // Dispatch event for other components (like SweetAlert dynamic color check)
+            // Toggle
+            const nowDark = !document.documentElement.classList.contains('dark');
+            applyThemeToToggle(nowDark);
+            localStorage.setItem('color-theme', nowDark ? 'dark' : 'light');
             window.dispatchEvent(new Event('theme-changed'));
         });
+
+        // Initial state
+        const initDark = localStorage.getItem('color-theme') === 'dark' ||
+            (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        applyThemeToToggle(initDark);
 
         // Global SweetAlert2 Theme Helper
         function getSwalConfig() {
@@ -807,17 +955,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                                                    }).then((result) => {
+                                                                                                                                                                                                                                                                                }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                                                    });
+                                                                                                                                                                                                                                                                                });
         @endif
 
         @if(session('error'))
