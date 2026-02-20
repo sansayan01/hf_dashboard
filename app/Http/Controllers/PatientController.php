@@ -6,6 +6,8 @@ use App\Models\Survey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\RolePermission;
+use App\Models\ActivityLog;
 
 class PatientController extends Controller
 {
@@ -19,7 +21,7 @@ class PatientController extends Controller
         // Permission check
         if (
             !$user->isSuperAdmin() &&
-            !\App\Models\RolePermission::check($user->designation, 'can_create_surveys') &&
+            !RolePermission::check($user->designation, 'can_create_surveys') &&
             $user->designation !== 'staff'
         ) {
             abort(403, 'Unauthorized access.');
@@ -133,7 +135,7 @@ class PatientController extends Controller
         // Permission check (Allow Super Admin, users with survey permission, and Pharmacists)
         if (
             !$user->isSuperAdmin() &&
-            !\App\Models\RolePermission::check($user->designation, 'can_create_surveys') &&
+            !RolePermission::check($user->designation, 'can_create_surveys') &&
             $user->designation !== 'staff'
         ) {
             abort(403, 'Unauthorized access.');
@@ -196,7 +198,7 @@ class PatientController extends Controller
         // Get list of potential collectors for the filter dropdown
         if ($user->designation === 'staff') {
             // Pharmacists see all users who have created patients
-            $collectors = \App\Models\User::whereIn('id', $allowedIds)->with('profile')->get();
+            $collectors = User::whereIn('id', $allowedIds)->with('profile')->get();
         } else {
             $collectors = collect([$user])->merge($downline);
         }
@@ -209,7 +211,7 @@ class PatientController extends Controller
         $user = User::getEffectiveUser();
 
         // Permission check
-        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_create_surveys')) {
+        if (!$user->isSuperAdmin() && !RolePermission::check($user->designation, 'can_create_surveys')) {
             abort(403, 'Unauthorized: You do not have permission to register new patients.');
         }
 
@@ -226,7 +228,7 @@ class PatientController extends Controller
         $user = User::getEffectiveUser();
 
         // Permission check
-        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_create_surveys')) {
+        if (!$user->isSuperAdmin() && !RolePermission::check($user->designation, 'can_create_surveys')) {
             abort(403, 'Unauthorized: You do not have permission to register new patients.');
         }
 
@@ -264,7 +266,7 @@ class PatientController extends Controller
 
         $createdBy = $user->id;
         if ($request->filled('created_by_user')) {
-            $targetUser = \App\Models\User::findOrFail($request->created_by_user);
+            $targetUser = User::findOrFail($request->created_by_user);
 
             // Authorization Check: Target must be in requester's downline or be themselves
             if ($targetUser->id !== $user->id && !$user->canAccess($targetUser)) {
@@ -302,7 +304,9 @@ class PatientController extends Controller
                 $patient->save();
                 break; // Success
             } catch (\Illuminate\Database\QueryException $e) {
-                if ($e->errorInfo[1] === 1062) { // Duplicate entry
+                // @phpstan-ignore-next-line
+                $errorInfo = $e->errorInfo ?? [];
+                if (isset($errorInfo[1]) && $errorInfo[1] === 1062) { // Duplicate entry
                     $attempt++;
                     if ($attempt >= $maxRetries) {
                         throw $e; // Give up after max retries
@@ -315,10 +319,11 @@ class PatientController extends Controller
             }
         }
 
-        \App\Models\ActivityLog::logActivity(
+        ActivityLog::logActivity(
             action: 'patient_registered',
+            /** @var Survey $patient */
             description: "New patient registered: {$patient->full_name} ({$patient->patient_id})",
-            modelType: 'App\Models\Survey',
+            modelType: Survey::class,
             modelId: $patient->id
         );
 
@@ -330,6 +335,7 @@ class PatientController extends Controller
      */
     public function show(Survey $patient)
     {
+        /** @var Survey $patient */
         // Authorization Check
         $user = Auth::user();
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
@@ -366,6 +372,7 @@ class PatientController extends Controller
      */
     public function update(Request $request, Survey $patient)
     {
+        /** @var Survey $patient */
         // Authorization Check
         $user = Auth::user();
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
@@ -420,10 +427,11 @@ class PatientController extends Controller
         $patient->insurance_loan_req = $validated['insurance_loan_req'] ?? 'No';
         $patient->save();
 
-        \App\Models\ActivityLog::logActivity(
+        /** @var Survey $patient */
+        ActivityLog::logActivity(
             action: 'patient_updated',
             description: "Patient profile updated: {$patient->full_name} ({$patient->patient_id})",
-            modelType: 'App\Models\Survey',
+            modelType: Survey::class,
             modelId: $patient->id
         );
 
@@ -435,6 +443,7 @@ class PatientController extends Controller
      */
     public function destroy(Survey $patient)
     {
+        /** @var Survey $patient */
         // Authorization Check
         $user = Auth::user();
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
@@ -443,10 +452,11 @@ class PatientController extends Controller
 
         $patient->delete();
 
-        \App\Models\ActivityLog::logActivity(
+        /** @var Survey $patient */
+        ActivityLog::logActivity(
             action: 'patient_deleted',
             description: "Patient record moved to bin: {$patient->full_name} ({$patient->patient_id})",
-            modelType: 'App\Models\Survey',
+            modelType: Survey::class,
             modelId: $patient->id
         );
 
@@ -485,10 +495,11 @@ class PatientController extends Controller
 
         $patient->restore();
 
-        \App\Models\ActivityLog::logActivity(
+        /** @var Survey $patient */
+        ActivityLog::logActivity(
             action: 'patient_restored',
             description: "Patient record restored from bin: {$patient->full_name} ({$patient->patient_id})",
-            modelType: 'App\Models\Survey',
+            modelType: Survey::class,
             modelId: $patient->id
         );
 

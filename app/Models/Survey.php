@@ -6,6 +6,33 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $patient_id
+ * @property string $full_name
+ * @property string|null $relative_name
+ * @property int $age
+ * @property string $gender
+ * @property string $phone_number
+ * @property string $address
+ * @property string $pin
+ * @property string|null $aadhar_number
+ * @property string|null $pan_number
+ * @property string|null $blood_group
+ * @property string|null $district
+ * @property string|null $block
+ * @property string|null $gp
+ * @property string|null $landmark
+ * @property string|null $past_diseases
+ * @property string|null $health_issues
+ * @property string $insurance_loan_req
+ * @property bool $is_member
+ * @property float|null $membership_fee
+ * @property string|null $payment_method
+ * @property string|null $payment_screenshot
+ * @property int $created_by
+ * @property-read \App\Models\User $creator
+ */
 class Survey extends Model
 {
     use HasFactory, SoftDeletes;

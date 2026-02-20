@@ -200,7 +200,9 @@ class SurveyController extends Controller
                 $survey->save();
                 break;
             } catch (\Illuminate\Database\QueryException $e) {
-                if ($e->errorInfo[1] === 1062) {
+                // @phpstan-ignore-next-line
+                $errorInfo = $e->errorInfo ?? [];
+                if (isset($errorInfo[1]) && $errorInfo[1] === 1062) {
                     $attempt++;
                     if ($attempt >= $maxRetries)
                         throw $e;
@@ -213,8 +215,9 @@ class SurveyController extends Controller
 
         ActivityLog::logActivity(
             action: 'survey_created',
+            /** @var Survey $survey */
             description: "New health survey created for {$survey->full_name} ({$survey->patient_id})",
-            modelType: 'App\Models\Survey',
+            modelType: Survey::class,
             modelId: $survey->id
         );
 
@@ -276,8 +279,9 @@ class SurveyController extends Controller
 
         ActivityLog::logActivity(
             action: 'survey_updated',
+            /** @var Survey $survey */
             description: "Health survey updated for {$survey->full_name} ({$survey->patient_id})",
-            modelType: 'App\Models\Survey',
+            modelType: Survey::class,
             modelId: $survey->id
         );
 
@@ -307,7 +311,7 @@ class SurveyController extends Controller
         ActivityLog::logActivity(
             action: 'survey_deleted',
             description: "Health survey deleted for {$patientName} ({$patientId})",
-            modelType: 'App\Models\Survey',
+            modelType: Survey::class,
             modelId: $survey->id
         );
 
@@ -352,7 +356,7 @@ class SurveyController extends Controller
         ActivityLog::logActivity(
             action: 'bulk_survey_deleted',
             description: "Bulk deleted {$count} health surveys. Skipped {$skipped}.",
-            modelType: 'App\Models\Survey'
+            modelType: Survey::class
         );
 
         return redirect()->route('surveys.index')->with('success', $message);

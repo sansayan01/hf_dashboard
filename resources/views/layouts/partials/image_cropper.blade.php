@@ -79,6 +79,16 @@
                             </path>
                         </svg>
                     </button>
+                    <div class="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1"></div>
+                    <button type="button" id="formalize-btn" onclick="formalizeImage()"
+                        class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all flex items-center space-x-2 animate-pulse"
+                        title="AI Background Removal">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span>Passport Mode</span>
+                    </button>
                 </div>
             </div>
 
@@ -97,11 +107,39 @@
     </div>
 </div>
 
+
+
 <script>
     let cropper;
     let currentInput;
     let currentPreview;
     let isApplyingCrop = false;
+
+    // AI Background Removal Configuration - LOCALIZED
+    const bgRemovalPublicPath = window.location.origin + '/vendor/background-removal/';
+
+    // Simple localized check
+    async function getBGR() {
+        const check = () => window.imglyBackgroundRemoval || (window.imgly && window.imgly.backgroundRemoval);
+
+        if (check()) return check();
+
+        // If for some reason global is missing (e.g. script load delay), try to wait a moment
+        return new Promise((resolve, reject) => {
+            let attempts = 0;
+            const interval = setInterval(() => {
+                const bgr = check();
+                if (bgr) {
+                    clearInterval(interval);
+                    resolve(bgr);
+                }
+                if (attempts++ > 20) { // 2 seconds
+                    clearInterval(interval);
+                    reject(new Error('AI Engine failed to initialize locally. Please refresh the page.'));
+                }
+            }, 100);
+        });
+    }
 
     function initCropper(inputElement, previewElement) {
         // If we are currently applying a crop, don't re-initialize the modal
@@ -300,6 +338,101 @@
         } else {
             // Otherwise, trigger the file browser
             if (input) input.click();
+        }
+    }
+
+    async function formalizeImage() {
+        if (!cropper) return;
+
+        const formalBtn = document.getElementById('formalize-btn');
+        const originalContent = formalBtn.innerHTML;
+
+        try {
+            formalBtn.disabled = true;
+            formalBtn.classList.remove('animate-pulse');
+            formalBtn.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="ml-2">Init AI...</span>
+                </div>
+            `;
+
+            // 1. Get library (with dynamic fallback)
+            const bgr = await getBGR();
+
+            formalBtn.querySelector('span').innerText = 'AI Thinking...';
+
+            // 2. Get current image from cropper
+            const canvas = cropper.getCanvas();
+            const imageData = canvas.toDataURL('image/png');
+
+            // 3. Remove Background using AI
+            const config = {
+                model: 'small', // Faster and smaller download for better reliability
+                publicPath: bgRemovalPublicPath, // Dynamically matched to successful script CDN
+                fetchArgs: { mode: 'cors' },
+                progress: (msg, progress) => {
+                    const span = formalBtn.querySelector('span');
+                    if (span) {
+                        const percent = Math.round(progress * 100);
+                        span.innerText = `AI: ${percent}%`;
+                    }
+                }
+            };
+
+            const blob = await bgr.removeBackground(imageData, config);
+
+            // 4. Create result canvas
+            const resultImage = new Image();
+            const blobUrl = URL.createObjectURL(blob);
+            resultImage.src = blobUrl;
+
+            await new Promise((resolve, reject) => {
+                resultImage.onload = resolve;
+                resultImage.onerror = reject;
+                setTimeout(() => reject(new Error('Image processing timed out')), 10000);
+            });
+
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = resultImage.width;
+            finalCanvas.height = resultImage.height;
+            const ctx = finalCanvas.getContext('2d');
+
+            // Professional Passport Blue (#3568b2)
+            ctx.fillStyle = '#3568b2';
+            ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+            ctx.drawImage(resultImage, 0, 0);
+
+            // 5. Update Cropper
+            const finalDataUrl = finalCanvas.toDataURL('image/jpeg', 0.9);
+            cropper.replace(finalDataUrl);
+            URL.revokeObjectURL(blobUrl);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Ready!',
+                text: 'Background removed and passport blue applied.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+
+        } catch (error) {
+            console.error('Formalization failed:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'AI Processing Failed',
+                text: error.message || 'Please check your connection and try again.',
+                confirmButtonColor: '#3C50E0'
+            });
+        } finally {
+            formalBtn.disabled = false;
+            formalBtn.classList.add('animate-pulse');
+            formalBtn.innerHTML = originalContent;
         }
     }
 </script>
