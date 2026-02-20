@@ -205,10 +205,26 @@ class CouponCodeController extends Controller
         }
 
         if ($request->filled('designation')) {
-            $query->where('designation', $request->designation);
+            if ($request->designation === 'any') {
+                $query->whereNull('designation');
+            } else {
+                $query->where('designation', $request->designation);
+            }
         }
 
-        $coupons = $query->get();
+        if ($request->filled('search')) {
+            $query->where('code', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('date_from')) {
+            $query->where('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('created_at', '<=', $request->date_to . ' 23:59:59');
+        }
+
+        $coupons = $query->latest()->get();
 
         $filename = 'coupon_codes_' . now()->format('Y-m-d_His') . '.csv';
 

@@ -23,7 +23,7 @@
             </div>
             
             <div class="flex items-center gap-3 ml-14 md:ml-0">
-                <a href="{{ route('coupons.export') }}" class="group px-5 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
+                <a href="{{ route('coupons.export', request()->query()) }}" class="group px-5 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
                     <i class="fas fa-file-excel text-emerald-500 group-hover:scale-110 transition-transform"></i>
                     Export CSV
                 </a>
