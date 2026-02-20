@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Survey;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
@@ -38,7 +39,7 @@ class AppointmentController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
         $allowedIds = $user->getDataVisibilityIds();
 
         $view = $request->get('view', 'scheduled');
@@ -113,7 +114,7 @@ class AppointmentController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
         $allowedIds = $user->getDataVisibilityIds();
 
         $view = $request->get('view', 'scheduled');

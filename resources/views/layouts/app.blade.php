@@ -562,7 +562,7 @@
             <!-- Sidebar Nav -->
             <nav class="flex-1 p-4">
                 <ul class="space-y-1">
-                    @if(auth()->user()->designation !== 'staff')
+                    @if($effectiveUser->designation !== 'staff')
                         <li>
                             <a href="{{ route('dashboard') }}"
                                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('dashboard') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -575,7 +575,7 @@
                             </a>
                         </li>
                     @endif
-                    @if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_create_surveys'))
+                    @if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_create_surveys'))
                         <li>
                             <a href="{{ route('surveys.index') }}"
                                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('surveys.*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -588,7 +588,7 @@
                             </a>
                         </li>
                     @endif
-                    @if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_create_surveys') || auth()->user()->designation === 'staff')
+                    @if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_create_surveys') || $effectiveUser->designation === 'staff')
                         <li>
                             <a href="{{ route('patients.index') }}"
                                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('patients.*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -601,7 +601,7 @@
                             </a>
                         </li>
                     @endif
-                    @if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments'))
+                    @if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_manage_appointments'))
                         <li>
                             <a href="{{ route('appointments.all') }}"
                                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('appointments.all') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -614,7 +614,7 @@
                             </a>
                         </li>
                     @endif
-                    @if(auth()->user()->designation !== 'staff')
+                    @if($effectiveUser->designation !== 'staff')
                         <li>
                             <a href="{{ route('membership.index') }}"
                                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('membership.*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -627,7 +627,7 @@
                             </a>
                         </li>
                     @endif
-                    @if(auth()->user()->isSuperAdmin() || auth()->user()->designation === 'staff' || auth()->user()->isOfficeInCharge())
+                    @if($effectiveUser->isSuperAdmin() || $effectiveUser->designation === 'staff' || $effectiveUser->isOfficeInCharge())
                         <li>
                             <a href="{{ route('inventory.index') }}"
                                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('inventory.*') && !request()->routeIs('inventory.camps.*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -644,7 +644,7 @@
                         </li>
                     @endif
 
-                    @if(auth()->user()->canViewDownline())
+                    @if($effectiveUser->canViewDownline())
                         <li>
                             <a href="{{ route('users.index') }}"
                                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.*') && !request()->routeIs('users.bin') && !request()->routeIs('users.staffIndex') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -657,7 +657,7 @@
                             </a>
                         </li>
 
-                        @if(auth()->user()->isSuperAdmin())
+                        @if($effectiveUser->isSuperAdmin())
                             <li>
                                 <a href="{{ route('users.staffIndex') }}"
                                     class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.staffIndex') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -671,7 +671,7 @@
                             </li>
                         @endif
 
-                        @if(auth()->user()->isSuperAdmin())
+                        @if($effectiveUser->isSuperAdmin())
                             <li>
                                 <a href="{{ route('users.bin') }}"
                                     class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.bin') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -802,6 +802,25 @@
                     </a>
                 </div>
             </header>
+
+            @if($isViewAsMode)
+                <div class="bg-indigo-600 text-white px-6 py-2 flex items-center justify-between shadow-lg z-30">
+                    <div class="flex items-center gap-3">
+                        <div class="p-1 bg-white/20 rounded-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </div>
+                        <span class="text-sm font-medium">Viewing dashboard as <strong
+                                class="font-bold">{{ $effectiveUser->profile->full_name ?? $effectiveUser->employee_id }}</strong></span>
+                    </div>
+                    <a href="{{ route('dashboard.clear') }}"
+                        class="px-4 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-bold transition-all border border-white/30">
+                        Back to My Dashboard
+                    </a>
+                </div>
+            @endif
 
             <!-- Dashboard Content -->
             <div class="flex-1 overflow-y-auto p-6 lg:p-10 flex flex-col justify-between">
@@ -1007,17 +1026,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                                                                    }).then((result) => {
+                                                                                                                                                                                                                                                                                            }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                                                                    });
+                                                                                                                                                                                                                                                                                            });
         @endif
 
         @if(session('error'))

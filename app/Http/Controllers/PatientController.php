@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Survey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class PatientController extends Controller
 {
@@ -13,7 +14,7 @@ class PatientController extends Controller
      */
     public function export(Request $request)
     {
-        $user = Auth::user();
+        $user = User::getEffectiveUser();
 
         // Permission check
         if (
@@ -127,7 +128,7 @@ class PatientController extends Controller
 
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = User::getEffectiveUser();
 
         // Permission check (Allow Super Admin, users with survey permission, and Pharmacists)
         if (

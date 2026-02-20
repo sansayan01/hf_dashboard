@@ -589,6 +589,31 @@ class User extends Authenticatable
         return $candidateId;
     }
 
+    /**
+     * Get the user who should be used as the context for data viewing.
+     * Returns the "View As" user if session is set and authorized, otherwise current user.
+     */
+    public static function getEffectiveUser()
+    {
+        $currentUser = auth()->user();
+        if (!$currentUser) {
+            return null;
+        }
+
+        $viewAsId = session('view_as_user_id');
+        if ($viewAsId && $viewAsId != $currentUser->id) {
+            $targetUser = self::find($viewAsId);
+            if ($targetUser && $currentUser->canAccess($targetUser)) {
+                return $targetUser;
+            } else {
+                // Invalid or unauthorized context, clear it
+                session()->forget('view_as_user_id');
+            }
+        }
+
+        return $currentUser;
+    }
+
     // Check if user can access another user's data
     public function canAccess(User $targetUser)
     {

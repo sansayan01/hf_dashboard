@@ -21,7 +21,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $currentUser = auth()->user();
+        $currentUser = User::getEffectiveUser();
 
         // Base query
         $query = User::with('profile');

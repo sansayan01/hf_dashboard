@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->web(append: [
+            \App\Http\Middleware\ContextMiddleware::class,
+        ]);
+
         $middleware->alias([
             'hierarchy.access' => \App\Http\Middleware\CheckHierarchyAccess::class,
         ]);

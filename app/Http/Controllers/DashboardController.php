@@ -27,8 +27,12 @@ class DashboardController extends Controller
             if (!$currentUser->canAccess($user)) {
                 abort(403, 'Unauthorized to view this dashboard.');
             }
+            // Set session for persistent "View As" mode
+            session(['view_as_user_id' => $targetUserId]);
         } else {
             $user = $currentUser;
+            // Clear session if we are back to our own dashboard
+            session()->forget('view_as_user_id');
         }
 
         // Check Permissions
@@ -198,5 +202,14 @@ class DashboardController extends Controller
             'profile_picture' => $user->profile->profile_picture ?? null,
             'children' => $children,
         ];
+    }
+
+    /**
+     * Clear the "View As" context and return to the current user's dashboard.
+     */
+    public function clearContext()
+    {
+        session()->forget('view_as_user_id');
+        return redirect()->route('dashboard')->with('success', 'Returned to your own dashboard.');
     }
 }
