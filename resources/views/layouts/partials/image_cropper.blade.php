@@ -355,28 +355,22 @@
                     finalCanvas.height = results.image.height;
                     const ctx = finalCanvas.getContext('2d');
 
-                    // 1. Draw Passport Blue Background
-                    ctx.fillStyle = '#3568b2';
+                    // 1. Create the person layer with transparent background
+                    const personCanvas = document.createElement('canvas');
+                    personCanvas.width = finalCanvas.width;
+                    personCanvas.height = finalCanvas.height;
+                    const pctx = personCanvas.getContext('2d');
+                    
+                    pctx.drawImage(results.segmentationMask, 0, 0, personCanvas.width, personCanvas.height);
+                    pctx.globalCompositeOperation = 'source-in'; // Mask the image
+                    pctx.drawImage(results.image, 0, 0);
+
+                    // 2. Composite onto the blue background
+                    ctx.fillStyle = '#3568b2'; // Pro Passport Blue
                     ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+                    ctx.drawImage(personCanvas, 0, 0);
 
-                    // 2. Apply Segmentation Mask
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.drawImage(results.segmentationMask, 0, 0, finalCanvas.width, finalCanvas.height);
-                    ctx.globalCompositeOperation = 'source-in'; // Keep only where mask is
-                    ctx.drawImage(results.image, 0, 0);
-                    ctx.restore();
-
-                    // 3. Composite over blue
-                    const compositeCanvas = document.createElement('canvas');
-                    compositeCanvas.width = finalCanvas.width;
-                    compositeCanvas.height = finalCanvas.height;
-                    const cctx = compositeCanvas.getContext('2d');
-                    cctx.fillStyle = '#3568b2';
-                    cctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
-                    cctx.drawImage(finalCanvas, 0, 0);
-
-                    resolve(compositeCanvas.toDataURL('image/jpeg', 0.9));
+                    resolve(finalCanvas.toDataURL('image/jpeg', 0.95));
                 });
             });
 
