@@ -316,7 +316,8 @@
             </h2>
             @if(!$user->isSuperAdmin())
                 <p class="font-bold text-gray-800" style="font-size: {{ $id_fontSize }}; margin-top: 0.5mm;">
-                    Vol. ID : <span class="text-red-500 font-black">{{ $user->employee_id }}</span>
+                    {{ in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Emp. ID' : 'Vol. ID' }}
+                    : <span class="text-red-500 font-black">{{ $user->employee_id }}</span>
                 </p>
             @endif
 

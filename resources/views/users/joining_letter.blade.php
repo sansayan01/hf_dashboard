@@ -405,7 +405,8 @@
             <div class="recipient-info">
                 <h3>{{ $user->profile?->full_name ?? 'N/A' }}</h3>
                 <div class="recipient-details">
-                    <span>Vol ID: <strong>{{ $user->employee_id }}</strong></span>
+                    <span>{{ in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Emp ID' : 'Vol ID' }}:
+                        <strong>{{ $user->employee_id }}</strong></span>
                     <span style="margin: 0 8px; color: #cbd5e1;">|</span>
                     <span>Aadhar: <strong>{{ $user->profile?->aadhaar_number ?? 'N/A' }}</strong></span>
                 </div>
