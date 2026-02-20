@@ -13,7 +13,7 @@ class AIService
 
     public function __construct()
     {
-        $this->apiKey = env('OPENROUTER_API_KEY');
+        $this->apiKey = config('services.openrouter.api_key');
     }
 
     /**
@@ -37,8 +37,8 @@ class AIService
 
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
-                'HTTP-Referer' => env('APP_URL', 'http://localhost'),
-                'X-Title' => env('APP_NAME', 'Humanity Foundation'),
+                'HTTP-Referer' => config('app.url', 'http://localhost'),
+                'X-Title' => config('app.name', 'Humanity Foundation'),
                 'Content-Type' => 'application/json',
             ])->timeout(30)->post($this->baseUrl . '/chat/completions', [
                         'model' => $this->model,
@@ -93,8 +93,8 @@ class AIService
 
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
-                'HTTP-Referer' => env('APP_URL', 'http://localhost'),
-                'X-Title' => env('APP_NAME', 'Humanity Foundation'),
+                'HTTP-Referer' => config('app.url', 'http://localhost'),
+                'X-Title' => config('app.name', 'Humanity Foundation'),
                 'Content-Type' => 'application/json',
             ])->timeout(45)->post($this->baseUrl . '/chat/completions', [
                         'model' => $visionModel,
@@ -147,8 +147,8 @@ class AIService
 
         return Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->apiKey,
-            'HTTP-Referer' => env('APP_URL', 'http://localhost'),
-            'X-Title' => env('APP_NAME', 'Humanity Foundation'),
+            'HTTP-Referer' => config('app.url', 'http://localhost'),
+            'X-Title' => config('app.name', 'Humanity Foundation'),
             'Content-Type' => 'application/json',
         ])->timeout(120)->withOptions([
                     'stream' => true,

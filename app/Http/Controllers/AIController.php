@@ -42,7 +42,7 @@ class AIController extends Controller
             // Build the full context with all intelligence modules
             $this->augmentContext($request, $user, $context);
 
-            $apiKey = env('OPENROUTER_API_KEY');
+            $apiKey = config('services.openrouter.api_key');
             if (!$apiKey) {
                 return response()->stream(function () {
                     echo "API Key missing in .env. Please configure OPENROUTER_API_KEY.";
