@@ -118,27 +118,22 @@
     // AI Background Removal Configuration - LOCALIZED
     const bgRemovalPublicPath = window.location.origin + '/vendor/background-removal/';
 
-    // Simple localized check
+    // Simple localized check with dynamic import fallback
     async function getBGR() {
         const check = () => window.imglyBackgroundRemoval || (window.imgly && window.imgly.backgroundRemoval);
-
+        
         if (check()) return check();
 
-        // If for some reason global is missing (e.g. script load delay), try to wait a moment
-        return new Promise((resolve, reject) => {
-            let attempts = 0;
-            const interval = setInterval(() => {
-                const bgr = check();
-                if (bgr) {
-                    clearInterval(interval);
-                    resolve(bgr);
-                }
-                if (attempts++ > 20) { // 2 seconds
-                    clearInterval(interval);
-                    reject(new Error('AI Engine failed to initialize locally. Please refresh the page.'));
-                }
-            }, 100);
-        });
+        try {
+            // Load the bundled ESM version
+            const module = await import(bgRemovalPublicPath + 'index.mjs');
+            // Support both default and named exports
+            window.imglyBackgroundRemoval = module.default || module;
+            return window.imglyBackgroundRemoval;
+        } catch (e) {
+            console.error('AI Loader Error:', e);
+            throw new Error('AI Engine failed to load. Please ensure your browser is up to date.');
+        }
     }
 
     function initCropper(inputElement, previewElement) {
