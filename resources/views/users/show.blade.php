@@ -461,7 +461,7 @@
                                     @csrf
                                     <button type="submit"
                                         class="btn-action inline-flex items-center gap-2 px-5 py-2.5 font-bold rounded-xl text-xs shadow-lg transition
-                                                        {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
+                                                                {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -739,8 +739,7 @@
                 @endphp
                 <div class="scroll-reveal relative rounded-3xl p-6"
                     style="background: linear-gradient(145deg, #1C2434 0%, #1e1b4b 60%, #1C2434 100%); box-shadow: 0 20px 60px rgba(28,36,52,0.5), 0 0 0 1px rgba(255,255,255,0.05);">
-                    <div class="absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 pointer-events-none"
-                        style="background: rgba(60,80,224,0.15);"></div>
+
                     <h3 class="relative font-black text-white text-lg mb-5 flex items-center gap-2">
                         <span class="w-2 h-6 rounded-full" style="background:#3C50E0"></span>
                         Network Overview
