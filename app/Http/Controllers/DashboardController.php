@@ -127,7 +127,7 @@ class DashboardController extends Controller
      */
     public function getHierarchyTree(Request $request)
     {
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
 
         // Permission Check
         if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_view_downline')) {
@@ -151,14 +151,15 @@ class DashboardController extends Controller
     {
         try {
             $user = User::findOrFail($userId);
-            $currentUser = auth()->user();
+            $effectiveUser = User::getEffectiveUser();
+            $currentUser = auth()->user(); // Still needed for raw permission check if necessary, but we should use effectiveUser for access
 
             // Permission Check
-            if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_view_downline')) {
+            if (!$effectiveUser->isSuperAdmin() && !\App\Models\RolePermission::check($effectiveUser->designation, 'can_view_downline')) {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
 
-            if (!$currentUser->canAccess($user)) {
+            if (!$effectiveUser->canAccess($user)) {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
 

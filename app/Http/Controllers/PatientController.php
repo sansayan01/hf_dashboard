@@ -206,7 +206,7 @@ class PatientController extends Controller
 
     public function create()
     {
-        $user = Auth::user();
+        $user = User::getEffectiveUser();
 
         // Permission check
         if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_create_surveys')) {
@@ -223,10 +223,10 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
-        $currentUser = Auth::user();
+        $user = User::getEffectiveUser();
 
         // Permission check
-        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_create_surveys')) {
+        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_create_surveys')) {
             abort(403, 'Unauthorized: You do not have permission to register new patients.');
         }
 
@@ -262,12 +262,12 @@ class PatientController extends Controller
         }
         $healthIssues = implode(', ', $healthIssuesArr);
 
-        $createdBy = $currentUser->id;
+        $createdBy = $user->id;
         if ($request->filled('created_by_user')) {
             $targetUser = \App\Models\User::findOrFail($request->created_by_user);
 
             // Authorization Check: Target must be in requester's downline or be themselves
-            if ($targetUser->id !== $currentUser->id && !$currentUser->canAccess($targetUser)) {
+            if ($targetUser->id !== $user->id && !$user->canAccess($targetUser)) {
                 abort(403, 'Unauthorized: You can only register patients for your own team members.');
             }
             $createdBy = $targetUser->id;

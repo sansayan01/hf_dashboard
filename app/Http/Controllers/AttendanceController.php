@@ -18,9 +18,10 @@ class AttendanceController extends Controller
         ]);
 
         $user = User::findOrFail($request->user_id);
+        $effectiveUser = User::getEffectiveUser();
 
         // Permission check: Only SuperAdmin or the user's RM (parent) can mark attendance
-        if (!auth()->user()->isSuperAdmin() && auth()->id() !== $user->parent_id) {
+        if (!$effectiveUser->isSuperAdmin() && $effectiveUser->id !== $user->parent_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -30,7 +31,7 @@ class AttendanceController extends Controller
                 'date' => $request->date,
             ],
             [
-                'marked_by' => auth()->id(),
+                'marked_by' => $effectiveUser->id,
                 'status' => $request->status,
             ]
         );
@@ -44,7 +45,7 @@ class AttendanceController extends Controller
     public function show(User $user)
     {
         // Permission check
-        if (!auth()->user()->canAccess($user)) {
+        if (!User::getEffectiveUser()->canAccess($user)) {
             abort(403);
         }
 

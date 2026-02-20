@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Survey;
+use App\Models\User;
 
 class MembershipController extends Controller
 {
@@ -12,7 +13,7 @@ class MembershipController extends Controller
      */
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
 
         // Get all members this user is allowed to see
         if ($user->designation === 'staff') {
@@ -50,7 +51,7 @@ class MembershipController extends Controller
     public function show(Survey $patient)
     {
         // Check access
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
             abort(403);
         }
@@ -68,7 +69,7 @@ class MembershipController extends Controller
     public function register(Request $request, Survey $patient)
     {
         // Check access
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
             abort(403);
         }

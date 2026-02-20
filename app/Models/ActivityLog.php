@@ -67,6 +67,13 @@ class ActivityLog extends Model
      */
     public static function logActivity($action, $userId = null, $performedBy = null, $description = null, $modelType = null, $modelId = null, $oldValues = null, $newValues = null)
     {
+        if (!$performedBy && class_exists(User::class)) {
+            $effectiveUser = User::getEffectiveUser();
+            if ($effectiveUser) {
+                $performedBy = $effectiveUser->id;
+            }
+        }
+
         return self::create([
             'user_id' => $userId,
             'performed_by' => $performedBy ?? auth()->id(),

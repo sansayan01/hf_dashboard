@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Models\MedicineCategory;
+use App\Models\User;
 
 class InventoryController extends Controller
 {
@@ -25,7 +26,8 @@ class InventoryController extends Controller
      */
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
+        $currentUser = auth()->user(); // Still needed for some specific logic
         $selectedWarehouseId = $this->resolveSelectedWarehouseId($user, $request);
 
         // Retroactive fix: Ensure all active stocks have a sponsor_id
@@ -112,7 +114,7 @@ class InventoryController extends Controller
      */
     public function exportBatchInventory(Request $request)
     {
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
         $selectedWarehouseId = $this->resolveSelectedWarehouseId($user, $request);
         $stocks = $this->getAggregatedStocks($request, $selectedWarehouseId);
 
@@ -611,7 +613,7 @@ class InventoryController extends Controller
      */
     public function dispense($patientId = null)
     {
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
         $patient = $patientId ? Survey::findOrFail($patientId) : null;
         $allowedIds = $user->getDataVisibilityIds();
         $patients = Survey::whereIn('created_by', $allowedIds)->orderBy('full_name')->get();
@@ -1086,8 +1088,12 @@ class InventoryController extends Controller
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
-    private function resolveSelectedWarehouseId($user, Request $request)
+    public function resolveSelectedWarehouseId(User $user, Request $request)
     {
+        // Use effective user if it's different (mimicry)
+        $user = User::getEffectiveUser();
+
+        $selectedWarehouseId = $request->get('warehouse_id');
         if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
             return $user->camp_id;
         } elseif ($request->has('warehouse_id') && $request->warehouse_id != '') {

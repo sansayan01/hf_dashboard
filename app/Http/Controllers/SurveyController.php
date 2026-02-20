@@ -16,7 +16,7 @@ class SurveyController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = User::getEffectiveUser();
 
 
         // Get all members this user is allowed to see data for
@@ -142,10 +142,10 @@ class SurveyController extends Controller
      */
     public function store(Request $request)
     {
-        $currentUser = Auth::user();
+        $user = User::getEffectiveUser();
 
         // Permission check
-        if (!$currentUser->isSuperAdmin() && !RolePermission::check($currentUser->designation, 'can_create_surveys')) {
+        if (!$user->isSuperAdmin() && !RolePermission::check($user->designation, 'can_create_surveys')) {
             abort(403, 'Unauthorized: You do not have permission to create surveys.');
         }
 
@@ -171,12 +171,12 @@ class SurveyController extends Controller
         }
         $healthIssues = implode(', ', $healthIssuesArr) ?: 'Normal';
 
-        $createdBy = $currentUser->id;
+        $createdBy = $user->id;
         if ($request->filled('created_by_user')) {
             $targetUser = User::findOrFail($request->created_by_user);
 
             // Authorization Check: Target must be in requester's downline or be themselves
-            if ($targetUser->id !== $currentUser->id && !$currentUser->canAccess($targetUser)) {
+            if ($targetUser->id !== $user->id && !$user->canAccess($targetUser)) {
                 abort(403, 'Unauthorized: You can only create surveys for your own team members.');
             }
             $createdBy = $targetUser->id;

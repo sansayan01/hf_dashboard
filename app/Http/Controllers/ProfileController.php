@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
 use App\Models\RolePermission;
+use App\Models\User;
 
 class ProfileController extends Controller
 {
@@ -16,7 +17,7 @@ class ProfileController extends Controller
      */
     public function edit()
     {
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
         $is_admin = $user->isSuperAdmin();
 
         if ($is_admin) {
@@ -73,7 +74,8 @@ class ProfileController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
+        $user = User::getEffectiveUser();
+        $user->update([
             'password' => Hash::make($request->password),
         ]);
 
@@ -85,7 +87,7 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
-        $user = auth()->user();
+        $user = User::getEffectiveUser();
 
         if (!$user->canEdit($user)) {
             abort(403, 'Permission denied: You do not have permission to edit your profile.');
