@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\AIService;
+use App\Services\OpenClawService;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Survey;
@@ -13,10 +14,12 @@ use Illuminate\Support\Facades\Log;
 class AIController extends Controller
 {
     protected $aiService;
+    protected $openClawService;
 
-    public function __construct(AIService $aiService)
+    public function __construct(AIService $aiService, OpenClawService $openClawService)
     {
         $this->aiService = $aiService;
+        $this->openClawService = $openClawService;
     }
 
     public function chat(Request $request)
@@ -43,63 +46,74 @@ class AIController extends Controller
             $this->augmentContext($request, $user, $context);
 
             $apiKey = config('services.openrouter.api_key');
-            if (!$apiKey) {
-                return response()->stream(function () {
-                    echo "API Key missing in .env. Please configure OPENROUTER_API_KEY.";
-                    if (ob_get_level() > 0)
-                        ob_flush();
-                    flush();
-                }, 200, ['Content-Type' => 'text/event-stream']);
-            }
+            $useOpenClaw = config('openclaw.token') && class_exists(OpenClawService::class);
 
-            return response()->stream(function () use ($request, $context) {
-                try {
-                    // Disable output buffering if possible to ensure real-time streaming
-                    if (function_exists('apache_setenv')) {
-                        @apache_setenv('no-gzip', 1);
-                    }
-                    @ini_set('zlib.output_compression', 0);
-                    @ini_set('implicit_flush', 1);
-                    set_time_limit(300); // Allow longer execution for AI response
+            if ($useOpenClaw) {
+                // Use OpenClaw gateway
+                $sessionId = session()->getId() ?? uniqid('chat_', true);
+                $senderId = 'user_' . $user->id;
 
-                    $response = $this->aiService->stream($request->message, $context);
+                return $this->openClawService->stream($request->message, $context, $sessionId, $senderId);
+            } else {
+                // Fallback to OpenRouter direct
+                if (!$apiKey) {
+                    return response()->stream(function () {
+                        echo "API Key missing in .env. Please configure OPENROUTER_API_KEY or set up OpenClaw.";
+                        if (ob_get_level() > 0)
+                            ob_flush();
+                        flush();
+                    }, 200, ['Content-Type' => 'text/event-stream']);
+                }
 
-                    if (!$response->successful()) {
-                        Log::error("OpenRouter Stream Error: " . $response->status() . " - " . $response->body());
-                        echo "Error: Could not connect to the AI model. Please try again later.";
-                        return;
-                    }
+                return response()->stream(function () use ($request, $context) {
+                    try {
+                        // Disable output buffering if possible to ensure real-time streaming
+                        if (function_exists('apache_setenv')) {
+                            @apache_setenv('no-gzip', 1);
+                        }
+                        @ini_set('zlib.output_compression', 0);
+                        @ini_set('implicit_flush', 1);
+                        set_time_limit(300); // Allow longer execution for AI response
 
-                    $body = $response->toPsrResponse()->getBody();
+                        $response = $this->aiService->stream($request->message, $context);
 
-                    while (!$body->eof()) {
-                        $line = $this->readLine($body);
-                        if (empty($line))
-                            continue;
+                        if (!$response->successful()) {
+                            Log::error("OpenRouter Stream Error: " . $response->status() . " - " . $response->body());
+                            echo "Error: Could not connect to the AI model. Please try again later.";
+                            return;
+                        }
 
-                        if (str_starts_with($line, 'data: ')) {
-                            $json = substr($line, 6);
-                            if ($json === '[DONE]')
-                                break;
+                        $body = $response->toPsrResponse()->getBody();
 
-                            $data = json_decode($json, true);
-                            if (isset($data['choices'][0]['delta']['content'])) {
-                                echo $data['choices'][0]['delta']['content'];
-                                if (ob_get_level() > 0)
-                                    ob_flush();
+                        while (!$body->eof()) {
+                            $line = $this->readLine($body);
+                            if (empty($line))
+                                continue;
+
+                            if (str_starts_with($line, 'data: ')) {
+                                $json = substr($line, 6);
+                                if ($json === '[DONE]')
+                                    break;
+
+                                $data = json_decode($json, true);
+                                if (isset($data['choices'][0]['delta']['content'])) {
+                                    echo $data['choices'][0]['delta']['content'];
+                                    if (ob_get_level() > 0)
+                                        ob_flush();
+                                }
                             }
                         }
+                    } catch (\Exception $e) {
+                        Log::error("AI Chat Stream Exception: " . $e->getMessage());
+                        echo "An error occurred during communication.";
                     }
-                } catch (\Exception $e) {
-                    Log::error("AI Chat Stream Exception: " . $e->getMessage());
-                    echo "An error occurred during communication.";
-                }
-            }, 200, [
-                'Cache-Control' => 'no-cache',
-                'Content-Type' => 'text/event-stream',
-                'X-Accel-Buffering' => 'no',
-                'Connection' => 'keep-alive',
-            ]);
+                }, 200, [
+                    'Cache-Control' => 'no-cache',
+                    'Content-Type' => 'text/event-stream',
+                    'X-Accel-Buffering' => 'no',
+                    'Connection' => 'keep-alive',
+                ]);
+            }
         } catch (\Exception $e) {
             Log::error("AI Chat Controller Exception: " . $e->getMessage());
             return response()->json(['error' => 'An error occurred.'], 500);
