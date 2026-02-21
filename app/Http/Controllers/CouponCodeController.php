@@ -246,7 +246,7 @@ class CouponCodeController extends Controller
                     $coupon->designation ?? 'Any',
                     $coupon->original_amount ? '₹' . $coupon->original_amount : 'N/A',
                     $coupon->is_used ? 'Used' : 'Unused',
-                    $coupon->usedBy ? $coupon->usedBy->profile->full_name : '',
+                    $coupon->usedBy ? ($coupon->usedBy->profile->full_name ?? $coupon->usedBy->email ?? 'User') : '',
                     $coupon->used_at ? $coupon->used_at->format('Y-m-d H:i:s') : '',
                     $coupon->expires_at ? $coupon->expires_at->format('Y-m-d') : 'Never',
                     $coupon->notes ?? '',

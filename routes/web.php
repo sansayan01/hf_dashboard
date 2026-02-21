@@ -59,6 +59,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
         // Joining Letter
         Route::get('/{user}/joining-letter', [UserController::class, 'joiningLetter'])->name('joining-letter');
+        Route::post('/{user}/upload-signed-letter', [UserController::class, 'uploadSignedOfferLetter'])->name('upload-signed-letter');
         Route::match(['get', 'post'], '/bulk-print-selection', [UserController::class, 'bulkPrintSelection'])->name('bulk-print-selection');
         Route::match(['get', 'post'], '/bulk-offer-letters', [UserController::class, 'bulkOfferLetters'])->name('bulk-offer-letters');
         Route::match(['get', 'post'], '/printable-offer-letters', [UserController::class, 'printableOfferLetters'])->name('printable-offer-letters');

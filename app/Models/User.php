@@ -48,10 +48,15 @@ class User extends Authenticatable
         parent::boot();
 
         static::deleted(function ($user) {
-            // When soft-deleted, change employee_id to free up the original ID for gap-filling
-            // We use a prefix that won't conflict with regular IDs
-            $user->employee_id = 'TRASH_' . $user->employee_id . '_' . now()->timestamp;
-            $user->save();
+            // ONLY run this for soft deletes, not for permanent force deletes
+            // If we save a model after forceDelete, Laravel re-inserts it!
+            if (!$user->isForceDeleting()) {
+                // Ensure we don't prepend TRASH_ multiple times if the event fires twice
+                if (strpos($user->employee_id, 'TRASH_') !== 0) {
+                    $user->employee_id = 'TRASH_' . $user->employee_id . '_' . now()->timestamp;
+                    $user->saveQuietly();
+                }
+            }
         });
 
         static::restoring(function ($user) {
@@ -85,6 +90,7 @@ class User extends Authenticatable
         'payment_status',
         'payment_reference',
         'camp_id',
+        'offer_letter_signed',
     ];
 
     /**

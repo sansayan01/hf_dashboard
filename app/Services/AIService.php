@@ -96,7 +96,7 @@ class AIService
                 'HTTP-Referer' => config('app.url', 'http://localhost'),
                 'X-Title' => config('app.name', 'Humanity Foundation'),
                 'Content-Type' => 'application/json',
-            ])->timeout(45)->post($this->baseUrl . '/chat/completions', [
+            ])->timeout(20)->post($this->baseUrl . '/chat/completions', [
                         'model' => $visionModel,
                         'messages' => [
                             [

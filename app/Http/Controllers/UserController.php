@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserApproved;
+use App\Mail\OfferLetterToUpline;
+use App\Mail\NewbieInvitation;
 use App\Services\AIService;
+use App\Services\WhatsAppService;
 
 class UserController extends Controller
 {
@@ -669,6 +672,9 @@ class UserController extends Controller
 
             DB::commit();
 
+            // Registration Notifications - Dispatched after response to keep UI fast
+            \App\Jobs\RegistrationNotificationJob::dispatchAfterResponse($newUser->id);
+
             return redirect()->route('users.show', $newUser->id)
                 ->with('success', 'Registration Successful! Your account is now under review. Once the administration approves your profile, your account will be activated. You will then receive a formal notification containing your generated Employee ID, secure login password, and official Joining Letter.');
 
@@ -1064,17 +1070,17 @@ class UserController extends Controller
             'approved',
             $user->id,
             $currentUser->id,
-            "Approved user: {$user->profile->full_name}",
+            "Approved user: " . ($user->profile->full_name ?? $user->email ?? 'Unknown'),
             'User',
             $user->id
         );
 
-        // Send Approval Email
+        // Send Approval Email & WhatsApp Invitation
         try {
-            Mail::to($user->email)->send(new UserApproved($user, $currentUser));
+            // Notifications - Dispatched after response to keep UI fast
+            \App\Jobs\ApprovalNotificationJob::dispatchAfterResponse($user->id, $currentUser->id);
         } catch (\Exception $e) {
-            \Log::error('Failed to send approval email: ' . $e->getMessage());
-            // We don't stop the approval process if email fails, but we log it.
+            \Log::error('Failed to send approval notifications: ' . $e->getMessage());
         }
 
         return back()->with('success', 'User approved successfully.');
@@ -1134,7 +1140,7 @@ class UserController extends Controller
                     'action' => 'approved',
                     'user_id' => $user->id,
                     'performed_by' => $currentUser->id,
-                    'description' => "Approved user (Bulk): {$user->profile->full_name}",
+                    'description' => "Approved user (Bulk): " . ($user->profile->full_name ?? $user->email ?? 'Unknown'),
                     'model_type' => 'User',
                     'model_id' => $user->id,
                     'created_at' => $now,
@@ -1196,7 +1202,7 @@ class UserController extends Controller
             'deleted',
             $user->id,
             $currentUser->id,
-            "Moved user to BIN: {$user->profile->full_name}",
+            "Moved user to BIN: " . ($user->profile->full_name ?? $user->email ?? 'Unknown'),
             'User',
             $user->id
         );
@@ -1255,7 +1261,7 @@ class UserController extends Controller
             'restored',
             $user->id,
             $currentUser->id,
-            "Restored user from BIN: {$user->profile->full_name}",
+            "Restored user from BIN: " . ($user->profile->full_name ?? $user->email ?? 'Unknown'),
             'User',
             $user->id
         );
@@ -1281,7 +1287,7 @@ class UserController extends Controller
             Storage::disk('public')->delete($user->profile->profile_picture);
         }
 
-        $userName = $user->profile->full_name;
+        $userName = $user->profile->full_name ?? $user->email ?? 'Unknown User';
         $user->forceDelete();
 
         // Log activity
@@ -1460,7 +1466,7 @@ class UserController extends Controller
             'oic_toggle',
             $user->id,
             $currentUser->id,
-            "User {$user->profile->full_name} was {$statusLabel} Officer in Charge.",
+            "User " . ($user->profile->full_name ?? 'Unknown') . " was {$statusLabel} Officer in Charge.",
             'User',
             $user->id
         );
@@ -1518,5 +1524,53 @@ class UserController extends Controller
 
         $id = User::generateEmployeeId($designation);
         return response()->json(['id' => $id]);
+    }
+
+    /**
+     * Upload signed offer letter by Upline
+     */
+    public function uploadSignedOfferLetter(Request $request, $id)
+    {
+        $request->validate([
+            'signed_letter' => 'required|file|mimes:pdf|max:10240',
+        ]);
+
+        $currentUser = auth()->user();
+        $user = User::findOrFail($id);
+
+        // Access check: only upline can upload
+        if ($user->parent_id !== $currentUser->id && !$currentUser->isSuperAdmin()) {
+            abort(403, 'Unauthorized access');
+        }
+
+        if ($request->hasFile('signed_letter')) {
+            $path = $request->file('signed_letter')->store('signed_letters', 'public');
+            $user->update(['offer_letter_signed' => $path]);
+
+            // Notify Super Admin (log + potentially email/wa)
+            ActivityLog::logActivity(
+                'uploaded_signed_letter',
+                $user->id,
+                $currentUser->id,
+                "Uploaded signed offer letter for: " . ($user->profile->full_name ?? $user->email ?? 'Unknown'),
+                'User',
+                $user->id
+            );
+
+            // Optional: Send WhatsApp/Email to SA
+            try {
+                $sa = User::where('designation', 'super_admin')->first();
+                if ($sa) {
+                    $whatsApp = app(WhatsAppService::class);
+                    $whatsApp->sendMessage($sa->profile->phone_number ?? '', "New Signed Offer Letter Uploaded!\n\nUpline: " . ($currentUser->profile->full_name ?? 'Staff') . "\nNewbie: " . ($user->profile->full_name ?? 'Member') . "\n\nPlease review and approve.");
+                }
+            } catch (\Exception $e) {
+                \Log::error('SA Notification Failed: ' . $e->getMessage());
+            }
+
+            return back()->with('success', 'Signed offer letter uploaded successfully. Admins have been notified.');
+        }
+
+        return back()->with('error', 'Failed to upload file.');
     }
 }

@@ -26,17 +26,27 @@
         }
 
         /* Reset & Base */
+        @page {
+            margin: 0;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html,
         body {
-            background-color:
-                {{ $is_pdf ? '#ffffff' : '#e2e8f0' }}
-            ;
-            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            @if ($is_pdf)
+                background-color: #ffffff;
+            @else background-color: #e2e8f0;
+            @endif color: var(--text-main);
             font-family:
                 {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Inter', sans-serif" }}
             ;
@@ -52,24 +62,17 @@
 
         /* Page Container */
         .letter-page {
-            width:
-                {{ $is_pdf ? '100%' : '210mm' }}
-            ;
-            height:
-                {{ $is_pdf ? 'auto' : '296.8mm' }}
-            ;
-            /* A4 Height */
+            width: 210mm;
+            height: 296mm;
             background: white;
             position: relative;
             overflow: hidden;
             @if (!$is_pdf)
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            @endif
-            /* Optimized padding for coverage */
-            padding: 10mm 15mm;
+            @endif padding: 8mm 12mm;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
         }
 
         /* Typography Override for Headings */
@@ -89,16 +92,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 3px solid var(--brand-green);
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            border-bottom: 2px solid var(--brand-green);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
             flex-shrink: 0;
             position: relative;
         }
 
         .header-logo {
-            width: 110px;
-            /* Significantly larger */
+            width: 90px;
             height: auto;
         }
 
@@ -109,14 +111,13 @@
         }
 
         .brand-name {
-            font-size: 32px;
-            /* Much larger */
+            font-size: 28px;
             font-weight: 800;
             color: var(--brand-green);
             text-transform: uppercase;
             letter-spacing: -1px;
             line-height: 1;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .brand-sub {
@@ -141,9 +142,9 @@
         .recipient-box {
             background: var(--bg-light);
             border-left: 5px solid var(--brand-green);
-            padding: 12px 18px;
+            padding: 10px 15px;
             border-radius: 0 6px 6px 0;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -175,11 +176,10 @@
 
         /* Content Body */
         .content-body {
-            font-size: 14.5px;
-            /* Increased for better visibility */
-            line-height: 1.65;
+            font-size: 14px;
+            line-height: 1.5;
             text-align: justify;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             color: #334155;
             font-weight: 500;
             flex-grow: 0;
@@ -201,24 +201,22 @@
         .terms-container {
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            padding: 15px;
+            padding: 10px 12px;
             background: #fff;
-            flex-grow: 1;
-            /* Fills remaining space */
+            flex-grow: 0;
             display: flex;
             flex-direction: column;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .terms-title {
-            font-size: 16px;
-            /* Increased */
+            font-size: 14px;
             font-weight: 800;
             color: var(--brand-red);
             text-transform: uppercase;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 4px;
             letter-spacing: 0.5px;
         }
 
@@ -230,14 +228,10 @@
         }
 
         .term-item {
-            font-size: 12px;
-            line-height:
-                {{ $user->isRO() ? '1.6' : '1.35' }}
-            ;
+            font-size: 10.5px;
+            line-height: 1.25;
             color: var(--text-muted);
-            margin-bottom:
-                {{ $user->isRO() ? '8px' : '3px' }}
-            ;
+            margin-bottom: 1.5px;
             padding-left: 0;
             display: flex;
             align-items: flex-start;
@@ -252,9 +246,14 @@
 
         /* Footer */
         .footer {
-            margin-top: auto;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 15px;
+            @if ($is_pdf)
+                position: absolute;
+                bottom: 8mm;
+                left: 12mm;
+                right: 12mm;
+            @else margin-top: auto;
+            @endif border-top: 1px solid #e2e8f0;
+            padding-top: 5px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -272,8 +271,8 @@
         }
 
         .signature-img {
-            height: 45px;
-            margin-bottom: 5px;
+            height: 35px;
+            margin-bottom: 3px;
         }
 
         .auth-line {
@@ -608,8 +607,16 @@
                     margin: 0,
                     filename: '{{ $user->profile?->full_name ?? "Offer_Letter" }}_{{ $user->employee_id }}.pdf',
                     image: { type: 'jpeg', quality: 1.0 },
-                    html2canvas: { scale: 5, useCORS: true, logging: false, letterRendering: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    html2canvas: {
+                        scale: 3,
+                        useCORS: true,
+                        logging: false,
+                        letterRendering: true,
+                        windowHeight: element.scrollHeight,
+                        y: 0
+                    },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: 'avoid-all' }
                 };
                 html2pdf().set(opt).from(element).save();
             }
