@@ -19,7 +19,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 
     <!-- Mediapipe AI (Super-Lightweight Background Removal) -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"
+        crossorigin="anonymous"></script>
 
 
 
@@ -303,226 +304,227 @@
             border-radius: 50%;
             background: conic-gradient(from var(--nav-ring-angle, 0deg), #6366f1, #8b5cf6, #ec4899, #f59e0b, #10b981, #6366f1);
             animation: nav-ring-spin 1.8s linear infinite, nav-ring-glow 3s ease-in-out infinite alternate;
-
             box-shadow: 0 0 10px 2px rgba(99, 102, 241, 0.55),
-            0 0 22px 5px rgba(139, 92, 246, 0.3),
-            @keyframes nav-ring-spin {
-                from {
-                    --nav-ring-angle: 0deg;
-                }
+                0 0 22px 5px rgba(139, 92, 246, 0.3);
+        }
 
-                to {
-                    --nav-ring-angle: 360deg;
-                }
+        @keyframes nav-ring-spin {
+            from {
+                --nav-ring-angle: 0deg;
             }
 
-            @keyframes nav-ring-glow {
-                from {
-                    box-shadow:
-                        0 0 10px 2px rgba(99, 102, 241, 0.65),
-                        0 0 22px 5px rgba(139, 92, 246, 0.35),
-                        0 0 40px 8px rgba(236, 72, 153, 0.2);
-                }
+            to {
+                --nav-ring-angle: 360deg;
+            }
+        }
 
-                to {
-                    box-shadow:
-                        0 0 14px 4px rgba(236, 72, 153, 0.65),
-                        0 0 30px 8px rgba(245, 158, 11, 0.35),
-                        0 0 55px 12px rgba(16, 185, 129, 0.2);
-                }
+        @keyframes nav-ring-glow {
+            from {
+                box-shadow:
+                    0 0 10px 2px rgba(99, 102, 241, 0.65),
+                    0 0 22px 5px rgba(139, 92, 246, 0.35),
+                    0 0 40px 8px rgba(236, 72, 153, 0.2);
             }
 
-            .nav-avatar-ring img,
-            .nav-avatar-ring>div {
-                filter: none !important;
+            to {
+                box-shadow:
+                    0 0 14px 4px rgba(236, 72, 153, 0.65),
+                    0 0 30px 8px rgba(245, 158, 11, 0.35),
+                    0 0 55px 12px rgba(16, 185, 129, 0.2);
+            }
+        }
+
+        .nav-avatar-ring img,
+        .nav-avatar-ring>div {
+            filter: none !important;
+        }
+
+        /* ===== Theme Toggle — Glassmorphic Orb ===== */
+        .theme-orb-wrap {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+        }
+
+        /* Spinning arc ring — sits BEHIND the button */
+        .theme-orb-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background: conic-gradient(transparent 55%, rgba(251, 191, 36, 0.65) 75%, transparent 95%);
+            animation: orb-ring-spin 2.5s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .theme-orb-wrap:hover::before {
+            opacity: 1;
+        }
+
+        .theme-orb-wrap.dark-mode::before {
+            background: conic-gradient(transparent 55%, rgba(99, 102, 241, 0.7) 75%, transparent 95%);
+        }
+
+        @keyframes orb-ring-spin {
+            from {
+                transform: rotate(0deg);
             }
 
-            /* ===== Theme Toggle — Glassmorphic Orb ===== */
-            .theme-orb-wrap {
-                position: relative;
-                width: 42px;
-                height: 42px;
-                flex-shrink: 0;
+            to {
+                transform: rotate(360deg);
             }
+        }
 
-            /* Spinning arc ring — sits BEHIND the button */
-            .theme-orb-wrap::before {
-                content: '';
-                position: absolute;
-                inset: -3px;
-                border-radius: 50%;
-                background: conic-gradient(transparent 55%, rgba(251, 191, 36, 0.65) 75%, transparent 95%);
-                animation: orb-ring-spin 2.5s linear infinite;
+        /* The button itself */
+        .theme-orb {
+            position: relative;
+            z-index: 1;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            outline: none;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            transition: background 0.4s ease, border-color 0.4s ease,
+                box-shadow 0.4s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            perspective: 400px;
+            overflow: visible;
+        }
+
+        .theme-orb-wrap:hover .theme-orb {
+            transform: scale(1.1);
+            box-shadow:
+                0 0 0 5px rgba(251, 191, 36, 0.12),
+                0 0 18px rgba(251, 191, 36, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .theme-orb-wrap:active .theme-orb {
+            transform: scale(0.92);
+        }
+
+        /* Dark state */
+        .theme-orb-wrap.dark-mode .theme-orb {
+            background: rgba(99, 102, 241, 0.18);
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-orb-wrap.dark-mode:hover .theme-orb {
+            transform: scale(1.1);
+            box-shadow:
+                0 0 0 5px rgba(99, 102, 241, 0.15),
+                0 0 18px rgba(99, 102, 241, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* Icon flip wrapper */
+        .theme-orb-inner {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.5s cubic-bezier(0.68, -0.15, 0.32, 1.15);
+            transform-style: preserve-3d;
+        }
+
+        .theme-orb-wrap.flipping .theme-orb-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Sun & Moon icons — JS controls display directly */
+        .theme-orb .t-sun,
+        .theme-orb .t-moon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+        }
+
+        /* Ripple */
+        .theme-orb-ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            opacity: 0.6;
+            animation: orb-ripple 0.55s ease-out forwards;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes orb-ripple {
+            to {
+                transform: scale(3.5);
                 opacity: 0;
-                transition: opacity 0.3s ease;
-                z-index: 0;
             }
+        }
 
-            .theme-orb-wrap:hover::before {
-                opacity: 1;
-            }
+        /* ===== Full-page liquid spread overlay ===== */
+        #theme-liquid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            pointer-events: none;
+            clip-path: circle(0px at 50% 50%);
+            transition: clip-path 1.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            will-change: clip-path;
+        }
 
-            .theme-orb-wrap.dark-mode::before {
-                background: conic-gradient(transparent 55%, rgba(99, 102, 241, 0.7) 75%, transparent 95%);
-            }
+        #theme-liquid-overlay.spreading {
+            clip-path: circle(200vmax at var(--ox, 50%) var(--oy, 50%));
+        }
 
-            @keyframes orb-ring-spin {
-                from {
-                    transform: rotate(0deg);
-                }
+        /* Subtle wavy inner shimmer */
+        #theme-liquid-overlay::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at var(--ox, 50%) var(--oy, 50%),
+                    rgba(255, 255, 255, 0.12) 0%,
+                    transparent 65%);
+        }
 
-                to {
-                    transform: rotate(360deg);
-                }
-            }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
 
-            /* The button itself */
-            .theme-orb {
-                position: relative;
-                z-index: 1;
-                width: 42px;
-                height: 42px;
-                border-radius: 50%;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                cursor: pointer;
-                outline: none;
-                padding: 0;
-                background: rgba(255, 255, 255, 0.18);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-                transition: background 0.4s ease, border-color 0.4s ease,
-                    box-shadow 0.4s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-                perspective: 400px;
-                overflow: visible;
-            }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
 
-            .theme-orb-wrap:hover .theme-orb {
-                transform: scale(1.1);
-                box-shadow:
-                    0 0 0 5px rgba(251, 191, 36, 0.12),
-                    0 0 18px rgba(251, 191, 36, 0.4),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-            }
+        .sidebar-active {
+            background: linear-gradient(90deg, rgba(60, 80, 224, 0.15) 0%, rgba(60, 80, 224, 0) 100%);
+            border-left: 3px solid #3C50E0;
+        }
 
-            .theme-orb-wrap:active .theme-orb {
-                transform: scale(0.92);
-            }
+        .dark .sidebar-active {
+            background: linear-gradient(90deg, rgba(60, 80, 224, 0.2) 0%, rgba(60, 80, 224, 0) 100%);
+            border-left: 3px solid #3C50E0;
+        }
 
-            /* Dark state */
-            .theme-orb-wrap.dark-mode .theme-orb {
-                background: rgba(99, 102, 241, 0.18);
-                border-color: rgba(99, 102, 241, 0.35);
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            }
+        .sidebar {
+            transition: all 0.3s ease;
+        }
 
-            .theme-orb-wrap.dark-mode:hover .theme-orb {
-                transform: scale(1.1);
-                box-shadow:
-                    0 0 0 5px rgba(99, 102, 241, 0.15),
-                    0 0 18px rgba(99, 102, 241, 0.5),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            }
-
-            /* Icon flip wrapper */
-            .theme-orb-inner {
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: transform 0.5s cubic-bezier(0.68, -0.15, 0.32, 1.15);
-                transform-style: preserve-3d;
-            }
-
-            .theme-orb-wrap.flipping .theme-orb-inner {
-                transform: rotateY(180deg);
-            }
-
-            /* Sun & Moon icons — JS controls display directly */
-            .theme-orb .t-sun,
-            .theme-orb .t-moon {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
-            }
-
-            /* Ripple */
-            .theme-orb-ripple {
-                position: absolute;
-                border-radius: 50%;
-                transform: scale(0);
-                opacity: 0.6;
-                animation: orb-ripple 0.55s ease-out forwards;
-                pointer-events: none;
-                z-index: 2;
-            }
-
-            @keyframes orb-ripple {
-                to {
-                    transform: scale(3.5);
-                    opacity: 0;
-                }
-            }
-
-            /* ===== Full-page liquid spread overlay ===== */
-            #theme-liquid-overlay {
-                position: fixed;
-                inset: 0;
-                z-index: 99999;
-                pointer-events: none;
-                clip-path: circle(0px at 50% 50%);
-                transition: clip-path 1.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-                will-change: clip-path;
-            }
-
-            #theme-liquid-overlay.spreading {
-                clip-path: circle(200vmax at var(--ox, 50%) var(--oy, 50%));
-            }
-
-            /* Subtle wavy inner shimmer */
-            #theme-liquid-overlay::after {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: radial-gradient(ellipse at var(--ox, 50%) var(--oy, 50%),
-                        rgba(255, 255, 255, 0.12) 0%,
-                        transparent 65%);
-            }
-
-            .sidebar-scroll::-webkit-scrollbar {
-                width: 4px;
-            }
-
-            .sidebar-scroll::-webkit-scrollbar-thumb {
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 10px;
-            }
-
-            .sidebar-active {
-                background: linear-gradient(90deg, rgba(60, 80, 224, 0.15) 0%, rgba(60, 80, 224, 0) 100%);
-                border-left: 3px solid #3C50E0;
-            }
-
-            .dark .sidebar-active {
-                background: linear-gradient(90deg, rgba(60, 80, 224, 0.2) 0%, rgba(60, 80, 224, 0) 100%);
-                border-left: 3px solid #3C50E0;
-            }
-
+        @media (max-width: 1024px) {
             .sidebar {
-                transition: all 0.3s ease;
+                transform: translateX(-100%);
             }
 
-            @media (max-width: 1024px) {
-                .sidebar {
-                    transform: translateX(-100%);
-                }
-
-                .sidebar.show {
-                    transform: translateX(0);
-                }
+            .sidebar.show {
+                transform: translateX(0);
             }
+        }
     </style>
     <script>
         // On page load or when changing themes, best to add inline in `head` to avoid FOUC
@@ -1031,17 +1033,17 @@
                 text: "{{ session('success') }}",
                 ...getSwalConfig(),
                 @if(session('view_appointment_url'))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 @endif
-                                                                                                                                                                                                                                                                                                                }).then((result) => {
+                                                                                                                                                                                                                                                                                                                    }).then((result) => {
                     @if(session('view_appointment_url'))
                         if (result.isDenied) {
                             window.location.href = "{{ session('view_appointment_url') }}";
                         }
                     @endif
-                                                                                                                                                                                                                                                                                                                });
+                                                                                                                                                                                                                                                                                                                    });
         @endif
 
         @if(session('error'))
