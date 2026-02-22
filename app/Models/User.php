@@ -374,7 +374,7 @@ class User extends Authenticatable
                 $q->where('designation', 'hs')
                     ->orWhereIn('parent_id', $saRoleIds);
             })
-                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'staff'])
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'camp_organizer', 'staff'])
                 ->get();
         }
 
@@ -389,13 +389,13 @@ class User extends Authenticatable
                 $q->where('designation', 'hs')
                     ->orWhereIn('parent_id', $saRoleIds);
             })
-                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'staff'])
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'camp_organizer', 'staff'])
                 ->get();
         }
 
         // Standard behavior: Return direct children but exclude admins
         return $this->children()
-            ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'staff'])
+            ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'camp_organizer', 'staff'])
             ->get();
     }
 
@@ -407,7 +407,7 @@ class User extends Authenticatable
                 $q->where('designation', 'hs')
                     ->orWhereIn('parent_id', $saRoleIds);
             })
-                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'staff'])
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'camp_organizer', 'staff'])
                 ->count();
         }
 
