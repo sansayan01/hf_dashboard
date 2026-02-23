@@ -183,6 +183,48 @@ class User extends Authenticatable
         return $this->hasMany(Attendance::class);
     }
 
+    // Incentive Configs
+    public function incentiveConfigs()
+    {
+        return $this->hasMany(IncentiveConfig::class);
+    }
+
+    /**
+     * Get current incentive and TA for the user
+     */
+    public function getCurrentIncentive()
+    {
+        $today = now()->toDateString();
+
+        // 1. Check user-specific override
+        $specific = $this->incentiveConfigs()
+            ->where('effective_from', '<=', $today)
+            ->orderBy('effective_from', 'desc')
+            ->first();
+
+        if ($specific) {
+            return $specific;
+        }
+
+        // 2. Check designation-based global default
+        $designationDefault = IncentiveConfig::whereNull('user_id')
+            ->where('designation', $this->designation)
+            ->where('effective_from', '<=', $today)
+            ->orderBy('effective_from', 'desc')
+            ->first();
+
+        if ($designationDefault) {
+            return $designationDefault;
+        }
+
+        // 3. Fallback to general global default (where user_id AND designation are null)
+        return IncentiveConfig::whereNull('user_id')
+            ->whereNull('designation')
+            ->where('effective_from', '<=', $today)
+            ->orderBy('effective_from', 'desc')
+            ->first();
+    }
+
     // Today's attendance
     public function todayAttendance()
     {

@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Services\IncentiveService;
 
 class MedicineDistributionController extends Controller
 {
@@ -215,6 +216,10 @@ class MedicineDistributionController extends Controller
             $distribution->save();
 
             DB::commit();
+
+            // Automate Incentive and Attendance
+            // The incentive goes to the person who registered the patient (RO)
+            app(IncentiveService::class)->applyIncentive($distribution->patient->creator, 'medicines', $distribution->final_amount);
 
             return response()->json([
                 'success' => true,

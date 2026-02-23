@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\IncentiveConfigController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -153,6 +154,9 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         }
     });
 
+    // Admin Control Panel (Super Admin Only)
+    Route::get('/admin/control-panel', [App\Http\Controllers\AdminPanelController::class, 'index'])->name('admin.control-panel');
+
     // Profile Settings
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
@@ -161,8 +165,18 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
     // Attendance Management
     Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('/mark', [AttendanceController::class, 'index'])->name('mark');
         Route::post('/store', [AttendanceController::class, 'store'])->name('store');
+        Route::get('/my-dashboard', [AttendanceController::class, 'roDashboard'])->name('dashboard');
+        Route::get('/export/report', [AttendanceController::class, 'exportReport'])->name('export-report');
         Route::get('/{user}', [AttendanceController::class, 'show'])->name('show');
+    });
+
+    // Incentive Configuration (Admin Only)
+    Route::middleware(['auth'])->prefix('admin/incentive-configs')->name('admin.incentive-configs.')->group(function () {
+        Route::get('/', [IncentiveConfigController::class, 'index'])->name('index');
+        Route::post('/', [IncentiveConfigController::class, 'store'])->name('store');
+        Route::delete('/{incentiveConfig}', [IncentiveConfigController::class, 'destroy'])->name('destroy');
     });
 
     // AI Assistant
@@ -232,6 +246,13 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/distribution/{id}/edit', [App\Http\Controllers\MedicineDistributionController::class, 'edit'])->name('distribution.edit');
         Route::put('/distribution/{id}', [App\Http\Controllers\MedicineDistributionController::class, 'update'])->name('distribution.update');
         Route::delete('/distribution/{id}', [App\Http\Controllers\MedicineDistributionController::class, 'destroy'])->name('distribution.destroy');
+    });
+
+    // Pathology Tests
+    Route::prefix('pathology')->name('pathology.')->group(function () {
+        Route::get('/create/{patient}', [App\Http\Controllers\PathologyTestController::class, 'create'])->name('create');
+        Route::post('/store', [App\Http\Controllers\PathologyTestController::class, 'store'])->name('store');
+        Route::delete('/{pathologyTest}', [App\Http\Controllers\PathologyTestController::class, 'destroy'])->name('destroy');
     });
 
     // Coupon Code Management (Super Admin Only)

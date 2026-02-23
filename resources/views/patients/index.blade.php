@@ -348,16 +348,14 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="p-6 text-right">
-                                        @if(Auth::id() === $patient->created_by || Auth::user()->canAccess($patient->creator))
-                                            <a href="{{ route('patients.appointments.create', $patient->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 hover:text-white dark:bg-emerald-500/10 dark:hover:bg-emerald-500 text-emerald-500 transition-all border border-emerald-500/10 shadow-sm" title="Schedule Appointment">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                            </a>
-                                        @endif
+                                    <td class="p-6 text-right flex justify-end space-x-2">
+                                        <a href="{{ route('pathology.create', $patient->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-500 transition-all border border-rose-500/10 shadow-sm" title="Record Pathology">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.675.337a4 4 0 01-2.5.467l-3.21.321a2 2 0 00-1.554 1.554l-.321 3.21a2 2 0 001.554 1.554l3.21-.321a2 2 0 001.554-1.554l.321-3.21a2 2 0 00-1.554-1.554z" />
+                                            </svg>
+                                        </a>
                                         @if(Auth::user()->isSuperAdmin() || Auth::user()->designation == 'office_in_charge')
-                                            <a href="{{ route('medicine.distribute', $patient->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500 hover:text-white dark:bg-blue-500/10 dark:hover:bg-blue-500 text-blue-500 transition-all border border-blue-500/10 shadow-sm ml-2" title="Dispense Medicine">
+                                            <a href="{{ route('medicine.distribute', $patient->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500 hover:text-white dark:bg-blue-500/10 dark:hover:bg-blue-500 text-blue-500 transition-all border border-blue-500/10 shadow-sm" title="Dispense Medicine">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                                                 </svg>

@@ -701,22 +701,21 @@ class UserController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $attendances = collect();
-        if ($user->isRO() && ($currentUser->isSuperAdmin() || $currentUser->isRM())) {
-            $month = request('month', date('Y-m'));
-            try {
-                $targetDate = \Carbon\Carbon::createFromFormat('Y-m', $month);
-            } catch (\Exception $e) {
-                $targetDate = now();
-            }
-
+        $attendanceSummary = null;
+        if ($user->isRO() && ($currentUser->isSuperAdmin() || $currentUser->id === $user->parent_id)) {
             $attendances = $user->attendances()
-                ->where('date', '>=', $targetDate->copy()->startOfMonth())
-                ->where('date', '<=', $targetDate->copy()->endOfMonth())
+                ->whereMonth('date', now()->month)
+                ->whereYear('date', now()->year)
                 ->get();
+
+            $attendanceSummary = [
+                'present' => $attendances->where('status', 'present')->count(),
+                'total_amount' => $attendances->sum('total_amount'),
+                'month_name' => now()->format('F'),
+            ];
         }
 
-        return view('users.show', compact('user', 'currentUser', 'attendances'));
+        return view('users.show', compact('user', 'currentUser', 'attendanceSummary'));
     }
 
     /**

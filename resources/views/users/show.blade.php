@@ -461,7 +461,7 @@
                                     @csrf
                                     <button type="submit"
                                         class="btn-action inline-flex items-center gap-2 px-5 py-2.5 font-bold rounded-xl text-xs shadow-lg transition
-                                                                {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
+                                                                        {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -731,6 +731,33 @@
 
             {{-- RIGHT: Sidebar --}}
             <div class="space-y-6">
+
+                {{-- Attendance Summary (Admins/RMs only for ROs) --}}
+                @if($attendanceSummary)
+                    <div class="scroll-reveal relative rounded-3xl p-6 mb-6"
+                        style="background: linear-gradient(135deg, #065f46 0%, #064e3b 100%); box-shadow: 0 20px 60px rgba(6,78,59,0.3), 0 0 0 1px rgba(255,255,255,0.05);">
+                        <h3 class="relative font-black text-white text-lg mb-4 flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <span class="w-2 h-6 rounded-full bg-emerald-400"></span>
+                                {{ $attendanceSummary['month_name'] }} Attendance
+                            </span>
+                            <a href="{{ route('attendance.show', $user->id) }}"
+                                class="text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded-lg transition">FULL LOG</a>
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-white/10 rounded-2xl p-4 border border-white/10 hover:bg-white/15 transition">
+                                <p class="text-[9px] font-black text-emerald-200 uppercase tracking-widest mb-1">Present</p>
+                                <p class="text-2xl font-black text-white">{{ $attendanceSummary['present'] }} <span
+                                        class="text-xs opacity-50 font-medium">Days</span></p>
+                            </div>
+                            <div class="bg-white/10 rounded-2xl p-4 border border-white/10 hover:bg-white/15 transition">
+                                <p class="text-[9px] font-black text-emerald-200 uppercase tracking-widest mb-1">Earning</p>
+                                <p class="text-2xl font-black text-white">
+                                    ₹{{ number_format($attendanceSummary['total_amount']) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- Network Overview --}}
                 @php

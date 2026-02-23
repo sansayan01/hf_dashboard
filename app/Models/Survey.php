@@ -175,4 +175,9 @@ class Survey extends Model
     {
         return $this->hasMany(MedicineDistribution::class, 'patient_id');
     }
+
+    public function pathologyTests()
+    {
+        return $this->hasMany(PathologyTest::class, 'patient_id');
+    }
 }

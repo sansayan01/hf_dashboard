@@ -38,7 +38,6 @@ if (!function_exists('mb_substr')) {
         return substr($string, $start, $length);
     }
 }
-
 if (!function_exists('mb_strpos')) {
     function mb_strpos($haystack, $needle, $offset = 0, $encoding = null)
     {

@@ -306,16 +306,16 @@
                                 const disabled = available <= 0;
 
                                 div.innerHTML = `
-                                                                            <div class="flex items-center justify-between ${disabled ? 'opacity-50' : ''}">
-                                                                                <div>
-                                                                                    <div class="font-bold text-slate-700 dark:text-slate-200">${item.text.split(' - ')[0]}</div>
-                                                                                    <div class="text-[10px] text-slate-400 uppercase font-black tracking-wider">Rate: ₹${item.market_price} / unit • Stock: ${item.available_stock}</div>
+                                                                                <div class="flex items-center justify-between ${disabled ? 'opacity-50' : ''}">
+                                                                                    <div>
+                                                                                        <div class="font-bold text-slate-700 dark:text-slate-200">${item.text.split(' - ')[0]}</div>
+                                                                                        <div class="text-[10px] text-slate-400 uppercase font-black tracking-wider">Rate: ₹${item.market_price} / unit • Stock: ${item.available_stock}</div>
+                                                                                    </div>
+                                                                                    <div class="${available > 0 ? 'text-emerald-500' : 'text-rose-500'} font-black text-xs">
+                                                                                        ${available > 0 ? 'Add +' : 'Out of Stock'}
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div class="${available > 0 ? 'text-emerald-500' : 'text-rose-500'} font-black text-xs">
-                                                                                    ${available > 0 ? 'Add +' : 'Out of Stock'}
-                                                                                </div>
-                                                                            </div>
-                                                                        `;
+                                                                            `;
 
                                 if (!disabled) {
                                     div.addEventListener('click', () => {
@@ -459,24 +459,24 @@
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group';
                 tr.innerHTML = `
-                                                                    <td class="py-4 pl-2">
-                                                                        <input type="hidden" name="medicines[${count}][id]" value="${item.id}">
-                                                                        <div class="font-bold">${item.name}</div>
-                                                                    </td>
-                                                                    <td class="py-4 text-center text-slate-500">${item.price.toFixed(2)}</td>
-                                                                    <td class="py-4 text-center text-xs text-slate-400 font-mono bg-slate-100 dark:bg-white/5 rounded-lg py-1">${item.stock}</td>
-                                                                    <td class="py-4 text-center">
-                                                                        <input type="number" id="qty-input-${item.id}" name="medicines[${count}][quantity]" value="${item.qty}" min="1" max="${item.stock}"
-                                                                            oninput="updateQty(${item.id}, this.value)"
-                                                                            class="w-16 h-8 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-accent/50 outline-none font-bold text-sm">
-                                                                    </td>
-                                                                    <td class="py-4 text-right pr-2 font-mono">₹<span id="row-total-${item.id}">${total.toFixed(2)}</span></td>
-                                                                    <td class="py-4 text-right">
-                                                                        <button type="button" onclick="removeItem(${item.id})" class="text-slate-400 hover:text-rose-500 transition px-2">
-                                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                                        </button>
-                                                                    </td>
-                                                                `;
+                                                                        <td class="py-4 pl-2">
+                                                                            <input type="hidden" name="medicines[${count}][id]" value="${item.id}">
+                                                                            <div class="font-bold">${item.name}</div>
+                                                                        </td>
+                                                                        <td class="py-4 text-center text-slate-500">${item.price.toFixed(2)}</td>
+                                                                        <td class="py-4 text-center text-xs text-slate-400 font-mono bg-slate-100 dark:bg-white/5 rounded-lg py-1">${item.stock}</td>
+                                                                        <td class="py-4 text-center">
+                                                                            <input type="number" id="qty-input-${item.id}" name="medicines[${count}][quantity]" value="${item.qty}" min="1" max="${item.stock}"
+                                                                                oninput="updateQty(${item.id}, this.value)"
+                                                                                class="w-16 h-8 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-accent/50 outline-none font-bold text-sm">
+                                                                        </td>
+                                                                        <td class="py-4 text-right pr-2 font-mono">₹<span id="row-total-${item.id}">${total.toFixed(2)}</span></td>
+                                                                        <td class="py-4 text-right">
+                                                                            <button type="button" onclick="removeItem(${item.id})" class="text-slate-400 hover:text-rose-500 transition px-2">
+                                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                                            </button>
+                                                                        </td>
+                                                                    `;
                 tbody.appendChild(tr);
             });
 
@@ -564,8 +564,8 @@
 
             if (paymentMethod === 'upi') {
                 qrContainer.classList.remove('hidden');
-                const finalTotal = parseFloat(document.getElementById('grandTotal').innerText) || 0;
-                generateUPIQR(finalTotal);
+                const amountPaid = parseFloat(document.getElementById('amountPaidInput').value) || 0;
+                generateUPIQR(amountPaid);
             } else {
                 qrContainer.classList.add('hidden');
             }
@@ -580,9 +580,17 @@
             originalUpdateTotals();
             // Update QR if UPI is selected
             if (document.getElementById('payment_method').value === 'upi') {
-                const finalTotal = parseFloat(document.getElementById('grandTotal').innerText) || 0;
-                generateUPIQR(finalTotal);
+                const amountPaid = parseFloat(document.getElementById('amountPaidInput').value) || 0;
+                generateUPIQR(amountPaid);
             }
         };
+
+        // Also update QR when amount paid is manually changed
+        document.getElementById('amountPaidInput').addEventListener('input', function () {
+            if (document.getElementById('payment_method').value === 'upi') {
+                const amountPaid = parseFloat(this.value) || 0;
+                generateUPIQR(amountPaid);
+            }
+        });
     </script>
 @endsection

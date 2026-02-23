@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Survey;
 use App\Models\User;
+use App\Services\IncentiveService;
 
 class MembershipController extends Controller
 {
@@ -152,6 +153,9 @@ class MembershipController extends Controller
         $patient->patient_id = Survey::generateMembershipId();
 
         $patient->save();
+
+        // Automate Incentive and Attendance
+        app(IncentiveService::class)->applyIncentive($user, 'membership');
 
         \App\Models\ActivityLog::logActivity(
             action: 'member_registered',

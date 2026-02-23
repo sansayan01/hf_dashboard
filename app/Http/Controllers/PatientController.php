@@ -347,6 +347,9 @@ class PatientController extends Controller
             'appointments',
             'medicineDistributions' => function ($q) {
                 $q->with(['items.medicine', 'camp', 'pharmacist.profile'])->latest();
+            },
+            'pathologyTests' => function ($q) {
+                $q->with(['creator.profile', 'ro.profile'])->latest();
             }
         ]);
 
