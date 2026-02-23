@@ -111,6 +111,82 @@
         </div>
     @endif
 
+    <!-- Earnings Overview (RO, RM, BM, DM) -->
+    @if(isset($earnings) && $earnings)
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 mb-8">
+            <!-- Today's Earning -->
+            <div class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 rounded-full -mr-4 -mt-4 blur-xl"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-10 h-10 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <span class="text-[10px] font-black text-blue-500 bg-blue-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Today</span>
+                </div>
+                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Today's Earnings</h3>
+                <p class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($earnings['today_total'], 2) }}</p>
+                <div class="mt-4 flex items-center space-x-4 text-[10px] font-bold uppercase tracking-tight">
+                    <div class="flex items-center text-slate-500">
+                        <div class="w-2 h-2 rounded-full bg-slate-300 mr-1.5"></div>
+                        Hon: ₹{{ number_format($earnings['today_breakdown']['honorarium'], 0) }}
+                    </div>
+                    <div class="flex items-center text-indigo-500">
+                        <div class="w-2 h-2 rounded-full bg-indigo-500/40 mr-1.5"></div>
+                        Inc: ₹{{ number_format($earnings['today_breakdown']['incentives'], 0) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Honorarium -->
+            <div class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full -mr-4 -mt-4 blur-xl"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <span class="text-[10px] font-black text-emerald-500 bg-emerald-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Monthly</span>
+                </div>
+                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Honorarium</h3>
+                <p class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($earnings['monthly_honorarium'], 2) }}</p>
+                <div class="mt-4">
+                    <div class="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-emerald-500 h-full rounded-full" style="width: 100%"></div>
+                    </div>
+                    <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">Base + TA Summary</p>
+                </div>
+            </div>
+
+            <!-- Monthly Incentives -->
+            <div class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-500/5 rounded-full -mr-4 -mt-4 blur-xl"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-10 h-10 bg-indigo-500/10 text-indigo-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                    <span class="text-[10px] font-black text-indigo-500 bg-indigo-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Monthly</span>
+                </div>
+                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Incentives</h3>
+                <p class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($earnings['monthly_incentives'], 2) }}</p>
+                <div class="mt-4">
+                    <div class="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                        @php
+                            $totalEarnings = $earnings['monthly_total'] > 0 ? $earnings['monthly_total'] : 1;
+                            $perc = ($earnings['monthly_incentives'] / $totalEarnings) * 100;
+                        @endphp
+                        <div class="bg-indigo-500 h-full rounded-full" style="width: {{ $perc }}%"></div>
+                    </div>
+                    <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">{{ number_format($perc, 1) }}% of total monthly earnings</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Reports Grid -->
     @if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_view_reports'))
         <div class="grid grid-cols-2 gap-2 md:gap-6 mb-10">

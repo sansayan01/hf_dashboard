@@ -112,14 +112,36 @@ class DashboardController extends Controller
             ->get();
 
 
-        $isViewAs = $currentUser->id !== $user->id;
+        // Earnings Overview (RO, RM, BM, DM)
+        $earnings = null;
+        if (in_array($user->designation, ['ro', 'rm', 'bm', 'dm'])) {
+            $monthStart = now()->startOfMonth();
+            $earningsData = \App\Models\Attendance::where('user_id', $user->id)
+                ->where('date', '>=', $monthStart)
+                ->selectRaw("
+                    SUM(incentive_amount + ta_amount) as monthly_honorarium,
+                    SUM(medicines_amount + pathology_amount + membership_amount + ots_amount) as monthly_incentives,
+                    SUM(total_amount) as monthly_total
+                ")
+                ->first();
 
-        // Eager load only immediate children to speed up initial load
-        if (!$user->isOfficeInCharge()) {
-            $user->load(['children.profile']);
+            $todayEarnings = \App\Models\Attendance::where('user_id', $user->id)
+                ->whereDate('date', now())
+                ->first();
+
+            $earnings = [
+                'monthly_honorarium' => $earningsData->monthly_honorarium ?? 0,
+                'monthly_incentives' => $earningsData->monthly_incentives ?? 0,
+                'monthly_total' => $earningsData->monthly_total ?? 0,
+                'today_total' => $todayEarnings->total_amount ?? 0,
+                'today_breakdown' => $todayEarnings ? [
+                    'honorarium' => $todayEarnings->incentive_amount + $todayEarnings->ta_amount,
+                    'incentives' => $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount
+                ] : ['honorarium' => 0, 'incentives' => 0]
+            ];
         }
 
-        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove'));
+        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'earnings'));
     }
 
     /**
