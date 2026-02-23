@@ -111,6 +111,12 @@ class DashboardController extends Controller
             ->limit(50)
             ->get();
 
+        $isViewAs = $currentUser->id !== $user->id;
+
+        // Eager load only immediate children to speed up initial load
+        if (!$user->isOfficeInCharge()) {
+            $user->load(['children.profile']);
+        }
 
         // Earnings Overview (RO, RM, BM, DM)
         $earnings = null;
