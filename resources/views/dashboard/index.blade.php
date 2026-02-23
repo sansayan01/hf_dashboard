@@ -125,7 +125,7 @@
                     </div>
                     <span class="text-[10px] font-black text-blue-500 bg-blue-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Today</span>
                 </div>
-                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Today's Earnings</h3>
+                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total</h3>
                 <p class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($earnings['today_total'], 2) }}</p>
                 <div class="mt-4 flex items-center space-x-4 text-[10px] font-bold uppercase tracking-tight">
                     <div class="flex items-center text-slate-500">
