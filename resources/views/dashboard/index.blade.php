@@ -174,14 +174,7 @@
                 <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Incentives</h3>
                 <p class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($earnings['monthly_incentives'], 2) }}</p>
                 <div class="mt-4">
-                    <div class="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
-                        @php
-                            $totalDisplay = $earnings['monthly_total'] > 0 ? $earnings['monthly_total'] : 1;
-                            $perc = ($earnings['monthly_incentives'] / $totalDisplay) * 100;
-                        @endphp
-                        <div class="bg-indigo-500 h-full rounded-full" style="width: {{ $perc }}%"></div>
-                    </div>
-                    <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">{{ number_format($perc, 1) }}% of total (Inc + TA)</p>
+                    <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">Performance Based Incentives</p>
                 </div>
             </div>
         </div>
