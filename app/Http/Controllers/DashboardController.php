@@ -125,9 +125,9 @@ class DashboardController extends Controller
             $earningsData = \App\Models\Attendance::where('user_id', $user->id)
                 ->where('date', '>=', $monthStart)
                 ->selectRaw("
-                    SUM(incentive_amount + ta_amount) as monthly_honorarium,
+                    SUM(ta_amount) as monthly_ta,
                     SUM(medicines_amount + pathology_amount + membership_amount + ots_amount) as monthly_incentives,
-                    SUM(total_amount) as monthly_total
+                    SUM(total_amount - incentive_amount) as monthly_total_no_base
                 ")
                 ->first();
 
@@ -136,14 +136,14 @@ class DashboardController extends Controller
                 ->first();
 
             $earnings = [
-                'monthly_honorarium' => $earningsData->monthly_honorarium ?? 0,
+                'monthly_ta' => $earningsData->monthly_ta ?? 0,
                 'monthly_incentives' => $earningsData->monthly_incentives ?? 0,
-                'monthly_total' => $earningsData->monthly_total ?? 0,
-                'today_total' => $todayEarnings->total_amount ?? 0,
+                'monthly_total' => $earningsData->monthly_total_no_base ?? 0,
+                'today_total' => $todayEarnings ? ($todayEarnings->total_amount - $todayEarnings->incentive_amount) : 0,
                 'today_breakdown' => $todayEarnings ? [
-                    'honorarium' => $todayEarnings->incentive_amount + $todayEarnings->ta_amount,
+                    'ta' => $todayEarnings->ta_amount,
                     'incentives' => $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount
-                ] : ['honorarium' => 0, 'incentives' => 0]
+                ] : ['ta' => 0, 'incentives' => 0]
             ];
         }
 

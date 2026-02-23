@@ -130,7 +130,7 @@
                 <div class="mt-4 flex items-center space-x-4 text-[10px] font-bold uppercase tracking-tight">
                     <div class="flex items-center text-slate-500">
                         <div class="w-2 h-2 rounded-full bg-slate-300 mr-1.5"></div>
-                        Hon: ₹{{ number_format($earnings['today_breakdown']['honorarium'], 0) }}
+                        TA: ₹{{ number_format($earnings['today_breakdown']['ta'], 0) }}
                     </div>
                     <div class="flex items-center text-indigo-500">
                         <div class="w-2 h-2 rounded-full bg-indigo-500/40 mr-1.5"></div>
@@ -139,7 +139,7 @@
                 </div>
             </div>
 
-            <!-- Monthly Honorarium -->
+            <!-- Monthly TA -->
             <div class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full -mr-4 -mt-4 blur-xl"></div>
                 <div class="flex items-center justify-between mb-4">
@@ -150,13 +150,13 @@
                     </div>
                     <span class="text-[10px] font-black text-emerald-500 bg-emerald-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Monthly</span>
                 </div>
-                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Honorarium</h3>
-                <p class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($earnings['monthly_honorarium'], 2) }}</p>
+                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">TA</h3>
+                <p class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($earnings['monthly_ta'], 2) }}</p>
                 <div class="mt-4">
                     <div class="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-emerald-500 h-full rounded-full" style="width: 100%"></div>
                     </div>
-                    <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">Base + TA Summary</p>
+                    <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">Travel Allowance Summary</p>
                 </div>
             </div>
 
@@ -176,12 +176,12 @@
                 <div class="mt-4">
                     <div class="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
                         @php
-                            $totalEarnings = $earnings['monthly_total'] > 0 ? $earnings['monthly_total'] : 1;
-                            $perc = ($earnings['monthly_incentives'] / $totalEarnings) * 100;
+                            $totalDisplay = $earnings['monthly_total'] > 0 ? $earnings['monthly_total'] : 1;
+                            $perc = ($earnings['monthly_incentives'] / $totalDisplay) * 100;
                         @endphp
                         <div class="bg-indigo-500 h-full rounded-full" style="width: {{ $perc }}%"></div>
                     </div>
-                    <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">{{ number_format($perc, 1) }}% of total monthly earnings</p>
+                    <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">{{ number_format($perc, 1) }}% of total (Inc + TA)</p>
                 </div>
             </div>
         </div>
