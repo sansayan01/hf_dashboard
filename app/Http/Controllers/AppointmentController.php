@@ -219,7 +219,7 @@ class AppointmentController extends Controller
                     $a->doctor_type,
                     $a->location,
                     ucfirst(str_replace('_', ' ', $a->status)),
-                    $a->creator->profile->full_name ?? 'N/A',
+                    $a->creator->profile?->full_name ?? 'N/A',
                     $a->creator->employee_id ?? 'N/A'
                 ]);
             }

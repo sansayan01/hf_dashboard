@@ -14,7 +14,6 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $currentUser = auth()->user();
-
         $targetUserId = $request->get('as_user', $currentUser->id);
 
         if ($targetUserId != $currentUser->id) {
@@ -22,77 +21,86 @@ class DashboardController extends Controller
             if (!$currentUser->canAccess($user)) {
                 abort(403, 'Unauthorized to view this dashboard.');
             }
-            // Set session for persistent "View As" mode
             session(['view_as_user_id' => $targetUserId]);
         } else {
             $user = $currentUser;
-            // Clear session if we are back to our own dashboard
             session()->forget('view_as_user_id');
         }
 
-        // Pharmacist (Staff) Specific Dashboard Redirection
-        // Move this AFTER establishing context to allow viewing as staff
         if ($user->designation === 'staff') {
             return redirect()->route('inventory.index');
         }
 
-        // Check Permissions for the effective user context
         $canViewDownline = $user->canViewDownline();
         $canViewReports = $user->isSuperAdmin() || \App\Models\RolePermission::check($user->designation, 'can_view_reports');
         $canApprove = $user->isSuperAdmin() || \App\Models\RolePermission::check($user->designation, 'can_approve_users');
 
-        // Optimization: Fetch IDs once
         $downlineIds = $canViewDownline ? $user->getAllDownlineIds() : [];
         $allAccessibleIds = array_merge($downlineIds, [$user->id]);
 
-        // For OIC, also include Upline's own ID in accessible list so we can see their surveys/reports
         if ($user->isOfficeInCharge() && $user->upline_id) {
             $allAccessibleIds[] = $user->upline_id;
         }
 
-        // Optimized Stats
-        $stats = [
+        $stats = $this->getStats($user, $downlineIds, $canViewDownline);
+        $reports = $canViewReports ? $this->getReports($allAccessibleIds) : [];
+        $recentActivities = $this->getRecentActivities($allAccessibleIds);
+        $earnings = $this->getEarnings($user);
+
+        if (!$user->isOfficeInCharge()) {
+            $user->load(['children.profile']);
+        }
+
+        $isViewAs = $currentUser->id !== $user->id;
+
+        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'earnings'));
+    }
+
+    private function getStats(User $user, array $downlineIds, bool $canViewDownline): array
+    {
+        return [
             'total_downline' => count($downlineIds),
             'pending_approvals' => $user->getPendingApprovalsCount(),
             'direct_children' => $canViewDownline ? $user->getDashboardChildrenCount() : 0,
             'active_downline' => count($downlineIds) > 0 ? User::whereIn('id', $downlineIds)->where('status', 'active')->count() : 0,
         ];
+    }
 
-        // Optimized Reports using conditional aggregation
+    private function getReports(array $allAccessibleIds): array
+    {
         $now = now();
         $startOfWeek = $now->copy()->startOfWeek();
         $startOfMonth = $now->copy()->startOfMonth();
         $today = $now->copy()->startOfDay();
 
-        $reports = [];
-        if ($canViewReports) {
-            $surveyStats = \App\Models\Survey::whereIn('created_by', $allAccessibleIds)
-                ->selectRaw("
-                    COUNT(*) as total,
-                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
-                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
-                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
-                ", [$today, $startOfWeek, $startOfMonth])
-                ->first();
+        $surveyStats = \App\Models\Survey::whereIn('created_by', $allAccessibleIds)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
+            ", [$today, $startOfWeek, $startOfMonth])
+            ->first();
 
-            $appStats = \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
-                $q->whereIn('created_by', $allAccessibleIds);
-            })
-                ->selectRaw("
-                    COUNT(*) as total,
-                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
-                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
-                    SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
-                ", [$today, $startOfWeek, $startOfMonth])
-                ->first();
+        $appStats = \App\Models\Appointment::whereHas('survey', function ($q) use ($allAccessibleIds) {
+            $q->whereIn('created_by', $allAccessibleIds);
+        })
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as daily,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as weekly,
+                SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) as monthly
+            ", [$today, $startOfWeek, $startOfMonth])
+            ->first();
 
-            $reports = [
-                'surveys' => $surveyStats ? $surveyStats->toArray() : [],
-                'appointments' => $appStats ? $appStats->toArray() : []
-            ];
-        }
+        return [
+            'surveys' => $surveyStats ? $surveyStats->toArray() : [],
+            'appointments' => $appStats ? $appStats->toArray() : []
+        ];
+    }
 
-        // Calculate the most recent 3 AM IST
+    private function getRecentActivities(array $allAccessibleIds)
+    {
         $startTime = now()->timezone('Asia/Kolkata');
         if ($startTime->hour < 3) {
             $startTime = $startTime->subDay()->setTime(3, 0, 0);
@@ -100,8 +108,7 @@ class DashboardController extends Controller
             $startTime = $startTime->setTime(3, 0, 0);
         }
 
-        // Limit to 50 results for faster render
-        $recentActivities = ActivityLog::where(function ($q) use ($allAccessibleIds) {
+        return ActivityLog::where(function ($q) use ($allAccessibleIds) {
             $q->whereIn('user_id', $allAccessibleIds)
                 ->orWhereIn('performed_by', $allAccessibleIds);
         })
@@ -110,60 +117,54 @@ class DashboardController extends Controller
             ->latest()
             ->limit(50)
             ->get();
+    }
 
-        $isViewAs = $currentUser->id !== $user->id;
-
-        // Eager load only immediate children to speed up initial load
-        if (!$user->isOfficeInCharge()) {
-            $user->load(['children.profile']);
+    private function getEarnings(User $user): ?array
+    {
+        if (!in_array($user->designation, ['ro', 'rm', 'bm', 'dm'])) {
+            return null;
         }
 
-        // Earnings Overview (RO, RM, BM, DM)
-        $earnings = null;
-        if (in_array($user->designation, ['ro', 'rm', 'bm', 'dm'])) {
-            $monthStart = now()->startOfMonth();
-            $earningsData = \App\Models\Attendance::where('user_id', $user->id)
-                ->where('date', '>=', $monthStart)
-                ->selectRaw("
-                    SUM(ta_amount) as monthly_ta,
-                    SUM(medicines_amount) as monthly_medicines,
-                    SUM(pathology_amount) as monthly_pathology,
-                    SUM(membership_amount) as monthly_membership,
-                    SUM(ots_amount) as monthly_ots,
-                    SUM(medicines_amount + pathology_amount + membership_amount + ots_amount) as monthly_incentives,
-                    SUM(total_amount - incentive_amount) as monthly_total_no_base
-                ")
-                ->first();
+        $monthStart = now()->startOfMonth();
+        $earningsData = \App\Models\Attendance::where('user_id', $user->id)
+            ->where('date', '>=', $monthStart)
+            ->selectRaw("
+                SUM(ta_amount) as monthly_ta,
+                SUM(medicines_amount) as monthly_medicines,
+                SUM(pathology_amount) as monthly_pathology,
+                SUM(membership_amount) as monthly_membership,
+                SUM(ots_amount) as monthly_ots,
+                SUM(medicines_amount + pathology_amount + membership_amount + ots_amount) as monthly_incentives,
+                SUM(total_amount - incentive_amount) as monthly_total_no_base
+            ")
+            ->first();
 
-            $todayEarnings = \App\Models\Attendance::where('user_id', $user->id)
-                ->where('date', now()->toDateString())
-                ->first();
+        $todayEarnings = \App\Models\Attendance::where('user_id', $user->id)
+            ->where('date', now()->toDateString())
+            ->first();
 
-            $isRO = $user->designation === 'ro';
+        $isRO = $user->designation === 'ro';
 
-            $earnings = [
-                'monthly_ta' => $isRO ? ($earningsData->monthly_ta ?? 0) : 0,
-                'monthly_incentives' => $earningsData->monthly_incentives ?? 0,
-                'monthly_breakdown' => [
-                    'medicines' => $earningsData->monthly_medicines ?? 0,
-                    'pathology' => $earningsData->monthly_pathology ?? 0,
-                    'membership' => $earningsData->monthly_membership ?? 0,
-                    'ots' => $earningsData->monthly_ots ?? 0,
-                ],
-                'monthly_total' => $earningsData->monthly_total_no_base ?? 0,
-                'today_total' => $todayEarnings ? ($todayEarnings->total_amount - $todayEarnings->incentive_amount) : 0,
-                'today_breakdown' => $todayEarnings ? [
-                    'ta' => $isRO ? $todayEarnings->ta_amount : 0,
-                    'medicines' => $todayEarnings->medicines_amount,
-                    'pathology' => $todayEarnings->pathology_amount,
-                    'membership' => $todayEarnings->membership_amount,
-                    'ots' => $todayEarnings->ots_amount,
-                    'incentives' => $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount
-                ] : ['ta' => 0, 'medicines' => 0, 'pathology' => 0, 'membership' => 0, 'ots' => 0, 'incentives' => 0]
-            ];
-        }
-
-        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'earnings'));
+        return [
+            'monthly_ta' => $isRO ? ($earningsData->monthly_ta ?? 0) : 0,
+            'monthly_incentives' => $earningsData->monthly_incentives ?? 0,
+            'monthly_breakdown' => [
+                'medicines' => $earningsData->monthly_medicines ?? 0,
+                'pathology' => $earningsData->monthly_pathology ?? 0,
+                'membership' => $earningsData->monthly_membership ?? 0,
+                'ots' => $earningsData->monthly_ots ?? 0,
+            ],
+            'monthly_total' => $earningsData->monthly_total_no_base ?? 0,
+            'today_total' => $todayEarnings ? ($todayEarnings->total_amount - $todayEarnings->incentive_amount) : 0,
+            'today_breakdown' => $todayEarnings ? [
+                'ta' => $isRO ? $todayEarnings->ta_amount : 0,
+                'medicines' => $todayEarnings->medicines_amount,
+                'pathology' => $todayEarnings->pathology_amount,
+                'membership' => $todayEarnings->membership_amount,
+                'ots' => $todayEarnings->ots_amount,
+                'incentives' => $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount
+            ] : ['ta' => 0, 'medicines' => 0, 'pathology' => 0, 'membership' => 0, 'ots' => 0, 'incentives' => 0]
+        ];
     }
 
     /**
@@ -242,10 +243,10 @@ class DashboardController extends Controller
         return [
             'id' => $user->id,
             'employee_id' => $user->employee_id,
-            'name' => $user->profile->full_name ?? 'N/A',
+            'name' => $user->profile?->full_name ?? 'N/A',
             'designation' => $user->getDesignationLabel(),
             'status' => $user->status,
-            'profile_picture' => $user->profile->profile_picture ?? null,
+            'profile_picture' => $user->profile?->profile_picture ?? null,
             'children' => $children,
         ];
     }

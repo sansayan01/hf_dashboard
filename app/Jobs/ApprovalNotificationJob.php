@@ -73,3 +73,4 @@ class ApprovalNotificationJob implements ShouldQueue
         }
     }
 }
+// Trigger re-scan

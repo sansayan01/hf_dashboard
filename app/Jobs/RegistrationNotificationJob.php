@@ -71,3 +71,4 @@ class RegistrationNotificationJob implements ShouldQueue
         }
     }
 }
+// Trigger re-scan

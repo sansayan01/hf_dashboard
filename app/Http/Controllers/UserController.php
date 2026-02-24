@@ -1081,7 +1081,7 @@ class UserController extends Controller
             'approved',
             $user->id,
             $currentUser->id,
-            "Approved user: {$user->profile->full_name}",
+            "Approved user: " . ($user->profile?->full_name ?? 'N/A'),
             'User',
             $user->id
         );
@@ -1151,7 +1151,7 @@ class UserController extends Controller
                     'action' => 'approved',
                     'user_id' => $user->id,
                     'performed_by' => $currentUser->id,
-                    'description' => "Approved user (Bulk): {$user->profile->full_name}",
+                    'description' => "Approved user (Bulk): " . ($user->profile?->full_name ?? 'N/A'),
                     'model_type' => 'User',
                     'model_id' => $user->id,
                     'created_at' => $now,
@@ -1213,7 +1213,7 @@ class UserController extends Controller
             'deleted',
             $user->id,
             $currentUser->id,
-            "Moved user to BIN: {$user->profile->full_name}",
+            "Moved user to BIN: " . ($user->profile?->full_name ?? 'N/A'),
             'User',
             $user->id
         );
@@ -1272,7 +1272,7 @@ class UserController extends Controller
             'restored',
             $user->id,
             $currentUser->id,
-            "Restored user from BIN: {$user->profile->full_name}",
+            "Restored user from BIN: " . ($user->profile?->full_name ?? 'N/A'),
             'User',
             $user->id
         );
@@ -1298,7 +1298,7 @@ class UserController extends Controller
             Storage::disk('public')->delete($user->profile->profile_picture);
         }
 
-        $userName = $user->profile->full_name;
+        $userName = $user->profile?->full_name ?? 'N/A';
         $user->forceDelete();
 
         // Log activity
@@ -1477,7 +1477,7 @@ class UserController extends Controller
             'oic_toggle',
             $user->id,
             $currentUser->id,
-            "User {$user->profile->full_name} was {$statusLabel} Officer in Charge.",
+            "User " . ($user->profile?->full_name ?? 'N/A') . " was {$statusLabel} Officer in Charge.",
             'User',
             $user->id
         );

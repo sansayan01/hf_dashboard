@@ -402,7 +402,7 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
             $text .= "\n📋 Recent Transactions:\n";
             foreach ($recentTx as $tx) {
                 $medName = $tx->stock->medicine->name ?? 'Unknown';
-                $userName = $tx->user->profile->full_name ?? 'System';
+                $userName = $tx->user->profile?->full_name ?? 'System';
                 $date = $tx->created_at->format('d M');
                 $text .= "- {$tx->type}: {$medName} ({$tx->quantity}) by {$userName} on {$date}\n";
             }
@@ -621,7 +621,7 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                 $teamContext .= "- You have no direct reports.\n";
             } else {
                 foreach ($children as $child) {
-                    $name = $child->profile->full_name ?? 'Unknown';
+                    $name = $child->profile?->full_name ?? 'Unknown';
                     $teamContext .= "- {$name} ({$child->employee_id}) - " . strtoupper($child->getDesignationLabel()) . "\n";
                 }
             }
@@ -646,7 +646,7 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                 $pendingContext .= "- No pending approvals found.\n";
             } else {
                 foreach ($pendingUsers as $pUser) {
-                    $pName = $pUser->profile->full_name ?? 'Unknown';
+                    $pName = $pUser->profile?->full_name ?? 'Unknown';
                     $joined = $pUser->created_at->format('M d');
                     $pendingContext .= "- {$pName} ({$pUser->employee_id}) - Joined {$joined}\n";
                 }
@@ -667,7 +667,7 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                         ->first();
 
                     if ($targetUser) {
-                        $tName = $targetUser->profile->full_name;
+                        $tName = $targetUser->profile?->full_name ?? 'N/A';
                         $tTeamSize = count($targetUser->getAllDownlineIds());
                         $tDirects = $targetUser->children()->count();
                         $tStatus = ucfirst($targetUser->status);
@@ -744,7 +744,7 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
             // Get Team Members
             $team = User::whereIn('id', $relevantUserIds)->with('profile')->take(10)->get()->map(function ($u) {
                 /** @var \App\Models\User $u */
-                $name = $u->profile->full_name ?? 'Unknown';
+                $name = $u->profile?->full_name ?? 'Unknown';
                 return "- {$name} (#{$u->employee_id}, {$u->getDesignationLabel()})";
             })->implode("\n");
 
