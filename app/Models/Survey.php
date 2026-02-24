@@ -108,7 +108,7 @@ class Survey extends Model
 
     public static function generateMembershipId($latestOnly = true)
     {
-        return self::generateSequenceId('HFM', 7, $latestOnly);
+        return self::generateSequenceId('HFPM', 6, $latestOnly);
     }
 
     private static function generateSequenceId($prefix, $length, $latestOnly)
