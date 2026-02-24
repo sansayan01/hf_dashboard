@@ -136,8 +136,8 @@ class DashboardController extends Controller
                 SUM(pathology_amount) as monthly_pathology,
                 SUM(membership_amount) as monthly_membership,
                 SUM(ots_amount) as monthly_ots,
-                SUM(medicines_amount + pathology_amount + membership_amount + ots_amount) as monthly_incentives,
-                SUM(total_amount - incentive_amount) as monthly_total_no_base
+                SUM(incentive_amount + medicines_amount + pathology_amount + membership_amount + ots_amount) as monthly_incentives,
+                SUM(total_amount) as monthly_total
             ")
             ->first();
 
@@ -145,10 +145,8 @@ class DashboardController extends Controller
             ->where('date', now()->toDateString())
             ->first();
 
-        $isRO = $user->designation === 'ro';
-
         return [
-            'monthly_ta' => $isRO ? ($earningsData->monthly_ta ?? 0) : 0,
+            'monthly_ta' => $earningsData->monthly_ta ?? 0,
             'monthly_incentives' => $earningsData->monthly_incentives ?? 0,
             'monthly_breakdown' => [
                 'medicines' => $earningsData->monthly_medicines ?? 0,
@@ -156,15 +154,15 @@ class DashboardController extends Controller
                 'membership' => $earningsData->monthly_membership ?? 0,
                 'ots' => $earningsData->monthly_ots ?? 0,
             ],
-            'monthly_total' => $earningsData->monthly_total_no_base ?? 0,
-            'today_total' => $todayEarnings ? ($todayEarnings->total_amount - $todayEarnings->incentive_amount) : 0,
+            'monthly_total' => $earningsData->monthly_total ?? 0,
+            'today_total' => $todayEarnings ? $todayEarnings->total_amount : 0,
             'today_breakdown' => $todayEarnings ? [
-                'ta' => $isRO ? $todayEarnings->ta_amount : 0,
+                'ta' => $todayEarnings->ta_amount,
                 'medicines' => $todayEarnings->medicines_amount,
                 'pathology' => $todayEarnings->pathology_amount,
                 'membership' => $todayEarnings->membership_amount,
                 'ots' => $todayEarnings->ots_amount,
-                'incentives' => $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount
+                'incentives' => $todayEarnings->incentive_amount + $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount
             ] : ['ta' => 0, 'medicines' => 0, 'pathology' => 0, 'membership' => 0, 'ots' => 0, 'incentives' => 0]
         ];
     }

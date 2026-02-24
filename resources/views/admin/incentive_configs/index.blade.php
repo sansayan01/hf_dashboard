@@ -34,6 +34,19 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
+                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Basic
+                            Incentive (Daily)</label>
+                        <input type="number" name="incentive_amount" id="incentive_amount" step="0.01" required
+                            placeholder="0.00"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 dark:bg-slate-800 focus:ring-2 focus:ring-accent font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">TA
+                            (Daily Rupees)</label>
+                        <input type="number" name="ta_amount" id="ta_amount" step="0.01" required placeholder="0.00"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 dark:bg-slate-800 focus:ring-2 focus:ring-accent font-bold">
+                    </div>
+                    <div>
                         <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Medicines
                             (%)</label>
                         <input type="number" name="medicines_amount" id="medicines_amount" step="0.01" required
@@ -60,12 +73,6 @@
                         <input type="number" name="ots_amount" id="ots_amount" step="0.01" required placeholder="0.00"
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 dark:bg-slate-800 focus:ring-2 focus:ring-accent font-bold">
                     </div>
-                    <div id="ta_field_wrapper" style="display: none;">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">TA
-                            (Rupees)</label>
-                        <input type="number" name="ta_amount" id="ta_amount" step="0.01" required placeholder="0.00"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 dark:bg-slate-800 focus:ring-2 focus:ring-accent font-bold">
-                    </div>
                 </div>
 
                 <div class="pt-4">
@@ -83,26 +90,14 @@
 
         document.getElementById('designation_select').addEventListener('change', function () {
             const designation = this.value;
-            const fields = ['medicines_amount', 'pathology_amount', 'membership_amount', 'ots_amount', 'ta_amount'];
+            const fields = ['incentive_amount', 'ta_amount', 'medicines_amount', 'pathology_amount', 'membership_amount', 'ots_amount'];
             const config = configs[designation];
-
-            // Show TA field only for RO
-            const taWrapper = document.getElementById('ta_field_wrapper');
-            const taInput = document.getElementById('ta_amount');
-            if (designation === 'ro') {
-                taWrapper.style.display = 'block';
-                taInput.required = true;
-            } else {
-                taWrapper.style.display = 'none';
-                taInput.required = false;
-                taInput.value = '0.00'; // Reset if not RO
-            }
 
             fields.forEach(field => {
                 const input = document.getElementById(field);
                 if (config && config[field] !== undefined) {
                     input.value = parseFloat(config[field]).toFixed(2);
-                } else if (field !== 'ta_amount' || designation === 'ro') {
+                } else {
                     input.value = '';
                 }
             });

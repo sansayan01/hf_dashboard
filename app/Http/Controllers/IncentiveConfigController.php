@@ -31,20 +31,16 @@ class IncentiveConfigController extends Controller
 
         $validated = $request->validate([
             'designation' => 'required|in:super_admin,hs,dm,bm,rm,ro',
+            'incentive_amount' => 'required|numeric|min:0',
             'medicines_amount' => 'required|numeric|min:0',
             'pathology_amount' => 'required|numeric|min:0',
             'membership_amount' => 'required|numeric|min:0',
             'ots_amount' => 'required|numeric|min:0',
-            'ta_amount' => 'nullable|numeric|min:0',
+            'ta_amount' => 'required|numeric|min:0',
         ]);
 
-        if ($validated['designation'] !== 'ro') {
-            $validated['ta_amount'] = 0;
-        } else {
-            $validated['ta_amount'] = $validated['ta_amount'] ?? 0;
-        }
-
-        $validated['effective_from'] = now();
+        // Set a retroactive date for global configs so they apply to past attendances too
+        $validated['effective_from'] = '2024-01-01';
 
         // Use updateOrCreate to keep things simple - one config per designation
         IncentiveConfig::updateOrCreate(

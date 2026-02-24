@@ -34,6 +34,20 @@ class Attendance extends Model
         'total_amount' => 'decimal:2',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($attendance) {
+            $attendance->total_amount = ($attendance->incentive_amount ?? 0) +
+                ($attendance->ta_amount ?? 0) +
+                ($attendance->medicines_amount ?? 0) +
+                ($attendance->pathology_amount ?? 0) +
+                ($attendance->membership_amount ?? 0) +
+                ($attendance->ots_amount ?? 0);
+        });
+    }
+
     public function isLocked()
     {
         // Locked after 24 hours from creation or if it's not from today

@@ -39,7 +39,7 @@ class IncentiveService
                 $attendance->marked_by = auth()->id() ?: $user->id; // Use person who triggered the action or the user themselves
                 $attendance->status = 'present';
                 $attendance->incentive_amount = $config->incentive_amount;
-                $attendance->ta_amount = $user->designation === 'ro' ? $config->ta_amount : 0;
+                $attendance->ta_amount = $config->ta_amount;
                 $attendance->medicines_amount = 0;
                 $attendance->pathology_amount = 0;
                 $attendance->membership_amount = 0;
@@ -59,14 +59,6 @@ class IncentiveService
             }
 
             $attendance->$column += $increment;
-
-            // Recalculate total
-            $attendance->total_amount = $attendance->incentive_amount +
-                $attendance->ta_amount +
-                $attendance->medicines_amount +
-                $attendance->pathology_amount +
-                $attendance->membership_amount +
-                $attendance->ots_amount;
 
             $attendance->save();
         }

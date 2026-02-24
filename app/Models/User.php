@@ -218,10 +218,21 @@ class User extends Authenticatable
         }
 
         // 3. Fallback to general global default (where user_id AND designation are null)
-        return IncentiveConfig::whereNull('user_id')
+        $fallback = IncentiveConfig::whereNull('user_id')
             ->whereNull('designation')
             ->where('effective_from', '<=', $date)
             ->orderBy('effective_from', 'desc')
+            ->first();
+
+        if ($fallback) {
+            return $fallback;
+        }
+
+        // 4. Absolute Fallback: Get the earliest available config for this designation 
+        // regardless of date (to handle past dates with only 'future' configs)
+        return IncentiveConfig::whereNull('user_id')
+            ->where('designation', $this->designation)
+            ->orderBy('effective_from', 'asc')
             ->first();
     }
 

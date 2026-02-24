@@ -25,13 +25,16 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // 2. Lock logic: Attendance can be edited only on the same day.
+        // 2. Lock logic: SuperAdmin can always edit. 
+        // Direct manager (parent) can edit/mark even for past days if it's within a reasonable window (or always as per user request).
         $attendanceDate = Carbon::parse($request->date);
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $attendanceDate->format('Y-m-d'))
             ->first();
 
-        if ($attendance && $attendance->isLocked() && !$effectiveUser->isSuperAdmin()) {
+        // If it's locked and not SuperAdmin, check if it's the parent. 
+        // User wants RMs to be able to mark later.
+        if ($attendance && $attendance->isLocked() && !$effectiveUser->isSuperAdmin() && $effectiveUser->id !== $user->parent_id) {
             return response()->json(['message' => 'Attendance is locked and cannot be modified.'], 403);
         }
 
@@ -49,7 +52,7 @@ class AttendanceController extends Controller
             $config = $user->getCurrentIncentive($attendance->date);
             if ($config) {
                 $attendance->incentive_amount = $config->incentive_amount;
-                $attendance->ta_amount = $user->designation === 'ro' ? $config->ta_amount : 0;
+                $attendance->ta_amount = $config->ta_amount;
             } else {
                 $attendance->incentive_amount = $attendance->incentive_amount ?? 0;
                 $attendance->ta_amount = $attendance->ta_amount ?? 0;
@@ -69,14 +72,6 @@ class AttendanceController extends Controller
             $attendance->membership_amount = 0;
             $attendance->ots_amount = 0;
         }
-
-        // Recalculate total
-        $attendance->total_amount = $attendance->incentive_amount +
-            $attendance->ta_amount +
-            $attendance->medicines_amount +
-            $attendance->pathology_amount +
-            $attendance->membership_amount +
-            $attendance->ots_amount;
 
         $attendance->save();
 
@@ -119,16 +114,26 @@ class AttendanceController extends Controller
             ->whereYear('date', $year)
             ->get();
 
+        // Auto-sync missing incentives if present
+        foreach ($attendances as $a) {
+            if ($a->status === 'present' && ($a->ta_amount == 0 && $a->incentive_amount == 0)) {
+                $config = $user->getCurrentIncentive($a->date);
+                if ($config) {
+                    $a->incentive_amount = $config->incentive_amount;
+                    $a->ta_amount = $config->ta_amount;
+                    $a->save();
+                }
+            }
+        }
+
         $summary = [
             'present' => $attendances->where('status', 'present')->count(),
             'absent' => $attendances->where('status', 'absent')->count(),
-            // Align "Incentives" with main dashboard (Sum of activity pieces)
-            'incentive' => $attendances->sum(function ($a) {
-                return $a->medicines_amount + $a->pathology_amount + $a->membership_amount + $a->ots_amount;
+            'total_incentives' => $attendances->sum(function ($a) {
+                return $a->incentive_amount + $a->medicines_amount + $a->pathology_amount + $a->membership_amount + $a->ots_amount;
             }),
             'ta' => $attendances->sum('ta_amount'),
-            // Total includes TA + Activity (Matching main dashboard total)
-            'total' => $attendances->sum('total_amount') - $attendances->sum('incentive_amount'),
+            'total' => $attendances->sum('total_amount'),
         ];
 
         $allAttendances = $user->attendances()
@@ -136,6 +141,13 @@ class AttendanceController extends Controller
             ->whereYear('date', $year)
             ->orderBy('date', 'desc')
             ->get();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate'))->render(),
+                'title' => $targetDate->format('F Y')
+            ]);
+        }
 
         return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate'));
     }
@@ -156,14 +168,26 @@ class AttendanceController extends Controller
             ->whereYear('date', $year)
             ->get();
 
+        // Auto-sync missing incentives if present
+        foreach ($attendances as $a) {
+            if ($a->status === 'present' && ($a->ta_amount == 0 && $a->incentive_amount == 0)) {
+                $config = $user->getCurrentIncentive($a->date);
+                if ($config) {
+                    $a->incentive_amount = $config->incentive_amount;
+                    $a->ta_amount = $config->ta_amount;
+                    $a->save();
+                }
+            }
+        }
+
         $summary = [
             'present' => $attendances->where('status', 'present')->count(),
             'absent' => $attendances->where('status', 'absent')->count(),
-            'incentive' => $attendances->sum(function ($a) {
-                return $a->medicines_amount + $a->pathology_amount + $a->membership_amount + $a->ots_amount;
+            'total_incentives' => $attendances->sum(function ($a) {
+                return $a->incentive_amount + $a->medicines_amount + $a->pathology_amount + $a->membership_amount + $a->ots_amount;
             }),
             'ta' => $attendances->sum('ta_amount'),
-            'total' => $attendances->sum('total_amount') - $attendances->sum('incentive_amount'),
+            'total' => $attendances->sum('total_amount'),
         ];
 
         $allAttendances = $user->attendances()
@@ -171,6 +195,13 @@ class AttendanceController extends Controller
             ->whereYear('date', $year)
             ->orderBy('date', 'desc')
             ->get();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate'))->render(),
+                'title' => $targetDate->format('F Y')
+            ]);
+        }
 
         return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate'));
     }
