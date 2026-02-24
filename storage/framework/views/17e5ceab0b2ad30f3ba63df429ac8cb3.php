@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Attendance Dashboard'); ?>
+<?php $__env->startSection('header_title', 'My Attendance'); ?>
 
-@section('title', 'Attendance Dashboard')
-@section('header_title', 'My Attendance')
-
-@section('css')
+<?php $__env->startSection('css'); ?>
     <style>
         .calendar-container {
             display: grid;
@@ -87,33 +85,33 @@
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="p-6 space-y-8 max-w-7xl mx-auto overflow-y-auto h-full pb-20">
         <!-- Summary Section -->
-        <div class="grid grid-cols-1 md:grid-cols-2 {{ $user->isRO() ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }} gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 <?php echo e($user->isRO() ? 'lg:grid-cols-5' : 'lg:grid-cols-4'); ?> gap-6">
             <div class="summary-card p-6 flex flex-col items-center">
-                <span class="text-emerald-600 text-3xl font-bold">{{ $summary['present'] }}</span>
+                <span class="text-emerald-600 text-3xl font-bold"><?php echo e($summary['present']); ?></span>
                 <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-2">Present Days</span>
             </div>
             <div class="summary-card p-6 flex flex-col items-center">
-                <span class="text-rose-600 text-3xl font-bold">{{ $summary['absent'] }}</span>
+                <span class="text-rose-600 text-3xl font-bold"><?php echo e($summary['absent']); ?></span>
                 <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-2">Absent Days</span>
             </div>
             <div class="summary-card p-6 flex flex-col items-center">
-                <span class="text-accent text-3xl font-bold">₹{{ number_format($summary['incentive'], 0) }}</span>
+                <span class="text-accent text-3xl font-bold">₹<?php echo e(number_format($summary['incentive'], 0)); ?></span>
                 <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-2">Incentives</span>
             </div>
-            @if($user->isRO())
+            <?php if($user->isRO()): ?>
                 <div class="summary-card p-6 flex flex-col items-center">
-                    <span class="text-amber-600 text-3xl font-bold">₹{{ number_format($summary['ta'], 0) }}</span>
+                    <span class="text-amber-600 text-3xl font-bold">₹<?php echo e(number_format($summary['ta'], 0)); ?></span>
                     <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-2">TA Earned</span>
                 </div>
-            @endif
+            <?php endif; ?>
             <div
-                class="summary-card p-6 flex flex-col @if(app()->getLocale() == 'en') lg:col-span-1 @endif items-center bg-accent/5 !border-accent/20">
-                <span class="text-accent text-3xl font-extrabold">₹{{ number_format($summary['total'], 0) }}</span>
+                class="summary-card p-6 flex flex-col <?php if(app()->getLocale() == 'en'): ?> lg:col-span-1 <?php endif; ?> items-center bg-accent/5 !border-accent/20">
+                <span class="text-accent text-3xl font-extrabold">₹<?php echo e(number_format($summary['total'], 0)); ?></span>
                 <span class="text-sm font-bold text-accent uppercase tracking-wider mt-2">Total Earned</span>
             </div>
         </div>
@@ -131,18 +129,19 @@
                     </div>
                     <div>
                         <h3 class="text-2xl font-black text-slate-800 dark:text-white leading-tight">
-                            {{ $targetDate->format('F Y') }}
+                            <?php echo e($targetDate->format('F Y')); ?>
+
                         </h3>
                         <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Attendance Sheet</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    @php
+                    <?php
                         $prevMonth = $targetDate->copy()->subMonth();
                         $nextMonth = $targetDate->copy()->addMonth();
-                    @endphp
-                    <a href="{{ request()->fullUrlWithQuery(['month' => $prevMonth->month, 'year' => $prevMonth->year]) }}"
+                    ?>
+                    <a href="<?php echo e(request()->fullUrlWithQuery(['month' => $prevMonth->month, 'year' => $prevMonth->year])); ?>"
                         class="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all">
                         <svg class="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -150,12 +149,12 @@
                         </svg>
                     </a>
 
-                    <a href="{{ request()->fullUrlWithQuery(['month' => now()->month, 'year' => now()->year]) }}"
+                    <a href="<?php echo e(request()->fullUrlWithQuery(['month' => now()->month, 'year' => now()->year])); ?>"
                         class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold rounded-xl hover:bg-slate-200 transition-all">
                         Today
                     </a>
 
-                    <a href="{{ request()->fullUrlWithQuery(['month' => $nextMonth->month, 'year' => $nextMonth->year]) }}"
+                    <a href="<?php echo e(request()->fullUrlWithQuery(['month' => $nextMonth->month, 'year' => $nextMonth->year])); ?>"
                         class="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all">
                         <svg class="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -166,24 +165,24 @@
             </div>
 
             <div class="calendar-container">
-                @php
+                <?php
                     $startOfMonth = $targetDate->copy()->startOfMonth();
                     $endOfMonth = $targetDate->copy()->endOfMonth();
                     $daysInMonth = $targetDate->daysInMonth;
                     $startDay = $startOfMonth->dayOfWeek; // 0 (Sun) to 6 (Sat)
                     $days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                @endphp
+                ?>
 
-                @foreach($days as $day)
-                    <div class="calendar-day-label">{{ $day }}</div>
-                @endforeach
+                <?php $__currentLoopData = $days; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <div class="calendar-day-label"><?php echo e($day); ?></div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-                @for($i = 0; $i < $startDay; $i++)
+                <?php for($i = 0; $i < $startDay; $i++): ?>
                     <div></div>
-                @endfor
+                <?php endfor; ?>
 
-                @for($day = 1; $day <= $daysInMonth; $day++)
-                    @php
+                <?php for($day = 1; $day <= $daysInMonth; $day++): ?>
+                    <?php
                         $currentDate = $startOfMonth->copy()->addDays($day - 1);
                         $dateStr = $currentDate->format('Y-m-d');
 
@@ -199,23 +198,24 @@
                         if ($attendance) {
                             $statusClass = $attendance->status === 'present' ? 'status-present' : 'status-absent';
                         }
-                    @endphp
+                    ?>
 
-                    <div class="calendar-day {{ $statusClass }} {{ $isToday ? 'ring-4 ring-accent ring-offset-2' : '' }}"
-                        @if($attendance)
-                            onclick="showDetails('{{ $currentDate->format('d M Y') }}', '{{ ucfirst($attendance->status) }}', '{{ $attendance->incentive_amount }}', '{{ $attendance->ta_amount }}', '{{ $attendance->medicines_amount }}', '{{ $attendance->pathology_amount }}', '{{ $attendance->membership_amount }}', '{{ $attendance->ots_amount }}', '{{ $attendance->total_amount }}', '{{ $attendance->markedBy->profile->full_name ?? 'System' }}', '{{ $attendance->created_at->format('H:i') }}')"
-                        @elseif(!$isFuture && !$isToday)
-                            onclick="showDetails('{{ $currentDate->format('d M Y') }}', 'Pending/Absent', 0, 0, 0, 0, 0, 0, 0, 'N/A', 'N/A')"
-                        @endif>
-                        {{ $day }}
-                        @if($isToday)
+                    <div class="calendar-day <?php echo e($statusClass); ?> <?php echo e($isToday ? 'ring-4 ring-accent ring-offset-2' : ''); ?>"
+                        <?php if($attendance): ?>
+                            onclick="showDetails('<?php echo e($currentDate->format('d M Y')); ?>', '<?php echo e(ucfirst($attendance->status)); ?>', '<?php echo e($attendance->incentive_amount); ?>', '<?php echo e($attendance->ta_amount); ?>', '<?php echo e($attendance->medicines_amount); ?>', '<?php echo e($attendance->pathology_amount); ?>', '<?php echo e($attendance->membership_amount); ?>', '<?php echo e($attendance->ots_amount); ?>', '<?php echo e($attendance->total_amount); ?>', '<?php echo e($attendance->markedBy->profile->full_name ?? 'System'); ?>', '<?php echo e($attendance->created_at->format('H:i')); ?>')"
+                        <?php elseif(!$isFuture && !$isToday): ?>
+                            onclick="showDetails('<?php echo e($currentDate->format('d M Y')); ?>', 'Pending/Absent', 0, 0, 0, 0, 0, 0, 0, 'N/A', 'N/A')"
+                        <?php endif; ?>>
+                        <?php echo e($day); ?>
+
+                        <?php if($isToday): ?>
                             <span class="text-[8px] absolute top-1 font-black opacity-60">TODAY</span>
-                        @endif
-                        @if($attendance && $attendance->status === 'present')
+                        <?php endif; ?>
+                        <?php if($attendance && $attendance->status === 'present'): ?>
                             <div class="indicator"></div>
-                        @endif
+                        <?php endif; ?>
                     </div>
-                @endfor
+                <?php endfor; ?>
             </div>
         </div>
     </div>
@@ -237,12 +237,12 @@
                                                                 <span class="text-[9px] text-slate-400 uppercase font-black">Basic Inc.</span>
                                                                 <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(incentive).toLocaleString()}</p>
                                                             </div>
-                                                            @if($user->isRO())
+                                                            <?php if($user->isRO()): ?>
                                                                 <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
                                                                     <span class="text-[9px] text-slate-400 uppercase font-black">Daily TA</span>
                                                                     <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ta).toLocaleString()}</p>
                                                                 </div>
-                                                            @endif
+                                                            <?php endif; ?>
                                                             <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
                                                                 <span class="text-[9px] text-slate-400 uppercase font-black">Medicines</span>
                                                                 <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(med).toLocaleString()}</p>
@@ -277,4 +277,5 @@
             });
         }
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/attendance/calendar.blade.php ENDPATH**/ ?>

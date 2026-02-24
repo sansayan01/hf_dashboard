@@ -53,7 +53,7 @@ class DashboardController extends Controller
 
         $isViewAs = $currentUser->id !== $user->id;
 
-        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'earnings'));
+        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'canViewReports', 'canViewDownline', 'earnings'));
     }
 
     private function getStats(User $user, array $downlineIds, bool $canViewDownline): array
@@ -93,9 +93,11 @@ class DashboardController extends Controller
             ", [$today, $startOfWeek, $startOfMonth])
             ->first();
 
+        $default = ['total' => 0, 'daily' => 0, 'weekly' => 0, 'monthly' => 0];
+
         return [
-            'surveys' => $surveyStats ? $surveyStats->toArray() : [],
-            'appointments' => $appStats ? $appStats->toArray() : []
+            'surveys' => $surveyStats ? array_merge($default, $surveyStats->toArray()) : $default,
+            'appointments' => $appStats ? array_merge($default, $appStats->toArray()) : $default
         ];
     }
 

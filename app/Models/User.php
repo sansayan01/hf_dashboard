@@ -190,15 +190,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Get current incentive and TA for the user
+     * Get current incentive and TA for the user for a specific date
      */
-    public function getCurrentIncentive()
+    public function getCurrentIncentive($date = null)
     {
-        $today = now()->toDateString();
+        $date = $date ? Carbon::parse($date)->toDateString() : now()->toDateString();
 
         // 1. Check user-specific override
         $specific = $this->incentiveConfigs()
-            ->where('effective_from', '<=', $today)
+            ->where('effective_from', '<=', $date)
             ->orderBy('effective_from', 'desc')
             ->first();
 
@@ -209,7 +209,7 @@ class User extends Authenticatable
         // 2. Check designation-based global default
         $designationDefault = IncentiveConfig::whereNull('user_id')
             ->where('designation', $this->designation)
-            ->where('effective_from', '<=', $today)
+            ->where('effective_from', '<=', $date)
             ->orderBy('effective_from', 'desc')
             ->first();
 
@@ -220,7 +220,7 @@ class User extends Authenticatable
         // 3. Fallback to general global default (where user_id AND designation are null)
         return IncentiveConfig::whereNull('user_id')
             ->whereNull('designation')
-            ->where('effective_from', '<=', $today)
+            ->where('effective_from', '<=', $date)
             ->orderBy('effective_from', 'desc')
             ->first();
     }

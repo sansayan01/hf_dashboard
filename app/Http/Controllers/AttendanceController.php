@@ -26,57 +26,59 @@ class AttendanceController extends Controller
         }
 
         // 2. Lock logic: Attendance can be edited only on the same day.
-        // After 24 hours (or effectively, after the date has passed), attendance is locked.
         $attendanceDate = Carbon::parse($request->date);
-        $existing = Attendance::where('user_id', $user->id)
+        $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $attendanceDate->format('Y-m-d'))
             ->first();
 
-        if ($existing && $existing->isLocked() && !$effectiveUser->isSuperAdmin()) {
+        if ($attendance && $attendance->isLocked() && !$effectiveUser->isSuperAdmin()) {
             return response()->json(['message' => 'Attendance is locked and cannot be modified.'], 403);
         }
 
-        // 3. Snapshot logic: Fetch current incentive/TA config
-        $incentiveAmount = 0;
-        $taAmount = 0;
-        $medicinesAmount = 0;
-        $pathologyAmount = 0;
-        $membershipAmount = 0;
-        $otsAmount = 0;
-        $totalAmount = 0;
-
-        if ($request->status === 'present') {
-            $config = $user->getCurrentIncentive();
-            if ($config) {
-                $incentiveAmount = $config->incentive_amount;
-                $taAmount = $user->designation === 'ro' ? $config->ta_amount : 0;
-                // Category amounts (medicines, pathology, membership, ots) are now automated
-                // and should be 0 unless triggered by a specific action.
-                $medicinesAmount = 0;
-                $pathologyAmount = 0;
-                $membershipAmount = 0;
-                $otsAmount = 0;
-                $totalAmount = $incentiveAmount + $taAmount;
-            }
+        if (!$attendance) {
+            $attendance = new Attendance();
+            $attendance->user_id = $user->id;
+            $attendance->date = $attendanceDate->startOfDay();
         }
 
-        $attendance = Attendance::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'date' => $request->date,
-            ],
-            [
-                'marked_by' => $effectiveUser->id,
-                'status' => $request->status,
-                'incentive_amount' => $incentiveAmount,
-                'ta_amount' => $taAmount,
-                'medicines_amount' => $medicinesAmount,
-                'pathology_amount' => $pathologyAmount,
-                'membership_amount' => $membershipAmount,
-                'ots_amount' => $otsAmount,
-                'total_amount' => $totalAmount,
-            ]
-        );
+        // 3. Mark logic
+        $attendance->marked_by = $effectiveUser->id;
+        $attendance->status = $request->status;
+
+        if ($request->status === 'present') {
+            $config = $user->getCurrentIncentive($attendance->date);
+            if ($config) {
+                $attendance->incentive_amount = $config->incentive_amount;
+                $attendance->ta_amount = $user->designation === 'ro' ? $config->ta_amount : 0;
+            } else {
+                $attendance->incentive_amount = $attendance->incentive_amount ?? 0;
+                $attendance->ta_amount = $attendance->ta_amount ?? 0;
+            }
+
+            // Explicitly preserve or initialize activity amounts
+            $attendance->medicines_amount = $attendance->medicines_amount ?? 0;
+            $attendance->pathology_amount = $attendance->pathology_amount ?? 0;
+            $attendance->membership_amount = $attendance->membership_amount ?? 0;
+            $attendance->ots_amount = $attendance->ots_amount ?? 0;
+        } else {
+            // Reset amounts if marking as absent
+            $attendance->incentive_amount = 0;
+            $attendance->ta_amount = 0;
+            $attendance->medicines_amount = 0;
+            $attendance->pathology_amount = 0;
+            $attendance->membership_amount = 0;
+            $attendance->ots_amount = 0;
+        }
+
+        // Recalculate total
+        $attendance->total_amount = $attendance->incentive_amount +
+            $attendance->ta_amount +
+            $attendance->medicines_amount +
+            $attendance->pathology_amount +
+            $attendance->membership_amount +
+            $attendance->ots_amount;
+
+        $attendance->save();
 
         return response()->json([
             'message' => 'Attendance marked successfully',
@@ -103,9 +105,9 @@ class AttendanceController extends Controller
     public function roDashboard(Request $request)
     {
         $user = User::getEffectiveUser();
-        if (!$user->isRO() && !$user->isSuperAdmin()) {
-            if (!$user->isSuperAdmin())
-                abort(403);
+        // Allow roles that earn incentives to see their dashboard
+        if (!in_array($user->designation, ['ro', 'rm', 'bm', 'dm']) && !$user->isSuperAdmin()) {
+            abort(403);
         }
 
         $month = $request->get('month', now()->month);
@@ -120,9 +122,13 @@ class AttendanceController extends Controller
         $summary = [
             'present' => $attendances->where('status', 'present')->count(),
             'absent' => $attendances->where('status', 'absent')->count(),
-            'incentive' => $attendances->sum('incentive_amount'),
+            // Align "Incentives" with main dashboard (Sum of activity pieces)
+            'incentive' => $attendances->sum(function ($a) {
+                return $a->medicines_amount + $a->pathology_amount + $a->membership_amount + $a->ots_amount;
+            }),
             'ta' => $attendances->sum('ta_amount'),
-            'total' => $attendances->sum('total_amount'),
+            // Total includes TA + Activity (Matching main dashboard total)
+            'total' => $attendances->sum('total_amount') - $attendances->sum('incentive_amount'),
         ];
 
         $allAttendances = $user->attendances()
@@ -153,9 +159,11 @@ class AttendanceController extends Controller
         $summary = [
             'present' => $attendances->where('status', 'present')->count(),
             'absent' => $attendances->where('status', 'absent')->count(),
-            'incentive' => $attendances->sum('incentive_amount'),
+            'incentive' => $attendances->sum(function ($a) {
+                return $a->medicines_amount + $a->pathology_amount + $a->membership_amount + $a->ots_amount;
+            }),
             'ta' => $attendances->sum('ta_amount'),
-            'total' => $attendances->sum('total_amount'),
+            'total' => $attendances->sum('total_amount') - $attendances->sum('incentive_amount'),
         ];
 
         $allAttendances = $user->attendances()
