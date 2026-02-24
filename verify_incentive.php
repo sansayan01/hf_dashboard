@@ -34,7 +34,7 @@ try {
     echo "Incentive configs set.\n";
 
     // 3. Clear today's attendance for these users
-    Attendance::whereDate('date', now()->toDateString())->whereIn('user_id', [$ro->id, $rm->id, $bm->id, $dm->id])->delete();
+    Attendance::where('date', now()->toDateString())->whereIn('user_id', [$ro->id, $rm->id, $bm->id, $dm->id])->delete();
 
     // 4. Run Logic
     $amount = 1000.00;
@@ -42,7 +42,7 @@ try {
     app(IncentiveService::class)->applyIncentive($ro, 'medicines', $amount);
 
     // 5. Check Results
-    $results = Attendance::whereDate('date', now()->toDateString())->whereIn('user_id', [$ro->id, $rm->id, $bm->id, $dm->id])->get();
+    $results = Attendance::where('date', now()->toDateString())->whereIn('user_id', [$ro->id, $rm->id, $bm->id, $dm->id])->get();
 
     foreach ($results as $att) {
         $user = User::find($att->user_id);

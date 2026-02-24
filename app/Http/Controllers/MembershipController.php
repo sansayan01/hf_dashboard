@@ -95,22 +95,38 @@ class MembershipController extends Controller
             'health_issue_other' => 'nullable|string',
             'insurance_loan_req' => 'nullable|string',
             'membership_fee' => 'required|numeric',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'final_amount' => 'nullable|numeric|min:0',
+            'amount_paid' => 'nullable|numeric|min:0',
+            'due_amount' => 'nullable|numeric|min:0',
             'payment_method' => 'required|string|max:255',
             'payment_screenshot' => 'required_without:coupon_code|nullable|image|max:5120',
             'coupon_code' => 'nullable|string|exists:coupon_codes,code',
         ]);
 
+        // Fill the model with validated data first
+        $patient->fill($validated);
+
         $couponUsed = false;
         $coupon = null;
 
         if ($request->filled('coupon_code')) {
-            $coupon = \App\Models\CouponCode::where('code', $request->coupon_code)->first();
+            $code = strtoupper(trim($request->coupon_code));
+            $coupon = \App\Models\CouponCode::where('code', $code)->first();
+
             if ($coupon && $coupon->isValid('membership')) {
                 $couponUsed = true;
                 $patient->payment_method = 'Coupon: ' . $coupon->code;
                 $patient->membership_fee = 0;
+                $patient->discount_percentage = 0;
+                $patient->discount_amount = 0;
+                $patient->final_amount = 0;
+                $patient->amount_paid = 0;
+                $patient->due_amount = 0;
             } else {
-                return back()->withInput()->with('error', 'Invalid or expired coupon code.');
+                $errorMessage = $coupon ? $coupon->getValidationError('membership') : 'Invalid coupon code. Please check and try again.';
+                return back()->withInput()->with('error', $errorMessage);
             }
         }
 
@@ -119,9 +135,9 @@ class MembershipController extends Controller
             $path = $request->file('payment_screenshot')->store('payments', 'public');
 
             // AI Verification for UPI Payments
-            if ($request->payment_method === 'UPI') {
+            if ($request->payment_method === 'UPI' || $request->payment_method === 'UPI (QR)') {
                 $aiService = app(\App\Services\AIService::class);
-                $expectedAmount = (float) $request->membership_fee;
+                $expectedAmount = (float) ($request->amount_paid ?? $request->final_amount ?? $request->membership_fee);
 
                 $verification = $aiService->verifyPaymentScreenshot(storage_path('app/public/' . $path), $expectedAmount);
 
@@ -133,18 +149,15 @@ class MembershipController extends Controller
 
                 // Store transaction ID if available
                 if (!empty($verification['transaction_id'])) {
-                    $patient->payment_method = 'UPI (Ref: ' . $verification['transaction_id'] . ')';
+                    $patient->payment_method = $request->payment_method . ' (Ref: ' . $verification['transaction_id'] . ')';
                 }
             }
 
             $patient->payment_screenshot = $path;
         }
 
-        // Update record and upgrade to member
-        $patient->fill($validated);
+        // Upgrade to member
         if ($couponUsed) {
-            $patient->membership_fee = 0;
-            $patient->payment_method = 'Coupon: ' . $coupon->code;
             $coupon->markAsUsed(auth()->id());
         }
         $patient->is_member = true;
@@ -155,7 +168,8 @@ class MembershipController extends Controller
         $patient->save();
 
         // Automate Incentive and Attendance
-        app(IncentiveService::class)->applyIncentive($user, 'membership');
+        // Like medicine and pathology, the incentive goes to the RO (patient creator)
+        app(IncentiveService::class)->applyIncentive($patient->creator, 'membership', $patient->final_amount);
 
         \App\Models\ActivityLog::logActivity(
             action: 'member_registered',

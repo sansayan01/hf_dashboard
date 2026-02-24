@@ -156,7 +156,8 @@ class CouponCodeController extends Controller
             'designation' => 'required|in:dm,bm,rm,ro,membership',
         ]);
 
-        $coupon = CouponCode::where('code', $request->code)->first();
+        $code = strtoupper(trim($request->code));
+        $coupon = CouponCode::where('code', $code)->first();
 
         if (!$coupon) {
             return response()->json([

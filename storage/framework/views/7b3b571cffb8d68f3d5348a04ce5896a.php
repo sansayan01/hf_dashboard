@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Edit Member'); ?>
+<?php $__env->startSection('header_title', 'Edit ' . ($user->profile->full_name ?? $user->employee_id)); ?>
 
-@section('title', 'Edit Member')
-@section('header_title', 'Edit ' . ($user->profile->full_name ?? $user->employee_id))
-
-@section('css')
+<?php $__env->startSection('css'); ?>
 <style>
     /* 3D Dial Toggle Styling */
     .dial-container {
@@ -63,25 +61,25 @@
         box-shadow: none !important;
     }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="max-w-4xl mx-auto">
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div class="p-8 border-b border-slate-50">
                 <h3 class="font-bold text-xl text-slate-800">Edit Member Details</h3>
                 <p class="text-sm text-slate-500 mt-1">Update the profile and professional information for
-                    {{ $user->employee_id }}.</p>
+                    <?php echo e($user->employee_id); ?>.</p>
             </div>
 
-            <form action="{{ route('users.update', $user->id) }}" method="POST" enctype="multipart/form-data"
+            <form action="<?php echo e(route('users.update', $user->id)); ?>" method="POST" enctype="multipart/form-data"
                 class="p-8 space-y-10">
-                @csrf
-                @method('PUT')
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('PUT'); ?>
 
                 <!-- Section: Administrative Role Management (Admins Only) -->
                 <!-- Section: Administrative Role Management (Admins Only) -->
-                @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+                <?php if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()): ?>
                 <div class="mb-8">
                     <div class="flex items-center space-x-2 mb-6 text-accent">
                         <div class="w-1.5 h-6 bg-accent rounded-full"></div>
@@ -92,14 +90,14 @@
                             <label class="block text-sm font-bold text-slate-700 mb-2">Role/Designation</label>
                             <select name="designation" id="designation-select"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
-                                @foreach($allDesignations ?? [] as $val => $label)
-                                    <option value="{{ $val }}" {{ $user->designation == $val ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $allDesignations ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $val => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($val); ?>" <?php echo e($user->designation == $val ? 'selected' : ''); ?>><?php echo e($label); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
-                        <div id="post-selection-wrapper" class="{{ $user->designation === 'super_admin' ? '' : 'hidden' }}">
+                        <div id="post-selection-wrapper" class="<?php echo e($user->designation === 'super_admin' ? '' : 'hidden'); ?>">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Assign Post (Manual Entry)</label>
-                            <input type="text" name="post" id="post-input" value="{{ old('post', $user->post) }}" placeholder="e.g. Secretary, Vice President"
+                            <input type="text" name="post" id="post-input" value="<?php echo e(old('post', $user->post)); ?>" placeholder="e.g. Secretary, Vice President"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                         </div>
                         <div id="parent-selection-wrapper">
@@ -107,9 +105,9 @@
                             <select name="parent_id" id="parent-select"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Parent</option>
-                                @if($user->parent)
-                                    <option value="{{ $user->parent_id }}" selected>{{ $user->parent->profile->full_name ?? $user->parent->employee_id }} (Current)</option>
-                                @endif
+                                <?php if($user->parent): ?>
+                                    <option value="<?php echo e($user->parent_id); ?>" selected><?php echo e($user->parent->profile->full_name ?? $user->parent->employee_id); ?> (Current)</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                         
@@ -119,20 +117,21 @@
                             <select name="camp_id" id="camp-select"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Camp</option>
-                                @if(isset($camps))
-                                    @foreach($camps as $camp)
-                                        <option value="{{ $camp->id }}" {{ old('camp_id', $user->camp_id) == $camp->id ? 'selected' : '' }}>
-                                            {{ $camp->name }} {{ $camp->location ? '('.$camp->location.')' : '' }}
+                                <?php if(isset($camps)): ?>
+                                    <?php $__currentLoopData = $camps; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $camp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($camp->id); ?>" <?php echo e(old('camp_id', $user->camp_id) == $camp->id ? 'selected' : ''); ?>>
+                                            <?php echo e($camp->name); ?> <?php echo e($camp->location ? '('.$camp->location.')' : ''); ?>
+
                                         </option>
-                                    @endforeach
-                                @endif
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endif; ?>
                             </select>
                             <p class="text-xs text-slate-500 mt-1">Pharmacist will be assigned to this camp location.</p>
                         </div>
                     </div>
 
                     <!-- Office In-Charge Upline Selection (Only for Super Admin) -->
-                    @if(auth()->user()->isSuperAdmin())
+                    <?php if(auth()->user()->isSuperAdmin()): ?>
                     <div id="office-in-charge-upline-section" class="hidden mt-6">
                         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
                             <p class="text-sm text-blue-800 font-semibold">
@@ -148,11 +147,11 @@
                                 <select name="upline_designation" id="upline-designation-select"
                                     class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                     <option value="">Select Upline Designation</option>
-                                    <option value="super_admin" {{ ($user->upline_designation ?? old('upline_designation')) == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                                    <option value="hs" {{ ($user->upline_designation ?? old('upline_designation')) == 'hs' ? 'selected' : '' }}>Head of State (HS)</option>
-                                    <option value="dm" {{ ($user->upline_designation ?? old('upline_designation')) == 'dm' ? 'selected' : '' }}>District Manager (DM)</option>
-                                    <option value="bm" {{ ($user->upline_designation ?? old('upline_designation')) == 'bm' ? 'selected' : '' }}>Block Manager (BM)</option>
-                                    <option value="rm" {{ ($user->upline_designation ?? old('upline_designation')) == 'rm' ? 'selected' : '' }}>Relationship Manager (RM)</option>
+                                    <option value="super_admin" <?php echo e(($user->upline_designation ?? old('upline_designation')) == 'super_admin' ? 'selected' : ''); ?>>Super Admin</option>
+                                    <option value="hs" <?php echo e(($user->upline_designation ?? old('upline_designation')) == 'hs' ? 'selected' : ''); ?>>Head of State (HS)</option>
+                                    <option value="dm" <?php echo e(($user->upline_designation ?? old('upline_designation')) == 'dm' ? 'selected' : ''); ?>>District Manager (DM)</option>
+                                    <option value="bm" <?php echo e(($user->upline_designation ?? old('upline_designation')) == 'bm' ? 'selected' : ''); ?>>Block Manager (BM)</option>
+                                    <option value="rm" <?php echo e(($user->upline_designation ?? old('upline_designation')) == 'rm' ? 'selected' : ''); ?>>Relationship Manager (RM)</option>
                                 </select>
                             </div>
                             <div>
@@ -164,10 +163,10 @@
                             </div>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
                     <p class="text-[10px] text-accent font-bold mt-4 uppercase italic">Warning: changing designation requires re-assigning valid parent.</p>
                 </div>
-                @endif
+                <?php endif; ?>
 
                 <!-- Section: Account Info -->
                 <div>
@@ -178,26 +177,26 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2 id-label">{{ in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Employee ID' : 'Volunteer ID' }}</label>
-                            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
-                                <input type="text" name="employee_id" value="{{ old('employee_id', $user->employee_id) }}" 
+                            <label class="block text-sm font-bold text-slate-700 mb-2 id-label"><?php echo e(in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Employee ID' : 'Volunteer ID'); ?></label>
+                            <?php if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()): ?>
+                                <input type="text" name="employee_id" value="<?php echo e(old('employee_id', $user->employee_id)); ?>" 
                                     class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <p class="text-[10px] text-accent font-bold mt-1 uppercase italic">Admin changes allowed</p>
-                            @else
-                                <input type="text" value="{{ $user->employee_id }}" disabled
+                            <?php else: ?>
+                                <input type="text" value="<?php echo e($user->employee_id); ?>" disabled
                                     class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 outline-none">
-                                <p class="text-[10px] text-bodydark font-bold mt-1 uppercase italic">{{ in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Employee ID' : 'Volunteer ID' }} cannot be changed</p>
-                            @endif
+                                <p class="text-[10px] text-bodydark font-bold mt-1 uppercase italic"><?php echo e(in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Employee ID' : 'Volunteer ID'); ?> cannot be changed</p>
+                            <?php endif; ?>
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
-                            <input type="email" name="email" value="{{ old('email', $user->email) }}" required
+                            <input type="email" name="email" value="<?php echo e(old('email', $user->email)); ?>" required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                         </div>
 
                         <!-- Password Reset Section (Optional) -->
-                        @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge() || auth()->id() === $user->id)
+                        <?php if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge() || auth()->id() === $user->id): ?>
                         <div class="col-span-1 md:col-span-2 border-t border-slate-100 pt-6 mt-2">
                              <div class="p-4 bg-orange-50 rounded-xl border border-orange-100">
                                 <h5 class="text-sm font-bold text-orange-800 mb-3 flex items-center">
@@ -228,13 +227,13 @@
                                 </div>
                             </div>
                         </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </div>
 
                 <!-- Section: Per-User Permission Overrides (Admins Only) -->
-                @if(auth()->user()->isSuperAdmin())
-                <div id="per-user-permissions-section" class="{{ in_array($user->designation, ['hs', 'dm', 'rm']) ? '' : 'hidden' }}">
+                <?php if(auth()->user()->isSuperAdmin()): ?>
+                <div id="per-user-permissions-section" class="<?php echo e(in_array($user->designation, ['hs', 'dm', 'rm']) ? '' : 'hidden'); ?>">
                     <div class="flex items-center space-x-2 mb-6 text-accent">
                         <div class="w-1.5 h-6 bg-accent rounded-full"></div>
                         <h4 class="font-bold text-slate-800 uppercase tracking-wider text-xs">Per-User Permission Overrides</h4>
@@ -253,11 +252,26 @@
                                 <p class="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">CAN CREATE USERS</p>
                                 <p class="text-[10px] text-slate-400 font-bold uppercase">Grant Access</p>
                             </div>
-                            <x-dial-toggle 
-                                name="can_create_users" 
-                                id="can_create_users_toggle"
-                                :checked="old('can_create_users', $user->can_create_users)" 
-                            />
+                            <?php if (isset($component)) { $__componentOriginalb60c2b1588902dbf70e44e12504bfd46 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb60c2b1588902dbf70e44e12504bfd46 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.dial-toggle','data' => ['name' => 'can_create_users','id' => 'can_create_users_toggle','checked' => old('can_create_users', $user->can_create_users)]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('dial-toggle'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['name' => 'can_create_users','id' => 'can_create_users_toggle','checked' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(old('can_create_users', $user->can_create_users))]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalb60c2b1588902dbf70e44e12504bfd46)): ?>
+<?php $attributes = $__attributesOriginalb60c2b1588902dbf70e44e12504bfd46; ?>
+<?php unset($__attributesOriginalb60c2b1588902dbf70e44e12504bfd46); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalb60c2b1588902dbf70e44e12504bfd46)): ?>
+<?php $component = $__componentOriginalb60c2b1588902dbf70e44e12504bfd46; ?>
+<?php unset($__componentOriginalb60c2b1588902dbf70e44e12504bfd46); ?>
+<?php endif; ?>
                         </label>
 
                         <label class="group flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-3xl cursor-pointer hover:border-accent/30 hover:bg-white transition-all shadow-sm">
@@ -265,15 +279,30 @@
                                 <p class="text-xs font-black text-slate-800 uppercase tracking-widest mb-1">CAN EDIT USER DETAILS</p>
                                 <p class="text-[10px] text-slate-400 font-bold uppercase">Grant Access</p>
                             </div>
-                            <x-dial-toggle 
-                                name="can_edit_user_details" 
-                                id="can_edit_user_details_toggle"
-                                :checked="old('can_edit_user_details', $user->can_edit_user_details)" 
-                            />
+                            <?php if (isset($component)) { $__componentOriginalb60c2b1588902dbf70e44e12504bfd46 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb60c2b1588902dbf70e44e12504bfd46 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.dial-toggle','data' => ['name' => 'can_edit_user_details','id' => 'can_edit_user_details_toggle','checked' => old('can_edit_user_details', $user->can_edit_user_details)]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('dial-toggle'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['name' => 'can_edit_user_details','id' => 'can_edit_user_details_toggle','checked' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(old('can_edit_user_details', $user->can_edit_user_details))]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalb60c2b1588902dbf70e44e12504bfd46)): ?>
+<?php $attributes = $__attributesOriginalb60c2b1588902dbf70e44e12504bfd46; ?>
+<?php unset($__attributesOriginalb60c2b1588902dbf70e44e12504bfd46); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalb60c2b1588902dbf70e44e12504bfd46)): ?>
+<?php $component = $__componentOriginalb60c2b1588902dbf70e44e12504bfd46; ?>
+<?php unset($__componentOriginalb60c2b1588902dbf70e44e12504bfd46); ?>
+<?php endif; ?>
                         </label>
                     </div>
                 </div>
-                @endif
+                <?php endif; ?>
 
                 <!-- Section: Personal Profile -->
                 <div>
@@ -285,7 +314,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
-                            <input type="text" name="full_name" value="{{ old('full_name', $user->profile->full_name ?? '') }}"
+                            <input type="text" name="full_name" value="<?php echo e(old('full_name', $user->profile->full_name ?? '')); ?>"
                                 required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')">
@@ -294,7 +323,7 @@
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Phone Number</label>
                             <input type="tel" name="phone_number"
-                                value="{{ old('phone_number', $user->profile->phone_number ?? '') }}" required maxlength="10"
+                                value="<?php echo e(old('phone_number', $user->profile->phone_number ?? '')); ?>" required maxlength="10"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                         </div>
@@ -304,9 +333,9 @@
                             <select name="blood_group"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Group</option>
-                                @foreach(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $group)
-                                    <option value="{{ $group }}" {{ old('blood_group', $user->profile->blood_group ?? '') == $group ? 'selected' : '' }}>{{ $group }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($group); ?>" <?php echo e(old('blood_group', $user->profile->blood_group ?? '') == $group ? 'selected' : ''); ?>><?php echo e($group); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -314,15 +343,16 @@
                             <label class="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Profile Picture</label>
                             <div class="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-300 dark:border-white/10">
                                 <div class="relative w-24 h-24 flex-shrink-0 group cursor-pointer" onclick="handlePreviewClick('profile_picture_input', 'profile-preview')">
-                                    @if($user->profile?->profile_picture)
-                                        <img id="profile-preview" src="{{ $user->profile->getProfilePictureUrl() }}"
+                                    <?php if($user->profile?->profile_picture): ?>
+                                        <img id="profile-preview" src="<?php echo e($user->profile->getProfilePictureUrl()); ?>"
                                             class="w-full h-full rounded-2xl object-cover border-2 border-accent/20 shadow-lg transition-all group-hover:scale-105">
-                                    @else
+                                    <?php else: ?>
                                         <div class="initials-placeholder w-full h-full rounded-2xl bg-accent/10 border-2 border-accent/20 flex items-center justify-center text-accent text-2xl font-bold transition-all group-hover:scale-105">
-                                            {{ substr($user->profile->full_name ?? $user->employee_id, 0, 1) }}
+                                            <?php echo e(substr($user->profile->full_name ?? $user->employee_id, 0, 1)); ?>
+
                                         </div>
                                         <img id="profile-preview" src="#" alt="Preview" class="hidden w-full h-full rounded-2xl object-cover border-2 border-accent/20 shadow-lg transition-all group-hover:scale-105">
-                                    @endif
+                                    <?php endif; ?>
                                     <div class="absolute -bottom-2 -right-2 bg-accent text-white p-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
@@ -343,7 +373,7 @@
                             <label class="block text-sm font-bold text-slate-700 mb-2">Detailed Address</label>
                             <textarea name="address" required rows="3"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
-                                oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')">{{ old('address', $user->profile->address ?? '') }}</textarea>
+                                oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')"><?php echo e(old('address', $user->profile->address ?? '')); ?></textarea>
                         </div>
 
                         <div>
@@ -380,7 +410,7 @@
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Pin Code</label>
-                            <input type="text" name="pin_code" value="{{ old('pin_code', $user->profile->pin_code ?? '') }}"
+                            <input type="text" name="pin_code" value="<?php echo e(old('pin_code', $user->profile->pin_code ?? '')); ?>"
                                 required maxlength="6"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)">
@@ -389,14 +419,14 @@
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Aadhaar Number</label>
                             <input type="text" name="aadhaar_number"
-                                value="{{ old('aadhaar_number', $user->profile->aadhaar_number ?? '') }}" required maxlength="12"
+                                value="<?php echo e(old('aadhaar_number', $user->profile->aadhaar_number ?? '')); ?>" required maxlength="12"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12)">
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">PAN Number</label>
-                            <input type="text" name="pan_number" value="{{ old('pan_number', $user->profile->pan_number ?? '') }}"
+                            <input type="text" name="pan_number" value="<?php echo e(old('pan_number', $user->profile->pan_number ?? '')); ?>"
                                 maxlength="10"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="validatePAN(this)">
@@ -417,10 +447,10 @@
                             <select name="bank_name" required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Bank</option>
-                                @php
+                                <?php
                                     $selectedBank = old('bank_name', $user->bankDetails->bank_name ?? '');
-                                @endphp
-                                @foreach([
+                                ?>
+                                <?php $__currentLoopData = [
                                     'State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Punjab National Bank',
                                     'Bank of Baroda', 'Canara Bank', 'Union Bank of India', 'Bank of India', 'Indian Bank',
                                     'Central Bank of India', 'Indian Overseas Bank', 'UCO Bank', 'Bank of Maharashtra',
@@ -429,22 +459,22 @@
                                     'Tamilnad Mercantile Bank', 'RBL Bank', 'Bandhan Bank', 'IDFC First Bank', 'AU Small Finance Bank',
                                     'Equitas Small Finance Bank', 'India Post Payments Bank', 'Paytm Payments Bank',
                                     'Airtel Payments Bank', 'Jio Payments Bank', 'Rajnagar Samabaya Krishi Unnayan Samity Ltd', 'Bangiya Gramin Vikash Bank'
-                                ] as $bank)
-                                    <option value="{{ $bank }}" {{ $selectedBank == $bank ? 'selected' : '' }}>{{ $bank }}</option>
-                                @endforeach
+                                ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bank): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($bank); ?>" <?php echo e($selectedBank == $bank ? 'selected' : ''); ?>><?php echo e($bank); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
                         <div class="md:col-span-1">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Account Number</label>
                             <input type="text" name="account_number"
-                                value="{{ old('account_number', $user->bankDetails->account_number ?? '') }}" required
+                                value="<?php echo e(old('account_number', $user->bankDetails->account_number ?? '')); ?>" required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
                         <div class="md:col-span-1">
                             <label class="block text-sm font-bold text-slate-700 mb-2">IFSC Code</label>
                             <input type="text" name="ifsc_code"
-                                value="{{ old('ifsc_code', $user->bankDetails->ifsc_code ?? '') }}" required
+                                value="<?php echo e(old('ifsc_code', $user->bankDetails->ifsc_code ?? '')); ?>" required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')">
                         </div>
@@ -453,7 +483,7 @@
 
                 <!-- Submit -->
                 <div class="pt-10 border-t border-slate-100 flex items-center justify-between">
-                    <a href="{{ route('users.show', $user->id) }}"
+                    <a href="<?php echo e(route('users.show', $user->id)); ?>"
                         class="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition">Cancel</a>
                     <button type="submit"
                         class="px-10 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all">
@@ -463,10 +493,10 @@
             </form>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('js')
-    <script src="{{ asset('js/locations.js') }}"></script>
+<?php $__env->startSection('js'); ?>
+    <script src="<?php echo e(asset('js/locations.js')); ?>"></script>
     <script>
         function initStateLogic() {
             const stateSelect = document.getElementById('state-select');
@@ -475,10 +505,10 @@
             const gpSelect = document.getElementById('gp-select');
 
             // Current Values
-            const currentState = @json(old('state', $user->profile->state ?? ''));
-            const currentDistrict = @json(old('district', $user->profile->district ?? ''));
-            const currentBlock = @json(old('block', $user->profile->block ?? ''));
-            const currentGP = @json(old('gram_panchayat', $user->profile->gram_panchayat ?? ''));
+            const currentState = <?php echo json_encode(old('state', $user->profile->state ?? ''), 512) ?>;
+            const currentDistrict = <?php echo json_encode(old('district', $user->profile->district ?? ''), 512) ?>;
+            const currentBlock = <?php echo json_encode(old('block', $user->profile->block ?? ''), 512) ?>;
+            const currentGP = <?php echo json_encode(old('gram_panchayat', $user->profile->gram_panchayat ?? ''), 512) ?>;
 
             // 1. Populate States (Improved robustness)
             function populateStates() {
@@ -504,18 +534,18 @@
             populateStates();
 
             // Admin Role Management Logic
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+            <?php if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()): ?>
             const designationSelect = document.getElementById('designation-select');
             const parentSelect = document.getElementById('parent-select');
-            const potentialParents = @json($potentialParents ?? []);
-            const currentParentId = "{{ $user->parent_id }}";
+            const potentialParents = <?php echo json_encode($potentialParents ?? [], 15, 512) ?>;
+            const currentParentId = "<?php echo e($user->parent_id); ?>";
 
-            @if(auth()->user()->isSuperAdmin())
+            <?php if(auth()->user()->isSuperAdmin()): ?>
             const officeInChargeUplineSection = document.getElementById('office-in-charge-upline-section');
             const uplineDesignationSelect = document.getElementById('upline-designation-select');
             const uplinePersonSelect = document.getElementById('upline-person-select');
-            const potentialUplines = @json($potentialUplines ?? []);
-            const currentUplineId = "{{ $user->upline_id }}";
+            const potentialUplines = <?php echo json_encode($potentialUplines ?? [], 15, 512) ?>;
+            const currentUplineId = "<?php echo e($user->upline_id); ?>";
 
             // Handle upline designation change
             uplineDesignationSelect.addEventListener('change', function() {
@@ -553,7 +583,7 @@
             if (uplineDesignationSelect && uplineDesignationSelect.value) {
                 uplineDesignationSelect.dispatchEvent(new Event('change'));
             }
-            @endif
+            <?php endif; ?>
 
             // Function to populate parents based on designation
             function updateParents(designation) {
@@ -572,9 +602,9 @@
                 const campSelect = document.getElementById('camp-select');
 
                 if (['office_in_charge', 'camp_organizer'].includes(designation)) {
-                    @if(auth()->user()->isSuperAdmin())
+                    <?php if(auth()->user()->isSuperAdmin()): ?>
                         if (officeInChargeUplineSection) officeInChargeUplineSection.classList.remove('hidden');
-                    @endif
+                    <?php endif; ?>
                     if (parentWrapper) parentWrapper.classList.remove('hidden');
                     if (parentSelect) {
                         parentSelect.innerHTML = '<option value="">Auto-assigned from Upline</option>';
@@ -598,13 +628,13 @@
                     } else {
                         if (campWrapper) campWrapper.classList.add('hidden');
                     }
-                    @if(auth()->user()->isSuperAdmin())
+                    <?php if(auth()->user()->isSuperAdmin()): ?>
                         if (officeInChargeUplineSection) officeInChargeUplineSection.classList.add('hidden');
-                    @endif
+                    <?php endif; ?>
                 } else {
-                    @if(auth()->user()->isSuperAdmin())
+                    <?php if(auth()->user()->isSuperAdmin()): ?>
                         if (officeInChargeUplineSection) officeInChargeUplineSection.classList.add('hidden');
-                    @endif
+                    <?php endif; ?>
                     if (parentWrapper) parentWrapper.classList.remove('hidden');
                     if (campWrapper) campWrapper.classList.add('hidden');
                     if (campSelect) campSelect.required = false;
@@ -666,7 +696,7 @@
                             if (idLabel) idLabel.innerText = 'Volunteer ID';
                         }
 
-                        fetch(`{{ route('users.next-id') }}?designation=${designation}`)
+                        fetch(`<?php echo e(route('users.next-id')); ?>?designation=${designation}`)
                             .then(response => response.json())
                             .then(data => {
                                 if (data.id) {
@@ -684,7 +714,7 @@
                 // But we want to preserve current selection on load if it matches logic.
                 updateParents(designationSelect.value);
             }
-            @endif
+            <?php endif; ?>
 
 
             function updateDistricts(state, selectedDistrict = null) {
@@ -850,5 +880,6 @@
             }
         }
     </script>
-    @include('layouts.partials.image_cropper')
-@endsection
+    <?php echo $__env->make('layouts.partials.image_cropper', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/users/edit.blade.php ENDPATH**/ ?>

@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Admin Control Panel')
-@section('header_title', 'Admin Hub')
 
-@section('content')
+<?php $__env->startSection('title', 'Admin Control Panel'); ?>
+<?php $__env->startSection('header_title', 'Admin Hub'); ?>
+
+<?php $__env->startSection('content'); ?>
     <div class="p-6 max-w-7xl mx-auto overflow-y-auto h-full pb-20">
         <!-- Dashboard Welcome -->
         <div class="mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
@@ -15,7 +15,7 @@
         <!-- Main Hub Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             <!-- 1. Permissions -->
-            <a href="{{ route('profile.edit') }}"
+            <a href="<?php echo e(route('profile.edit')); ?>"
                 class="group relative block p-1 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[2.5rem] shadow-2xl transition-all hover:scale-[1.02] hover:-translate-y-1 duration-500">
                 <div class="bg-white dark:bg-darkcard rounded-[2.4rem] p-8 h-full relative overflow-hidden">
                     <!-- Shimmer Background -->
@@ -44,7 +44,7 @@
                                 <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Configured
                                     Roles</span>
                                 <span
-                                    class="text-lg font-black text-indigo-500">{{ $stats['permissions']['roles_count'] }}</span>
+                                    class="text-lg font-black text-indigo-500"><?php echo e($stats['permissions']['roles_count']); ?></span>
                             </div>
                             <div
                                 class="w-10 h-10 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500">
@@ -56,7 +56,7 @@
             </a>
 
             <!-- 2. Coupons -->
-            <a href="{{ route('coupons.index') }}"
+            <a href="<?php echo e(route('coupons.index')); ?>"
                 class="group relative block p-1 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-[2.5rem] shadow-2xl transition-all hover:scale-[1.02] hover:-translate-y-1 duration-500">
                 <div class="bg-white dark:bg-darkcard rounded-[2.4rem] p-8 h-full relative overflow-hidden">
                     <!-- Shimmer Background -->
@@ -84,7 +84,7 @@
                             <div class="flex flex-col">
                                 <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Active
                                     Codes</span>
-                                <span class="text-lg font-black text-emerald-500">{{ $stats['coupons']['active'] }}</span>
+                                <span class="text-lg font-black text-emerald-500"><?php echo e($stats['coupons']['active']); ?></span>
                             </div>
                             <div
                                 class="w-10 h-10 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
@@ -96,7 +96,7 @@
             </a>
 
             <!-- 3. Incentives -->
-            <a href="{{ route('admin.incentive-configs.index') }}"
+            <a href="<?php echo e(route('admin.incentive-configs.index')); ?>"
                 class="group relative block p-1 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 rounded-[2.5rem] shadow-2xl transition-all hover:scale-[1.02] hover:-translate-y-1 duration-500">
                 <div class="bg-white dark:bg-darkcard rounded-[2.4rem] p-8 h-full relative overflow-hidden">
                     <!-- Shimmer Background -->
@@ -125,7 +125,7 @@
                                 <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Active
                                     Plans</span>
                                 <span
-                                    class="text-lg font-black text-amber-500">{{ $stats['incentives']['global_plans'] }}</span>
+                                    class="text-lg font-black text-amber-500"><?php echo e($stats['incentives']['global_plans']); ?></span>
                             </div>
                             <div
                                 class="w-10 h-10 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-amber-500 group-hover:text-white transition-all duration-500">
@@ -160,7 +160,8 @@
                             class="p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                             <span class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Last Config
                                 Sync</span>
-                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">{{ now()->format('H:i') }}
+                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300"><?php echo e(now()->format('H:i')); ?>
+
                                 Today</span>
                         </div>
                     </div>
@@ -168,11 +169,12 @@
                 <div class="lg:w-1/2 flex justify-center">
                     <div class="relative">
                         <div class="w-64 h-64 bg-accent/20 rounded-full blur-[80px] absolute inset-0 animate-pulse"></div>
-                        <img src="{{ asset('img/hf_gold_logo.png') }}"
+                        <img src="<?php echo e(asset('img/hf_gold_logo.png')); ?>"
                             class="w-48 h-48 object-contain relative z-10 drop-shadow-2xl" alt="Shield">
                     </div>
                 </div>
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/admin/control_panel/index.blade.php ENDPATH**/ ?>

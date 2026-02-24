@@ -1,22 +1,20 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Add New Member'); ?>
+<?php $__env->startSection('header_title', 'Create New ' . strtoupper($allowedDesignation)); ?>
 
-@section('title', 'Add New Member')
-@section('header_title', 'Create New ' . strtoupper($allowedDesignation))
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="max-w-4xl mx-auto">
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div class="p-8 border-b border-slate-50">
                 <h3 class="font-bold text-xl text-slate-800">Donation Form</h3>
                 <p class="text-sm text-slate-500 mt-1">Fill in the details below to add a new
-                    {{ strtoupper($allowedDesignation) }} to your downline.</p>
+                    <?php echo e(strtoupper($allowedDesignation)); ?> to your downline.</p>
             </div>
 
-            <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-10">
-                @csrf
+            <form action="<?php echo e(route('users.store')); ?>" method="POST" enctype="multipart/form-data" class="p-8 space-y-10">
+                <?php echo csrf_field(); ?>
 
                 <!-- Section: Designation & Parent (Super Admin & Office In-Charge Only) -->
-                @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+                <?php if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()): ?>
                 <div class="mb-10">
                     <div class="flex items-center space-x-2 mb-6">
                         <div class="w-1.5 h-6 bg-accent rounded-full"></div>
@@ -28,44 +26,47 @@
                             <select name="designation" id="designation-select" required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Role</option>
-                                @foreach($allDesignations as $val => $label)
-                                    <option value="{{ $val }}" {{ old('designation') == $val ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $allDesignations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $val => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($val); ?>" <?php echo e(old('designation') == $val ? 'selected' : ''); ?>><?php echo e($label); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
                         <div id="post-selection-wrapper" class="hidden">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Assign Post (Manual Entry)</label>
-                            <input type="text" name="post" id="post-input" value="{{ old('post') }}" placeholder="e.g. Secretary, Vice President"
+                            <input type="text" name="post" id="post-input" value="<?php echo e(old('post')); ?>" placeholder="e.g. Secretary, Vice President"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                         </div>
-                        <div id="parent-selection-wrapper" class="{{ request('type') === 'staff' ? 'hidden' : '' }}">
+                        <div id="parent-selection-wrapper" class="<?php echo e(request('type') === 'staff' ? 'hidden' : ''); ?>">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Assign Parent (Manager)</label>
-                            <select name="parent_id" id="parent-select" {{ request('type') === 'staff' ? '' : 'required' }}
+                            <select name="parent_id" id="parent-select" <?php echo e(request('type') === 'staff' ? '' : 'required'); ?>
+
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Role First</option>
                             </select>
                         </div>
                         
                         <!-- Camp Selection (Pharmacist Only) -->
-                        <div id="camp-selection-wrapper" class="{{ request('type') === 'staff' ? '' : 'hidden' }}">
+                        <div id="camp-selection-wrapper" class="<?php echo e(request('type') === 'staff' ? '' : 'hidden'); ?>">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Assign Camp Location</label>
-                            <select name="camp_id" id="camp-select" {{ request('type') === 'staff' ? 'required' : '' }}
+                            <select name="camp_id" id="camp-select" <?php echo e(request('type') === 'staff' ? 'required' : ''); ?>
+
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Camp</option>
-                                @if(isset($camps))
-                                    @foreach($camps as $camp)
-                                        <option value="{{ $camp->id }}" {{ old('camp_id') == $camp->id ? 'selected' : '' }}>
-                                            {{ $camp->name }} {{ $camp->location ? '('.$camp->location.')' : '' }}
+                                <?php if(isset($camps)): ?>
+                                    <?php $__currentLoopData = $camps; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $camp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($camp->id); ?>" <?php echo e(old('camp_id') == $camp->id ? 'selected' : ''); ?>>
+                                            <?php echo e($camp->name); ?> <?php echo e($camp->location ? '('.$camp->location.')' : ''); ?>
+
                                         </option>
-                                    @endforeach
-                                @endif
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endif; ?>
                             </select>
                             <p class="text-xs text-slate-500 mt-1">Pharmacist will be assigned to this camp location.</p>
                         </div>
                     </div>
 
                     <!-- Office In-Charge Upline Selection (Only for Super Admin) -->
-                    @if(auth()->user()->isSuperAdmin())
+                    <?php if(auth()->user()->isSuperAdmin()): ?>
                     <div id="office-in-charge-upline-section" class="hidden mt-6">
                         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
                             <p class="text-sm text-blue-800 font-semibold">
@@ -81,11 +82,11 @@
                                 <select name="upline_designation" id="upline-designation-select"
                                     class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                     <option value="">Select Upline Designation</option>
-                                    <option value="super_admin" {{ old('upline_designation') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                                    <option value="hs" {{ old('upline_designation') == 'hs' ? 'selected' : '' }}>Head of State (HS)</option>
-                                    <option value="dm" {{ old('upline_designation') == 'dm' ? 'selected' : '' }}>District Manager (DM)</option>
-                                    <option value="bm" {{ old('upline_designation') == 'bm' ? 'selected' : '' }}>Block Manager (BM)</option>
-                                    <option value="rm" {{ old('upline_designation') == 'rm' ? 'selected' : '' }}>Relationship Manager (RM)</option>
+                                    <option value="super_admin" <?php echo e(old('upline_designation') == 'super_admin' ? 'selected' : ''); ?>>Super Admin</option>
+                                    <option value="hs" <?php echo e(old('upline_designation') == 'hs' ? 'selected' : ''); ?>>Head of State (HS)</option>
+                                    <option value="dm" <?php echo e(old('upline_designation') == 'dm' ? 'selected' : ''); ?>>District Manager (DM)</option>
+                                    <option value="bm" <?php echo e(old('upline_designation') == 'bm' ? 'selected' : ''); ?>>Block Manager (BM)</option>
+                                    <option value="rm" <?php echo e(old('upline_designation') == 'rm' ? 'selected' : ''); ?>>Relationship Manager (RM)</option>
                                 </select>
                             </div>
                             <div>
@@ -97,9 +98,9 @@
                             </div>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
                 </div>
-                @endif
+                <?php endif; ?>
 
                 <!-- Section: Primary Account Info -->
                 <div>
@@ -112,38 +113,40 @@
                         <div class="space-y-4">
                             <label id="id-generation-label" class="block text-sm font-bold text-slate-700">Volunteer ID Generation</label>
                             
-                            @if(auth()->user()->isSuperAdmin())
+                            <?php if(auth()->user()->isSuperAdmin()): ?>
                                 <div class="flex space-x-4">
                                     <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" name="employee_id_option" value="auto" {{ old('employee_id_option', 'auto') === 'auto' ? 'checked' : '' }}
+                                        <input type="radio" name="employee_id_option" value="auto" <?php echo e(old('employee_id_option', 'auto') === 'auto' ? 'checked' : ''); ?>
+
                                             onchange="toggleEmployeeId(false)" class="w-4 h-4 text-accent focus:ring-accent">
                                         <span class="text-sm font-medium text-slate-600">Auto-generate</span>
                                     </label>
                                     <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" name="employee_id_option" value="manual" {{ old('employee_id_option') === 'manual' ? 'checked' : '' }}
+                                        <input type="radio" name="employee_id_option" value="manual" <?php echo e(old('employee_id_option') === 'manual' ? 'checked' : ''); ?>
+
                                             onchange="toggleEmployeeId(true)" class="w-4 h-4 text-accent focus:ring-accent">
                                         <span class="text-sm font-medium text-slate-600">Manual Entry</span>
                                     </label>
                                 </div>
-                                <div id="manual_id_container" class="{{ old('employee_id_option') === 'manual' ? '' : 'hidden' }}">
-                                    <input type="text" name="employee_id" value="{{ old('employee_id') }}" placeholder="Enter custom ID"
+                                <div id="manual_id_container" class="<?php echo e(old('employee_id_option') === 'manual' ? '' : 'hidden'); ?>">
+                                    <input type="text" name="employee_id" value="<?php echo e(old('employee_id')); ?>" placeholder="Enter custom ID"
                                         class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 </div>
-                            @else
+                            <?php else: ?>
                                 <input type="hidden" name="employee_id_option" value="auto">
                                 <div class="bg-blue-50/50 text-blue-700 px-4 py-3 rounded-xl border border-blue-100/50 flex items-center space-x-3">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
                                     <span class="text-xs font-bold uppercase tracking-wide">Automatic ID Generation Enabled</span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
 
                             <p id="auto_id_hint" class="text-[10px] text-bodydark font-bold italic uppercase">System will
-                                generate: HF<span id="hint-designation">{{ $allowedDesignation ? strtoupper($allowedDesignation) : 'XX' }}</span>000001</p>
+                                generate: HF<span id="hint-designation"><?php echo e($allowedDesignation ? strtoupper($allowedDesignation) : 'XX'); ?></span>000001</p>
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
-                            <input type="email" name="email" value="{{ old('email') }}" required placeholder="email@foundation.org"
+                            <input type="email" name="email" value="<?php echo e(old('email')); ?>" required placeholder="email@foundation.org"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                         </div>
 
@@ -183,14 +186,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
-                            <input type="text" name="full_name" value="{{ old('full_name') }}" required placeholder="As per Aadhaar"
+                            <input type="text" name="full_name" value="<?php echo e(old('full_name')); ?>" required placeholder="As per Aadhaar"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')">
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Phone Number</label>
-                            <input type="tel" name="phone_number" value="{{ old('phone_number') }}" required maxlength="10" placeholder="10 Digit Number"
+                            <input type="tel" name="phone_number" value="<?php echo e(old('phone_number')); ?>" required maxlength="10" placeholder="10 Digit Number"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                         </div>
@@ -200,9 +203,9 @@
                             <select name="blood_group"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Group</option>
-                                @foreach(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $group)
-                                    <option value="{{ $group }}" {{ old('blood_group') == $group ? 'selected' : '' }}>{{ $group }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($group); ?>" <?php echo e(old('blood_group') == $group ? 'selected' : ''); ?>><?php echo e($group); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -236,7 +239,7 @@
                             <label class="block text-sm font-bold text-slate-700 mb-2">Detailed Address</label>
                             <textarea name="address" required rows="3" placeholder="Village, House No, Landmark"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
-                                oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')">{{ old('address') }}</textarea>
+                                oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')"><?php echo e(old('address')); ?></textarea>
                         </div>
 
                         <div>
@@ -273,21 +276,21 @@
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Pin Code</label>
-                            <input type="text" name="pin_code" value="{{ old('pin_code') }}" required maxlength="6" placeholder="XXXXXX"
+                            <input type="text" name="pin_code" value="<?php echo e(old('pin_code')); ?>" required maxlength="6" placeholder="XXXXXX"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)">
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Aadhaar Number</label>
-                            <input type="text" name="aadhaar_number" value="{{ old('aadhaar_number') }}" required maxlength="12" placeholder="12 digit number"
+                            <input type="text" name="aadhaar_number" value="<?php echo e(old('aadhaar_number')); ?>" required maxlength="12" placeholder="12 digit number"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12)">
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">PAN Number</label>
-                            <input type="text" name="pan_number" value="{{ old('pan_number') }}" maxlength="10" placeholder="ABCDE1234F"
+                            <input type="text" name="pan_number" value="<?php echo e(old('pan_number')); ?>" maxlength="10" placeholder="ABCDE1234F"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="validatePAN(this)">
                         </div>
@@ -307,7 +310,7 @@
                             <select name="bank_name" required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none">
                                 <option value="">Select Bank</option>
-                                @foreach([
+                                <?php $__currentLoopData = [
                                     'State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Punjab National Bank',
                                     'Bank of Baroda', 'Canara Bank', 'Union Bank of India', 'Bank of India', 'Indian Bank',
                                     'Central Bank of India', 'Indian Overseas Bank', 'UCO Bank', 'Bank of Maharashtra',
@@ -316,20 +319,20 @@
                                     'Tamilnad Mercantile Bank', 'RBL Bank', 'Bandhan Bank', 'IDFC First Bank', 'AU Small Finance Bank',
                                     'Equitas Small Finance Bank', 'India Post Payments Bank', 'Paytm Payments Bank',
                                     'Airtel Payments Bank', 'Jio Payments Bank', 'Rajnagar Samabaya Krishi Unnayan Samity Ltd', 'Bangiya Gramin Vikash Bank'
-                                ] as $bank)
-                                    <option value="{{ $bank }}" {{ old('bank_name') == $bank ? 'selected' : '' }}>{{ $bank }}</option>
-                                @endforeach
+                                ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bank): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($bank); ?>" <?php echo e(old('bank_name') == $bank ? 'selected' : ''); ?>><?php echo e($bank); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
                         <div class="md:col-span-1">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Account Number</label>
-                            <input type="text" name="account_number" value="{{ old('account_number') }}" placeholder="Bank Account No." required
+                            <input type="text" name="account_number" value="<?php echo e(old('account_number')); ?>" placeholder="Bank Account No." required
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
                         <div class="md:col-span-1">
                             <label class="block text-sm font-bold text-slate-700 mb-2">IFSC Code</label>
-                            <input type="text" name="ifsc_code" value="{{ old('ifsc_code') }}" placeholder="Enter IFSC code" required maxlength="11"
+                            <input type="text" name="ifsc_code" value="<?php echo e(old('ifsc_code')); ?>" placeholder="Enter IFSC code" required maxlength="11"
                                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
                                 oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')">
                         </div>
@@ -503,11 +506,11 @@
             </form>
         </div>
     </div>
-    @include('layouts.partials.image_cropper')
-@endsection
+    <?php echo $__env->make('layouts.partials.image_cropper', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php $__env->stopSection(); ?>
 
-@section('js')
-    <script src="{{ asset('js/locations.js') }}"></script>
+<?php $__env->startSection('js'); ?>
+    <script src="<?php echo e(asset('js/locations.js')); ?>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         function togglePasswordVisibility(inputId, iconId) {
@@ -544,10 +547,10 @@
             const gpSelect = document.getElementById('gp-select');
 
             // Current Values
-            const currentState = @json(old('state', ''));
-            const currentDistrict = @json(old('district', ''));
-            const currentBlock = @json(old('block', ''));
-            const currentGP = @json(old('gram_panchayat', ''));
+            const currentState = <?php echo json_encode(old('state', ''), 512) ?>;
+            const currentDistrict = <?php echo json_encode(old('district', ''), 512) ?>;
+            const currentBlock = <?php echo json_encode(old('block', ''), 512) ?>;
+            const currentGP = <?php echo json_encode(old('gram_panchayat', ''), 512) ?>;
 
             // 1. Populate States (Improved robustness from edit page)
             function populateStates() {
@@ -682,17 +685,17 @@
             }
 
             // Super Admin & Office In-Charge: Dynamic Parent Selection & Hint Update
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+            <?php if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()): ?>
             const designationSelect = document.getElementById('designation-select');
             const parentSelect = document.getElementById('parent-select');
             const hintDesignation = document.getElementById('hint-designation');
-            const potentialParents = @json($potentialParents ?? []);
+            const potentialParents = <?php echo json_encode($potentialParents ?? [], 15, 512) ?>;
 
-            @if(auth()->user()->isSuperAdmin())
+            <?php if(auth()->user()->isSuperAdmin()): ?>
             const officeInChargeUplineSection = document.getElementById('office-in-charge-upline-section');
             const uplineDesignationSelect = document.getElementById('upline-designation-select');
             const uplinePersonSelect = document.getElementById('upline-person-select');
-            const potentialUplines = @json($potentialUplines ?? []);
+            const potentialUplines = <?php echo json_encode($potentialUplines ?? [], 15, 512) ?>;
 
             // Handle upline designation change
             uplineDesignationSelect.addEventListener('change', function() {
@@ -703,7 +706,7 @@
                     potentialUplines[uplineDesignation].forEach(upline => {
                         const name = upline.profile ? upline.profile.full_name : upline.email;
                         const option = new Option(`${name} (${upline.employee_id})`, upline.id);
-                        if (upline.id == @json(old('upline_id'))) {
+                        if (upline.id == <?php echo json_encode(old('upline_id'), 15, 512) ?>) {
                             option.selected = true;
                         }
                         uplinePersonSelect.add(option);
@@ -734,7 +737,7 @@
                     }
                 }
             });
-            @endif
+            <?php endif; ?>
 
             designationSelect.addEventListener('change', function() {
                 const designation = this.value;
@@ -763,7 +766,7 @@
 
                 // Fetch actual next available ID for hint
                 if (designation) {
-                    fetch(`{{ route('users.next-id') }}?designation=${designation}`)
+                    fetch(`<?php echo e(route('users.next-id')); ?>?designation=${designation}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.id) {
@@ -780,7 +783,7 @@
                         .catch(error => console.error('Error:', error));
                 }
 
-                @if(auth()->user()->isSuperAdmin())
+                <?php if(auth()->user()->isSuperAdmin()): ?>
                 // Show/hide Office In-Charge upline section
                 if (designation === 'office_in_charge' || designation === 'camp_organizer') {
                     officeInChargeUplineSection.classList.remove('hidden');
@@ -797,7 +800,7 @@
                     uplineDesignationSelect.value = '';
                     uplinePersonSelect.innerHTML = '<option value="">Select Upline Designation First</option>';
                 }
-                @endif
+                <?php endif; ?>
 
                 // Default state for Parent & Camp selection
                 const parentWrapper = document.getElementById('parent-selection-wrapper');
@@ -871,7 +874,7 @@
                         potentialParents[targetParentDesignation].forEach(parent => {
                             const name = parent.profile ? parent.profile.full_name : parent.email;
                             const option = new Option(`${name} (${parent.employee_id})`, parent.id);
-                            if (parent.id == @json(old('parent_id'))) {
+                            if (parent.id == <?php echo json_encode(old('parent_id'), 15, 512) ?>) {
                                 option.selected = true;
                             }
                             parentSelect.add(option);
@@ -887,7 +890,7 @@
                 // PAYMENTS Logic inside change listener
                 handlePaymentSections(designation);
             });
-            @endif
+            <?php endif; ?>
 
             let currentAmount = 0;
 
@@ -938,9 +941,9 @@
                 }
             }
 
-            @if(!auth()->user()->isSuperAdmin() && !auth()->user()->isOfficeInCharge())
-            handlePaymentSections('{{ $allowedDesignation }}');
-            @endif
+            <?php if(!auth()->user()->isSuperAdmin() && !auth()->user()->isOfficeInCharge()): ?>
+            handlePaymentSections('<?php echo e($allowedDesignation); ?>');
+            <?php endif; ?>
 
             modeSelect.addEventListener('change', function() {
                 toggleSections(this.value);
@@ -1047,7 +1050,7 @@
 
 
             // Initialize for Super Admin if designation already selected
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+            <?php if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()): ?>
              if (designationSelect && designationSelect.value) {
                 const event = new Event('change', { bubbles: true });
                 designationSelect.dispatchEvent(event);
@@ -1055,7 +1058,7 @@
                      uplineDesignationSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 }
              }
-            @endif
+            <?php endif; ?>
 
 
             // PAN Validation on Submit
@@ -1108,11 +1111,11 @@
 
             // Designation logic for determining validity
             let designation;
-            @if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge())
+            <?php if(auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()): ?>
                 designation = document.getElementById('designation-select').value;
-            @else
-                designation = '{{ $allowedDesignation }}';
-            @endif
+            <?php else: ?>
+                designation = '<?php echo e($allowedDesignation); ?>';
+            <?php endif; ?>
 
             if (!couponCode) {
                 if(errorText) errorText.textContent = 'Please enter a coupon code.';
@@ -1133,11 +1136,11 @@
             if(errorMsg) errorMsg.classList.add('hidden');
 
             try {
-                const response = await fetch('{{ route("coupons.validate") }}', {
+                const response = await fetch('<?php echo e(route("coupons.validate")); ?>', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                     },
                     body: JSON.stringify({
                         code: couponCode,
@@ -1206,11 +1209,11 @@
                 input.addEventListener('blur', function() {
                     const value = this.value;
                     if (value) {
-                        fetch('{{ route("users.check-uniqueness") }}', {
+                        fetch('<?php echo e(route("users.check-uniqueness")); ?>', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                             },
                             body: JSON.stringify({ field: field, value: value })
                         })
@@ -1233,4 +1236,5 @@
         });
 
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/users/create.blade.php ENDPATH**/ ?>

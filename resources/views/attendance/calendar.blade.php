@@ -92,7 +92,7 @@
 @section('content')
     <div class="p-6 space-y-8 max-w-7xl mx-auto overflow-y-auto h-full pb-20">
         <!-- Summary Section -->
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 {{ $user->isRO() ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }} gap-6">
             <div class="summary-card p-6 flex flex-col items-center">
                 <span class="text-emerald-600 text-3xl font-bold">{{ $summary['present'] }}</span>
                 <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-2">Present Days</span>
@@ -105,10 +105,12 @@
                 <span class="text-accent text-3xl font-bold">₹{{ number_format($summary['incentive'], 0) }}</span>
                 <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-2">Incentives</span>
             </div>
-            <div class="summary-card p-6 flex flex-col items-center">
-                <span class="text-amber-600 text-3xl font-bold">₹{{ number_format($summary['ta'], 0) }}</span>
-                <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-2">TA Earned</span>
-            </div>
+            @if($user->isRO())
+                <div class="summary-card p-6 flex flex-col items-center">
+                    <span class="text-amber-600 text-3xl font-bold">₹{{ number_format($summary['ta'], 0) }}</span>
+                    <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-2">TA Earned</span>
+                </div>
+            @endif
             <div
                 class="summary-card p-6 flex flex-col @if(app()->getLocale() == 'en') lg:col-span-1 @endif items-center bg-accent/5 !border-accent/20">
                 <span class="text-accent text-3xl font-extrabold">₹{{ number_format($summary['total'], 0) }}</span>
@@ -223,48 +225,50 @@
             Swal.fire({
                 title: `<span class="text-2xl font-bold">${date}</span>`,
                 html: `
-                                            <div class="text-left space-y-4 p-4">
-                                                <div class="flex justify-between items-center border-b border-slate-100 pb-2 dark:border-slate-700">
-                                                    <span class="text-slate-500 font-medium">Status:</span>
-                                                    <span class="px-3 py-1 rounded-full text-xs font-bold ${status === 'Present' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
-                                                        ${status}
-                                                    </span>
+                                                <div class="text-left space-y-4 p-4">
+                                                    <div class="flex justify-between items-center border-b border-slate-100 pb-2 dark:border-slate-700">
+                                                        <span class="text-slate-500 font-medium">Status:</span>
+                                                        <span class="px-3 py-1 rounded-full text-xs font-bold ${status === 'Present' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                                                            ${status}
+                                                        </span>
+                                                    </div>
+                                                    <div class="grid grid-cols-2 gap-3">
+                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                            <span class="text-[9px] text-slate-400 uppercase font-black">Basic Inc.</span>
+                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(incentive).toLocaleString()}</p>
+                                                        </div>
+                                                        @if($user->isRO())
+                                                            <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                                <span class="text-[9px] text-slate-400 uppercase font-black">Daily TA</span>
+                                                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ta).toLocaleString()}</p>
+                                                            </div>
+                                                        @endif
+                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                            <span class="text-[9px] text-slate-400 uppercase font-black">Medicines</span>
+                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(med).toLocaleString()}</p>
+                                                        </div>
+                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                            <span class="text-[9px] text-slate-400 uppercase font-black">Pathology</span>
+                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(path).toLocaleString()}</p>
+                                                        </div>
+                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                            <span class="text-[9px] text-slate-400 uppercase font-black">Membership</span>
+                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(mem).toLocaleString()}</p>
+                                                        </div>
+                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                            <span class="text-[9px] text-slate-400 uppercase font-black">OTs</span>
+                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ots).toLocaleString()}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="bg-accent/10 p-4 rounded-xl flex justify-between items-center">
+                                                        <span class="font-bold text-accent">Total Earning</span>
+                                                        <span class="text-xl font-black text-accent">₹${parseFloat(total).toLocaleString()}</span>
+                                                    </div>
+                                                    <div class="pt-2 text-center">
+                                                        <p class="text-[11px] text-slate-400">Marked by <span class="text-slate-500 font-semibold">${markedBy}</span> at ${time}</p>
+                                                    </div>
                                                 </div>
-                                                <div class="grid grid-cols-2 gap-3">
-                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Basic Inc.</span>
-                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(incentive).toLocaleString()}</p>
-                                                    </div>
-                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Daily TA</span>
-                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ta).toLocaleString()}</p>
-                                                    </div>
-                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Medicines</span>
-                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(med).toLocaleString()}</p>
-                                                    </div>
-                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Pathology</span>
-                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(path).toLocaleString()}</p>
-                                                    </div>
-                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Membership</span>
-                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(mem).toLocaleString()}</p>
-                                                    </div>
-                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                        <span class="text-[9px] text-slate-400 uppercase font-black">OTs</span>
-                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ots).toLocaleString()}</p>
-                                                    </div>
-                                                </div>
-                                                <div class="bg-accent/10 p-4 rounded-xl flex justify-between items-center">
-                                                    <span class="font-bold text-accent">Total Earning</span>
-                                                    <span class="text-xl font-black text-accent">₹${parseFloat(total).toLocaleString()}</span>
-                                                </div>
-                                                <div class="pt-2 text-center">
-                                                    <p class="text-[11px] text-slate-400">Marked by <span class="text-slate-500 font-semibold">${markedBy}</span> at ${time}</p>
-                                                </div>
-                                            </div>
-                                        `,
+                                            `,
                 showConfirmButton: false,
                 showCloseButton: true,
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',

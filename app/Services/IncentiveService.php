@@ -39,7 +39,7 @@ class IncentiveService
                 $attendance->marked_by = auth()->id() ?: $user->id; // Use person who triggered the action or the user themselves
                 $attendance->status = 'present';
                 $attendance->incentive_amount = $config->incentive_amount;
-                $attendance->ta_amount = $config->ta_amount;
+                $attendance->ta_amount = $user->designation === 'ro' ? $config->ta_amount : 0;
                 $attendance->medicines_amount = 0;
                 $attendance->pathology_amount = 0;
                 $attendance->membership_amount = 0;
@@ -55,7 +55,7 @@ class IncentiveService
                 $increment = ($baseAmount * $configValue) / 100;
             } else {
                 // Fixed amount (e.g. Membership)
-                $increment = $configValue;
+                $increment = floatval($configValue);
             }
 
             $attendance->$column += $increment;

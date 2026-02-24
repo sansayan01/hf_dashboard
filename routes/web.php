@@ -9,9 +9,6 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\IncentiveConfigController;
 use Illuminate\Support\Facades\Route;
 
-
-
-
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

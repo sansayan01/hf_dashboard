@@ -74,8 +74,47 @@ class AIService
         }
 
         try {
-            $imageData = base64_encode(file_get_contents($imagePath));
-            $mimeType = mime_content_type($imagePath);
+            // Memory & Performance Optimization: Resize and compress image before sending to AI
+            // AI doesn't need 4K resolution; 800px width is plenty for text extraction
+            $originalData = file_get_contents($imagePath);
+            $image = @imagecreatefromstring($originalData);
+
+            if ($image) {
+                $width = imagesx($image);
+                $height = imagesy($image);
+                $maxDim = 1000; // Sufficient for OCR/OCR-like tasks
+
+                if ($width > $maxDim || $height > $maxDim) {
+                    $ratio = $width / $height;
+                    if ($ratio > 1) {
+                        $newWidth = $maxDim;
+                        $newHeight = $maxDim / $ratio;
+                    } else {
+                        $newHeight = $maxDim;
+                        $newWidth = $maxDim * $ratio;
+                    }
+                    $resized = imagecreatetruecolor($newWidth, $newHeight);
+                    imagecopyresampled($resized, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+                    ob_start();
+                    imagejpeg($resized, null, 70); // 70% quality is perfect for AI
+                    $compressedData = ob_get_clean();
+
+                    imagedestroy($image);
+                    imagedestroy($resized);
+
+                    $imageData = base64_encode($compressedData);
+                    $mimeType = 'image/jpeg';
+                } else {
+                    $imageData = base64_encode($originalData);
+                    $mimeType = mime_content_type($imagePath);
+                    imagedestroy($image);
+                }
+            } else {
+                // Fallback to original if GD fails
+                $imageData = base64_encode($originalData);
+                $mimeType = mime_content_type($imagePath);
+            }
 
             $prompt = "Analyze this image and determine if it is a successful UPI payment screenshot.
             Expected Amount: ₹{$expectedAmount}

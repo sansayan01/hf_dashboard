@@ -56,8 +56,8 @@ class CouponCode extends Model
             return false;
         }
 
-        // Check if expired
-        if ($this->expires_at && $this->expires_at->isPast()) {
+        // Check if expired (valid until the end of the expiration day)
+        if ($this->expires_at && $this->expires_at->endOfDay()->isPast()) {
             return false;
         }
 
@@ -202,7 +202,7 @@ class CouponCode extends Model
             return 'This coupon code has already been used.';
         }
 
-        if ($this->expires_at && $this->expires_at->isPast()) {
+        if ($this->expires_at && $this->expires_at->endOfDay()->isPast()) {
             return 'This coupon code has expired.';
         }
 

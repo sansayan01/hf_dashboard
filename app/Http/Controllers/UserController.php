@@ -494,9 +494,24 @@ class UserController extends Controller
                     // Office In-Charge reports to Upline
                     $parentId = $request->upline_id;
                 } elseif ($designation === 'hs') {
-                    // HS reports to current user (SA/OI) or is top level. 
-                    // Per req: "HS will inform to super admin".
-                    $parentId = $currentUser->id;
+                    // HS reports to selected parent (Super Admin).
+                    $parentId = $request->parent_id;
+
+                    if ($parentId) {
+                        $parentUser = User::find($parentId);
+                        if (!$parentUser || $parentUser->designation !== 'super_admin') {
+                            DB::rollBack();
+                            return back()->withInput()->with('error', 'Head of State (HS) must be assigned to a Super Admin. Please select a valid Super Admin as the parent.');
+                        }
+                    } else {
+                        // If no parent selected, default to current user if they are Super Admin
+                        if ($currentUser->isSuperAdmin()) {
+                            $parentId = $currentUser->id;
+                        } else {
+                            DB::rollBack();
+                            return back()->withInput()->with('error', 'Please select a Super Admin as the parent for Head of State (HS).');
+                        }
+                    }
                 } elseif ($designation === 'dm') {
                     // DM now reports to HS. Parent ID must be supplied (HS ID)
                     $parentId = $request->parent_id;
@@ -528,9 +543,6 @@ class UserController extends Controller
                         DB::rollBack();
                         return back()->withInput()->with('error', 'Relationship Officers must be assigned to a Relationship Manager (RM).');
                     }
-                } elseif ($designation === 'hs') {
-                    // Safety check if not caught by previous block
-                    $parentId = $currentUser->id;
                 } elseif ($designation === 'staff') {
                     $parentId = $currentUser->id;
                 } else {
@@ -826,8 +838,8 @@ class UserController extends Controller
         try {
             $oldValues = [
                 'email' => $user->email,
-                'profile' => $user->profile->toArray(),
-                'bank_details' => $user->bankDetails->toArray(),
+                'profile' => $user->profile?->toArray() ?? [],
+                'bank_details' => $user->bankDetails?->toArray() ?? [],
             ];
 
             // Update user core details
@@ -978,27 +990,33 @@ class UserController extends Controller
             }
 
             // Update profile
-            $user->profile->update([
-                'full_name' => $request->full_name,
-                'profile_picture' => $profilePicturePath,
-                'phone_number' => $request->phone_number,
-                'blood_group' => $request->blood_group,
-                'aadhaar_number' => $request->aadhaar_number,
-                'pan_number' => $request->pan_number,
-                'address' => $request->address,
-                'state' => $request->state,
-                'district' => $request->district,
-                'block' => $request->block,
-                'gram_panchayat' => $request->gram_panchayat,
-                'pin_code' => $request->pin_code,
-            ]);
+            $user->profile()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'full_name' => $request->full_name,
+                    'profile_picture' => $profilePicturePath,
+                    'phone_number' => $request->phone_number,
+                    'blood_group' => $request->blood_group,
+                    'aadhaar_number' => $request->aadhaar_number,
+                    'pan_number' => $request->pan_number,
+                    'address' => $request->address,
+                    'state' => $request->state,
+                    'district' => $request->district,
+                    'block' => $request->block,
+                    'gram_panchayat' => $request->gram_panchayat,
+                    'pin_code' => $request->pin_code,
+                ]
+            );
 
             // Update bank details
-            $user->bankDetails->update([
-                'bank_name' => $request->bank_name,
-                'account_number' => $request->account_number,
-                'ifsc_code' => $request->ifsc_code,
-            ]);
+            $user->bankDetails()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'bank_name' => $request->bank_name,
+                    'account_number' => $request->account_number,
+                    'ifsc_code' => $request->ifsc_code,
+                ]
+            );
 
             // Log activity
             ActivityLog::logActivity(
@@ -1011,8 +1029,8 @@ class UserController extends Controller
                 $oldValues,
                 [
                     'email' => $user->email,
-                    'profile' => $user->profile->fresh()->toArray(),
-                    'bank_details' => $user->bankDetails->fresh()->toArray(),
+                    'profile' => $user->profile?->fresh()?->toArray() ?? [],
+                    'bank_details' => $user->bankDetails?->fresh()?->toArray() ?? [],
                 ]
             );
 

@@ -7,7 +7,7 @@
 
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 
-    <h2>Dear {{ $user->profile->full_name }},</h2>
+    <h2>Dear {{ $user->profile?->full_name ?? 'User' }},</h2>
 
     <p>Welcome to the Humanity Foundation family!<br>
         We are truly grateful to have you join us in our mission to create positive change and serve humanity.</p>
@@ -28,7 +28,8 @@
     <p>You may now access your dashboard using your registered email or
         {{ in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'employee ID' : 'volunteer ID' }}
         as the user name and with the
-        password.</p>
+        password.
+    </p>
 
     <p style="margin-top: 30px;">
         <a href="{{ route('login') }}"

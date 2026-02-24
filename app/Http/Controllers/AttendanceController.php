@@ -49,7 +49,7 @@ class AttendanceController extends Controller
             $config = $user->getCurrentIncentive();
             if ($config) {
                 $incentiveAmount = $config->incentive_amount;
-                $taAmount = $config->ta_amount;
+                $taAmount = $user->designation === 'ro' ? $config->ta_amount : 0;
                 // Category amounts (medicines, pathology, membership, ots) are now automated
                 // and should be 0 unless triggered by a specific action.
                 $medicinesAmount = 0;

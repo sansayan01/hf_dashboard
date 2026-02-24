@@ -17,6 +17,11 @@ class PathologyTestController extends Controller
     {
         $user = Auth::user();
 
+        if (in_array($user->designation, ['ro', 'rm', 'bm', 'dm'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+
         // Load the patient's creator (RO) for display and incentive
         $patient->load('creator.profile');
 
@@ -49,6 +54,11 @@ class PathologyTestController extends Controller
 
         $patient = Survey::findOrFail($validated['patient_id']);
         $user = Auth::user();
+
+        if (in_array($user->designation, ['ro', 'rm', 'bm', 'dm'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
 
         // The incentive goes to the person who registered the patient (RO)
         $ro = $patient->creator;

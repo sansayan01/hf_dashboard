@@ -498,12 +498,19 @@ class User extends Authenticatable
 
         $allIds = [];
         $toProcess = [$this->id];
+        $processed = [$this->id]; // Track what we have already added to avoid cycles
 
         while (!empty($toProcess)) {
-            $batchIds = self::whereIn('parent_id', $toProcess)->pluck('id')->toArray();
+            $batchIds = self::whereIn('parent_id', $toProcess)
+                ->whereNotIn('id', $processed)
+                ->pluck('id')
+                ->toArray();
+
             if (empty($batchIds))
                 break;
+
             $allIds = array_merge($allIds, $batchIds);
+            $processed = array_merge($processed, $batchIds);
             $toProcess = $batchIds;
         }
 

@@ -23,6 +23,8 @@
                     <select name="designation" id="designation_select" required
                         class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 dark:bg-slate-800 focus:ring-2 focus:ring-accent transition-all font-bold">
                         <option value="">-- Select Designation --</option>
+                        <option value="super_admin">Super Admin</option>
+                        <option value="hs">Head of State (HS)</option>
                         <option value="dm">District Manager (DM)</option>
                         <option value="bm">Block Manager (BM)</option>
                         <option value="rm">Relationship Manager (RM)</option>

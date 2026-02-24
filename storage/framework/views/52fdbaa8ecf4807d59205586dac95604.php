@@ -1,10 +1,8 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Dashboard'); ?>
+<?php $__env->startSection('header_title', 'Dashboard Overview'); ?>
 
-@section('title', 'Dashboard')
-@section('header_title', 'Dashboard Overview')
-
-@section('content')
-    @php
+<?php $__env->startSection('content'); ?>
+    <?php
         $user = $user ?? auth()->user();
         $isViewAs = $isViewAs ?? false;
         $stats = $stats ?? [
@@ -13,8 +11,8 @@
             'pending_approvals' => 0,
             'direct_children' => 0
         ];
-    @endphp
-    @if(isset($isViewAs) && $isViewAs)
+    ?>
+    <?php if(isset($isViewAs) && $isViewAs): ?>
         <div
             class="bg-indigo-600 text-white rounded-2xl p-4 mb-8 shadow-lg shadow-indigo-600/20 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -28,22 +26,22 @@
                 </div>
                 <div>
                     <p class="font-bold text-sm">Viewing Dashboard As: <span
-                            class="font-black underline">{{ $user->profile?->full_name ?? $user->employee_id }}</span></p>
+                            class="font-black underline"><?php echo e($user->profile?->full_name ?? $user->employee_id); ?></span></p>
                     <p class="text-[10px] opacity-80 uppercase tracking-widest">You are in read-only view mode</p>
                 </div>
             </div>
-            <a href="{{ route('dashboard') }}"
+            <a href="<?php echo e(route('dashboard')); ?>"
                 class="px-4 py-2 bg-white text-indigo-600 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-indigo-50 transition border border-transparent hover:border-white/20">Back
                 to My Dashboard</a>
         </div>
-    @endif
+    <?php endif; ?>
     <!-- Stats Grid -->
-    @if(!$user->isRO())
+    <?php if(!$user->isRO()): ?>
         <div
-            class="grid {{ auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2' }} md:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} lg:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} gap-2 md:gap-6 mb-2">
+            class="grid <?php echo e(auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2'); ?> md:grid-cols-<?php echo e(auth()->user()->isSuperAdmin() ? '3' : '2'); ?> lg:grid-cols-<?php echo e(auth()->user()->isSuperAdmin() ? '3' : '2'); ?> gap-2 md:gap-6 mb-2">
             <!-- Total Downline -->
             <div
-                class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+                class="glass bg-white dark:bg-darkbg/40 <?php echo e(auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2'); ?> md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-accent/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                     <div
@@ -55,19 +53,20 @@
                         </svg>
                     </div>
                     <span
-                        class="text-[7px] md:text-xs font-black text-success bg-success/10 px-1 md:px-2 py-0.5 rounded-full">+{{ $stats['direct_children'] }}</span>
+                        class="text-[7px] md:text-xs font-black text-success bg-success/10 px-1 md:px-2 py-0.5 rounded-full">+<?php echo e($stats['direct_children']); ?></span>
                 </div>
                 <h3
                     class="text-slate-400 dark:text-slate-500 text-[8px] md:text-sm font-black uppercase tracking-widest mb-0.5 md:mb-2 relative z-10 truncate">
                     Team</h3>
                 <p class="text-sm md:text-4xl font-black text-slate-800 dark:text-blue-400 relative z-10">
-                    {{ number_format($stats['total_downline']) }}
+                    <?php echo e(number_format($stats['total_downline'])); ?>
+
                 </p>
             </div>
 
             <!-- Active Members -->
             <div
-                class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+                class="glass bg-white dark:bg-darkbg/40 <?php echo e(auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2'); ?> md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-success/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                     <div
@@ -82,13 +81,14 @@
                     class="text-slate-400 dark:text-slate-500 text-[8px] md:text-sm font-black uppercase tracking-widest mb-0.5 md:mb-2 relative z-10 truncate">
                     Active</h3>
                 <p class="text-sm md:text-4xl font-black text-slate-800 dark:text-emerald-400 relative z-10">
-                    {{ number_format($stats['active_downline']) }}
+                    <?php echo e(number_format($stats['active_downline'])); ?>
+
                 </p>
             </div>
 
-            @if(auth()->user()->isSuperAdmin())
+            <?php if(auth()->user()->isSuperAdmin()): ?>
                 <!-- Pending Approvals -->
-                <div onclick="window.location.href='{{ route('users.index', ['status' => 'pending']) }}'"
+                <div onclick="window.location.href='<?php echo e(route('users.index', ['status' => 'pending'])); ?>'"
                     class="glass bg-white dark:bg-darkbg/40 p-1.5 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative cursor-pointer">
                     <div class="absolute top-0 right-0 w-12 h-12 bg-pink-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                     <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
@@ -104,16 +104,17 @@
                         class="text-slate-400 dark:text-slate-500 text-[8px] md:text-sm font-black uppercase tracking-widest mb-0.5 md:mb-2 relative z-10 truncate">
                         Pending</h3>
                     <p class="text-sm md:text-4xl font-black text-slate-800 dark:text-pink-400 relative z-10">
-                        {{ number_format($stats['pending_approvals']) }}
+                        <?php echo e(number_format($stats['pending_approvals'])); ?>
+
                     </p>
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
-    @endif
+    <?php endif; ?>
 
     <!-- Earnings Overview (RO, RM, BM, DM) -->
-    @if(isset($earnings) && $earnings)
-        <div class="grid grid-cols-1 {{ $user->isRO() ? 'md:grid-cols-3' : 'md:grid-cols-2' }} gap-2 md:gap-6 mb-8">
+    <?php if(isset($earnings) && $earnings): ?>
+        <div class="grid grid-cols-1 <?php echo e($user->isRO() ? 'md:grid-cols-3' : 'md:grid-cols-2'); ?> gap-2 md:gap-6 mb-8">
             <!-- Today's Earning -->
             <div
                 class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
@@ -130,31 +131,36 @@
                         class="text-[10px] font-black text-blue-500 bg-blue-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Today</span>
                 </div>
                 <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total</h3>
-                <p class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($earnings['today_total'], 2) }}
+                <p class="text-3xl font-black text-slate-800 dark:text-white">₹<?php echo e(number_format($earnings['today_total'], 2)); ?>
+
                 </p>
                 <div class="mt-4 grid grid-cols-2 gap-y-2 text-[10px] font-bold uppercase tracking-tight">
-                    @if($user->isRO())
+                    <?php if($user->isRO()): ?>
                         <div class="flex items-center text-slate-500">
                             <div class="w-2 h-2 rounded-full bg-slate-300 mr-1.5"></div>
-                            TA: ₹{{ number_format($earnings['today_breakdown']['ta'], 2) }}
+                            TA: ₹<?php echo e(number_format($earnings['today_breakdown']['ta'], 2)); ?>
+
                         </div>
-                    @endif
+                    <?php endif; ?>
                     <div class="flex items-center text-emerald-500">
                         <div class="w-2 h-2 rounded-full bg-emerald-500/40 mr-1.5"></div>
-                        M: ₹{{ number_format($earnings['today_breakdown']['medicines'], 2) }}
+                        M: ₹<?php echo e(number_format($earnings['today_breakdown']['medicines'], 2)); ?>
+
                     </div>
                     <div class="flex items-center text-purple-500">
                         <div class="w-2 h-2 rounded-full bg-purple-500/40 mr-1.5"></div>
-                        P: ₹{{ number_format($earnings['today_breakdown']['pathology'], 2) }}
+                        P: ₹<?php echo e(number_format($earnings['today_breakdown']['pathology'], 2)); ?>
+
                     </div>
                     <div class="flex items-center text-amber-500">
                         <div class="w-2 h-2 rounded-full bg-amber-500/40 mr-1.5"></div>
-                        MB: ₹{{ number_format($earnings['today_breakdown']['membership'], 2) }}
+                        MB: ₹<?php echo e(number_format($earnings['today_breakdown']['membership'], 2)); ?>
+
                     </div>
                 </div>
             </div>
 
-            @if($user->isRO())
+            <?php if($user->isRO()): ?>
                 <!-- Monthly TA -->
                 <div
                     class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
@@ -171,7 +177,8 @@
                             class="text-[10px] font-black text-emerald-500 bg-emerald-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Monthly</span>
                     </div>
                     <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">TA</h3>
-                    <p class="text-3xl font-black text-slate-800 dark:text-white">₹{{ number_format($earnings['monthly_ta'], 2) }}
+                    <p class="text-3xl font-black text-slate-800 dark:text-white">₹<?php echo e(number_format($earnings['monthly_ta'], 2)); ?>
+
                     </p>
                     <div class="mt-4">
                         <div class="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
@@ -180,7 +187,7 @@
                         <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">Travel Allowance Summary</p>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Monthly Incentives -->
             <div
@@ -199,27 +206,27 @@
                 </div>
                 <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Incentives</h3>
                 <p class="text-3xl font-black text-slate-800 dark:text-white">
-                    ₹{{ number_format($earnings['monthly_incentives'], 2) }}</p>
+                    ₹<?php echo e(number_format($earnings['monthly_incentives'], 2)); ?></p>
                 <div class="mt-4 grid grid-cols-2 gap-2">
                     <div class="flex flex-col">
                         <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest">Med</span>
                         <span
-                            class="text-xs font-bold text-slate-700 dark:text-slate-300">₹{{ number_format($earnings['monthly_breakdown']['medicines'], 2) }}</span>
+                            class="text-xs font-bold text-slate-700 dark:text-slate-300">₹<?php echo e(number_format($earnings['monthly_breakdown']['medicines'], 2)); ?></span>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest">Path</span>
                         <span
-                            class="text-xs font-bold text-slate-700 dark:text-slate-300">₹{{ number_format($earnings['monthly_breakdown']['pathology'], 2) }}</span>
+                            class="text-xs font-bold text-slate-700 dark:text-slate-300">₹<?php echo e(number_format($earnings['monthly_breakdown']['pathology'], 2)); ?></span>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest">Mem</span>
                         <span
-                            class="text-xs font-bold text-slate-700 dark:text-slate-300">₹{{ number_format($earnings['monthly_breakdown']['membership'], 2) }}</span>
+                            class="text-xs font-bold text-slate-700 dark:text-slate-300">₹<?php echo e(number_format($earnings['monthly_breakdown']['membership'], 2)); ?></span>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest">OTs</span>
                         <span
-                            class="text-xs font-bold text-slate-700 dark:text-slate-300">₹{{ number_format($earnings['monthly_breakdown']['ots'], 2) }}</span>
+                            class="text-xs font-bold text-slate-700 dark:text-slate-300">₹<?php echo e(number_format($earnings['monthly_breakdown']['ots'], 2)); ?></span>
                     </div>
                 </div>
                 <div
@@ -228,13 +235,13 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?>
 
     <!-- Reports Grid -->
-    @if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_view_reports'))
+    <?php if(auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_view_reports')): ?>
         <div class="grid grid-cols-2 gap-2 md:gap-6 mb-10">
             <!-- Survey Reports -->
-            <a href="{{ route('surveys.index') }}"
+            <a href="<?php echo e(route('surveys.index')); ?>"
                 class="block glass bg-white dark:bg-darkbg/40 p-2 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-indigo-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-2 md:mb-6 relative z-10">
@@ -250,7 +257,8 @@
                             <h3 class="text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400">Total Surveys
                             </h3>
                             <p class="text-xl md:text-3xl font-black text-slate-800 dark:text-white">
-                                {{ number_format($reports['surveys']['total']) }}
+                                <?php echo e(number_format($reports['surveys']['total'])); ?>
+
                             </p>
                         </div>
                     </div>
@@ -261,28 +269,31 @@
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Today</p>
                         <p class="text-sm md:text-lg font-black text-indigo-500">
-                            {{ number_format($reports['surveys']['daily']) }}
+                            <?php echo e(number_format($reports['surveys']['daily'])); ?>
+
                         </p>
                     </div>
                     <div
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Week</p>
                         <p class="text-sm md:text-lg font-black text-indigo-500">
-                            {{ number_format($reports['surveys']['weekly']) }}
+                            <?php echo e(number_format($reports['surveys']['weekly'])); ?>
+
                         </p>
                     </div>
                     <div
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Month</p>
                         <p class="text-sm md:text-lg font-black text-indigo-500">
-                            {{ number_format($reports['surveys']['monthly']) }}
+                            <?php echo e(number_format($reports['surveys']['monthly'])); ?>
+
                         </p>
                     </div>
                 </div>
             </a>
 
             <!-- Appointment Reports -->
-            <a href="{{ route('appointments.all') }}"
+            <a href="<?php echo e(route('appointments.all')); ?>"
                 class="block glass bg-white dark:bg-darkbg/40 p-2 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-emerald-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-2 md:mb-6 relative z-10">
@@ -298,7 +309,8 @@
                             <h3 class="text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400">Total Apps
                             </h3>
                             <p class="text-xl md:text-3xl font-black text-slate-800 dark:text-white">
-                                {{ number_format($reports['appointments']['total']) }}
+                                <?php echo e(number_format($reports['appointments']['total'])); ?>
+
                             </p>
                         </div>
                     </div>
@@ -309,30 +321,33 @@
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Today</p>
                         <p class="text-sm md:text-lg font-black text-emerald-500">
-                            {{ number_format($reports['appointments']['daily']) }}
+                            <?php echo e(number_format($reports['appointments']['daily'])); ?>
+
                         </p>
                     </div>
                     <div
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Week</p>
                         <p class="text-sm md:text-lg font-black text-emerald-500">
-                            {{ number_format($reports['appointments']['weekly']) }}
+                            <?php echo e(number_format($reports['appointments']['weekly'])); ?>
+
                         </p>
                     </div>
                     <div
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Month</p>
                         <p class="text-sm md:text-lg font-black text-emerald-500">
-                            {{ number_format($reports['appointments']['monthly']) }}
+                            <?php echo e(number_format($reports['appointments']['monthly'])); ?>
+
                         </p>
                     </div>
                 </div>
             </a>
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        @if(!auth()->user()->isRO())
+        <?php if(!auth()->user()->isRO()): ?>
             <!-- Hierarchy Tree Preview -->
             <div id="down-tree-card"
                 class="col-span-1 lg:col-span-2 glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden flex flex-col transition-all h-[60vh] relative z-20">
@@ -376,11 +391,11 @@
                 <div class="p-6 flex-1 bg-slate-50/30 dark:bg-transparent overflow-auto relative" id="tree-canvas">
                     <div id="tree-zoom-container" class="origin-top-left transition-transform duration-200">
                         <div id="tree-root" class="space-y-2">
-                            @if($user->isOfficeInCharge() && $user->upline)
-                                @include('dashboard.partials.tree_item', ['item' => $user->upline])
-                            @else
-                                @include('dashboard.partials.tree_item', ['item' => $user])
-                            @endif
+                            <?php if($user->isOfficeInCharge() && $user->upline): ?>
+                                <?php echo $__env->make('dashboard.partials.tree_item', ['item' => $user->upline], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            <?php else: ?>
+                                <?php echo $__env->make('dashboard.partials.tree_item', ['item' => $user], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -398,7 +413,7 @@
                     </div>
                 </div>
             </div>
-        @endif
+        <?php endif; ?>
 
         <!-- Recent Activity & Pending Approvals -->
         <div class="space-y-8">
@@ -414,10 +429,10 @@
                         Viewer</button>
                 </div>
                 <div class="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar">
-                    @forelse($recentActivities as $activity)
+                    <?php $__empty_1 = true; $__currentLoopData = $recentActivities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $activity): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <div class="flex space-x-4 relative group">
                             <div class="flex-shrink-0 relative z-10">
-                                @php
+                                <?php
                                     $colorClass = match ($activity->action) {
                                         'created', 'patient_registered', 'survey_created' => 'bg-emerald-500/10 text-emerald-500 ring-emerald-500/20',
                                         'approved', 'patient_restored', 'restored' => 'bg-blue-500/10 text-blue-500 ring-blue-500/20',
@@ -440,26 +455,28 @@
                                         'appointment_missed' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
                                         default => 'M12 8v4l3 3'
                                     };
-                                @endphp
+                                ?>
                                 <div
-                                    class="w-12 h-12 rounded-2xl {{ $colorClass }} ring-1 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
+                                    class="w-12 h-12 rounded-2xl <?php echo e($colorClass); ?> ring-1 flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $icon }}">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo e($icon); ?>">
                                         </path>
                                     </svg>
                                 </div>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-black text-slate-800 dark:text-white truncate tracking-tight">
-                                    {{ $activity->description }}
+                                    <?php echo e($activity->description); ?>
+
                                 </p>
                                 <p class="text-[11px] text-slate-400 dark:text-slate-500 font-bold mt-1">
-                                    {{ $activity->performedBy->profile->full_name ?? 'System' }} •
-                                    {{ $activity->created_at->diffForHumans() }}
+                                    <?php echo e($activity->performedBy->profile->full_name ?? 'System'); ?> •
+                                    <?php echo e($activity->created_at->diffForHumans()); ?>
+
                                 </p>
                             </div>
                         </div>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <div class="text-center py-10">
                             <div
                                 class="w-16 h-16 bg-slate-50 dark:bg-white/5 text-slate-300 dark:text-slate-700 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-slate-200/5">
@@ -471,14 +488,14 @@
                             <p class="text-slate-400 dark:text-slate-600 text-xs font-bold uppercase tracking-widest">Quiet Day
                             </p>
                         </div>
-                    @endforelse
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('css')
+<?php $__env->startSection('css'); ?>
     <style>
         .tree-item .tree-children {
             transition: all 0.3s ease-in-out;
@@ -600,11 +617,11 @@
             border-radius: 12px;
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('js')
+<?php $__env->startSection('js'); ?>
     <script>
-        window.APP_URL = "{{ url('/') }}";
+        window.APP_URL = "<?php echo e(url('/')); ?>";
 
         async function toggleTreeItem(event, itemId) {
             event.stopPropagation();
@@ -790,7 +807,7 @@
 
         // Auto-expand root
         document.addEventListener('DOMContentLoaded', () => {
-            const rootId = "{{ ($user->isOfficeInCharge() && $user->upline) ? $user->upline->id : $user->id }}";
+            const rootId = "<?php echo e(($user->isOfficeInCharge() && $user->upline) ? $user->upline->id : $user->id); ?>";
             const rootChildren = document.getElementById(`children-${rootId}`);
             if (rootChildren) {
                 // Manually trigger toggle for first load to fetch children
@@ -804,4 +821,5 @@
         });
 
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/dashboard/index.blade.php ENDPATH**/ ?>

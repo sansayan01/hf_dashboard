@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>{{ config('app.name', 'HF Management') }} - @yield('title')</title>
+    <title><?php echo e(config('app.name', 'HF Management')); ?> - <?php echo $__env->yieldContent('title'); ?></title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,8 +25,8 @@
 
 
     <!-- Tailwind CSS (Vite Build) -->
-    @viteReactRefresh
-    @vite(['resources/css/app.css', 'resources/js/app.tsx'])
+    <?php echo app('Illuminate\Foundation\Vite')->reactRefresh(); ?>
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.tsx']); ?>
 
     <!-- Tailwind CSS CDN (Fallback for when Vite build is not available) -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -534,7 +534,7 @@
             document.documentElement.classList.remove('dark');
         }
     </script>
-    @yield('css')
+    <?php echo $__env->yieldContent('css'); ?>
 </head>
 
 <body
@@ -550,7 +550,7 @@
                 <div class="flex items-center space-x-4">
                     <div
                         class="w-12 h-12 bg-transparent rounded-xl flex items-center justify-center shadow-lg shadow-black/10 transition-transform hover:scale-105 p-1">
-                        <img src="{{ asset('img/hf_gold_logo.png') }}" class="w-10 h-10 object-contain"
+                        <img src="<?php echo e(asset('img/hf_gold_logo.png')); ?>" class="w-10 h-10 object-contain"
                             style="mix-blend-mode: screen;" alt="Logo">
                     </div>
                     <div>
@@ -569,10 +569,10 @@
             <!-- Sidebar Nav -->
             <nav class="flex-1 p-4">
                 <ul class="space-y-1">
-                    @if($effectiveUser->designation !== 'staff')
+                    <?php if($effectiveUser->designation !== 'staff'): ?>
                         <li>
-                            <a href="{{ route('dashboard') }}"
-                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('dashboard') ? 'bg-accent text-white shadow-lg' : '' }}">
+                            <a href="<?php echo e(route('dashboard')); ?>"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->routeIs('dashboard') ? 'bg-accent text-white shadow-lg' : ''); ?>">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
@@ -581,11 +581,11 @@
                                 <span>Dashboard</span>
                             </a>
                         </li>
-                    @endif
-                    @if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_create_surveys'))
+                    <?php endif; ?>
+                    <?php if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_create_surveys')): ?>
                         <li>
-                            <a href="{{ route('surveys.index') }}"
-                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('surveys.*') ? 'bg-accent text-white shadow-lg' : '' }}">
+                            <a href="<?php echo e(route('surveys.index')); ?>"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->routeIs('surveys.*') ? 'bg-accent text-white shadow-lg' : ''); ?>">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -594,11 +594,11 @@
                                 <span>Survey</span>
                             </a>
                         </li>
-                    @endif
-                    @if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_create_surveys') || $effectiveUser->designation === 'staff')
+                    <?php endif; ?>
+                    <?php if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_create_surveys') || $effectiveUser->designation === 'staff'): ?>
                         <li>
-                            <a href="{{ route('patients.index') }}"
-                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('patients.*') ? 'bg-accent text-white shadow-lg' : '' }}">
+                            <a href="<?php echo e(route('patients.index')); ?>"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->routeIs('patients.*') ? 'bg-accent text-white shadow-lg' : ''); ?>">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
@@ -607,11 +607,11 @@
                                 <span>Patients</span>
                             </a>
                         </li>
-                    @endif
-                    @if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_manage_appointments'))
+                    <?php endif; ?>
+                    <?php if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_manage_appointments')): ?>
                         <li>
-                            <a href="{{ route('appointments.all') }}"
-                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('appointments.all') ? 'bg-accent text-white shadow-lg' : '' }}">
+                            <a href="<?php echo e(route('appointments.all')); ?>"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->routeIs('appointments.all') ? 'bg-accent text-white shadow-lg' : ''); ?>">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
@@ -620,11 +620,11 @@
                                 <span>Appointments</span>
                             </a>
                         </li>
-                    @endif
-                    @if($effectiveUser->designation !== 'staff')
+                    <?php endif; ?>
+                    <?php if($effectiveUser->designation !== 'staff'): ?>
                         <li>
-                            <a href="{{ route('membership.index') }}"
-                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('membership.*') ? 'bg-accent text-white shadow-lg' : '' }}">
+                            <a href="<?php echo e(route('membership.index')); ?>"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->routeIs('membership.*') ? 'bg-accent text-white shadow-lg' : ''); ?>">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z">
@@ -633,11 +633,11 @@
                                 <span>Membership</span>
                             </a>
                         </li>
-                    @endif
-                    @if($effectiveUser->isSuperAdmin() || $effectiveUser->designation === 'staff' || $effectiveUser->isOfficeInCharge())
+                    <?php endif; ?>
+                    <?php if($effectiveUser->isSuperAdmin() || $effectiveUser->designation === 'staff' || $effectiveUser->isOfficeInCharge()): ?>
                         <li>
-                            <a href="{{ route('inventory.index') }}"
-                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('inventory.*') && !request()->routeIs('inventory.camps.*') ? 'bg-accent text-white shadow-lg' : '' }}">
+                            <a href="<?php echo e(route('inventory.index')); ?>"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->routeIs('inventory.*') && !request()->routeIs('inventory.camps.*') ? 'bg-accent text-white shadow-lg' : ''); ?>">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.183.244l-.28.14a2 2 0 00-.774 2.58l.14.28a2 2 0 002.58.774l.28-.14a2 2 0 001.183-.244l2.143-.357a6 6 0 013.86-.517l.318-.158a6 6 0 003.86-.517l2.143.428a2 2 0 001.183-.244l.28-.14a2 2 0 00.774-2.58l-.14-.28z">
@@ -649,12 +649,12 @@
                                 <span>Inventory</span>
                             </a>
                         </li>
-                    @endif
+                    <?php endif; ?>
 
-                    @if($effectiveUser->canViewDownline())
+                    <?php if($effectiveUser->canViewDownline()): ?>
                         <li>
-                            <a href="{{ route('users.index') }}"
-                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.*') && !request()->routeIs('users.bin') && !request()->routeIs('users.staffIndex') ? 'bg-accent text-white shadow-lg' : '' }}">
+                            <a href="<?php echo e(route('users.index')); ?>"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->routeIs('users.*') && !request()->routeIs('users.bin') && !request()->routeIs('users.staffIndex') ? 'bg-accent text-white shadow-lg' : ''); ?>">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
@@ -664,10 +664,10 @@
                             </a>
                         </li>
 
-                        @if($effectiveUser->isSuperAdmin())
+                        <?php if($effectiveUser->isSuperAdmin()): ?>
                             <li>
-                                <a href="{{ route('users.staffIndex') }}"
-                                    class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.staffIndex') ? 'bg-accent text-white shadow-lg' : '' }}">
+                                <a href="<?php echo e(route('users.staffIndex')); ?>"
+                                    class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->routeIs('users.staffIndex') ? 'bg-accent text-white shadow-lg' : ''); ?>">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
@@ -676,12 +676,12 @@
                                     <span>Staffs</span>
                                 </a>
                             </li>
-                        @endif
+                        <?php endif; ?>
 
-                        @if($effectiveUser->isSuperAdmin())
+                        <?php if($effectiveUser->isSuperAdmin()): ?>
                             <li>
-                                <a href="{{ route('users.bin') }}"
-                                    class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.bin') ? 'bg-accent text-white shadow-lg' : '' }}">
+                                <a href="<?php echo e(route('users.bin')); ?>"
+                                    class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->routeIs('users.bin') ? 'bg-accent text-white shadow-lg' : ''); ?>">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
@@ -690,12 +690,12 @@
                                     <span>BIN Recovery</span>
                                 </a>
                             </li>
-                        @endif
-                    @endif
+                        <?php endif; ?>
+                    <?php endif; ?>
 
                     <li>
-                        <a href="{{ auth()->user()->isSuperAdmin() ? route('admin.control-panel') : route('profile.edit') }}"
-                            class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ (request()->routeIs('profile.*') || request()->routeIs('admin.control-panel')) ? 'bg-accent text-white shadow-lg' : '' }}">
+                        <a href="<?php echo e(auth()->user()->isSuperAdmin() ? route('admin.control-panel') : route('profile.edit')); ?>"
+                            class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e((request()->routeIs('profile.*') || request()->routeIs('admin.control-panel')) ? 'bg-accent text-white shadow-lg' : ''); ?>">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
@@ -703,7 +703,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
-                            <span>{{ auth()->user()->isSuperAdmin() ? 'Admin Controls' : 'Account Settings' }}</span>
+                            <span><?php echo e(auth()->user()->isSuperAdmin() ? 'Admin Controls' : 'Account Settings'); ?></span>
                         </a>
                     </li>
                 </ul>
@@ -711,8 +711,8 @@
 
             <!-- Sidebar Footer -->
             <div class="p-4 border-t border-secondary">
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
+                <form action="<?php echo e(route('logout')); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
                     <button type="submit"
                         class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-danger hover:bg-danger/10 transition font-medium">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -744,7 +744,7 @@
                                 d="M4 6h16M4 12h16m-7 6h7"></path>
                         </svg>
                     </button>
-                    <h2 class="text-xl font-bold text-slate-800 dark:text-white">@yield('header_title', 'Dashboard')
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-white"><?php echo $__env->yieldContent('header_title', 'Dashboard'); ?>
                     </h2>
                 </div>
 
@@ -782,35 +782,38 @@
                         </button>
                     </div>
 
-                    <a href="{{ route('users.show', $effectiveUser) }}"
+                    <a href="<?php echo e(route('users.show', $effectiveUser)); ?>"
                         class="flex items-center space-x-3 md:space-x-6 hover:opacity-80 transition-all duration-300 group">
                         <div class="text-right hidden sm:block">
                             <p
                                 class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-accent transition-colors">
-                                {{ $effectiveUser->profile->full_name ?? 'User' }}
+                                <?php echo e($effectiveUser->profile->full_name ?? 'User'); ?>
+
                             </p>
                             <p class="text-[10px] text-bodydark font-bold uppercase tracking-wider">
-                                {{ $effectiveUser->getDesignationLabel() }}
+                                <?php echo e($effectiveUser->getDesignationLabel()); ?>
+
                             </p>
                         </div>
                         <div class="nav-avatar-ring">
                             <div class="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                @if($effectiveUser->profile && $effectiveUser->profile->profile_picture)
-                                    <img src="{{ $effectiveUser->profile->getProfilePictureUrl() }}" alt="Avatar"
+                                <?php if($effectiveUser->profile && $effectiveUser->profile->profile_picture): ?>
+                                    <img src="<?php echo e($effectiveUser->profile->getProfilePictureUrl()); ?>" alt="Avatar"
                                         class="w-full h-full object-cover">
-                                @else
+                                <?php else: ?>
                                     <div
                                         class="w-full h-full flex items-center justify-center bg-accent/5 text-accent font-bold text-xs">
-                                        {{ substr($effectiveUser->profile->full_name ?? $effectiveUser->employee_id, 0, 1) }}
+                                        <?php echo e(substr($effectiveUser->profile->full_name ?? $effectiveUser->employee_id, 0, 1)); ?>
+
                                     </div>
-                                @endif
+                                <?php endif; ?>
                             </div>
                         </div>
                     </a>
                 </div>
             </header>
 
-            @if($isViewAsMode)
+            <?php if($isViewAsMode): ?>
                 <div class="bg-indigo-600 text-white px-6 py-2 flex items-center justify-between shadow-lg z-30">
                     <div class="flex items-center gap-3">
                         <div class="p-1 bg-white/20 rounded-lg">
@@ -820,19 +823,19 @@
                             </svg>
                         </div>
                         <span class="text-sm font-medium">Viewing dashboard as <strong
-                                class="font-bold">{{ $effectiveUser->profile->full_name ?? $effectiveUser->employee_id }}</strong></span>
+                                class="font-bold"><?php echo e($effectiveUser->profile->full_name ?? $effectiveUser->employee_id); ?></strong></span>
                     </div>
-                    <a href="{{ route('dashboard.clear') }}"
+                    <a href="<?php echo e(route('dashboard.clear')); ?>"
                         class="px-4 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-bold transition-all border border-white/30">
                         Back to My Dashboard
                     </a>
                 </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Dashboard Content -->
             <div class="flex-1 overflow-y-auto p-6 lg:p-10 flex flex-col justify-between">
                 <div class="pb-24 md:pb-0">
-                    @yield('content')
+                    <?php echo $__env->yieldContent('content'); ?>
                 </div>
 
                 <footer class="mt-12 pb-2">
@@ -892,12 +895,12 @@
         window.addEventListener('load', () => {
             const loader = document.getElementById('global-loader');
             if (loader) {
-                @if(session('success') || session('error') || $errors->any())
+                <?php if(session('success') || session('error') || $errors->any()): ?>
                     // Hide loader immediately when a flash message exists (SweetAlert will show instead)
                     hideGlobalLoader();
-                @else
+                <?php else: ?>
                     setTimeout(hideGlobalLoader, 200); // 0.2s of branded splash
-                @endif
+                <?php endif; ?>
             }
         });
 
@@ -1032,48 +1035,48 @@
             }
         });
 
-        @if(session('success'))
+        <?php if(session('success')): ?>
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                text: "{{ session('success') }}",
+                text: "<?php echo e(session('success')); ?>",
                 ...getSwalConfig(),
-                @if(session('view_appointment_url'))
+                <?php if(session('view_appointment_url')): ?>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
-                @endif
+                <?php endif; ?>
                                                                                                                                                                                                                                                                                                                             }).then((result) => {
-                    @if(session('view_appointment_url'))
+                    <?php if(session('view_appointment_url')): ?>
                         if (result.isDenied) {
-                            window.location.href = "{{ session('view_appointment_url') }}";
+                            window.location.href = "<?php echo e(session('view_appointment_url')); ?>";
                         }
-                    @endif
+                    <?php endif; ?>
                                                                                                                                                                                                                                                                                                                             });
-        @endif
+        <?php endif; ?>
 
-        @if(session('error'))
+        <?php if(session('error')): ?>
             Swal.fire({
                 icon: 'error',
                 title: 'Error!',
-                text: "{{ session('error') }}",
+                text: "<?php echo e(session('error')); ?>",
                 ...getSwalConfig(),
                 confirmButtonColor: '#FB4848',
             });
-        @endif
+        <?php endif; ?>
 
-        @if($errors->any())
+        <?php if($errors->any()): ?>
             Swal.fire({
                 icon: 'warning',
                 title: 'Form Validation Error',
-                html: `<div class="text-left"><p class="font-bold mb-2">Check the following fields:</p><ul class="list-disc list-inside text-sm">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>`,
+                html: `<div class="text-left"><p class="font-bold mb-2">Check the following fields:</p><ul class="list-disc list-inside text-sm"><?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><li><?php echo e($error); ?></li><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></ul></div>`,
                 ...getSwalConfig(),
                 confirmButtonColor: '#F2994A',
             });
-        @endif
+        <?php endif; ?>
     </script>
-    @include('layouts.partials.ai_assistant')
-    @yield('js')
+    <?php echo $__env->make('layouts.partials.ai_assistant', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php echo $__env->yieldContent('js'); ?>
 </body>
 
-</html>
+</html><?php /**PATH C:\xampp\htdocs\HF\resources\views/layouts/app.blade.php ENDPATH**/ ?>

@@ -58,6 +58,11 @@ class Survey extends Model
         'insurance_loan_req',
         'is_member',
         'membership_fee',
+        'discount_percentage',
+        'discount_amount',
+        'final_amount',
+        'amount_paid',
+        'due_amount',
         'payment_method',
         'payment_screenshot',
         'created_by'
@@ -96,12 +101,12 @@ class Survey extends Model
         });
     }
 
-    public static function generatePatientId($latestOnly = false)
+    public static function generatePatientId($latestOnly = true)
     {
         return self::generateSequenceId('HFP', 7, $latestOnly);
     }
 
-    public static function generateMembershipId($latestOnly = false)
+    public static function generateMembershipId($latestOnly = true)
     {
         return self::generateSequenceId('HFM', 7, $latestOnly);
     }

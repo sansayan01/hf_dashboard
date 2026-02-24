@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Membership Registration'); ?>
+<?php $__env->startSection('header_title', 'Upgrade to Premium Membership'); ?>
 
-@section('title', 'Membership Registration')
-@section('header_title', 'Upgrade to Premium Membership')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="max-w-4xl mx-auto pb-20">
         <!-- Patient Info Card (Read Only) -->
         <div
@@ -16,22 +14,24 @@
                 </div>
                 <div
                     class="px-4 py-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-widest">
-                    ID: {{ $patient->patient_id }}
+                    ID: <?php echo e($patient->patient_id); ?>
+
                 </div>
             </div>
             <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Full Name</p>
-                    <p class="text-sm font-bold text-slate-700 dark:text-white">{{ $patient->full_name }}</p>
+                    <p class="text-sm font-bold text-slate-700 dark:text-white"><?php echo e($patient->full_name); ?></p>
                 </div>
                 <div>
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Phone</p>
-                    <p class="text-sm font-bold text-slate-700 dark:text-white">{{ $patient->phone_number }}</p>
+                    <p class="text-sm font-bold text-slate-700 dark:text-white"><?php echo e($patient->phone_number); ?></p>
                 </div>
                 <div>
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Age / Gender</p>
-                    <p class="text-sm font-bold text-slate-700 dark:text-white">{{ $patient->age }} Yrs /
-                        {{ ucfirst($patient->gender) }}
+                    <p class="text-sm font-bold text-slate-700 dark:text-white"><?php echo e($patient->age); ?> Yrs /
+                        <?php echo e(ucfirst($patient->gender)); ?>
+
                     </p>
                 </div>
             </div>
@@ -51,9 +51,9 @@
                     patient as a premium member.</p>
             </div>
 
-            <form action="{{ route('patients.membership.register', $patient->id) }}" method="POST"
+            <form action="<?php echo e(route('patients.membership.register', $patient->id)); ?>" method="POST"
                 enctype="multipart/form-data" class="p-8 space-y-8">
-                @csrf
+                <?php echo csrf_field(); ?>
 
                 <!-- Section: Personal Info (Updates existing if changed) -->
                 <div class="space-y-6">
@@ -69,21 +69,21 @@
                         <div class="space-y-2">
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Confirm Full
                                 Name</label>
-                            <input type="text" name="full_name" value="{{ old('full_name', $patient->full_name) }}" required
+                            <input type="text" name="full_name" value="<?php echo e(old('full_name', $patient->full_name)); ?>" required
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white"
                                 oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')">
                         </div>
                         <div class="space-y-2">
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Confirm
                                 Phone</label>
-                            <input type="tel" name="phone_number" value="{{ old('phone_number', $patient->phone_number) }}"
+                            <input type="tel" name="phone_number" value="<?php echo e(old('phone_number', $patient->phone_number)); ?>"
                                 required maxlength="10"
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                         </div>
                         <div class="space-y-2">
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Age</label>
-                            <input type="number" name="age" value="{{ old('age', $patient->age) }}" required min="1"
+                            <input type="number" name="age" value="<?php echo e(old('age', $patient->age)); ?>" required min="1"
                                 max="120"
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white">
                         </div>
@@ -91,11 +91,11 @@
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Gender</label>
                             <select name="gender" required
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none">
-                                <option value="male" {{ old('gender', $patient->gender) == 'male' ? 'selected' : '' }}>Male
+                                <option value="male" <?php echo e(old('gender', $patient->gender) == 'male' ? 'selected' : ''); ?>>Male
                                 </option>
-                                <option value="female" {{ old('gender', $patient->gender) == 'female' ? 'selected' : '' }}>
+                                <option value="female" <?php echo e(old('gender', $patient->gender) == 'female' ? 'selected' : ''); ?>>
                                     Female</option>
-                                <option value="other" {{ old('gender', $patient->gender) == 'other' ? 'selected' : '' }}>Other
+                                <option value="other" <?php echo e(old('gender', $patient->gender) == 'other' ? 'selected' : ''); ?>>Other
                                 </option>
                             </select>
                         </div>
@@ -117,7 +117,7 @@
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Father/Husband
                                 Name <span class="text-danger">*</span></label>
                             <input type="text" name="relative_name"
-                                value="{{ old('relative_name', $patient->relative_name) }}" required
+                                value="<?php echo e(old('relative_name', $patient->relative_name)); ?>" required
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white"
                                 placeholder="Relative's Name"
                                 oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')">
@@ -129,9 +129,9 @@
                             <select name="blood_group" required
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none">
                                 <option value="">Select Blood Group</option>
-                                @foreach(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as $bg)
-                                    <option value="{{ $bg }}" {{ old('blood_group', $patient->blood_group) == $bg ? 'selected' : '' }}>{{ $bg }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bg): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($bg); ?>" <?php echo e(old('blood_group', $patient->blood_group) == $bg ? 'selected' : ''); ?>><?php echo e($bg); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -139,7 +139,7 @@
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Aadhar
                                 Number <span class="text-danger">*</span></label>
                             <input type="text" name="aadhar_number"
-                                value="{{ old('aadhar_number', $patient->aadhar_number) }}" maxlength="12" required
+                                value="<?php echo e(old('aadhar_number', $patient->aadhar_number)); ?>" maxlength="12" required
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white"
                                 placeholder="12-digit Aadhar"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12)">
@@ -148,7 +148,7 @@
                         <div class="space-y-2">
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">PAN
                                 Number</label>
-                            <input type="text" name="pan_number" value="{{ old('pan_number', $patient->pan_number) }}"
+                            <input type="text" name="pan_number" value="<?php echo e(old('pan_number', $patient->pan_number)); ?>"
                                 maxlength="10"
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white uppercase"
                                 placeholder="ABCDE1234F" oninput="validatePAN(this)">
@@ -189,14 +189,14 @@
                             Address</label>
                         <textarea name="address" rows="3" required
                             class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white resize-none"
-                            oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')">{{ old('address', $patient->address) }}</textarea>
+                            oninput="this.value = this.value.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')"><?php echo e(old('address', $patient->address)); ?></textarea>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="space-y-2">
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">PIN
                                 Code <span class="text-danger">*</span></label>
-                            <input type="text" name="pin" value="{{ old('pin', $patient->pin) }}" required maxlength="6"
+                            <input type="text" name="pin" value="<?php echo e(old('pin', $patient->pin)); ?>" required maxlength="6"
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)">
                         </div>
@@ -205,8 +205,8 @@
                                 Requirement</label>
                             <select name="insurance_loan_req"
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none">
-                                <option value="No" {{ old('insurance_loan_req', $patient->insurance_loan_req) == 'No' ? 'selected' : '' }}>No</option>
-                                <option value="Yes" {{ old('insurance_loan_req', $patient->insurance_loan_req) == 'Yes' ? 'selected' : '' }}>Yes</option>
+                                <option value="No" <?php echo e(old('insurance_loan_req', $patient->insurance_loan_req) == 'No' ? 'selected' : ''); ?>>No</option>
+                                <option value="Yes" <?php echo e(old('insurance_loan_req', $patient->insurance_loan_req) == 'Yes' ? 'selected' : ''); ?>>Yes</option>
                             </select>
                         </div>
                     </div>
@@ -410,7 +410,7 @@
 
                 <!-- Action Buttons -->
                 <div class="flex items-center justify-end space-x-4 pt-8 border-t border-slate-100 dark:border-white/5">
-                    <a href="{{ route('patients.show', $patient->id) }}"
+                    <a href="<?php echo e(route('patients.show', $patient->id)); ?>"
                         class="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-slate-200 transition-all">
                         Discard
                     </a>
@@ -425,10 +425,10 @@
             </form>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('js')
-    <script src="{{ asset('js/locations.js') }}"></script>
+<?php $__env->startSection('js'); ?>
+    <script src="<?php echo e(asset('js/locations.js')); ?>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -437,9 +437,9 @@
             const gpSelect = document.getElementById('gp-select');
 
             // Values from model
-            const savedDistrict = "{{ $patient->district }}";
-            const savedBlock = "{{ $patient->block }}";
-            const savedGP = "{{ $patient->gp }}";
+            const savedDistrict = "<?php echo e($patient->district); ?>";
+            const savedBlock = "<?php echo e($patient->block); ?>";
+            const savedGP = "<?php echo e($patient->gp); ?>";
 
             // Populate Districts
             if (window.locationData && window.locationData["West Bengal"]) {
@@ -676,11 +676,11 @@
                 errorMsg.classList.add('hidden');
 
                 try {
-                    const response = await fetch('{{ route("coupons.validate") }}', {
+                    const response = await fetch('<?php echo e(route("coupons.validate")); ?>', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                         },
                         body: JSON.stringify({ code: code, designation: 'membership' })
                     });
@@ -838,4 +838,5 @@
             input.value = result;
         };
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/membership/registration.blade.php ENDPATH**/ ?>

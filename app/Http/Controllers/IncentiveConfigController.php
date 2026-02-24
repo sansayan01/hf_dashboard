@@ -30,17 +30,12 @@ class IncentiveConfigController extends Controller
         }
 
         $validated = $request->validate([
-            'designation' => 'required|in:dm,bm,rm,ro',
-            'incentive_amount' => 'nullable|numeric|min:0',
-            'ta_amount' => 'nullable|numeric|min:0',
+            'designation' => 'required|in:super_admin,hs,dm,bm,rm,ro',
             'medicines_amount' => 'required|numeric|min:0',
             'pathology_amount' => 'required|numeric|min:0',
             'membership_amount' => 'required|numeric|min:0',
             'ots_amount' => 'required|numeric|min:0',
         ]);
-
-        $validated['incentive_amount'] = $validated['incentive_amount'] ?? 0;
-        $validated['ta_amount'] = $validated['ta_amount'] ?? 0;
 
         $validated['effective_from'] = now();
 
