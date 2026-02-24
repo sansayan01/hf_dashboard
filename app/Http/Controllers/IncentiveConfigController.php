@@ -35,7 +35,14 @@ class IncentiveConfigController extends Controller
             'pathology_amount' => 'required|numeric|min:0',
             'membership_amount' => 'required|numeric|min:0',
             'ots_amount' => 'required|numeric|min:0',
+            'ta_amount' => 'nullable|numeric|min:0',
         ]);
+
+        if ($validated['designation'] !== 'ro') {
+            $validated['ta_amount'] = 0;
+        } else {
+            $validated['ta_amount'] = $validated['ta_amount'] ?? 0;
+        }
 
         $validated['effective_from'] = now();
 

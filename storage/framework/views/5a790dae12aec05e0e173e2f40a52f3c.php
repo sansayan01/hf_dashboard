@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Incentive Configurations')
-@section('header_title', 'Incentive Management')
 
-@section('content')
+<?php $__env->startSection('title', 'Incentive Configurations'); ?>
+<?php $__env->startSection('header_title', 'Incentive Management'); ?>
+
+<?php $__env->startSection('content'); ?>
     <div class="p-6 max-w-2xl mx-auto h-full pb-20">
         <div class="bg-white dark:bg-darkcard rounded-3xl shadow-xl p-8 border border-slate-200 dark:border-white/5">
             <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-8 flex items-center justify-center">
@@ -15,8 +15,8 @@
                 Incentive Configuration
             </h3>
 
-            <form action="{{ route('admin.incentive-configs.store') }}" method="POST" class="space-y-6">
-                @csrf
+            <form action="<?php echo e(route('admin.incentive-configs.store')); ?>" method="POST" class="space-y-6">
+                <?php echo csrf_field(); ?>
                 <div>
                     <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Target
                         User</label>
@@ -79,7 +79,7 @@
     </div>
 
     <script>
-        const configs = @json($globalConfig->keyBy('designation'));
+        const configs = <?php echo json_encode($globalConfig->keyBy('designation'), 15, 512) ?>;
 
         document.getElementById('designation_select').addEventListener('change', function () {
             const designation = this.value;
@@ -111,4 +111,5 @@
         // Trigger change on load to set initial state
         document.getElementById('designation_select').dispatchEvent(new Event('change'));
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/admin/incentive_configs/index.blade.php ENDPATH**/ ?>
