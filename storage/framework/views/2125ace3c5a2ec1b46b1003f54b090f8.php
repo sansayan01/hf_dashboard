@@ -512,7 +512,10 @@
                     b. The camp organizer has to maintain a daily (camp wise/purpose) medicine sell of atleast
                     7000-9000 rs.<br>
                     c. You have to take care of medicine stock (through pharmacists or by yourself) of every camps
-                    which are your undertaken.</p>
+                    which are your undertaken.<br>
+                    d. You are responsible for end-to-end camp logistics, including coordinating doctor transportation,
+                    setting up pathology services, managing all floor arrangements, etc. to ensure smooth camp
+                    operations.</p>
             <?php elseif($user->isOfficeInCharge()): ?>
                 <p>We are pleased to offer you the position of <span class="highlight">Office In-Charge</span>.
                     This appointment is effective immediately. You will lead the administrative operations of your assigned
