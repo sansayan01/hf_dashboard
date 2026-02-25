@@ -759,12 +759,4 @@ Route::get('/run-training-migration', function () {
         return '<h2 style="color:red;">❌ Error: ' . $e->getMessage() . '</h2>';
     }
 })->middleware('auth');
-// Emergency fix route for live server
-Route::get('/fix-db-enum', function () {
-    try {
-        \Illuminate\Support\Facades\DB::statement("ALTER TABLE coupon_codes MODIFY COLUMN designation ENUM('dm', 'bm', 'rm', 'ro', 'membership') NULL");
-        return "Migration successful! 'membership' column updated (nullable).";
-    } catch (\Exception $e) {
-        return "Error: " . $e->getMessage();
-    }
-});
+
