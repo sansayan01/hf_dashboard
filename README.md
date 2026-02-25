@@ -2,7 +2,7 @@
 
 A high-performance, secure, and hierarchy-driven backend system designed for the **Humanity Foundation**. This platform manages NGO operations, field surveys, patient appointments, and real-time data synchronization with advanced AI integrations.
 
----
+---dd
 
 ## 🤖 AI-Powered Intelligence (Core Highlight)
 The platform integrates cutting-edge AI features (Powered by OpenRouter/Mistral) to streamline operations:
