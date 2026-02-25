@@ -546,7 +546,23 @@
             <?php
                 $terms = [];
                 // Use standard User model methods 
-                if ($user->isDM() || $user->isBM() || $user->isRM()) {
+                if ($user->designation === 'camp_organizer') {
+                    $terms = [
+                        'Organization isn’t liable to pay you the above Honorarium, if you found guilty of non-compliance or breach of trust.',
+                        'The notice period is one month. The Trust may terminate immediately for serious misconduct or integrity issues.',
+                        'The notice period is one month from the effective date of acceptance of resignation.',
+                        'No honorarium for periods of unapproved absence or non-performance of duties.',
+                        'Strict adherence to high confidentiality and professional ethics is mandatory.',
+                        'Flexible shift/process reallocation is mandatory as per Trust requirement.',
+                        'Minimum 40 days service required to claim any salary or dues upon separation.',
+                        'To claim any salary or dues an employee has to be there in the Trust floor minimum 40 days.',
+                        'Formal dress and ID card are mandatory during duty hours.',
+                        'Unauthorized offering of external products/services is strictly prohibited.',
+                        'Daily reporting and attendance marking are mandatory.',
+                        'Maintain professional behavior with all members and stakeholders.',
+                        'Honorarium is disbursed by the 10th of the following month.'
+                    ];
+                } elseif ($user->isDM() || $user->isBM() || $user->isRM()) {
                     $terms = [
                         'Organization isn’t liable to pay you the above Honorarium, if you found guilty or non compliance.',
                         'You should have minimum ' . ($user->isDM() ? '625' : ($user->isBM() ? '125' : '25')) . ' active ROs in your team.',
