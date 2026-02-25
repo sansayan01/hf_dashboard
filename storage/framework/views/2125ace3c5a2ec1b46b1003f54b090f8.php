@@ -1,20 +1,20 @@
-@php
+<?php
     $is_pdf = $is_pdf ?? false;
-@endphp
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offer Letter - {{ $user->profile?->full_name ?? 'N/A' }}</title>
-    @if (!$is_pdf)
+    <title>Offer Letter - <?php echo e($user->profile?->full_name ?? 'N/A'); ?></title>
+    <?php if(!$is_pdf): ?>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
             href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
             rel="stylesheet">
-    @endif
+    <?php endif; ?>
     <style>
         :root {
             --brand-green: #008037;
@@ -34,37 +34,41 @@
 
         body {
             background-color:
-                {{ $is_pdf ? '#ffffff' : '#e2e8f0' }}
+                <?php echo e($is_pdf ? '#ffffff' : '#e2e8f0'); ?>
+
             ;
             color: var(--text-main);
             font-family:
-                {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Inter', sans-serif" }}
+                <?php echo e($is_pdf ? 'DejaVu Sans, sans-serif' : "'Inter', sans-serif"); ?>
+
             ;
             -webkit-font-smoothing: antialiased;
-            @if (!$is_pdf)
+            <?php if(!$is_pdf): ?>
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 padding: 40px 0;
                 min-height: 100vh;
-            @endif
+            <?php endif; ?>
         }
 
         /* Page Container */
         .letter-page {
             width:
-                {{ $is_pdf ? '100%' : '210mm' }}
+                <?php echo e($is_pdf ? '100%' : '210mm'); ?>
+
             ;
             height:
-                {{ $is_pdf ? 'auto' : '296.8mm' }}
+                <?php echo e($is_pdf ? 'auto' : '296.8mm'); ?>
+
             ;
             /* A4 Height */
             background: white;
             position: relative;
             overflow: hidden;
-            @if (!$is_pdf)
+            <?php if(!$is_pdf): ?>
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            @endif
+            <?php endif; ?>
             /* Optimized padding for coverage */
             padding: 10mm 15mm;
             display: flex;
@@ -80,7 +84,8 @@
         h5,
         h6 {
             font-family:
-                {{ $is_pdf ? 'DejaVu Sans, sans-serif' : "'Outfit', sans-serif" }}
+                <?php echo e($is_pdf ? 'DejaVu Sans, sans-serif' : "'Outfit', sans-serif"); ?>
+
             ;
         }
 
@@ -232,11 +237,13 @@
         .term-item {
             font-size: 12px;
             line-height:
-                {{ $user->isRO() ? '1.6' : '1.35' }}
+                <?php echo e($user->isRO() ? '1.6' : '1.35'); ?>
+
             ;
             color: var(--text-muted);
             margin-bottom:
-                {{ $user->isRO() ? '8px' : '3px' }}
+                <?php echo e($user->isRO() ? '8px' : '3px'); ?>
+
             ;
             padding-left: 0;
             display: flex;
@@ -308,7 +315,7 @@
         }
 
         /* Screen Controls */
-        @if (!$is_pdf && !($hide_controls ?? false))
+        <?php if(!$is_pdf && !($hide_controls ?? false)): ?>
             .controls {
                 position: fixed;
                 top: 30px;
@@ -348,12 +355,12 @@
                 color: var(--text-main);
             }
 
-        @endif
+        <?php endif; ?>
     </style>
 </head>
 
 <body>
-    @if (!$is_pdf && !($hide_controls ?? false))
+    <?php if(!$is_pdf && !($hide_controls ?? false)): ?>
         <div class="controls">
             <button onclick="window.print()" class="btn btn-primary">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,7 +377,7 @@
                 </svg>
                 Download PDF
             </button>
-            <a href="{{ route('users.show', $user->id) }}" class="btn btn-secondary">
+            <a href="<?php echo e(route('users.show', $user->id)); ?>" class="btn btn-secondary">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
                     </path>
@@ -378,20 +385,20 @@
                 Back
             </a>
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="letter-page" id="offer-letter">
-        @php
+        <?php
             $logoPath = $is_pdf ? public_path('img/logo 1.png') : asset('img/logo 1.png');
             $sigPath = $is_pdf ? public_path('img/signature.png') : asset('img/signature.png');
-        @endphp
+        ?>
 
         <!-- Watermark -->
-        <img src="{{ $logoPath }}" class="watermark" alt="Watermark">
+        <img src="<?php echo e($logoPath); ?>" class="watermark" alt="Watermark">
 
         <!-- Modern Header -->
         <div class="header">
-            <img src="{{ $logoPath }}" alt="Logo" class="header-logo">
+            <img src="<?php echo e($logoPath); ?>" alt="Logo" class="header-logo">
             <div class="header-text">
                 <div class="brand-name">Humanity Foundation</div>
                 <div class="brand-sub">Registered Non-Government Organization (NGO)</div>
@@ -403,12 +410,12 @@
         <!-- Recipient Bar -->
         <div class="recipient-box">
             <div class="recipient-info">
-                <h3>{{ $user->profile?->full_name ?? 'N/A' }}</h3>
+                <h3><?php echo e($user->profile?->full_name ?? 'N/A'); ?></h3>
                 <div class="recipient-details">
-                    <span>{{ in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Emp ID' : 'Vol ID' }}:
-                        <strong>{{ $user->employee_id }}</strong></span>
+                    <span><?php echo e(in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Emp ID' : 'Vol ID'); ?>:
+                        <strong><?php echo e($user->employee_id); ?></strong></span>
                     <span style="margin: 0 8px; color: #cbd5e1;">|</span>
-                    <span>Aadhar: <strong>{{ $user->profile?->aadhaar_number ?? 'N/A' }}</strong></span>
+                    <span>Aadhar: <strong><?php echo e($user->profile?->aadhaar_number ?? 'N/A'); ?></strong></span>
                 </div>
             </div>
             <div class="doc-title">Offer Letter</div>
@@ -416,9 +423,9 @@
 
         <!-- Dynamic Body Content -->
         <div class="content-body">
-            @if ($user->isDM())
+            <?php if($user->isDM()): ?>
                 <p>We are pleased to offer you the position of <span class="highlight">District Manager (DM)</span> under
-                    <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District. This appointment is effective
+                    <strong><?php echo e($user->profile?->district ?? 'N/A'); ?></strong> District. This appointment is effective
                     immediately upon the commencement of your team's performance.
                     We are confident that your leadership will drive our mission forward, and we assure you of our full
                     support for your professional growth.
@@ -431,10 +438,10 @@
                     deliver essential services (Health, Banking, Govt Projects).
                     <strong>Task:</strong> Maintain a minimum of 625 active ROs in your team.
                 </p>
-            @elseif($user->isBM())
+            <?php elseif($user->isBM()): ?>
                 <p>We are pleased to offer you the position of <span class="highlight">Block Manager (BM)</span> for
-                    <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block,
-                    <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District.
+                    <strong><?php echo e($user->profile?->block ?? 'N/A'); ?></strong> Block,
+                    <strong><?php echo e($user->profile?->district ?? 'N/A'); ?></strong> District.
                     This appointment is effective immediately upon the commencement of your team's performance. We look
                     forward to your contributions.
                 </p>
@@ -445,10 +452,10 @@
                     Your primary duty is to lead Relationship Managers (RM) in expanding membership and delivering services.
                     <strong>Task:</strong> Maintain a minimum of 125 active ROs in your team.
                 </p>
-            @elseif($user->isRM())
+            <?php elseif($user->isRM()): ?>
                 <p>We are pleased to offer you the position of <span class="highlight">Relationship Manager (RM)</span> for
-                    <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block,
-                    <strong>{{ $user->profile?->district ?? 'N/A' }}</strong> District.
+                    <strong><?php echo e($user->profile?->block ?? 'N/A'); ?></strong> Block,
+                    <strong><?php echo e($user->profile?->district ?? 'N/A'); ?></strong> District.
                     This appointment is effective immediately upon the commencement of your team's performance.
                 </p>
 
@@ -459,10 +466,10 @@
                     delivery.
                     <strong>Task:</strong> Maintain a minimum of 25 active ROs in your team.
                 </p>
-            @elseif($user->isRO())
+            <?php elseif($user->isRO()): ?>
                 <p>We are pleased to offer you the position of <span class="highlight">Relationship Officer (RO)</span> at
-                    <strong>{{ $user->profile?->gram_panchayat ?? 'N/A' }}</strong> Gram Panchayat,
-                    <strong>{{ $user->profile?->block ?? 'N/A' }}</strong> Block.
+                    <strong><?php echo e($user->profile?->gram_panchayat ?? 'N/A'); ?></strong> Gram Panchayat,
+                    <strong><?php echo e($user->profile?->block ?? 'N/A'); ?></strong> Block.
                     This appointment is effective from your start date.
                 </p>
 
@@ -471,18 +478,18 @@
                         class="highlight">₹6,000</span> + <span class="highlight">₹1,500</span> (Travel Allowance).
                     Conduct 25 surveys and generate 8 doctor appointments a day. <strong>Monthly Tasks:</strong> 200
                     appointments + 130 membership cards. Daily reporting to your senior is mandatory.</p>
-            @elseif($user->isSuperAdmin())
+            <?php elseif($user->isSuperAdmin()): ?>
                 <p>We are pleased to offer you the position of <span
-                        class="highlight">{{ $user->post ?? 'Super Admin' }}</span>.
+                        class="highlight"><?php echo e($user->post ?? 'Super Admin'); ?></span>.
                     This appointment is effective immediately. We are confident that your leadership and vision will
                     significantly contribute to the Humanity Foundation's mission and growth.</p>
 
                 <p><strong>Role & Responsibilities:</strong><br>
-                    As {{ $user->post ?? 'a Super Admin' }}, your role involves strategic leadership, organizational
+                    As <?php echo e($user->post ?? 'a Super Admin'); ?>, your role involves strategic leadership, organizational
                     oversight, and providing critical guidance to the broader management team. You are responsible for
                     ensuring the foundation's core objectives are met with the highest standards of integrity and
                     operational excellence.</p>
-            @elseif($user->designation === 'staff')
+            <?php elseif($user->designation === 'staff'): ?>
                 <p>We are pleased to offer you the position of <span class="highlight">Pharmacist</span>.
                     This appointment is effective immediately. Your professional expertise is vital to our healthcare
                     mission.</p>
@@ -491,7 +498,7 @@
                     Your role involves the precise management of the medicine registry, overseeing pharmaceutical stock
                     levels, ensuring accurate dispensing to beneficiaries, and maintaining meticulous inventory records to
                     support our health welfare programs.</p>
-            @elseif($user->designation === 'camp_organizer')
+            <?php elseif($user->designation === 'camp_organizer'): ?>
                 <p>We are pleased to offer you the position of <span class="highlight">Camp Organizer</span>.
                     This appointment is effective after you successfully able to organize your first camp, technically
                     which is your operational testing camp. You will lead the administrative operations of your assigned
@@ -506,7 +513,7 @@
                     7000-9000 rs.<br>
                     c. You have to take care of medicine stock (through pharmacists or by yourself) of every camps
                     which are your undertaken.</p>
-            @elseif($user->isOfficeInCharge())
+            <?php elseif($user->isOfficeInCharge()): ?>
                 <p>We are pleased to offer you the position of <span class="highlight">Office In-Charge</span>.
                     This appointment is effective immediately. You will lead the administrative operations of your assigned
                     unit.</p>
@@ -514,16 +521,16 @@
                 <p><strong>Role & Responsibilities:</strong><br>
                     You are responsible for branch administration, supervising office staff, managing day-to-day facility
                     operations, and serving as the primary liaison between field personnel and central management.</p>
-            @else
+            <?php else: ?>
                 <p>We are pleased to offer you the position of <span
-                        class="highlight">{{ $user->getDesignationLabel() }}</span>.
+                        class="highlight"><?php echo e($user->getDesignationLabel()); ?></span>.
                     This appointment is effective immediately. We look forward to your contributions to the Humanity
                     Foundation.</p>
 
                 <p><strong>Role & Responsibilities:</strong><br>
                     Your position involves performing duties assigned by the management team to ensure the smooth operation
                     of our social welfare projects and maintaining the foundation's commitment to community service.</p>
-            @endif
+            <?php endif; ?>
 
             <p style="font-size: 11px; color: var(--text-muted); margin-top: 15px;">
                 * This offer is contingent upon the verification of documents furnished by you.
@@ -533,7 +540,7 @@
         <!-- Compact Terms Section -->
         <div class="terms-container">
             <div class="terms-title">Terms & Conditions of Engagement</div>
-            @php
+            <?php
                 $terms = [];
                 // Use standard User model methods 
                 if ($user->isDM() || $user->isBM() || $user->isRM()) {
@@ -586,14 +593,14 @@
                         'Honorarium is disbursed by the 10th of the following month.'
                     ];
                 }
-            @endphp
+            ?>
             <div class="terms-grid">
-                @foreach ($terms as $index => $term)
+                <?php $__currentLoopData = $terms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $term): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="term-item">
-                        <span class="term-number">{{ $index + 1 }}.</span>
-                        <span>{{ $term }}</span>
+                        <span class="term-number"><?php echo e($index + 1); ?>.</span>
+                        <span><?php echo e($term); ?></span>
                     </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
 
@@ -606,7 +613,7 @@
                 <div>Web: www.hfburdwan.in</div>
             </div>
             <div class="footer-right">
-                <img src="{{ $sigPath }}" alt="Signature" class="signature-img">
+                <img src="<?php echo e($sigPath); ?>" alt="Signature" class="signature-img">
                 <div class="auth-line"></div>
                 <div class="auth-title">Secretary</div>
                 <div class="auth-sub">Humanity Foundation</div>
@@ -614,14 +621,14 @@
         </div>
     </div>
 
-    @if (!$is_pdf)
+    <?php if(!$is_pdf): ?>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
         <script>
             function downloadPDF() {
                 const element = document.getElementById('offer-letter');
                 const opt = {
                     margin: 0,
-                    filename: '{{ $user->profile?->full_name ?? "Offer_Letter" }}_{{ $user->employee_id }}.pdf',
+                    filename: '<?php echo e($user->profile?->full_name ?? "Offer_Letter"); ?>_<?php echo e($user->employee_id); ?>.pdf',
                     image: { type: 'jpeg', quality: 1.0 },
                     html2canvas: { scale: 5, useCORS: true, logging: false, letterRendering: true },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -629,7 +636,7 @@
                 html2pdf().set(opt).from(element).save();
             }
         </script>
-    @endif
+    <?php endif; ?>
 </body>
 
-</html>
+</html><?php /**PATH C:\xampp\htdocs\HF\resources\views/users/joining_letter.blade.php ENDPATH**/ ?>
