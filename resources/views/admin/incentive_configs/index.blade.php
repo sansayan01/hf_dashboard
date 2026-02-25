@@ -82,6 +82,26 @@
                     </button>
                 </div>
             </form>
+
+            <div class="mt-8 pt-8 border-t border-slate-100 dark:border-white/5 text-center">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Maintenance</p>
+                <form action="{{ route('admin.incentive-configs.sync') }}" method="POST"
+                    onsubmit="return confirm('Are you sure you want to sync all past attendance records with current configurations? This will update TA and Basic Incentives for all historical data.')">
+                    @csrf
+                    <button type="submit"
+                        class="px-8 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center justify-center mx-auto space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                            </path>
+                        </svg>
+                        <span>Sync Past Attendance Records</span>
+                    </button>
+                    <p class="mt-4 text-[10px] text-slate-400 font-medium italic">
+                        Use this after changing Daily Basic Incentives or TA to update existing records.
+                    </p>
+                </form>
+            </div>
         </div>
     </div>
 

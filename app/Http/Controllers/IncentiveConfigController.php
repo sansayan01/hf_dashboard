@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\IncentiveConfig;
 use App\Models\User;
+use App\Models\Attendance;
 use Illuminate\Http\Request;
 
 class IncentiveConfigController extends Controller
@@ -60,5 +61,36 @@ class IncentiveConfigController extends Controller
         $incentiveConfig->delete();
 
         return redirect()->back()->with('success', 'Configuration removed.');
+    }
+
+    public function syncAttendances()
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403);
+        }
+
+        try {
+            $attendances = Attendance::where('status', 'present')->get();
+            $count = 0;
+
+            foreach ($attendances as $attendance) {
+                /** @var Attendance $attendance */
+                $user = $attendance->user;
+                if (!$user)
+                    continue;
+
+                $config = $user->getCurrentIncentive($attendance->date);
+                if ($config) {
+                    $attendance->incentive_amount = $config->incentive_amount;
+                    $attendance->ta_amount = $config->ta_amount;
+                    $attendance->save(); // Triggers total_amount calculation boot hook
+                    $count++;
+                }
+            }
+
+            return redirect()->back()->with('success', "Successfully synchronized $count attendance records with current configurations.");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error during synchronization: ' . $e->getMessage());
+        }
     }
 }

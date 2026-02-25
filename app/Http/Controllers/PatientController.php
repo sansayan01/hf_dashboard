@@ -438,7 +438,7 @@ class PatientController extends Controller
             modelId: $patient->id
         );
 
-        return redirect()->route('patients.index')->with('success', 'Patient updated successfully!');
+        return redirect()->route('patients.show', $patient->id)->with('success', 'Patient updated successfully!');
     }
 
     /**

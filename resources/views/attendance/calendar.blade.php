@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Attendance Dashboard')
-@section('header_title', 'My Attendance')
+@section('header_title', $user->id === auth()->id() ? 'My Attendance' : ($user->profile->full_name ?? $user->employee_id) . "'s Attendance")
 
 @section('css')
     <style>
@@ -113,6 +113,15 @@
                     wrapper.style.opacity = '1';
                     wrapper.style.pointerEvents = 'auto';
 
+                    // Update header title if provided
+                    if (data.page_title) {
+                        const headerTitle = document.querySelector('h1.text-2xl.font-black') || document.querySelector('.header-title-class'); // Adjust selector as needed
+                        if (headerTitle) headerTitle.innerText = data.page_title;
+                        // For the specific dashboard layout
+                        const dashboardTitle = document.querySelector('header h1');
+                        if (dashboardTitle) dashboardTitle.innerText = data.page_title;
+                    }
+
                     // Update URL in browser for bookmarking/history
                     window.history.pushState({}, '', url);
                 })
@@ -126,69 +135,71 @@
 
         function showDetails(dateRaw, dateFormatted, status, incentive, ta, med, path, mem, ots, total, markedBy, time, userId) {
             const isSuperAdmin = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }};
-            const isManager = {{ auth()->user()->id }} !== userId; // Simplified: if viewing someone else's calendar, likely the manager
+            const isRO = {{ auth()->user()->designation === 'ro' ? 'true' : 'false' }};
+            // ROs can NEVER edit attendance. Managers/admins can edit if viewing someone else's record.
+            const isViewingOther = {{ auth()->id() }} !== userId;
 
-            const canUpdate = isSuperAdmin || isManager;
+            const canUpdate = !isRO && (isSuperAdmin || isViewingOther);
             const isPastOrToday = new Date(dateRaw) <= new Date(new Date().toDateString());
 
             Swal.fire({
                 title: `<span class="text-2xl font-bold">${dateFormatted}</span>`,
                 html: `
-                                                            <div class="text-left space-y-4 p-4">
-                                                                <div class="flex justify-between items-center border-b border-slate-100 pb-2 dark:border-slate-700">
-                                                                    <span class="text-slate-500 font-medium">Status:</span>
-                                                                    ${canUpdate && isPastOrToday ? `
-                                                                        <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                                                                            <button onclick="updateAttendance('${dateRaw}', ${userId}, 'present')" 
-                                                                                class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status === 'Present' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-emerald-600'}">
-                                                                                Present
-                                                                            </button>
-                                                                            <button onclick="updateAttendance('${dateRaw}', ${userId}, 'absent')" 
-                                                                                class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status !== 'Present' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-500 hover:text-rose-600'}">
-                                                                                Absent
-                                                                            </button>
+                                                                    <div class="text-left space-y-4 p-4">
+                                                                        <div class="flex justify-between items-center border-b border-slate-100 pb-2 dark:border-slate-700">
+                                                                            <span class="text-slate-500 font-medium">Status:</span>
+                                                                            ${canUpdate && isPastOrToday ? `
+                                                                                <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                                                                                    <button onclick="updateAttendance('${dateRaw}', ${userId}, 'present')" 
+                                                                                        class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status === 'Present' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-emerald-600'}">
+                                                                                        Present
+                                                                                    </button>
+                                                                                    <button onclick="updateAttendance('${dateRaw}', ${userId}, 'absent')" 
+                                                                                        class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status !== 'Present' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-500 hover:text-rose-600'}">
+                                                                                        Absent
+                                                                                    </button>
+                                                                                </div>
+                                                                            ` : `
+                                                                                <span class="px-3 py-1 rounded-full text-xs font-bold ${status === 'Present' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                                                                                    ${status}
+                                                                                </span>
+                                                                            `}
                                                                         </div>
-                                                                    ` : `
-                                                                        <span class="px-3 py-1 rounded-full text-xs font-bold ${status === 'Present' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
-                                                                            ${status}
-                                                                        </span>
-                                                                    `}
-                                                                </div>
-                                                                <div class="grid grid-cols-2 gap-3">
-                                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Basic Inc.</span>
-                                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(incentive).toLocaleString()}</p>
+                                                                        <div class="grid grid-cols-2 gap-3">
+                                                                            <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                                                <span class="text-[9px] text-slate-400 uppercase font-black">Basic Inc.</span>
+                                                                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(incentive).toLocaleString()}</p>
+                                                                            </div>
+                                                                            <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                                                <span class="text-[9px] text-slate-400 uppercase font-black">Daily TA</span>
+                                                                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ta).toLocaleString()}</p>
+                                                                            </div>
+                                                                            <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                                                <span class="text-[9px] text-slate-400 uppercase font-black">Medicines</span>
+                                                                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(med).toLocaleString()}</p>
+                                                                            </div>
+                                                                            <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                                                <span class="text-[9px] text-slate-400 uppercase font-black">Pathology</span>
+                                                                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(path).toLocaleString()}</p>
+                                                                            </div>
+                                                                            <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                                                <span class="text-[9px] text-slate-400 uppercase font-black">Membership</span>
+                                                                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(mem).toLocaleString()}</p>
+                                                                            </div>
+                                                                            <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                                                                <span class="text-[9px] text-slate-400 uppercase font-black">OTs</span>
+                                                                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ots).toLocaleString()}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="bg-accent/10 p-4 rounded-xl flex justify-between items-center">
+                                                                            <span class="font-bold text-accent">Total Earning</span>
+                                                                            <span class="text-xl font-black text-accent">₹${parseFloat(total).toLocaleString()}</span>
+                                                                        </div>
+                                                                        <div class="pt-2 text-center">
+                                                                            <p class="text-[11px] text-slate-400">Marked by <span class="text-slate-500 font-semibold">${markedBy}</span> at ${time}</p>
+                                                                        </div>
                                                                     </div>
-                                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Daily TA</span>
-                                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ta).toLocaleString()}</p>
-                                                                    </div>
-                                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Medicines</span>
-                                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(med).toLocaleString()}</p>
-                                                                    </div>
-                                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Pathology</span>
-                                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(path).toLocaleString()}</p>
-                                                                    </div>
-                                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                        <span class="text-[9px] text-slate-400 uppercase font-black">Membership</span>
-                                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(mem).toLocaleString()}</p>
-                                                                    </div>
-                                                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                        <span class="text-[9px] text-slate-400 uppercase font-black">OTs</span>
-                                                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ots).toLocaleString()}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="bg-accent/10 p-4 rounded-xl flex justify-between items-center">
-                                                                    <span class="font-bold text-accent">Total Earning</span>
-                                                                    <span class="text-xl font-black text-accent">₹${parseFloat(total).toLocaleString()}</span>
-                                                                </div>
-                                                                <div class="pt-2 text-center">
-                                                                    <p class="text-[11px] text-slate-400">Marked by <span class="text-slate-500 font-semibold">${markedBy}</span> at ${time}</p>
-                                                                </div>
-                                                            </div>
-                                                        `,
+                                                                `,
                 showConfirmButton: false,
                 showCloseButton: true,
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',

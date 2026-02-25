@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container-fluid py-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
         <!-- Header Section -->
         <div class="relative mb-10">
@@ -23,7 +21,7 @@
                 </div>
 
                 <div class="flex items-center gap-3 ml-14 md:ml-0">
-                    <a href="{{ route('coupons.index') }}"
+                    <a href="<?php echo e(route('coupons.index')); ?>"
                         class="group px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
                         <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
                         Back to Registry
@@ -48,8 +46,8 @@
                             <i class="fas fa-ticket-alt text-[120px] -rotate-12"></i>
                         </div>
 
-                        <form action="{{ route('coupons.store') }}" method="POST" id="couponGenerationForm">
-                            @csrf
+                        <form action="<?php echo e(route('coupons.store')); ?>" method="POST" id="couponGenerationForm">
+                            <?php echo csrf_field(); ?>
 
                             <!-- Quantity Selector -->
                             <div class="mb-10 relative">
@@ -66,7 +64,7 @@
                                         class="fas fa-boxes absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none"></i>
                                     <input type="number"
                                         class="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl pl-16 pr-6 py-5 text-lg font-black text-slate-800 dark:text-white focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
-                                        id="quantity" name="quantity" min="1" max="100" value="{{ old('quantity', 1) }}"
+                                        id="quantity" name="quantity" min="1" max="100" value="<?php echo e(old('quantity', 1)); ?>"
                                         required>
                                     <div class="absolute right-6 top-1/2 -translate-y-1/2 flex gap-4">
                                         <span
@@ -97,17 +95,17 @@
                                         class="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl pl-16 pr-12 py-5 text-sm font-black text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all appearance-none outline-none cursor-pointer"
                                         id="designation" name="designation" required>
                                         <option value="" disabled selected>— Select Target Designation —</option>
-                                        <option value="ro" {{ old('designation') == 'ro' ? 'selected' : '' }}>RO •
+                                        <option value="ro" <?php echo e(old('designation') == 'ro' ? 'selected' : ''); ?>>RO •
                                             Relationship Officer (₹199 Value)</option>
-                                        <option value="rm" {{ old('designation') == 'rm' ? 'selected' : '' }}>RM •
+                                        <option value="rm" <?php echo e(old('designation') == 'rm' ? 'selected' : ''); ?>>RM •
                                             Relationship Manager (₹499 Value)</option>
-                                        <option value="bm" {{ old('designation') == 'bm' ? 'selected' : '' }}>BM • Block
+                                        <option value="bm" <?php echo e(old('designation') == 'bm' ? 'selected' : ''); ?>>BM • Block
                                             Manager (₹999 Value)</option>
-                                        <option value="dm" {{ old('designation') == 'dm' ? 'selected' : '' }}>DM • District
+                                        <option value="dm" <?php echo e(old('designation') == 'dm' ? 'selected' : ''); ?>>DM • District
                                             Manager (₹999 Value)</option>
-                                        <option value="membership" {{ old('designation') == 'membership' ? 'selected' : '' }}>
+                                        <option value="membership" <?php echo e(old('designation') == 'membership' ? 'selected' : ''); ?>>
                                             MEM • Membership Registration (₹200 Value)</option>
-                                        <option value="any" {{ old('designation') == 'any' ? 'selected' : '' }}>ANY •
+                                        <option value="any" <?php echo e(old('designation') == 'any' ? 'selected' : ''); ?>>ANY •
                                             Universal Voucher Access</option>
                                     </select>
                                     <i
@@ -131,8 +129,8 @@
                                             class="far fa-calendar-times absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none"></i>
                                         <input type="date"
                                             class="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl pl-16 pr-6 py-5 text-sm font-black text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none"
-                                            id="expires_at" name="expires_at" min="{{ date('Y-m-d') }}"
-                                            value="{{ old('expires_at') }}">
+                                            id="expires_at" name="expires_at" min="<?php echo e(date('Y-m-d')); ?>"
+                                            value="<?php echo e(old('expires_at')); ?>">
                                     </div>
                                     <p class="mt-2 ml-4 text-[8px] font-bold text-slate-300 uppercase italic">* Leave blank
                                         for permanent validity.</p>
@@ -154,7 +152,7 @@
                                         <textarea
                                             class="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl pl-16 pr-6 py-5 text-sm font-black text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all outline-none min-h-[66px] max-h-[120px]"
                                             id="notes" name="notes"
-                                            placeholder="Internal memo or distribution details...">{{ old('notes') }}</textarea>
+                                            placeholder="Internal memo or distribution details..."><?php echo e(old('notes')); ?></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -335,4 +333,5 @@
             @apply opacity-10 flex;
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/admin/coupons/create.blade.php ENDPATH**/ ?>

@@ -99,7 +99,20 @@ class AttendanceController extends Controller
 
     public function roDashboard(Request $request)
     {
-        $user = User::getEffectiveUser();
+        $effectiveUser = User::getEffectiveUser();
+        $user = $effectiveUser;
+
+        // If a user_id is provided, check if the effective user can view that user.
+        // ROs are NEVER allowed to view another user's attendance — ignore the param entirely.
+        if ($request->has('user_id') && $effectiveUser->designation !== 'ro') {
+            $viewUser = User::find($request->user_id);
+            if ($viewUser) {
+                if ($effectiveUser->isSuperAdmin() || in_array($viewUser->id, $effectiveUser->getDataVisibilityIds())) {
+                    $user = $viewUser;
+                }
+            }
+        }
+
         // Allow roles that earn incentives to see their dashboard
         if (!in_array($user->designation, ['ro', 'rm', 'bm', 'dm']) && !$user->isSuperAdmin()) {
             abort(403);
@@ -142,14 +155,26 @@ class AttendanceController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
+        // Get viewable users for search
+        $viewableUsers = [];
+        if ($effectiveUser->isSuperAdmin()) {
+            $viewableUsers = User::with('profile')->where('designation', '!=', 'super_admin')->get();
+        } else {
+            $visibilityIds = $effectiveUser->getDataVisibilityIds();
+            if (!empty($visibilityIds)) {
+                $viewableUsers = User::whereIn('id', $visibilityIds)->with('profile')->get();
+            }
+        }
+
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate'))->render(),
-                'title' => $targetDate->format('F Y')
+                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers'))->render(),
+                'title' => $targetDate->format('F Y'),
+                'page_title' => $user->id === auth()->id() ? 'My Attendance' : ($user->profile->full_name ?? $user->employee_id) . "'s Attendance"
             ]);
         }
 
-        return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate'));
+        return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers'));
     }
 
     public function show(User $user, Request $request)
@@ -196,34 +221,76 @@ class AttendanceController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
+        // Logic for viewable users search
+        $viewableUsers = [];
+        $effectiveUser = User::getEffectiveUser();
+        if ($effectiveUser->isSuperAdmin()) {
+            $viewableUsers = User::with('profile')->where('designation', '!=', 'super_admin')->get();
+        } else {
+            $visibilityIds = $effectiveUser->getDataVisibilityIds();
+            if (!empty($visibilityIds)) {
+                $viewableUsers = User::whereIn('id', $visibilityIds)->with('profile')->get();
+            }
+        }
+
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate'))->render(),
+                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers'))->render(),
                 'title' => $targetDate->format('F Y')
             ]);
         }
 
-        return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate'));
+        return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers'));
+    }
+
+    public function report(Request $request)
+    {
+        $user = User::getEffectiveUser();
+
+        $query = Attendance::with(['user.profile', 'markedBy.profile']);
+
+        if (!$user->isSuperAdmin()) {
+            $query->whereIn('user_id', $user->getDataVisibilityIds());
+        }
+
+        $this->applyFilters($query, $request);
+
+        $attendances = $query->orderBy('date', 'desc')->paginate(50);
+
+        $designations = [
+            'hs' => 'Head of State',
+            'dm' => 'District Manager',
+            'bm' => 'Block Manager',
+            'rm' => 'Relationship Manager',
+            'ro' => 'Relationship Officer',
+            'staff' => 'Pharmacist',
+        ];
+
+        if ($user->isSuperAdmin()) {
+            $users = User::with('profile')->where('designation', '!=', 'super_admin')->get();
+        } else {
+            $users = User::whereIn('id', $user->getDataVisibilityIds())->with('profile')->get();
+        }
+
+        return view('attendance.report', compact('attendances', 'designations', 'users'));
     }
 
     public function exportReport(Request $request)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403);
+        $user = User::getEffectiveUser();
+
+        $query = Attendance::with(['user.profile', 'markedBy.profile']);
+
+        if (!$user->isSuperAdmin()) {
+            $query->whereIn('user_id', $user->getDataVisibilityIds());
         }
 
-        $request->validate([
-            'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2000',
-        ]);
+        $this->applyFilters($query, $request);
 
-        $attendances = Attendance::with(['user', 'markedBy'])
-            ->whereMonth('date', $request->month)
-            ->whereYear('date', $request->year)
-            ->get();
+        $attendances = $query->orderBy('date', 'desc')->get();
 
-        $filename = "Attendance_Report_{$request->month}_{$request->year}.csv";
-        $header = ['Date', 'RO Name', 'Employee ID', 'Status', 'Incentive', 'TA', 'Medicines', 'Pathology', 'Membership', 'OTs', 'Total', 'Marked By', 'Timestamp'];
+        $filename = "Attendance_Report_" . now()->format('Y-m-d_His') . ".csv";
+        $header = ['Date', 'Name', 'Designation', 'Employee ID', 'Status', 'Incentive', 'TA', 'Medicines', 'Pathology', 'Membership', 'OTs', 'Total', 'Marked By', 'Timestamp'];
 
         $callback = function () use ($attendances, $header) {
             $file = fopen('php://output', 'w');
@@ -232,8 +299,9 @@ class AttendanceController extends Controller
             foreach ($attendances as $row) {
                 fputcsv($file, [
                     $row->date->format('Y-m-d'),
-                    $row->user->profile->full_name ?? 'N/A',
-                    $row->user->employee_id,
+                    $row->user->profile->full_name ?? ($row->user->employee_id ?? 'Deleted User'),
+                    $row->user ? ucfirst(str_replace('_', ' ', $row->user->designation)) : 'N/A',
+                    $row->user->employee_id ?? 'N/A',
                     ucfirst($row->status),
                     $row->incentive_amount,
                     $row->ta_amount,
@@ -256,5 +324,32 @@ class AttendanceController extends Controller
             "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
             "Expires" => "0"
         ]);
+    }
+
+    private function applyFilters($query, Request $request)
+    {
+        if ($request->filled('start_date')) {
+            $query->whereDate('date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('date', '<=', $request->end_date);
+        }
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('designation')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('designation', $request->designation);
+            });
+        }
+        if ($request->filled('month')) {
+            $query->whereMonth('date', $request->month);
+        }
+        if ($request->filled('year')) {
+            $query->whereYear('date', $request->year);
+        }
     }
 }

@@ -165,6 +165,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/mark', [AttendanceController::class, 'index'])->name('mark');
         Route::post('/store', [AttendanceController::class, 'store'])->name('store');
         Route::get('/my-dashboard', [AttendanceController::class, 'roDashboard'])->name('dashboard');
+        Route::get('/reports', [AttendanceController::class, 'report'])->name('reports');
         Route::get('/export/report', [AttendanceController::class, 'exportReport'])->name('export-report');
         Route::get('/{user}', [AttendanceController::class, 'show'])->name('show');
     });
@@ -173,6 +174,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::middleware(['auth'])->prefix('admin/incentive-configs')->name('admin.incentive-configs.')->group(function () {
         Route::get('/', [IncentiveConfigController::class, 'index'])->name('index');
         Route::post('/', [IncentiveConfigController::class, 'store'])->name('store');
+        Route::post('/sync', [IncentiveConfigController::class, 'syncAttendances'])->name('sync');
         Route::delete('/{incentiveConfig}', [IncentiveConfigController::class, 'destroy'])->name('destroy');
     });
 

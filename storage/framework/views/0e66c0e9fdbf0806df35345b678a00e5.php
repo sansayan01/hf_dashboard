@@ -621,6 +621,20 @@
                             </a>
                         </li>
                     <?php endif; ?>
+
+                    <?php if($effectiveUser->designation !== 'staff'): ?>
+                        <li>
+                            <a href="<?php echo e(route('attendance.dashboard')); ?>"
+                                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->is('attendance*') ? 'bg-accent text-white shadow-lg' : ''); ?>">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                                    </path>
+                                </svg>
+                                <span>Attendance</span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
                     <?php if($effectiveUser->designation !== 'staff'): ?>
                         <li>
                             <a href="<?php echo e(route('membership.index')); ?>"
@@ -860,7 +874,8 @@
             </div>
 
             <!-- Lottie Animation -->
-            <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
+            <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js"
+                type="module"></script>
             <dotlottie-wc src="https://lottie.host/1aa4a8a0-06f1-430b-ab43-fe7ca72f6c9a/cSwkMGw50G.lottie"
                 style="width: 300px; height: 300px; position: relative; z-index: 1;" autoplay loop>
             </dotlottie-wc>
@@ -924,10 +939,10 @@
                     if (submitBtn.disabled) return;
                     submitBtn.disabled = true;
                     submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    
+
                     const btnText = submitBtn.innerText.trim();
                     const lowText = btnText.toLowerCase();
-                    
+
                     if (lowText.includes('membership')) submitBtn.innerText = 'Upgrading to Premium...';
                     else if (lowText.includes('update')) submitBtn.innerText = 'Updating...';
                     else if (lowText.includes('save')) submitBtn.innerText = 'Saving...';
@@ -1042,17 +1057,17 @@
                 text: "<?php echo e(session('success')); ?>",
                 ...getSwalConfig(),
                 <?php if(session('view_appointment_url')): ?>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    showDenyButton: true,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            showDenyButton: true,
                     denyButtonText: 'View Appointment',
                     denyButtonColor: '#10B981',
                 <?php endif; ?>
-                                                                                                                                                                                                                                                                                                                            }).then((result) => {
+                                                                                                                                                                                                                                                                                                                                }).then((result) => {
                     <?php if(session('view_appointment_url')): ?>
                         if (result.isDenied) {
                             window.location.href = "<?php echo e(session('view_appointment_url')); ?>";
                         }
                     <?php endif; ?>
-                                                                                                                                                                                                                                                                                                                            });
+                                                                                                                                                                                                                                                                                                                                });
         <?php endif; ?>
 
         <?php if(session('error')): ?>

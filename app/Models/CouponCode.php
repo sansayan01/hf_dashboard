@@ -163,7 +163,7 @@ class CouponCode extends Model
             'bm' => 999,
             'rm' => 499,
             'ro' => 199,
-            'membership' => 199,
+            'membership' => 200,
         ];
 
         for ($i = 0; $i < $quantity; $i++) {

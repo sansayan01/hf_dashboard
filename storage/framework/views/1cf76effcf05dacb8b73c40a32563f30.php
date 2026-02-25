@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Patient Profile'); ?>
+<?php $__env->startSection('header_title', 'Patient Profile'); ?>
 
-@section('title', 'Patient Profile')
-@section('header_title', 'Patient Profile')
-
-@section('css')
+<?php $__env->startSection('css'); ?>
     <style>
         /* === Profile Page Custom Styles === */
         .profile-hero {
@@ -122,53 +120,54 @@
             transform: translateY(-2px) scale(1.05);
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="max-w-5xl mx-auto space-y-6 pb-20">
 
-        {{-- ===== HERO HEADER CARD ===== --}}
+        
         <div class="profile-hero rounded-[2.5rem] shadow-2xl overflow-hidden">
             <div class="mesh-grid"></div>
             <div class="orb orb-1"></div>
             <div class="orb orb-2"></div>
             <div class="orb orb-3"></div>
 
-            {{-- Watermark --}}
+            
             <div class="absolute right-0 top-0 select-none pointer-events-none opacity-[0.04] hidden lg:block">
                 <span class="text-[15rem] font-black text-white uppercase tracking-tighter leading-none">
-                    {{ substr($patient->full_name, 0, 2) }}
+                    <?php echo e(substr($patient->full_name, 0, 2)); ?>
+
                 </span>
             </div>
 
             <div class="relative p-8 lg:p-10">
                 <div class="flex flex-col lg:flex-row lg:items-center gap-8">
-                    {{-- Avatar --}}
+                    
                     <div class="flex-shrink-0">
                         <div class="profile-avatar-ring w-32 h-32">
                             <div class="w-full h-full rounded-[1.6rem] bg-slate-900 overflow-hidden flex items-center justify-center">
-                                <span class="text-5xl font-black text-white uppercase">{{ substr($patient->full_name, 0, 1) }}</span>
+                                <span class="text-5xl font-black text-white uppercase"><?php echo e(substr($patient->full_name, 0, 1)); ?></span>
                             </div>
                         </div>
                         <div class="flex justify-center mt-3">
-                            @if($patient->health_issues && !in_array($patient->health_issues, ['Normal', 'None']))
+                            <?php if($patient->health_issues && !in_array($patient->health_issues, ['Normal', 'None'])): ?>
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/20 border border-rose-500/40 rounded-full">
                                     <span class="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></span>
                                     <span class="text-[9px] font-black text-rose-300 uppercase tracking-widest">Medical Attention</span>
                                 </span>
-                            @else
+                            <?php else: ?>
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 rounded-full">
                                     <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
                                     <span class="text-[9px] font-black text-emerald-300 uppercase tracking-widest">Stable Health</span>
                                 </span>
-                            @endif
+                            <?php endif; ?>
                         </div>
                     </div>
 
-                    {{-- Info --}}
+                    
                     <div class="flex-1 min-w-0">
                         <div class="flex flex-wrap items-center gap-4 mb-3">
-                            <h1 class="text-5xl font-black text-white tracking-tight leading-none">{{ $patient->full_name }}</h1>
+                            <h1 class="text-5xl font-black text-white tracking-tight leading-none"><?php echo e($patient->full_name); ?></h1>
                             <span class="px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-black text-white uppercase tracking-widest backdrop-blur-sm">
                                 Patient File
                             </span>
@@ -178,7 +177,7 @@
                             <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                             </svg>
-                            <span class="text-white font-black tracking-widest text-sm uppercase">{{ $patient->patient_id }}</span>
+                            <span class="text-white font-black tracking-widest text-sm uppercase"><?php echo e($patient->patient_id); ?></span>
                         </div>
 
                         <div class="flex flex-wrap gap-3">
@@ -188,15 +187,15 @@
                             <button type="button" onclick="openPathologyModal()"
                                 class="btn-action px-5 py-2.5 bg-violet-600 text-white font-bold rounded-xl text-xs hover:bg-violet-500 shadow-lg shadow-violet-600/20">Pathology
                                 History</button>
-                            @if (!in_array(auth()->user()->designation, ['ro', 'rm', 'bm', 'dm']))
-                                <a href="{{ route('pathology.create', $patient->id) }}"
+                            <?php if(!in_array(auth()->user()->designation, ['ro', 'rm', 'bm', 'dm'])): ?>
+                                <a href="<?php echo e(route('pathology.create', $patient->id)); ?>"
                                     class="btn-action px-5 py-2.5 bg-white/10 border border-white/20 text-white font-bold rounded-xl text-xs hover:bg-white/20 backdrop-blur-sm">New
                                     Lab Test</a>
-                            @endif
+                            <?php endif; ?>
 
-                            {{-- Edit Option --}}
-                            @if (auth()->user()->id === $patient->created_by || auth()->user()->canAccess($patient->creator))
-                                <a href="{{ route('patients.edit', $patient->id) }}"
+                            
+                            <?php if(auth()->user()->id === $patient->created_by || auth()->user()->canAccess($patient->creator)): ?>
+                                <a href="<?php echo e(route('patients.edit', $patient->id)); ?>"
                                     class="btn-action px-5 py-2.5 bg-amber-500 text-white font-bold rounded-xl text-xs hover:bg-amber-400 shadow-lg shadow-amber-500/20 flex items-center gap-2">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -204,38 +203,38 @@
                                     </svg>
                                     Edit Profile
                                 </a>
-                            @endif
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
 
-                {{-- Vital Stats Bar --}}
+                
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-8 border-t border-white/10">
                     <div class="hero-stat-card rounded-2xl p-4">
                         <p class="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Age · Gender</p>
-                        <p class="text-base font-black text-white">{{ $patient->age }}Y · {{ $patient->gender }}</p>
+                        <p class="text-base font-black text-white"><?php echo e($patient->age); ?>Y · <?php echo e($patient->gender); ?></p>
                     </div>
                     <div class="hero-stat-card rounded-2xl p-4">
                         <p class="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Blood Type</p>
-                        <p class="text-base font-black text-white">{{ $patient->blood_group ?? 'N/A' }}</p>
+                        <p class="text-base font-black text-white"><?php echo e($patient->blood_group ?? 'N/A'); ?></p>
                     </div>
                     <div class="hero-stat-card rounded-2xl p-4">
                         <p class="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Tests Done</p>
-                        <p class="text-base font-black text-white">{{ $patient->pathologyTests->count() }} Records</p>
+                        <p class="text-base font-black text-white"><?php echo e($patient->pathologyTests->count()); ?> Records</p>
                     </div>
                     <div class="hero-stat-card rounded-2xl p-4">
                         <p class="text-[9px] font-black text-white/50 uppercase tracking-[0.2em] mb-2">Lead Source</p>
-                        <p class="text-sm font-black text-white truncate">{{ $patient->creator->profile->full_name ?? 'System' }}</p>
+                        <p class="text-sm font-black text-white truncate"><?php echo e($patient->creator->profile->full_name ?? 'System'); ?></p>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- ===== DETAILS GRID ===== --}}
+        
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Personal & Medical Information -->
                 <div class="lg:col-span-2 space-y-8">
-                    @if($patient->is_member)
+                    <?php if($patient->is_member): ?>
                         <!-- Membership Details -->
                         <div class="info-card p-8 border-l-4 border-emerald-500">
                             <div class="flex items-center justify-between mb-8">
@@ -261,19 +260,19 @@
                             <div class="grid grid-cols-2 lg:grid-cols-3 gap-6">
                                 <div class="bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
                                     <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Joining Fee</p>
-                                    <p class="font-black text-slate-700 dark:text-white">₹{{ number_format($patient->membership_fee, 2) }}</p>
+                                    <p class="font-black text-slate-700 dark:text-white">₹<?php echo e(number_format($patient->membership_fee, 2)); ?></p>
                                 </div>
                                 <div class="bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10">
                                     <p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Paid Amount</p>
-                                    <p class="font-black text-emerald-600">₹{{ number_format($patient->amount_paid, 2) }}</p>
+                                    <p class="font-black text-emerald-600">₹<?php echo e(number_format($patient->amount_paid, 2)); ?></p>
                                 </div>
                                 <div class="bg-indigo-500/5 p-4 rounded-2xl border border-indigo-500/10">
                                     <p class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">Method</p>
-                                    <p class="text-xs font-black text-indigo-600 truncate" title="{{ $patient->payment_method }}">{{ $patient->payment_method }}</p>
+                                    <p class="text-xs font-black text-indigo-600 truncate" title="<?php echo e($patient->payment_method); ?>"><?php echo e($patient->payment_method); ?></p>
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
                 <!-- Identity Details -->
                 <div class="info-card p-8">
@@ -291,34 +290,39 @@
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Father/Husband
                                     Name</p>
-                                <p class="font-bold text-slate-800 dark:text-white">{{ $patient->relative_name ?? 'N/A' }}</p>
+                                <p class="font-bold text-slate-800 dark:text-white"><?php echo e($patient->relative_name ?? 'N/A'); ?></p>
                             </div>
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Phone Number</p>
-                                <p class="font-bold text-slate-800 dark:text-white">{{ $patient->phone_number }}</p>
+                                <p class="font-bold text-slate-800 dark:text-white"><?php echo e($patient->phone_number); ?></p>
                             </div>
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Aadhaar Card No.
                                 </p>
                                 <p class="font-bold text-slate-800 dark:text-white italic">
-                                    {{ $patient->aadhar_number ? '•••• •••• ' . substr($patient->aadhar_number, -4) : 'N/A' }}
+                                    <?php echo e($patient->aadhar_number ? '•••• •••• ' . substr($patient->aadhar_number, -4) : 'N/A'); ?>
+
                                 </p>
                             </div>
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PAN Card No.</p>
                                 <p class="font-bold text-slate-800 dark:text-white uppercase">
-                                    {{ $patient->pan_number ?? 'N/A' }}
+                                    <?php echo e($patient->pan_number ?? 'N/A'); ?>
+
                                 </p>
                             </div>
                             <div class="md:col-span-2">
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Full Address</p>
-                                <p class="font-bold text-slate-800 dark:text-white leading-relaxed">{{ $patient->address }}</p>
+                                <p class="font-bold text-slate-800 dark:text-white leading-relaxed"><?php echo e($patient->address); ?></p>
                                 <p class="text-xs text-slate-500 font-medium mt-1">
-                                    {{ $patient->gp ? $patient->gp . ', ' : '' }}
-                                    {{ $patient->block ? $patient->block . ', ' : '' }}
-                                    {{ $patient->district }} - {{ $patient->pin }}
+                                    <?php echo e($patient->gp ? $patient->gp . ', ' : ''); ?>
+
+                                    <?php echo e($patient->block ? $patient->block . ', ' : ''); ?>
+
+                                    <?php echo e($patient->district); ?> - <?php echo e($patient->pin); ?>
+
                                 </p>
-                                @if($patient->landmark)
+                                <?php if($patient->landmark): ?>
                                     <p class="text-xs text-accent font-bold mt-2 flex items-center">
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -326,9 +330,10 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
-                                        Landmark: {{ $patient->landmark }}
+                                        Landmark: <?php echo e($patient->landmark); ?>
+
                                     </p>
-                                @endif
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -353,7 +358,7 @@
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Primary Health
                                     Issue</p>
                                 <div class="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
-                                    <p class="font-black text-amber-600 dark:text-amber-400">{{ $patient->health_issues }}</p>
+                                    <p class="font-black text-amber-600 dark:text-amber-400"><?php echo e($patient->health_issues); ?></p>
                                 </div>
                             </div>
 
@@ -362,7 +367,8 @@
                                     History / Diseases</p>
                                 <p
                                     class="text-sm font-bold text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
-                                    {{ $patient->past_diseases ?: 'No previous diseases reported.' }}
+                                    <?php echo e($patient->past_diseases ?: 'No previous diseases reported.'); ?>
+
                                 </p>
                             </div>
 
@@ -370,7 +376,8 @@
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Insurance / Loan
                                     Requirements</p>
                                 <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                    {{ $patient->insurance_loan_req ?: 'Not Specified' }}
+                                    <?php echo e($patient->insurance_loan_req ?: 'Not Specified'); ?>
+
                                 </p>
                             </div>
                         </div>
@@ -389,47 +396,49 @@
                         </div>
 
                         <div class="space-y-6">
-                            @forelse($patient->appointments as $appointment)
+                            <?php $__empty_1 = true; $__currentLoopData = $patient->appointments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $appointment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <div class="flex space-x-4 group">
                                     <div
                                         class="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center text-[8px] font-black uppercase">
-                                        <span class="text-accent">{{ $appointment->appointment_date->format('M') }}</span>
+                                        <span class="text-accent"><?php echo e($appointment->appointment_date->format('M')); ?></span>
                                         <span
-                                            class="text-slate-600 dark:text-white text-xs">{{ $appointment->appointment_date->format('d') }}</span>
+                                            class="text-slate-600 dark:text-white text-xs"><?php echo e($appointment->appointment_date->format('d')); ?></span>
                                     </div>
                                     <div>
                                         <div class="flex items-center space-x-2">
                                             <p class="text-xs font-black text-slate-800 dark:text-white">
-                                                {{ $appointment->doctor_type }}
+                                                <?php echo e($appointment->doctor_type); ?>
+
                                             </p>
-                                            @if($appointment->status === 'successful')
+                                            <?php if($appointment->status === 'successful'): ?>
                                                 <span class="text-[8px] font-black text-emerald-500 uppercase">Success</span>
-                                            @elseif($appointment->status === 'not_attended')
+                                            <?php elseif($appointment->status === 'not_attended'): ?>
                                                 <span class="text-[8px] font-black text-red-500 uppercase">Missed</span>
-                                            @elseif($appointment->status === 'missed_reported')
+                                            <?php elseif($appointment->status === 'missed_reported'): ?>
                                                 <span class="text-[8px] font-black text-amber-500 uppercase">Pending</span>
-                                            @endif
+                                            <?php endif; ?>
                                         </div>
                                         <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
-                                            {{ \Carbon\Carbon::parse($appointment->appointment_time)->format('h:i A') }}
+                                            <?php echo e(\Carbon\Carbon::parse($appointment->appointment_time)->format('h:i A')); ?>
+
                                         </p>
                                     </div>
                                 </div>
-                            @empty
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <div
                                     class="text-center py-6 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
                                     <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No Appointments</p>
                                 </div>
-                            @endforelse
+                            <?php endif; ?>
                         </div>
 
-                        @if($patient->appointments->isNotEmpty())
+                        <?php if($patient->appointments->isNotEmpty()): ?>
                             <div class="mt-8 pt-6 border-t border-slate-50 dark:border-white/5">
-                                <a href="{{ route('patients.appointments.index', $patient->id) }}"
+                                <a href="<?php echo e(route('patients.appointments.index', $patient->id)); ?>"
                                     class="block text-center text-[10px] font-black text-accent uppercase tracking-widest hover:underline">View
                                     All Schedule</a>
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
 
                     <!-- Registration Context -->
@@ -441,23 +450,25 @@
                                 class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
                                 <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Assigned
                                     Collector</p>
-                                @if(auth()->user()->isSuperAdmin() && $patient->creator)
-                                    <a href="{{ route('users.show', $patient->creator->id) }}"
+                                <?php if(auth()->user()->isSuperAdmin() && $patient->creator): ?>
+                                    <a href="<?php echo e(route('users.show', $patient->creator->id)); ?>"
                                         class="text-xs font-bold text-accent hover:text-accent/80 transition-colors inline-flex items-center space-x-1 group">
-                                        <span>{{ $patient->creator->profile->full_name ?? 'N/A' }}</span>
+                                        <span><?php echo e($patient->creator->profile->full_name ?? 'N/A'); ?></span>
                                         <svg class="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all"
                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                                 d="M9 5l7 7-7 7" />
                                         </svg>
                                     </a>
-                                @else
+                                <?php else: ?>
                                     <p class="text-xs font-bold text-slate-700 dark:text-white">
-                                        {{ $patient->creator->profile->full_name ?? 'N/A' }}
+                                        <?php echo e($patient->creator->profile->full_name ?? 'N/A'); ?>
+
                                     </p>
-                                @endif
+                                <?php endif; ?>
                                 <p class="text-[9px] text-slate-400 font-medium uppercase mt-0.5">
-                                    {{ $patient->creator->employee_id }}
+                                    <?php echo e($patient->creator->employee_id); ?>
+
                                 </p>
                             </div>
                             <div
@@ -471,7 +482,7 @@
                 </div>
             </div>
         </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
 <!-- History Modal -->
 <div id="history-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog"
@@ -497,7 +508,7 @@
                             <h3 class="text-xl font-black text-slate-900 dark:text-white" id="modal-title">Dispense
                                 History</h3>
                             <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">
-                                {{ $patient->full_name }} ({{ $patient->patient_id }})</p>
+                                <?php echo e($patient->full_name); ?> (<?php echo e($patient->patient_id); ?>)</p>
                         </div>
                     </div>
                     <button onclick="closeHistoryModal()"
@@ -530,36 +541,37 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-white/5">
-                            @forelse($patient->medicineDistributions as $dist)
+                            <?php $__empty_1 = true; $__currentLoopData = $patient->medicineDistributions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dist): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                                     <td class="p-4 whitespace-nowrap">
                                         <div class="flex flex-col">
                                             <span
-                                                class="text-xs font-bold text-slate-700 dark:text-white">{{ $dist->created_at->format('M d, Y') }}</span>
+                                                class="text-xs font-bold text-slate-700 dark:text-white"><?php echo e($dist->created_at->format('M d, Y')); ?></span>
                                             <span
-                                                class="text-[10px] font-medium text-slate-400 uppercase">{{ $dist->created_at->format('h:i A') }}</span>
+                                                class="text-[10px] font-medium text-slate-400 uppercase"><?php echo e($dist->created_at->format('h:i A')); ?></span>
                                         </div>
                                     </td>
                                     <td class="p-4">
                                         <div class="flex flex-wrap gap-1.5">
-                                            @foreach($dist->items as $item)
+                                            <?php $__currentLoopData = $dist->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <span
                                                     class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-accent/5 text-accent border border-accent/10 text-[9px] font-black uppercase">
-                                                    {{ $item->medicine->name }} x{{ $item->quantity }}
+                                                    <?php echo e($item->medicine->name); ?> x<?php echo e($item->quantity); ?>
+
                                                 </span>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </div>
                                     </td>
                                     <td class="p-4 whitespace-nowrap">
                                         <span
-                                            class="text-xs font-bold text-slate-600 dark:text-slate-300">{{ $dist->camp->name ?? 'N/A' }}</span>
+                                            class="text-xs font-bold text-slate-600 dark:text-slate-300"><?php echo e($dist->camp->name ?? 'N/A'); ?></span>
                                     </td>
                                     <td class="p-4 whitespace-nowrap">
                                         <span
-                                            class="text-xs font-bold text-slate-500">{{ $dist->pharmacist->profile->full_name ?? $dist->pharmacist->employee_id }}</span>
+                                            class="text-xs font-bold text-slate-500"><?php echo e($dist->pharmacist->profile->full_name ?? $dist->pharmacist->employee_id); ?></span>
                                     </td>
                                     <td class="p-4 text-right">
-                                        <a href="{{ route('medicine.invoice', $dist->id) }}" target="_blank"
+                                        <a href="<?php echo e(route('medicine.invoice', $dist->id)); ?>" target="_blank"
                                             class="p-2 text-slate-400 hover:text-accent transition"
                                             title="Download Invoice">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -569,14 +581,14 @@
                                         </a>
                                     </td>
                                 </tr>
-                            @empty
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
                                     <td colspan="5" class="p-12 text-center">
                                         <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">No
                                             records found</p>
                                     </td>
                                 </tr>
-                            @endforelse
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -601,7 +613,7 @@
             <div class="bg-rose-500 px-8 py-6 text-white flex justify-between items-center">
                 <div>
                     <h3 class="text-xl font-black uppercase tracking-widest">Pathology History</h3>
-                    <p class="text-xs font-bold opacity-80">{{ $patient->full_name }}</p>
+                    <p class="text-xs font-bold opacity-80"><?php echo e($patient->full_name); ?></p>
                 </div>
                 <button type="button" onclick="closePathologyModal()" class="text-white/80 hover:text-white transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -631,46 +643,46 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-white/5">
-                            @forelse($patient->pathologyTests as $test)
+                            <?php $__empty_1 = true; $__currentLoopData = $patient->pathologyTests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $test): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
                                     <td class="px-8 py-5">
                                         <div class="text-xs font-black text-rose-500 uppercase tracking-tighter mb-0.5">
-                                            {{ $test->date->format('d M, Y') }}</div>
+                                            <?php echo e($test->date->format('d M, Y')); ?></div>
                                         <div class="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                            {{ $test->test_name }}</div>
+                                            <?php echo e($test->test_name); ?></div>
                                     </td>
                                     <td class="px-8 py-5">
                                         <div class="flex items-center gap-2">
                                             <div class="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                {{ $test->ro->profile->full_name ?? 'N/A' }}</div>
+                                                <?php echo e($test->ro->profile->full_name ?? 'N/A'); ?></div>
                                             <span
                                                 class="bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded text-[9px] font-black uppercase">Earned</span>
                                         </div>
                                         <div class="text-[10px] text-slate-400 font-mono">
-                                            {{ $test->ro->employee_id ?? 'N/A' }}</div>
+                                            <?php echo e($test->ro->employee_id ?? 'N/A'); ?></div>
                                     </td>
                                     <td class="px-8 py-5">
                                         <div class="flex flex-col">
                                             <span
-                                                class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ ucfirst($test->payment_method) }}</span>
-                                            @if($test->discount_percentage > 0)
+                                                class="text-xs font-bold text-slate-600 dark:text-slate-400"><?php echo e(ucfirst($test->payment_method)); ?></span>
+                                            <?php if($test->discount_percentage > 0): ?>
                                                 <span
-                                                    class="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{{ $test->discount_percentage }}%
+                                                    class="text-[9px] font-black text-emerald-500 uppercase tracking-widest"><?php echo e($test->discount_percentage); ?>%
                                                     Off</span>
-                                            @endif
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                     <td class="px-8 py-5 text-right pr-8">
                                         <div class="text-sm font-black text-slate-800 dark:text-white">
-                                            ₹{{ number_format($test->final_amount, 2) }}</div>
+                                            ₹<?php echo e(number_format($test->final_amount, 2)); ?></div>
                                         <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                            {{ $test->camp->name ?? 'N/A' }}</div>
+                                            <?php echo e($test->camp->name ?? 'N/A'); ?></div>
                                     </td>
                                     <td class="px-8 py-5 text-center">
-                                        <form action="{{ route('pathology.destroy', $test->id) }}" method="POST"
+                                        <form action="<?php echo e(route('pathology.destroy', $test->id)); ?>" method="POST"
                                             onsubmit="return confirm('Stop! This will delete the pathology record and cannot be undone. Are you sure?')">
-                                            @csrf
-                                            @method('DELETE')
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
                                             <button type="submit"
                                                 class="p-2 text-slate-300 hover:text-rose-500 transition opacity-0 group-hover:opacity-100">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -681,14 +693,14 @@
                                         </form>
                                     </td>
                                 </tr>
-                            @empty
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
                                     <td colspan="5" class="p-12 text-center">
                                         <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">No
                                             pathology records found</p>
                                     </td>
                                 </tr>
-                            @endforelse
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -703,12 +715,12 @@
     </div>
 </div>
 
-@section('js')
+<?php $__env->startSection('js'); ?>
     <script>
         function confirmDelete() {
             Swal.fire({
                 title: 'Delete Patient Record?',
-                text: "This action cannot be undone. All clinical data for {{ $patient->full_name }} will be permanently removed.",
+                text: "This action cannot be undone. All clinical data for <?php echo e($patient->full_name); ?> will be permanently removed.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#F43F5E',
@@ -748,4 +760,5 @@
             document.body.style.overflow = 'auto';
         }
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/patients/show.blade.php ENDPATH**/ ?>
