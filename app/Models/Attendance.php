@@ -12,6 +12,7 @@ class Attendance extends Model
     protected $fillable = [
         'user_id',
         'marked_by',
+        'recorded_by',
         'status',
         'date',
         'incentive_amount',

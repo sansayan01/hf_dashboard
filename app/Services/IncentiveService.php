@@ -37,6 +37,7 @@ class IncentiveService
             if ($isNew) {
                 // First activity of the day: Mark present and snapshot base amounts
                 $attendance->marked_by = auth()->id() ?: $user->id; // Use person who triggered the action or the user themselves
+                $attendance->recorded_by = auth()->id() ?: $user->id;
                 $attendance->status = 'present';
                 $attendance->incentive_amount = $config->incentive_amount;
                 $attendance->ta_amount = $config->ta_amount;
