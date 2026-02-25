@@ -113,8 +113,9 @@ class AttendanceController extends Controller
             }
         }
 
-        // Allow roles that earn incentives to see their dashboard
-        if (!in_array($user->designation, ['ro', 'rm', 'bm', 'dm']) && !$user->isSuperAdmin()) {
+        // Allow roles that earn incentives or manage them to see dashboard
+        $allowedDesignations = ['ro', 'rm', 'bm', 'dm', 'hs', 'office_in_charge'];
+        if (!in_array($user->designation, $allowedDesignations) && !$user->isSuperAdmin()) {
             abort(403);
         }
 
@@ -155,26 +156,89 @@ class AttendanceController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        // Get viewable users for search
-        $viewableUsers = [];
+        // Get viewable users for search with filters applied
+        $query = User::with('profile');
         if ($effectiveUser->isSuperAdmin()) {
-            $viewableUsers = User::with('profile')->where('designation', '!=', 'super_admin')->get();
+            $query->where('designation', '!=', 'super_admin');
         } else {
             $visibilityIds = $effectiveUser->getDataVisibilityIds();
             if (!empty($visibilityIds)) {
-                $viewableUsers = User::whereIn('id', $visibilityIds)->with('profile')->get();
+                $query->whereIn('id', $visibilityIds);
+            } else {
+                $query->where('id', 0); // Hide everything if no visibility
+            }
+        }
+
+        // Apply filters from request (Same as UserController)
+        if ($request->filled('district')) {
+            $query->whereHas('profile', function ($q) use ($request) {
+                $q->where('district', $request->district);
+            });
+        }
+        if ($request->filled('block')) {
+            $query->whereHas('profile', function ($q) use ($request) {
+                $q->where('block', $request->block);
+            });
+        }
+        if ($request->filled('gram_panchayat')) {
+            $query->whereHas('profile', function ($q) use ($request) {
+                $q->where('gram_panchayat', $request->gram_panchayat);
+            });
+        }
+        if ($request->filled('designation')) {
+            $query->where('designation', $request->designation);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('employee_id', 'like', "%{$search}%")
+                    ->orWhereHas('profile', function ($pq) use ($search) {
+                        $pq->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('phone_number', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $viewableUsers = $query->get();
+
+        // Calculate allowedFilters for designation dropdown
+        $hierarchyLevels = [
+            'super_admin' => 0,
+            'office_in_charge' => 1,
+            'hs' => 2,
+            'dm' => 3,
+            'bm' => 4,
+            'rm' => 5,
+            'ro' => 6
+        ];
+        $designationLabels = [
+            'office_in_charge' => 'Office In-Charge',
+            'hs' => 'Head of State',
+            'dm' => 'District Manager',
+            'bm' => 'Block Manager',
+            'rm' => 'Relationship Manager',
+            'ro' => 'Relationship Officer',
+        ];
+        $currentUserLevel = $hierarchyLevels[$effectiveUser->designation] ?? 99;
+        $allowedFilters = [];
+        foreach ($designationLabels as $key => $label) {
+            if ($hierarchyLevels[$key] > $currentUserLevel) {
+                $allowedFilters[$key] = $label;
             }
         }
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers'))->render(),
+                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers', 'allowedFilters'))->render(),
                 'title' => $targetDate->format('F Y'),
                 'page_title' => $user->id === auth()->id() ? 'My Attendance' : ($user->profile->full_name ?? $user->employee_id) . "'s Attendance"
             ]);
         }
 
-        return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers'));
+        return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers', 'allowedFilters'));
     }
 
     public function show(User $user, Request $request)

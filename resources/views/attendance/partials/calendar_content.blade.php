@@ -77,7 +77,7 @@
                             'id' => $u->id,
                             'name' => $u->profile->full_name ?? $u->employee_id,
                             'eid' => $u->employee_id,
-                            'phone' => $u->phone ?? '',
+                            'phone' => $u->profile->phone_number ?? '',
                             'desig' => str_replace('_', ' ', $u->designation),
                             'label' => ($u->profile->full_name ?? $u->employee_id) . ' · ' . $u->employee_id,
                             'selected' => $user->id == $u->id,
@@ -85,7 +85,7 @@
                     })->values();
                 @endphp
 
-                <div class="ml-4 relative" id="user-search-wrapper">
+                <div class="relative" id="user-search-wrapper">
                     <!-- Input -->
                     <div
                         class="flex items-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-accent/30 transition-all min-w-[200px] md:min-w-[260px]">
@@ -94,8 +94,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <input type="text" id="user-search-input" placeholder="Search by name, ID, phone…"
-                            autocomplete="off"
+                        <input type="text" id="user-search-input" placeholder="Quick search matches…" autocomplete="off"
                             value="{{ $user->id !== auth()->id() ? ($user->profile->full_name ?? $user->employee_id) . ' · ' . $user->employee_id : '' }}"
                             class="bg-transparent border-none p-0 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-0 placeholder:text-slate-400 placeholder:font-normal w-full">
                         <button id="user-search-reset" onclick="resetUserSearch()"
@@ -127,6 +126,7 @@
                     </div>
                 </div>
 
+
                 <script>
                     (function () {
                         const allUsers = @json($usersJson);
@@ -157,12 +157,12 @@
                                     const el = document.createElement('div');
                                     el.className = 'px-4 py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center justify-between group';
                                     el.innerHTML = `
-                                                    <div>
-                                                        <p class="text-xs font-black text-slate-700 dark:text-slate-200">${highlight(u.name, q)}</p>
-                                                        <p class="text-[10px] text-slate-400 font-bold mt-0.5">${highlight(u.eid, q)}${u.phone ? ' &nbsp;·&nbsp; ' + highlight(u.phone, q) : ''}</p>
-                                                    </div>
-                                                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-600 group-hover:text-accent transition-colors">${u.desig}</span>
-                                                `;
+                                                                <div>
+                                                                    <p class="text-xs font-black text-slate-700 dark:text-slate-200">${highlight(u.name, q)}</p>
+                                                                    <p class="text-[10px] text-slate-400 font-bold mt-0.5">${highlight(u.eid, q)}${u.phone ? ' &nbsp;·&nbsp; ' + highlight(u.phone, q) : ''}</p>
+                                                                </div>
+                                                                <span class="text-[9px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-600 group-hover:text-accent transition-colors">${u.desig}</span>
+                                                            `;
                                     el.addEventListener('click', () => selectUserSearch(u.id, u.label));
                                     resultsBox.appendChild(el);
                                 });
@@ -185,14 +185,21 @@
                             } else {
                                 resetBtn.classList.add('hidden');
                             }
-                            const url = `${dashboardUrl}?user_id=${userId}`;
+
+                            const currentParams = new URLSearchParams(window.location.search);
+                            currentParams.set('user_id', userId);
+                            const url = `${dashboardUrl}?${currentParams.toString()}`;
                             loadCalendar(null, url);
                         };
 
                         window.resetUserSearch = function () {
                             input.value = '';
                             resetBtn.classList.add('hidden');
-                            loadCalendar(null, `${dashboardUrl}?user_id={{ auth()->id() }}`);
+
+                            const currentParams = new URLSearchParams(window.location.search);
+                            currentParams.set('user_id', "{{ auth()->id() }}");
+                            const url = `${dashboardUrl}?${currentParams.toString()}`;
+                            loadCalendar(null, url);
                         };
 
                         function openDropdown() {
@@ -225,16 +232,6 @@
                     })();
                 </script>
             @endif
-
-            <a href="{{ route('attendance.reports') }}"
-                class="ml-4 px-4 py-2 bg-accent text-white text-xs font-bold rounded-xl hover:shadow-lg transition-all flex items-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                    </path>
-                </svg>
-                <span>Advanced Report</span>
-            </a>
         </div>
     </div>
 
