@@ -31,7 +31,7 @@ class IncentiveConfigController extends Controller
         }
 
         $validated = $request->validate([
-            'designation' => 'required|in:super_admin,hs,dm,bm,rm,ro',
+            'designation' => 'required|in:dm,bm,rm,ro',
             'incentive_amount' => 'required|numeric|min:0',
             'medicines_amount' => 'required|numeric|min:0',
             'pathology_amount' => 'required|numeric|min:0',
