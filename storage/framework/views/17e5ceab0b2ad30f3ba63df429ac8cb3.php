@@ -88,105 +88,152 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('content'); ?>
-    <div class="px-6 pt-6 max-w-7xl mx-auto">
-        <div id="filter-panel"
-            class="<?php echo e(request()->anyFilled(['district', 'block', 'gram_panchayat', 'designation', 'search', 'status']) ? '' : 'hidden'); ?> p-6 bg-white dark:bg-darkcard rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm mb-6 transition-all">
-            <form action="<?php echo e(route('attendance.dashboard')); ?>" method="GET" class="no-loader space-y-4">
-                <?php if(request('user_id')): ?>
-                    <input type="hidden" name="user_id" value="<?php echo e(request('user_id')); ?>">
-                <?php endif; ?>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <!-- Search -->
-                    <div>
-                        <label
-                            class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Search
-                            Member</label>
-                        <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Name, ID or Phone..."
-                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+    
+    <?php if(!empty($viewableUsers) && count($viewableUsers) > 0 && auth()->user()->designation !== 'ro'): ?>
+        <div class="bg-white dark:bg-darkcard rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm mb-6">
+            <div class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center space-x-3">
+                        <h3 class="font-bold text-lg text-slate-800 dark:text-white">Attendance Dashboard</h3>
+                        <?php
+                            $isFiltered = request()->anyFilled(['district', 'block', 'gram_panchayat', 'designation', 'search', 'status']);
+                        ?>
+                        <?php if($isFiltered): ?>
+                            <span
+                                class="px-2 py-0.5 bg-accent/10 text-accent text-[10px] font-black rounded-full border border-accent/20 animate-pulse">
+                                <?php echo e(count($viewableUsers)); ?> Matching
+                            </span>
+                        <?php endif; ?>
                     </div>
-
-                    <!-- Designation -->
-                    <div>
-                        <label
-                            class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Designation</label>
-                        <select name="designation"
-                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
-                            <option value="">All Roles</option>
-                            <?php $__currentLoopData = $allowedFilters; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $val => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <option value="<?php echo e($val); ?>" <?php echo e(request('designation') == $val ? 'selected' : ''); ?>><?php echo e($label); ?>
-
-                                </option>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        </select>
-                    </div>
-
-                    <!-- District -->
-                    <div>
-                        <label
-                            class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">District</label>
-                        <select name="district" id="district-filter"
-                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
-                            <option value="">All Districts</option>
-                        </select>
-                    </div>
-
-                    <!-- Block -->
-                    <div>
-                        <label
-                            class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Block</label>
-                        <select name="block" id="block-filter"
-                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
-                            <option value="">All Blocks</option>
-                        </select>
-                    </div>
-
-                    <!-- GP -->
-                    <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Gram
-                            Panchayat</label>
-                        <select name="gram_panchayat" id="gp-filter"
-                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
-                            <option value="">All GPs</option>
-                        </select>
-                    </div>
-
-                    <!-- Status -->
-                    <div>
-                        <label
-                            class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Status
-                            Filter</label>
-                        <select name="status"
-                            class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
-                            <option value="">All Status</option>
-                            <option value="active" <?php echo e(request('status') == 'active' ? 'selected' : ''); ?>>Active Members
-                            </option>
-                            <option value="pending" <?php echo e(request('status') == 'pending' ? 'selected' : ''); ?>>Pending Approvals
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="lg:col-span-2 flex items-end space-x-2">
-                        <button type="submit"
-                            class="h-10 px-6 bg-accent text-white rounded-xl text-sm font-bold hover:opacity-90 transition">Apply
-                            Filters</button>
-                        <a href="<?php echo e(route('attendance.dashboard')); ?>"
-                            class="h-10 px-6 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold flex items-center justify-center hover:opacity-90 transition">Reset</a>
-                    </div>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">View and filter attendance records.</p>
                 </div>
-            </form>
+
+                <div class="flex items-center space-x-3">
+                    <a href="<?php echo e(route('attendance.reports')); ?>" title="Advanced Report"
+                        class="px-3 py-2 bg-accent text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        <span class="hidden md:inline">Advanced Report</span>
+                    </a>
+                    <button type="button" onclick="toggleFilters()" title="Filter"
+                        class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                            </path>
+                        </svg>
+                        <span class="hidden">Filter</span>
+                    </button>
+                </div>
+            </div>
+
+            
+            <div id="filter-panel"
+                class="<?php echo e($isFiltered ? '' : 'hidden'); ?> p-6 border-t border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
+                <form action="<?php echo e(route('attendance.dashboard')); ?>" method="GET" class="no-loader space-y-4">
+                    <?php if(request('user_id')): ?>
+                        <input type="hidden" name="user_id" value="<?php echo e(request('user_id')); ?>">
+                    <?php endif; ?>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Search -->
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Search
+                                Member</label>
+                            <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Name, ID or Phone..."
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                        </div>
+
+                        <!-- Designation -->
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Designation</label>
+                            <select name="designation"
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                <option value="">All Roles</option>
+                                <?php $__currentLoopData = $allowedFilters; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $val => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($val); ?>" <?php echo e(request('designation') == $val ? 'selected' : ''); ?>><?php echo e($label); ?>
+
+                                    </option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+
+                        <!-- District -->
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">District</label>
+                            <select name="district" id="district-filter"
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                <option value="">All Districts</option>
+                            </select>
+                        </div>
+
+                        <!-- Block -->
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Block</label>
+                            <select name="block" id="block-filter"
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                <option value="">All Blocks</option>
+                            </select>
+                        </div>
+
+                        <!-- GP -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Gram
+                                Panchayat</label>
+                            <select name="gram_panchayat" id="gp-filter"
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                <option value="">All GPs</option>
+                            </select>
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Status
+                                Filter</label>
+                            <select name="status"
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                                <option value="">All Status</option>
+                                <option value="active" <?php echo e(request('status') == 'active' ? 'selected' : ''); ?>>Active Members
+                                </option>
+                                <option value="pending" <?php echo e(request('status') == 'pending' ? 'selected' : ''); ?>>Pending Approvals
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="lg:col-span-2 flex items-end space-x-2">
+                            <button type="submit"
+                                class="h-10 px-6 bg-accent text-white rounded-xl text-sm font-bold hover:opacity-90 transition">Apply
+                                Filters</button>
+                            <a href="<?php echo e(route('attendance.dashboard')); ?>"
+                                class="h-10 px-6 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold flex items-center justify-center hover:opacity-90 transition">Reset</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 
     <div id="calendar-wrapper"
-        class="p-6 pt-0 space-y-8 max-w-7xl mx-auto overflow-y-auto h-full pb-20 transition-opacity duration-300">
+        class="space-y-8 max-w-7xl mx-auto overflow-y-auto h-full pb-20 transition-opacity duration-300">
         <?php echo $__env->make('attendance.partials.calendar_content', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     </div>
+<?php $__env->stopSection(); ?>
 
+<?php $__env->startSection('js'); ?>
     <script src="<?php echo e(asset('js/locations.js')); ?>"></script>
     <script>
         function toggleFilters() {
             const panel = document.getElementById('filter-panel');
-            panel.classList.toggle('hidden');
+            if (panel) {
+                panel.classList.toggle('hidden');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -302,61 +349,61 @@
             Swal.fire({
                 title: `<span class="text-2xl font-bold">${dateFormatted}</span>`,
                 html: `
-                                                                                <div class="text-left space-y-4 p-4">
-                                                                                    <div class="flex justify-between items-center border-b border-slate-100 pb-2 dark:border-slate-700">
-                                                                                        <span class="text-slate-500 font-medium">Status:</span>
-                                                                                        ${canUpdate && isPastOrToday ? `
-                                                                                            <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                                                                                                <button onclick="updateAttendance('${dateRaw}', ${userId}, 'present')" 
-                                                                                                    class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status === 'Present' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-emerald-600'}">
-                                                                                                    Present
-                                                                                                </button>
-                                                                                                <button onclick="updateAttendance('${dateRaw}', ${userId}, 'absent')" 
-                                                                                                    class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status !== 'Present' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-500 hover:text-rose-600'}">
-                                                                                                    Absent
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        ` : `
-                                                                                            <span class="px-3 py-1 rounded-full text-xs font-bold ${status === 'Present' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
-                                                                                                ${status}
-                                                                                            </span>
-                                                                                        `}
-                                                                                    </div>
-                                                                                    <div class="grid grid-cols-2 gap-3">
-                                                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                                            <span class="text-[9px] text-slate-400 uppercase font-black">Basic Inc.</span>
-                                                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(incentive).toLocaleString()}</p>
-                                                                                        </div>
-                                                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                                            <span class="text-[9px] text-slate-400 uppercase font-black">Daily TA</span>
-                                                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ta).toLocaleString()}</p>
-                                                                                        </div>
-                                                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                                            <span class="text-[9px] text-slate-400 uppercase font-black">Medicines</span>
-                                                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(med).toLocaleString()}</p>
-                                                                                        </div>
-                                                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                                            <span class="text-[9px] text-slate-400 uppercase font-black">Pathology</span>
-                                                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(path).toLocaleString()}</p>
-                                                                                        </div>
-                                                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                                            <span class="text-[9px] text-slate-400 uppercase font-black">Membership</span>
-                                                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(mem).toLocaleString()}</p>
-                                                                                        </div>
-                                                                                        <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                                                                            <span class="text-[9px] text-slate-400 uppercase font-black">OTs</span>
-                                                                                            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ots).toLocaleString()}</p>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="bg-accent/10 p-4 rounded-xl flex justify-between items-center">
-                                                                                        <span class="font-bold text-accent">Total Earning</span>
-                                                                                        <span class="text-xl font-black text-accent">₹${parseFloat(total).toLocaleString()}</span>
-                                                                                    </div>
-                                                                                    <div class="pt-2 text-center">
-                                                                                        <p class="text-[11px] text-slate-400">Marked by <span class="text-slate-500 font-semibold">${markedBy}</span> at ${time}</p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            `,
+                        <div class="text-left space-y-4 p-4">
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-2 dark:border-slate-700">
+                                <span class="text-slate-500 font-medium">Status:</span>
+                                ${canUpdate && isPastOrToday ? `
+                                    <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                                        <button onclick="updateAttendance('${dateRaw}', ${userId}, 'present')" 
+                                            class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status === 'Present' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-emerald-600'}">
+                                            Present
+                                        </button>
+                                        <button onclick="updateAttendance('${dateRaw}', ${userId}, 'absent')" 
+                                            class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status !== 'Present' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-500 hover:text-rose-600'}">
+                                            Absent
+                                        </button>
+                                    </div>
+                                ` : `
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold ${status === 'Present' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                                        ${status}
+                                    </span>
+                                `}
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                    <span class="text-[9px] text-slate-400 uppercase font-black">Basic Inc.</span>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(incentive).toLocaleString()}</p>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                    <span class="text-[9px] text-slate-400 uppercase font-black">Daily TA</span>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ta).toLocaleString()}</p>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                    <span class="text-[9px] text-slate-400 uppercase font-black">Medicines</span>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(med).toLocaleString()}</p>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                    <span class="text-[9px] text-slate-400 uppercase font-black">Pathology</span>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(path).toLocaleString()}</p>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                    <span class="text-[9px] text-slate-400 uppercase font-black">Membership</span>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(mem).toLocaleString()}</p>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                    <span class="text-[9px] text-slate-400 uppercase font-black">OTs</span>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ots).toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <div class="bg-accent/10 p-4 rounded-xl flex justify-between items-center">
+                                <span class="font-bold text-accent">Total Earning</span>
+                                <span class="text-xl font-black text-accent">₹${parseFloat(total).toLocaleString()}</span>
+                            </div>
+                            <div class="pt-2 text-center">
+                                <p class="text-[11px] text-slate-400">Marked by <span class="text-slate-500 font-semibold">${markedBy}</span> at ${time}</p>
+                            </div>
+                        </div>
+                    `,
                 showConfirmButton: false,
                 showCloseButton: true,
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
