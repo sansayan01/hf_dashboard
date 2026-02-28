@@ -252,6 +252,10 @@
                         </th>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Joined On
                         </th>
+                        @if(auth()->user()->isSuperAdmin())
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Salary Mode
+                            </th>
+                        @endif
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Attendance
                         </th>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Status
@@ -298,8 +302,23 @@
                             <td class="px-6 py-4">
                                 <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ $u->created_at->format('d M, Y') }}</p>
                             </td>
+                            @if(auth()->user()->isSuperAdmin())
+                                <td class="px-6 py-4">
+                                    @if($u->isRO())
+                                        <button onclick="toggleSalaryMode({{ $u->id }}, this)"
+                                            class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer border
+                                                {{ ($u->salary_mode ?? 'tab') === 'dab' ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20 hover:bg-violet-500/20' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:bg-blue-500/20' }}"
+                                            data-mode="{{ $u->salary_mode ?? 'tab' }}">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ ($u->salary_mode ?? 'tab') === 'dab' ? 'bg-violet-500' : 'bg-blue-500' }}"></span>
+                                            <span class="mode-label">{{ strtoupper($u->salary_mode ?? 'tab') }}</span>
+                                        </button>
+                                    @else
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-600">—</span>
+                                    @endif
+                                </td>
+                            @endif
                             <td class="px-6 py-4">
-                                @if($u->isRO() && (auth()->user()->isSuperAdmin() || auth()->id() === $u->parent_id))
+                                @if($u->isRO() && ($u->salary_mode ?? 'tab') === 'tab' && (auth()->user()->isSuperAdmin() || auth()->id() === $u->parent_id))
                                     @php
                                         $todayAtt = $u->todayAttendance;
                                         // Debug: Check what we're getting
@@ -319,7 +338,7 @@
                                     @if(request()->has('debug'))
                                         <small class="text-xs text-red-500">{{ $todayAtt ? 'Has: ' . $todayAtt->status : 'NULL' }}</small>
                                     @endif
-                                @elseif($u->isRO())
+                                @elseif($u->isRO() && ($u->salary_mode ?? 'tab') === 'tab')
                                     <a href="{{ route('attendance.show', $u->id) }}"
                                         class="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
                                         View Log
@@ -402,7 +421,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-20 text-center">
+                            <td colspan="{{ auth()->user()->isSuperAdmin() ? 7 : 6 }}" class="px-6 py-20 text-center">
                                 <div class="max-w-xs mx-auto text-slate-400 dark:text-slate-500">
                                     <svg class="w-12 h-12 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -628,6 +647,63 @@
                         title: 'System Error'
                     });
                 });
+        }
+
+        function toggleSalaryMode(userId, element) {
+            const oldMode = element.dataset.mode || 'tab';
+            const newMode = oldMode === 'dab' ? 'tab' : 'dab';
+            const originalContent = element.innerHTML;
+            const originalClasses = element.className;
+
+            // OPTIMISTIC UPDATE: Update UI instantly
+            element.dataset.mode = newMode;
+            element.innerHTML = `
+                <span class="w-1.5 h-1.5 rounded-full ${newMode === 'dab' ? 'bg-violet-500' : 'bg-blue-500'}"></span>
+                <span class="mode-label">${newMode.toUpperCase()}</span>
+            `;
+            
+            // Update styling immediately
+            element.classList.remove('bg-violet-500/10', 'text-violet-600', 'dark:text-violet-400', 'border-violet-500/20', 'hover:bg-violet-500/20',
+                                     'bg-blue-500/10', 'text-blue-600', 'dark:text-blue-400', 'border-blue-500/20', 'hover:bg-blue-500/20');
+            if (newMode === 'dab') {
+                element.classList.add('bg-violet-500/10', 'text-violet-600', 'dark:text-violet-400', 'border-violet-500/20', 'hover:bg-violet-500/20');
+            } else {
+                element.classList.add('bg-blue-500/10', 'text-blue-600', 'dark:text-blue-400', 'border-blue-500/20', 'hover:bg-blue-500/20');
+            }
+
+            // Sync with server in background
+            let url = "{{ route('users.toggle-salary-mode', ':id') }}";
+            url = url.replace(':id', userId);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Success! No need to do anything, UI is already updated
+                    Toast.fire({ 
+                        icon: 'success', 
+                        title: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error(data.message || 'Server Error');
+                }
+            })
+            .catch(error => {
+                // ROLLBACK: If it failed, revert to original state
+                console.error('Toggle failed:', error);
+                element.dataset.mode = oldMode;
+                element.innerHTML = originalContent;
+                element.className = originalClasses;
+                Toast.fire({ icon: 'error', title: 'Action Failed: ' + error.message });
+            });
         }
     </script>
 @endsection

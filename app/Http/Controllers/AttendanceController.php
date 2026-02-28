@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Models\IncentiveConfig;
 use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
@@ -49,13 +50,15 @@ class AttendanceController extends Controller
         $attendance->status = $request->status;
 
         if ($request->status === 'present') {
+            /** @var IncentiveConfig|null $config */
             $config = $user->getCurrentIncentive($attendance->date);
             if ($config) {
                 $attendance->incentive_amount = $config->incentive_amount;
-                $attendance->ta_amount = $config->ta_amount;
+                // DAB mode users don't get fixed TA; their ta_amount comes from appointment completions
+                $attendance->ta_amount = $user->isDabMode() ? 0 : $config->ta_amount;
             } else {
                 $attendance->incentive_amount = $attendance->incentive_amount ?? 0;
-                $attendance->ta_amount = $attendance->ta_amount ?? 0;
+                $attendance->ta_amount = $user->isDabMode() ? 0 : ($attendance->ta_amount ?? 0);
             }
 
             // Explicitly preserve or initialize activity amounts
@@ -85,11 +88,16 @@ class AttendanceController extends Controller
     {
         $effectiveUser = User::getEffectiveUser();
 
-        // RM sees their ROs
+        // RM sees their ROs (only TAB mode users)
         if ($effectiveUser->isRM()) {
-            $ros = $effectiveUser->children()->where('designation', 'ro')->get();
+            $ros = $effectiveUser->children()
+                ->where('designation', 'ro')
+                ->where('salary_mode', 'tab')
+                ->get();
         } elseif ($effectiveUser->isSuperAdmin()) {
-            $ros = User::where('designation', 'ro')->get();
+            $ros = User::where('designation', 'ro')
+                ->where('salary_mode', 'tab')
+                ->get();
         } else {
             abort(403);
         }
@@ -119,6 +127,16 @@ class AttendanceController extends Controller
             abort(403);
         }
 
+        // DAB users don't have an attendance dashboard
+        if ($user->salary_mode === 'dab' && $user->id === auth()->id()) {
+            return redirect()->route('dashboard')->with('error', 'Attendance tracking is disabled for DAB mode.');
+        }
+
+        // Block viewing attendance calendars for DAB users even for admins/managers
+        if ($user->salary_mode === 'dab') {
+            abort(404, 'Attendance details not available for DAB users.');
+        }
+
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
         $targetDate = Carbon::createFromDate($year, $month, 1);
@@ -131,6 +149,7 @@ class AttendanceController extends Controller
         // Auto-sync missing incentives if present
         foreach ($attendances as $a) {
             if ($a->status === 'present' && ($a->ta_amount == 0 && $a->incentive_amount == 0)) {
+                /** @var IncentiveConfig|null $config */
                 $config = $user->getCurrentIncentive($a->date);
                 if ($config) {
                     $a->incentive_amount = $config->incentive_amount;
@@ -248,6 +267,11 @@ class AttendanceController extends Controller
             abort(403);
         }
 
+        // DAB users don't have an attendance dashboard
+        if ($user->salary_mode === 'dab') {
+            abort(404, 'Attendance details not available for DAB users.');
+        }
+
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
         $targetDate = Carbon::createFromDate($year, $month, 1);
@@ -260,6 +284,7 @@ class AttendanceController extends Controller
         // Auto-sync missing incentives if present
         foreach ($attendances as $a) {
             if ($a->status === 'present' && ($a->ta_amount == 0 && $a->incentive_amount == 0)) {
+                /** @var IncentiveConfig|null $config */
                 $config = $user->getCurrentIncentive($a->date);
                 if ($config) {
                     $a->incentive_amount = $config->incentive_amount;
@@ -297,14 +322,40 @@ class AttendanceController extends Controller
             }
         }
 
+        // Calculate allowedFilters for designation dropdown
+        $hierarchyLevels = [
+            'super_admin' => 0,
+            'office_in_charge' => 1,
+            'hs' => 2,
+            'dm' => 3,
+            'bm' => 4,
+            'rm' => 5,
+            'ro' => 6
+        ];
+        $designationLabels = [
+            'office_in_charge' => 'Office In-Charge',
+            'hs' => 'Head of State',
+            'dm' => 'District Manager',
+            'bm' => 'Block Manager',
+            'rm' => 'Relationship Manager',
+            'ro' => 'Relationship Officer',
+        ];
+        $currentUserLevel = $hierarchyLevels[$effectiveUser->designation] ?? 99;
+        $allowedFilters = [];
+        foreach ($designationLabels as $key => $label) {
+            if ($hierarchyLevels[$key] > $currentUserLevel) {
+                $allowedFilters[$key] = $label;
+            }
+        }
+
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers'))->render(),
+                'html' => view('attendance.partials.calendar_content', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers', 'allowedFilters'))->render(),
                 'title' => $targetDate->format('F Y')
             ]);
         }
 
-        return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers'));
+        return view('attendance.calendar', compact('user', 'summary', 'allAttendances', 'targetDate', 'viewableUsers', 'allowedFilters'));
     }
 
     public function report(Request $request)

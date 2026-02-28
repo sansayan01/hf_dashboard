@@ -125,8 +125,8 @@
 
                         <div class="space-y-2">
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest">Blood
-                                Group <span class="text-danger">*</span></label>
-                            <select name="blood_group" required
+                                Group</label>
+                            <select name="blood_group"
                                 class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white appearance-none">
                                 <option value="">Select Blood Group</option>
                                 @foreach(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as $bg)
@@ -770,9 +770,9 @@
                         loaderText.id = 'loader-ai-text';
                         loaderText.className = 'absolute bottom-20 left-0 right-0 text-center animate-in slide-in-from-bottom-4 duration-700';
                         loaderText.innerHTML = `
-                                                <p class="text-slate-800 dark:text-white font-black uppercase tracking-[0.3em] text-sm md:text-base px-6">AI Verifying Payment Screenshot...</p>
-                                                <p class="text-slate-400 dark:text-slate-500 text-[10px] md:text-xs font-bold mt-3 uppercase tracking-widest leading-relaxed">This process takes about 5-8 seconds.<br>Please do not close or refresh this window.</p>
-                                            `;
+                                                    <p class="text-slate-800 dark:text-white font-black uppercase tracking-[0.3em] text-sm md:text-base px-6">AI Verifying Payment Screenshot...</p>
+                                                    <p class="text-slate-400 dark:text-slate-500 text-[10px] md:text-xs font-bold mt-3 uppercase tracking-widest leading-relaxed">This process takes about 5-8 seconds.<br>Please do not close or refresh this window.</p>
+                                                `;
                         loader.appendChild(loaderText);
                     }
                 }

@@ -47,13 +47,22 @@ class DashboardController extends Controller
         $recentActivities = $this->getRecentActivities($allAccessibleIds);
         $earnings = $this->getEarnings($user);
 
+        $pendingUsers = [];
+        if ($canApprove) {
+            $pendingUsers = User::with('profile')->pending();
+            if (!$user->isSuperAdmin()) {
+                $pendingUsers->whereIn('id', $downlineIds);
+            }
+            $pendingUsers = $pendingUsers->latest()->limit(5)->get();
+        }
+
         if (!$user->isOfficeInCharge()) {
             $user->load(['children.profile']);
         }
 
         $isViewAs = $currentUser->id !== $user->id;
 
-        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'canViewReports', 'canViewDownline', 'earnings'));
+        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'canViewReports', 'canViewDownline', 'earnings', 'pendingUsers'));
     }
 
     private function getStats(User $user, array $downlineIds, bool $canViewDownline): array
@@ -145,7 +154,14 @@ class DashboardController extends Controller
             ->where('date', now()->toDateString())
             ->first();
 
+        // DAB data (only relevant for ROs in DAB mode)
+        $dabData = null;
+        if ($user->isRO() && $user->isDabMode()) {
+            $dabData = $user->getMonthlyDabEarnings();
+        }
+
         return [
+            'salary_mode' => $user->salary_mode ?? 'tab',
             'monthly_ta' => $earningsData->monthly_ta ?? 0,
             'monthly_incentives' => $earningsData->monthly_incentives ?? 0,
             'monthly_breakdown' => [
@@ -163,7 +179,8 @@ class DashboardController extends Controller
                 'membership' => $todayEarnings->membership_amount,
                 'ots' => $todayEarnings->ots_amount,
                 'incentives' => $todayEarnings->incentive_amount + $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount
-            ] : ['ta' => 0, 'medicines' => 0, 'pathology' => 0, 'membership' => 0, 'ots' => 0, 'incentives' => 0]
+            ] : ['ta' => 0, 'medicines' => 0, 'pathology' => 0, 'membership' => 0, 'ots' => 0, 'incentives' => 0],
+            'dab' => $dabData,
         ];
     }
 

@@ -573,7 +573,6 @@ class UserController extends Controller
                 'designation' => $designation,
                 'post' => ($designation === 'super_admin') ? $request->post : null,
                 'parent_id' => $parentId,
-                'status' => 'pending',
                 'is_office_in_charge' => ($designation === 'office_in_charge' || $designation === 'camp_organizer'),
                 'joining_donation' => User::getJoiningDonationAmount($designation),
                 'camp_id' => $request->camp_id,
@@ -637,7 +636,24 @@ class UserController extends Controller
                 }
             }
 
+            // Determine Account Status: Auto-approve for Admins OR if AI verified the payment
+            $userData['status'] = 'pending';
+            if ($currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_approve_users')) {
+                $userData['status'] = 'active';
+            } elseif (isset($userData['payment_status']) && $userData['payment_status'] === 'completed') {
+                $userData['status'] = 'active';
+            }
+
             $newUser = User::create($userData);
+
+            // If the user was auto-approved, we should send the approval email now
+            if ($newUser->status === 'active') {
+                try {
+                    \Mail::to($newUser->email)->queue(new UserApproved($newUser, $currentUser));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to queue auto-approval email: ' . $e->getMessage());
+                }
+            }
 
             // Mark coupon as used if applied
             if (isset($couponUsed) && $couponUsed && isset($coupon)) {
@@ -706,7 +722,16 @@ class UserController extends Controller
     public function show($id)
     {
         $currentUser = auth()->user();
-        $user = User::with(['profile', 'bankDetails', 'parent.profile', 'children.profile', 'upline.profile'])->findOrFail($id);
+        $user = User::with([
+            'profile',
+            'bankDetails',
+            'parent.profile',
+            'children.profile',
+            'upline.profile',
+            'activityLogs' => function ($q) {
+                $q->latest()->take(10);
+            }
+        ])->findOrFail($id);
 
         // Check access
         if (!$currentUser->canAccess($user)) {
@@ -714,7 +739,7 @@ class UserController extends Controller
         }
 
         $attendanceSummary = null;
-        if ($user->isRO() && ($currentUser->isSuperAdmin() || $currentUser->id === $user->parent_id)) {
+        if ($user->isRO() && ($user->salary_mode ?? 'tab') === 'tab' && ($currentUser->isSuperAdmin() || $currentUser->id === $user->parent_id)) {
             $attendances = $user->attendances()
                 ->whereMonth('date', now()->month)
                 ->whereYear('date', now()->year)
@@ -1086,12 +1111,11 @@ class UserController extends Controller
             $user->id
         );
 
-        // Send Approval Email
+        // Send Approval Email (Queued for performance as it generates PDF)
         try {
-            Mail::to($user->email)->send(new UserApproved($user, $currentUser));
+            Mail::to($user->email)->queue(new UserApproved($user, $currentUser));
         } catch (\Exception $e) {
-            \Log::error('Failed to send approval email: ' . $e->getMessage());
-            // We don't stop the approval process if email fails, but we log it.
+            \Log::error('Failed to queue approval email: ' . $e->getMessage());
         }
 
         return back()->with('success', 'User approved successfully.');
@@ -1535,5 +1559,38 @@ class UserController extends Controller
 
         $id = User::generateEmployeeId($designation);
         return response()->json(['id' => $id]);
+    }
+
+    /**
+     * Toggle salary mode (TAB ↔ DAB) for a user (Super Admin only)
+     */
+    public function toggleSalaryMode(User $user)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Only Super Admin can change salary mode.');
+        }
+
+        $oldMode = $user->salary_mode ?? 'tab';
+        $newMode = $oldMode === 'dab' ? 'tab' : 'dab';
+
+        $user->update(['salary_mode' => $newMode]);
+
+        // Audit trail
+        ActivityLog::logActivity(
+            'salary_mode_changed',
+            $user->id,
+            auth()->id(),
+            "Salary mode changed from " . strtoupper($oldMode) . " to " . strtoupper($newMode) . " for " . ($user->profile?->full_name ?? $user->employee_id),
+            'User',
+            $user->id,
+            ['salary_mode' => $oldMode],
+            ['salary_mode' => $newMode]
+        );
+
+        return response()->json([
+            'success' => true,
+            'salary_mode' => $newMode,
+            'message' => 'Salary mode changed to ' . strtoupper($newMode),
+        ]);
     }
 }

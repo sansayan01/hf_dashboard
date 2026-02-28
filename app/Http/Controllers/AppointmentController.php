@@ -396,6 +396,34 @@ class AppointmentController extends Controller
 
         $appointment->update(['status' => 'successful']);
 
+        // DAB salary mode: Credit ₹20 to the RO who created this appointment
+        $creator = $appointment->creator;
+        if ($creator && $creator->isRO() && $creator->isDabMode()) {
+            $appointmentDate = $appointment->appointment_date ?? now()->toDateString();
+
+            $attendance = \App\Models\Attendance::firstOrNew([
+                'user_id' => $creator->id,
+                'date' => \Carbon\Carbon::parse($appointmentDate)->startOfDay(),
+            ]);
+
+            // If this is a new attendance record, initialize it
+            if (!$attendance->exists) {
+                $attendance->marked_by = auth()->id();
+                $attendance->status = 'present';
+                $attendance->incentive_amount = 0;
+                $attendance->medicines_amount = 0;
+                $attendance->pathology_amount = 0;
+                $attendance->membership_amount = 0;
+                $attendance->ots_amount = 0;
+                $attendance->ta_amount = 0;
+            }
+
+            // Add ₹20 to ta_amount (DAB earnings stored in ta_amount field)
+            $attendance->ta_amount = ($attendance->ta_amount ?? 0) + 20;
+            $attendance->save(); // Triggers total_amount recalculation via boot hook
+
+        }
+
         \App\Models\ActivityLog::logActivity(
             action: 'appointment_completed',
             description: "Appointment marked as successful for {$appointment->survey->full_name}",

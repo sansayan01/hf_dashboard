@@ -35,6 +35,7 @@ class SurveyController extends Controller
 
         $query = Survey::with('creator.profile')
             ->whereIn('created_by', $allowedIds)
+            ->where('is_member', false)
             ->doesntHave('appointments');
 
         // NIA Logic: If show_nia=1, show records older than 30 days. Otherwise, show records 30 days or newer.

@@ -31,6 +31,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::get('/hierarchy-tree', [DashboardController::class, 'getHierarchyTree'])->name('hierarchy.tree');
     Route::get('/hierarchy-children/{user}', [DashboardController::class, 'getTreeChildren'])->name('hierarchy.children');
 
+
     // User Management
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/staffs', [UserController::class, 'staffIndex'])->name('staffIndex');
@@ -63,6 +64,9 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
         // Toggle Officer in Charge status
         Route::post('/{user}/toggle-oic', [UserController::class, 'toggleOic'])->name('toggle-oic');
+
+        // Toggle Salary Mode (TAB ↔ DAB)
+        Route::post('/{user}/toggle-salary-mode', [UserController::class, 'toggleSalaryMode'])->name('toggle-salary-mode');
 
         Route::match(['get', 'post'], '/bulk/print-all', [UserController::class, 'printAllIdCards'])->name('print-all-id-cards');
 
@@ -98,6 +102,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         // Membership Management
         Route::get('/{patient}/membership', [App\Http\Controllers\MembershipController::class, 'show'])->name('membership');
         Route::post('/{patient}/membership/register', [App\Http\Controllers\MembershipController::class, 'register'])->name('membership.register');
+        Route::post('/{patient}/membership/cancel', [App\Http\Controllers\MembershipController::class, 'cancel'])->name('membership.cancel');
 
         Route::get('/{patient}', [PatientController::class, 'show'])->name('show');
         Route::get('/{patient}/edit', [PatientController::class, 'edit'])->name('edit');
@@ -120,6 +125,8 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
     // Membership Registry
     Route::get('/membership', [App\Http\Controllers\MembershipController::class, 'index'])->name('membership.index');
+    Route::get('/membership/{patient}/card', [App\Http\Controllers\MembershipCardController::class, 'download'])->name('membership.card.download');
+    Route::get('/membership/{patient}/card/preview', [App\Http\Controllers\MembershipCardController::class, 'stream'])->name('membership.card.preview');
 
     // Global Appointments (Accessible from Sidebar)
     Route::get('/appointments/export', [AppointmentController::class, 'export'])->name('appointments.export');
@@ -128,28 +135,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::post('/appointments/{appointment}/report-missed', [AppointmentController::class, 'reportMissed'])->name('appointments.report_missed');
     Route::post('/appointments/{appointment}/confirm-missed', [AppointmentController::class, 'confirmMissed'])->name('appointments.confirm_missed');
 
-    // Temporary Migration Trigger (Delete after use)
-    Route::get('/setup-db', function () {
-        try {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ["--force" => true]);
 
-            // Force seed the new permission if migration didn't pick it up or was already "run"
-            $roles = ['office_in_charge', 'dm', 'bm', 'rm', 'ro'];
-            $permission = 'can_edit_user_details';
-
-            foreach ($roles as $role) {
-                $enabled = ($role === 'office_in_charge');
-                \Illuminate\Support\Facades\DB::table('role_permissions')->updateOrInsert(
-                    ['role' => $role, 'permission_key' => $permission],
-                    ['is_enabled' => $enabled, 'created_at' => now(), 'updated_at' => now()]
-                );
-            }
-
-            return "Database setup successful! Permissions updated. Go back to <a href='/profile'>Admin Controls</a>";
-        } catch (\Exception $e) {
-            return "Error: " . $e->getMessage();
-        }
-    });
 
     // Admin Control Panel (Super Admin Only)
     Route::get('/admin/control-panel', [App\Http\Controllers\AdminPanelController::class, 'index'])->name('admin.control-panel');
@@ -277,9 +263,16 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 // AJAX Coupon Validation (accessible during registration)
 Route::post('/coupons/validate', [App\Http\Controllers\CouponCodeController::class, 'validateAjax'])->name('coupons.validate');
 
+// Public Database Setup / Cache Clear
+Route::get('/setup-db', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ["--force" => true]);
+        return "Database setup successful! <a href='/'>Go to Dashboard</a>";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
 
-
-// Cache clearing route
 Route::get('/clear-all-cache', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('config:clear');

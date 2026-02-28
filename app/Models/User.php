@@ -70,6 +70,7 @@ class User extends Authenticatable
         'email',
         'password',
         'designation',
+        'salary_mode',
         'post',
         'parent_id',
         'status',
@@ -189,8 +190,36 @@ class User extends Authenticatable
         return $this->hasMany(IncentiveConfig::class);
     }
 
+    // Completed appointments created by this user (for DAB salary mode)
+    public function completedAppointments()
+    {
+        return $this->hasMany(Appointment::class, 'created_by')->where('status', 'successful');
+    }
+
+    /**
+     * Get DAB earnings for a given month (defaults to current month).
+     * Returns ['count' => int, 'earnings' => float]
+     */
+    public function getMonthlyDabEarnings($month = null)
+    {
+        $start = $month ? Carbon::parse($month)->startOfMonth() : now()->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
+        $count = Appointment::where('created_by', $this->id)
+            ->where('status', 'successful')
+            ->whereBetween('updated_at', [$start, $end])
+            ->count();
+
+        return [
+            'count' => $count,
+            'earnings' => $count * 20,
+        ];
+    }
+
     /**
      * Get current incentive and TA for the user for a specific date
+     * @param string|null $date
+     * @return \App\Models\IncentiveConfig|null
      */
     public function getCurrentIncentive($date = null)
     {
@@ -301,6 +330,18 @@ class User extends Authenticatable
     public function isRO()
     {
         return $this->designation === 'ro';
+    }
+
+    // Check if user is on DAB (Doctor Appointment Basis) salary mode
+    public function isDabMode()
+    {
+        return $this->salary_mode === 'dab';
+    }
+
+    // Check if user is on TAB (Travel Allowance Basis) salary mode (default)
+    public function isTabMode()
+    {
+        return $this->salary_mode !== 'dab';
     }
 
     // Check if user is Office In-Charge
@@ -454,22 +495,24 @@ class User extends Authenticatable
 
     public function getDashboardChildrenCount()
     {
-        if ($this->isSuperAdmin() || ($this->isOfficeInCharge() && !$this->upline)) {
-            $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
-            return self::where(function ($q) use ($saRoleIds) {
-                $q->where('designation', 'hs')
-                    ->orWhereIn('parent_id', $saRoleIds);
-            })
-                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'camp_organizer', 'staff'])
-                ->count();
-        }
+        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_dashboard_children_count", 3600, function () {
+            if ($this->isSuperAdmin() || ($this->isOfficeInCharge() && !$this->upline)) {
+                $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
+                return self::where(function ($q) use ($saRoleIds) {
+                    $q->where('designation', 'hs')
+                        ->orWhereIn('parent_id', $saRoleIds);
+                })
+                    ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'camp_organizer', 'staff'])
+                    ->count();
+            }
 
-        if ($this->isOfficeInCharge() && $this->upline) {
-            // OIC sees their upline's children count (same as upline)
-            return $this->upline->getDashboardChildrenCount();
-        }
+            if ($this->isOfficeInCharge() && $this->upline) {
+                // OIC sees their upline's children count (same as upline)
+                return $this->upline->getDashboardChildrenCount();
+            }
 
-        return $this->children()->whereNotIn('designation', ['office_in_charge', 'camp_organizer', 'staff'])->count();
+            return $this->children()->whereNotIn('designation', ['office_in_charge', 'camp_organizer', 'staff'])->count();
+        });
     }
 
     // Get all downline users (entire tree)
@@ -498,34 +541,36 @@ class User extends Authenticatable
     // Helper to get recursive IDs (Iterative to avoid N+1 and deep recursion)
     public function getAllDownlineIds()
     {
-        if ($this->isSuperAdmin()) {
-            return self::where('designation', '!=', 'super_admin')->pluck('id')->toArray();
-        }
+        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_downline_ids", 3600, function () {
+            if ($this->isSuperAdmin()) {
+                return self::where('designation', '!=', 'super_admin')->pluck('id')->toArray();
+            }
 
-        if ($this->isOfficeInCharge() && $this->upline_id) {
-            $ids = $this->upline->getAllDownlineIds();
-            return array_values(array_diff($ids, [$this->id]));
-        }
+            if ($this->isOfficeInCharge() && $this->upline_id) {
+                $ids = $this->upline->getAllDownlineIds();
+                return array_values(array_diff($ids, [$this->id]));
+            }
 
-        $allIds = [];
-        $toProcess = [$this->id];
-        $processed = [$this->id]; // Track what we have already added to avoid cycles
+            $allIds = [];
+            $toProcess = [$this->id];
+            $processed = [$this->id]; // Track what we have already added to avoid cycles
 
-        while (!empty($toProcess)) {
-            $batchIds = self::whereIn('parent_id', $toProcess)
-                ->whereNotIn('id', $processed)
-                ->pluck('id')
-                ->toArray();
+            while (!empty($toProcess)) {
+                $batchIds = self::whereIn('parent_id', $toProcess)
+                    ->whereNotIn('id', $processed)
+                    ->pluck('id')
+                    ->toArray();
 
-            if (empty($batchIds))
-                break;
+                if (empty($batchIds))
+                    break;
 
-            $allIds = array_merge($allIds, $batchIds);
-            $processed = array_merge($processed, $batchIds);
-            $toProcess = $batchIds;
-        }
+                $allIds = array_merge($allIds, $batchIds);
+                $processed = array_merge($processed, $batchIds);
+                $toProcess = $batchIds;
+            }
 
-        return $allIds;
+            return $allIds;
+        });
     }
 
     /**
@@ -546,16 +591,18 @@ class User extends Authenticatable
     // Count total downline
     public function getDownlineCount()
     {
-        if ($this->isOfficeInCharge() && $this->upline) {
-            return $this->upline->getDownlineCount();
-        }
+        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_downline_count", 3600, function () {
+            if ($this->isOfficeInCharge() && $this->upline) {
+                return $this->upline->getDownlineCount();
+            }
 
-        if ($this->isSuperAdmin()) {
-            return self::where('designation', '!=', 'super_admin')->count();
-        }
+            if ($this->isSuperAdmin()) {
+                return self::where('designation', '!=', 'super_admin')->count();
+            }
 
-        $ids = $this->getAllDownlineIds();
-        return self::whereIn('id', $ids)->count();
+            $ids = $this->getAllDownlineIds();
+            return self::whereIn('id', $ids)->count();
+        });
     }
 
     public function getPendingApprovalsCount()

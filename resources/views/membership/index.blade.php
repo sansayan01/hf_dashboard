@@ -162,6 +162,38 @@
                                                 </svg>
                                             </a>
 
+                                             <a href="{{ route('membership.card.download', $patient->id) }}"
+                                                class="p-2 bg-emerald-500/10 text-emerald-600 transition rounded-lg"
+                                                title="Download PVC Card">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                </svg>
+                                            </a>
+
+                                            <a href="{{ route('membership.card.preview', $patient->id) }}" target="_blank"
+                                                class="p-2 bg-indigo-500/10 text-indigo-600 transition rounded-lg"
+                                                title="Preview Card">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            </a>
+
+                                            {{-- Cancel Membership Option --}}
+                                            @if (auth()->user()->isSuperAdmin())
+                                                <form action="{{ route('patients.membership.cancel', $patient->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this membership? The patient will be moved to the regular patient section.')">
+                                                    @csrf
+                                                    <button type="submit" class="p-2 bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition rounded-lg" title="Cancel Membership">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+
                                             {{-- Delete Option --}}
                                             @if (auth()->user()->id === $patient->created_by || auth()->user()->canAccess($patient->creator))
                                                 <form action="{{ route('patients.destroy', $patient->id) }}" method="POST" onsubmit="return confirm('Move this member record to BIN?')">

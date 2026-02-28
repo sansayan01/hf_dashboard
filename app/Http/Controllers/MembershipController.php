@@ -85,7 +85,7 @@ class MembershipController extends Controller
             'pin' => 'required|string|size:6',
             'aadhar_number' => 'required|string|size:12',
             'pan_number' => 'nullable|string|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
-            'blood_group' => 'required|string|max:5',
+            'blood_group' => 'nullable|string|max:5',
             'district' => 'required|string|max:255',
             'block' => 'required|string|max:255',
             'gp' => 'required|string|max:255',
@@ -179,5 +179,42 @@ class MembershipController extends Controller
         );
 
         return redirect()->route('membership.index')->with('success', 'Member registered successfully! Record moved to Membership section.');
+    }
+
+    /**
+     * Cancel a patient's membership (Admin only).
+     */
+    public function cancel(Request $request, Survey $patient)
+    {
+        // Check access
+        $user = User::getEffectiveUser();
+        if (!$user->isSuperAdmin()) {
+            abort(403, 'Only administrators can cancel memberships.');
+        }
+
+        $patient->is_member = false;
+        // Re-generate a Patient ID with the 'HFP' prefix
+        $patient->patient_id = Survey::generatePatientId();
+        $patient->save();
+
+        // Create a placeholder appointment so they appear in the "Patient" section immediately
+        \App\Models\Appointment::create([
+            'survey_id' => $patient->id,
+            'doctor_type' => 'Membership Cancellation Transfer',
+            'location' => 'Registry Transfer',
+            'appointment_date' => now()->toDateString(),
+            'appointment_time' => now()->toTimeString(),
+            'created_by' => auth()->id(),
+            'status' => 'successful'
+        ]);
+
+        \App\Models\ActivityLog::logActivity(
+            action: 'member_cancelled',
+            description: "Membership cancelled for: {$patient->full_name} ({$patient->patient_id})",
+            modelType: 'App\Models\Survey',
+            modelId: $patient->id
+        );
+
+        return redirect()->route('patients.index')->with('success', 'Membership cancelled successfully! Record moved to Patients section.');
     }
 }

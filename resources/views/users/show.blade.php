@@ -48,7 +48,9 @@
             border-radius: 50%;
             filter: blur(60px);
             animation: float 6s ease-in-out infinite;
+            will-change: transform;
         }
+
 
         .orb-1 {
             width: 200px;
@@ -95,7 +97,7 @@
             border-radius: 28px;
             background: conic-gradient(from var(--ring-angle, 0deg), #6366f1, #8b5cf6, #ec4899, #f59e0b, #10b981, #6366f1);
             animation: ring-spin 1.8s linear infinite, ring-glow 3s ease-in-out infinite alternate;
-            box-shadow:
+            box-shadow: 
                 0 0 18px 4px rgba(99, 102, 241, 0.6),
                 0 0 36px 8px rgba(139, 92, 246, 0.35),
                 0 0 60px 12px rgba(236, 72, 153, 0.2);
@@ -119,25 +121,24 @@
 
         @keyframes ring-glow {
             from {
-                box-shadow:
+                box-shadow: 
                     0 0 18px 4px rgba(99, 102, 241, 0.7),
                     0 0 36px 8px rgba(139, 92, 246, 0.4),
                     0 0 60px 14px rgba(236, 72, 153, 0.25);
             }
-
             to {
-                box-shadow:
+                box-shadow: 
                     0 0 24px 6px rgba(236, 72, 153, 0.7),
                     0 0 48px 12px rgba(245, 158, 11, 0.4),
                     0 0 80px 20px rgba(16, 185, 129, 0.25);
             }
         }
 
-        /* Ensure the image NEVER inherits any filter from parent */
         .profile-avatar-ring img,
-        .profile-avatar-ring>div {
+        .profile-avatar-ring > div {
             filter: none !important;
         }
+
 
         .stat-card {
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -278,6 +279,13 @@
             100% {
                 left: 150%;
             }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+            will-change: transform, opacity;
         }
 
         .scroll-reveal {
@@ -461,7 +469,7 @@
                                     @csrf
                                     <button type="submit"
                                         class="btn-action inline-flex items-center gap-2 px-5 py-2.5 font-bold rounded-xl text-xs shadow-lg transition
-                                                                        {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
+                                                                                                {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -802,7 +810,7 @@
                         Recent Actions
                     </h3>
                     <div class="space-y-4">
-                        @forelse($user->activityLogs()->latest()->take(5)->get() as $index => $log)
+                        @forelse($user->activityLogs as $index => $log)
                             <div class="flex gap-3 group">
                                 <div class="flex flex-col items-center flex-shrink-0">
                                     <div class="timeline-dot w-3 h-3 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 ring-4 ring-indigo-50 group-hover:ring-indigo-100 transition-all"

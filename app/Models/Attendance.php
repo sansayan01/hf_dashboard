@@ -5,6 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $marked_by
+ * @property string $status
+ * @property \Illuminate\Support\Carbon $date
+ * @property float $incentive_amount
+ * @property float $ta_amount
+ * @property float $medicines_amount
+ * @property float $pathology_amount
+ * @property float $membership_amount
+ * @property float $ots_amount
+ * @property float $total_amount
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class Attendance extends Model
 {
     use HasFactory;
@@ -12,7 +28,6 @@ class Attendance extends Model
     protected $fillable = [
         'user_id',
         'marked_by',
-        'recorded_by',
         'status',
         'date',
         'incentive_amount',
