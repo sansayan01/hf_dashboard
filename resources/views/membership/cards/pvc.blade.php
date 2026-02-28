@@ -270,14 +270,36 @@
 
             // Generate QR Code via QRServer API (using http to avoid SSL wrapper issues)
             // Use server IP (192.168.0.6) instead of localhost for the QR to work on mobile phones
-            $baseUrl = 'http://192.168.0.6/HF/public';
+            $baseUrl = url('/');
+            if (str_contains($baseUrl, 'localhost') || str_contains($baseUrl, '127.0.0.1')) {
+                $baseUrl = 'http://192.168.0.6/HF/public';
+            }
+
             $verifyUrl = $baseUrl . '/verify/member/' . $patient->patient_id;
             $qrApiUrl = 'http://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($verifyUrl);
 
             // Fetch and convert to base64 so dompdf doesn't have to resolve external URLs during PDF render phase
             try {
-                $qrContext = stream_context_create(['http' => ['timeout' => 5]]);
+                $qrContext = stream_context_create([
+                    'http' => [
+                        'timeout' => 8,
+                        'ignore_errors' => true,
+                        'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    ]
+                ]);
                 $qrData = @file_get_contents($qrApiUrl, false, $qrContext);
+
+                // If it fails or returns 0 bytes, try with curl as a fallback if available
+                if (!$qrData && function_exists('curl_init')) {
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $qrApiUrl);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                    $qrData = curl_exec($ch);
+                    curl_close($ch);
+                }
+
                 $qrBase64 = $qrData ? 'data:image/png;base64,' . base64_encode($qrData) : '';
             } catch (\Exception $e) {
                 $qrBase64 = ''; // Fallback gracefully if API fails
