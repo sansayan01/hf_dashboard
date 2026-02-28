@@ -270,13 +270,21 @@
 
             // Generate QR Code via QRServer API (using http to avoid SSL wrapper issues)
             // Use server IP (192.168.0.6) instead of localhost for the QR to work on mobile phones
-            $baseUrl = rtrim(url('/'), '/');
-            if (str_contains($baseUrl, 'localhost') || str_contains($baseUrl, '127.0.0.1')) {
-                $baseUrl = 'http://192.168.0.6/HF/public';
+            // Intelligent Base URL Detection (handles misconfigured APP_URL on live)
+            $baseUrlFromApp = rtrim(url('/'), '/');
+            if ((str_contains($baseUrlFromApp, 'localhost') || str_contains($baseUrlFromApp, '127.0.0.1')) && isset($_SERVER['HTTP_HOST'])) {
+                if (!str_contains($_SERVER['HTTP_HOST'], 'localhost') && !str_contains($_SERVER['HTTP_HOST'], '127.0.0.1')) {
+                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+                    $baseUrl = $protocol . $_SERVER['HTTP_HOST'];
+                } else {
+                    $baseUrl = 'http://192.168.0.6/HF/public';
+                }
+            } else {
+                $baseUrl = $baseUrlFromApp;
             }
 
             $verifyUrl = $baseUrl . '/verify/member/' . $patient->patient_id;
-            $qrApiUrl = 'http://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($verifyUrl);
+            $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($verifyUrl);
 
             // Fetch and convert to base64 so dompdf doesn't have to resolve external URLs during PDF render phase
             try {
