@@ -268,59 +268,7 @@
             $iconWeb = 'data:image/svg+xml;base64,' . base64_encode($webSvg);
             $iconHq = 'data:image/svg+xml;base64,' . base64_encode($hqSvg);
 
-            // Intelligent Base URL Detection (handles misconfigured APP_URL on live)
-            $baseUrlFromApp = rtrim(url('/'), '/');
-            if (str_contains($baseUrlFromApp, 'localhost') || str_contains($baseUrlFromApp, '127.0.0.1')) {
-                // Try to get actual domain from request if APP_URL is still localhost
-                $baseUrl = request()->getSchemeAndHttpHost();
-                if (str_contains($baseUrl, 'localhost') || str_contains($baseUrl, '127.0.0.1')) {
-                    // We are actually on local PC. Use the Wi-Fi IP for direct mobile scanning.
-                    $baseUrl = 'http://192.168.0.6/HF/public';
-                }
-            } else {
-                $baseUrl = $baseUrlFromApp;
-            }
-
-            $verifyUrl = rtrim($baseUrl, '/') . '/verify/member/' . $patient->patient_id;
-
-            // Generate QR Code via multiple APIs as fallback
-            $qrApis = [
-                'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($verifyUrl),
-                'https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=' . urlencode($verifyUrl),
-                'http://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($verifyUrl),
-                'http://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=' . urlencode($verifyUrl),
-            ];
-
-            // Fetch and convert to base64 so dompdf doesn't have to resolve external URLs during PDF render phase
-            try {
-                $qrData = null;
-                $qrContext = stream_context_create([
-                    'http' => ['timeout' => 5, 'ignore_errors' => true, 'user_agent' => 'Mozilla/5.0'],
-                    'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]
-                ]);
-
-                foreach ($qrApis as $apiUrl) {
-                    $qrData = @file_get_contents($apiUrl, false, $qrContext);
-
-                    if ((!$qrData || strlen($qrData) < 100) && function_exists('curl_init')) {
-                        $ch = curl_init();
-                        curl_setopt($ch, CURLOPT_URL, $apiUrl);
-                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-                        $qrData = curl_exec($ch);
-                        curl_close($ch);
-                    }
-
-                    if ($qrData && strlen($qrData) > 500) { // Success check (image data size)
-                        break;
-                    }
-                }
-
-                $qrBase64 = ($qrData && strlen($qrData) > 500) ? 'data:image/png;base64,' . base64_encode($qrData) : '';
-            } catch (\Exception $e) {
-                $qrBase64 = ''; // Fallback gracefully if API fails
-            }
+                        // QR code ($qrBase64) is now generated in the controller using local PHP - no API calls needed
 
             // Dynamic Font Scaling for Address
             $fullAddress = ($patient->address ?: '') . ', ' . ($patient->gp ?: '') . ', ' . ($patient->block ?: '') . ' - ' . ($patient->pin ?: '');
