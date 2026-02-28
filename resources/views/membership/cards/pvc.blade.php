@@ -270,7 +270,7 @@
 
             // Generate QR Code via QRServer API (using http to avoid SSL wrapper issues)
             // Use server IP (192.168.0.6) instead of localhost for the QR to work on mobile phones
-            $baseUrl = url('/');
+            $baseUrl = rtrim(url('/'), '/');
             if (str_contains($baseUrl, 'localhost') || str_contains($baseUrl, '127.0.0.1')) {
                 $baseUrl = 'http://192.168.0.6/HF/public';
             }
@@ -282,25 +282,29 @@
             try {
                 $qrContext = stream_context_create([
                     'http' => [
-                        'timeout' => 8,
+                        'timeout' => 10,
                         'ignore_errors' => true,
-                        'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                        'user_agent' => 'Mozilla/5.0'
+                    ],
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
                     ]
                 ]);
                 $qrData = @file_get_contents($qrApiUrl, false, $qrContext);
 
-                // If it fails or returns 0 bytes, try with curl as a fallback if available
-                if (!$qrData && function_exists('curl_init')) {
+                // If it fails or returns too little data, try with curl as a fallback
+                if ((!$qrData || strlen($qrData) < 100) && function_exists('curl_init')) {
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, $qrApiUrl);
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                     $qrData = curl_exec($ch);
                     curl_close($ch);
                 }
 
-                $qrBase64 = $qrData ? 'data:image/png;base64,' . base64_encode($qrData) : '';
+                $qrBase64 = ($qrData && strlen($qrData) > 100) ? 'data:image/png;base64,' . base64_encode($qrData) : '';
             } catch (\Exception $e) {
                 $qrBase64 = ''; // Fallback gracefully if API fails
             }
