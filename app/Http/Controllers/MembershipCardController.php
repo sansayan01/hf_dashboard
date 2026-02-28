@@ -27,6 +27,11 @@ class MembershipCardController extends Controller
         // Generate PDF
         $pdf = Pdf::loadView('membership.cards.pvc', compact('patient'));
 
+        // Ensure remote images (QR APIs) work on live server
+        $options = $pdf->getDomPDF()->getOptions();
+        $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+
         // Standard PVC dimensions: 85.6mm x 53.98mm
         // In points (1mm = 2.83465pts): 242.646pts x 153.018pts
         // For landscape: 242.646 (width) x 153.018 (height)
@@ -51,6 +56,12 @@ class MembershipCardController extends Controller
         }
 
         $pdf = Pdf::loadView('membership.cards.pvc', compact('patient'));
+
+        // Ensure remote images (QR APIs) work on live server
+        $options = $pdf->getDomPDF()->getOptions();
+        $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+
         $pdf->setPaper([0, 0, 242.646, 153.018], 'landscape');
 
         return $pdf->stream("PVC_Card_{$patient->patient_id}.pdf");

@@ -268,51 +268,56 @@
             $iconWeb = 'data:image/svg+xml;base64,' . base64_encode($webSvg);
             $iconHq = 'data:image/svg+xml;base64,' . base64_encode($hqSvg);
 
-            // Generate QR Code via QRServer API (using http to avoid SSL wrapper issues)
-            // Use server IP (192.168.0.6) instead of localhost for the QR to work on mobile phones
             // Intelligent Base URL Detection (handles misconfigured APP_URL on live)
             $baseUrlFromApp = rtrim(url('/'), '/');
-            if ((str_contains($baseUrlFromApp, 'localhost') || str_contains($baseUrlFromApp, '127.0.0.1')) && isset($_SERVER['HTTP_HOST'])) {
-                if (!str_contains($_SERVER['HTTP_HOST'], 'localhost') && !str_contains($_SERVER['HTTP_HOST'], '127.0.0.1')) {
-                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
-                    $baseUrl = $protocol . $_SERVER['HTTP_HOST'];
-                } else {
+            if (str_contains($baseUrlFromApp, 'localhost') || str_contains($baseUrlFromApp, '127.0.0.1')) {
+                // Try to get actual domain from request if APP_URL is still localhost
+                $baseUrl = request()->getSchemeAndHttpHost();
+                if (str_contains($baseUrl, 'localhost') || str_contains($baseUrl, '127.0.0.1')) {
+                    // We are actually on local PC. Use the Wi-Fi IP for direct mobile scanning.
                     $baseUrl = 'http://192.168.0.6/HF/public';
                 }
             } else {
                 $baseUrl = $baseUrlFromApp;
             }
 
-            $verifyUrl = $baseUrl . '/verify/member/' . $patient->patient_id;
-            $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($verifyUrl);
+            $verifyUrl = rtrim($baseUrl, '/') . '/verify/member/' . $patient->patient_id;
+
+            // Generate QR Code via multiple APIs as fallback
+            $qrApis = [
+                'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($verifyUrl),
+                'https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=' . urlencode($verifyUrl),
+                'http://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($verifyUrl),
+                'http://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=' . urlencode($verifyUrl),
+            ];
 
             // Fetch and convert to base64 so dompdf doesn't have to resolve external URLs during PDF render phase
             try {
+                $qrData = null;
                 $qrContext = stream_context_create([
-                    'http' => [
-                        'timeout' => 10,
-                        'ignore_errors' => true,
-                        'user_agent' => 'Mozilla/5.0'
-                    ],
-                    'ssl' => [
-                        'verify_peer' => false,
-                        'verify_peer_name' => false,
-                    ]
+                    'http' => ['timeout' => 5, 'ignore_errors' => true, 'user_agent' => 'Mozilla/5.0'],
+                    'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]
                 ]);
-                $qrData = @file_get_contents($qrApiUrl, false, $qrContext);
 
-                // If it fails or returns too little data, try with curl as a fallback
-                if ((!$qrData || strlen($qrData) < 100) && function_exists('curl_init')) {
-                    $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_URL, $qrApiUrl);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-                    $qrData = curl_exec($ch);
-                    curl_close($ch);
+                foreach ($qrApis as $apiUrl) {
+                    $qrData = @file_get_contents($apiUrl, false, $qrContext);
+
+                    if ((!$qrData || strlen($qrData) < 100) && function_exists('curl_init')) {
+                        $ch = curl_init();
+                        curl_setopt($ch, CURLOPT_URL, $apiUrl);
+                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+                        $qrData = curl_exec($ch);
+                        curl_close($ch);
+                    }
+
+                    if ($qrData && strlen($qrData) > 500) { // Success check (image data size)
+                        break;
+                    }
                 }
 
-                $qrBase64 = ($qrData && strlen($qrData) > 100) ? 'data:image/png;base64,' . base64_encode($qrData) : '';
+                $qrBase64 = ($qrData && strlen($qrData) > 500) ? 'data:image/png;base64,' . base64_encode($qrData) : '';
             } catch (\Exception $e) {
                 $qrBase64 = ''; // Fallback gracefully if API fails
             }
