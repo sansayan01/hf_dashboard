@@ -9,6 +9,9 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\IncentiveConfigController;
 use Illuminate\Support\Facades\Route;
 
+// Public Member Verification
+Route::get('/verify/member/{id}', [App\Http\Controllers\MemberVerificationController::class, 'show'])->name('verify.member');
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
