@@ -208,12 +208,10 @@
         }
 
         .val-address {
-            font-size: 5pt;
             font-weight: normal;
             color: #cbd5e1;
-            line-height: 1.2;
-            /* Allow basic wrapping */
-            word-wrap: break-word;
+            white-space: nowrap;
+            overflow: hidden;
             font-family: 'Times New Roman', Times, serif;
         }
 
@@ -284,6 +282,22 @@
             } catch (\Exception $e) {
                 $qrBase64 = ''; // Fallback gracefully if API fails
             }
+
+            // Dynamic Font Scaling for Address
+            $fullAddress = ($patient->address ?: '') . ', ' . ($patient->gp ?: '') . ', ' . ($patient->block ?: '') . ' - ' . ($patient->pin ?: '');
+            $addrLen = strlen($fullAddress);
+
+            // Base font: 5.2pt for up to 55 chars. Drop down for longer addresses.
+            if ($addrLen > 80)
+                $addrFontSize = '3.8pt';
+            elseif ($addrLen > 70)
+                $addrFontSize = '4.2pt';
+            elseif ($addrLen > 60)
+                $addrFontSize = '4.6pt';
+            elseif ($addrLen > 50)
+                $addrFontSize = '5.0pt';
+            else
+                $addrFontSize = '5.2pt';
         @endphp
 
         <!-- Large Ghosted Background Logo -->
@@ -316,8 +330,8 @@
         <!-- Address Span across Row 1 in Col 2 & 3 -->
         <div class="detail-block col-2 row-1" style="width: 144pt;">
             <div class="label">REGISTERED ADDRESS</div>
-            <div class="val-address">
-                {{ $patient->address }}, {{ $patient->gp }}, {{ $patient->block }} - {{ $patient->pin }}
+            <div class="val-address" style="font-size: {{ $addrFontSize }};">
+                {{ $fullAddress }}
             </div>
         </div>
 
