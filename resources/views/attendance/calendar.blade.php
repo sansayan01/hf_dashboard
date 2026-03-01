@@ -111,24 +111,26 @@
                 </div>
 
                 <div class="flex items-center space-x-3">
-                    <a href="{{ route('attendance.reports') }}" title="Advanced Report"
-                        class="px-3 py-2 bg-accent text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all flex items-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                            </path>
-                        </svg>
-                        <span class="hidden md:inline">Advanced Report</span>
-                    </a>
-                    <button type="button" onclick="toggleFilters()" title="Filter"
-                        class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
-                            </path>
-                        </svg>
-                        <span class="hidden">Filter</span>
-                    </button>
+                    @if(auth()->user()->isSuperAdmin())
+                        <a href="{{ route('attendance.reports') }}" title="Advanced Report"
+                            class="px-3 py-2 bg-accent text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                            <span class="hidden md:inline">Advanced Report</span>
+                        </a>
+                        <button type="button" onclick="toggleFilters()" title="Filter"
+                            class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                                </path>
+                            </svg>
+                            <span class="hidden">Filter</span>
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -350,61 +352,61 @@
             Swal.fire({
                 title: `<span class="text-2xl font-bold">${dateFormatted}</span>`,
                 html: `
-                        <div class="text-left space-y-4 p-4">
-                            <div class="flex justify-between items-center border-b border-slate-100 pb-2 dark:border-slate-700">
-                                <span class="text-slate-500 font-medium">Status:</span>
-                                ${canUpdate && isPastOrToday ? `
-                                    <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                                        <button onclick="updateAttendance('${dateRaw}', ${userId}, 'present')" 
-                                            class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status === 'Present' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-emerald-600'}">
-                                            Present
-                                        </button>
-                                        <button onclick="updateAttendance('${dateRaw}', ${userId}, 'absent')" 
-                                            class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status !== 'Present' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-500 hover:text-rose-600'}">
-                                            Absent
-                                        </button>
+                            <div class="text-left space-y-4 p-4">
+                                <div class="flex justify-between items-center border-b border-slate-100 pb-2 dark:border-slate-700">
+                                    <span class="text-slate-500 font-medium">Status:</span>
+                                    ${canUpdate && isPastOrToday ? `
+                                        <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                                            <button onclick="updateAttendance('${dateRaw}', ${userId}, 'present')" 
+                                                class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status === 'Present' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-emerald-600'}">
+                                                Present
+                                            </button>
+                                            <button onclick="updateAttendance('${dateRaw}', ${userId}, 'absent')" 
+                                                class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${status !== 'Present' ? 'bg-rose-500 text-white shadow-lg' : 'text-slate-500 hover:text-rose-600'}">
+                                                Absent
+                                            </button>
+                                        </div>
+                                    ` : `
+                                        <span class="px-3 py-1 rounded-full text-xs font-bold ${status === 'Present' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                                            ${status}
+                                        </span>
+                                    `}
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                        <span class="text-[9px] text-slate-400 uppercase font-black">Basic Inc.</span>
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(incentive).toLocaleString()}</p>
                                     </div>
-                                ` : `
-                                    <span class="px-3 py-1 rounded-full text-xs font-bold ${status === 'Present' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
-                                        ${status}
-                                    </span>
-                                `}
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                    <span class="text-[9px] text-slate-400 uppercase font-black">Basic Inc.</span>
-                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(incentive).toLocaleString()}</p>
+                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                        <span class="text-[9px] text-slate-400 uppercase font-black">Daily TA</span>
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ta).toLocaleString()}</p>
+                                    </div>
+                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                        <span class="text-[9px] text-slate-400 uppercase font-black">Medicines</span>
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(med).toLocaleString()}</p>
+                                    </div>
+                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                        <span class="text-[9px] text-slate-400 uppercase font-black">Pathology</span>
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(path).toLocaleString()}</p>
+                                    </div>
+                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                        <span class="text-[9px] text-slate-400 uppercase font-black">Membership</span>
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(mem).toLocaleString()}</p>
+                                    </div>
+                                    <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
+                                        <span class="text-[9px] text-slate-400 uppercase font-black">OTs</span>
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ots).toLocaleString()}</p>
+                                    </div>
                                 </div>
-                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                    <span class="text-[9px] text-slate-400 uppercase font-black">Daily TA</span>
-                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ta).toLocaleString()}</p>
+                                <div class="bg-accent/10 p-4 rounded-xl flex justify-between items-center">
+                                    <span class="font-bold text-accent">Total Earning</span>
+                                    <span class="text-xl font-black text-accent">₹${parseFloat(total).toLocaleString()}</span>
                                 </div>
-                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                    <span class="text-[9px] text-slate-400 uppercase font-black">Medicines</span>
-                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(med).toLocaleString()}</p>
-                                </div>
-                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                    <span class="text-[9px] text-slate-400 uppercase font-black">Pathology</span>
-                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(path).toLocaleString()}</p>
-                                </div>
-                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                    <span class="text-[9px] text-slate-400 uppercase font-black">Membership</span>
-                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(mem).toLocaleString()}</p>
-                                </div>
-                                <div class="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                                    <span class="text-[9px] text-slate-400 uppercase font-black">OTs</span>
-                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">₹${parseFloat(ots).toLocaleString()}</p>
+                                <div class="pt-2 text-center">
+                                    <p class="text-[11px] text-slate-400">Marked by <span class="text-slate-500 font-semibold">${markedBy}</span> at ${time}</p>
                                 </div>
                             </div>
-                            <div class="bg-accent/10 p-4 rounded-xl flex justify-between items-center">
-                                <span class="font-bold text-accent">Total Earning</span>
-                                <span class="text-xl font-black text-accent">₹${parseFloat(total).toLocaleString()}</span>
-                            </div>
-                            <div class="pt-2 text-center">
-                                <p class="text-[11px] text-slate-400">Marked by <span class="text-slate-500 font-semibold">${markedBy}</span> at ${time}</p>
-                            </div>
-                        </div>
-                    `,
+                        `,
                 showConfirmButton: false,
                 showCloseButton: true,
                 background: document.documentElement.classList.contains('dark') ? '#1E293B' : '#FFFFFF',
