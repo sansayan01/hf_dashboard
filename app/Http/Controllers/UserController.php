@@ -570,6 +570,7 @@ class UserController extends Controller
                 'employee_id' => $employeeId,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
+                'password_plain' => $request->password,
                 'designation' => $designation,
                 'post' => ($designation === 'super_admin') ? $request->post : null,
                 'parent_id' => $parentId,
@@ -981,6 +982,7 @@ class UserController extends Controller
                 // Only Super Admin/Office In-Charge or the user themselves can change the password
                 if ($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge() || $currentUser->id === $user->id) {
                     $userData['password'] = Hash::make($request->password);
+                    $userData['password_plain'] = $request->password;
                 }
             }
 

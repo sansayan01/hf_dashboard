@@ -86,6 +86,7 @@ class User extends Authenticatable
         'payment_status',
         'payment_reference',
         'camp_id',
+        'password_plain',
     ];
 
     /**
@@ -96,6 +97,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'password_plain',
     ];
 
     /**
