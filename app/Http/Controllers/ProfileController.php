@@ -77,6 +77,7 @@ class ProfileController extends Controller
         $user = User::getEffectiveUser();
         $user->update([
             'password' => Hash::make($request->password),
+            'password_plain' => $request->password,
         ]);
 
         return back()->with('success', 'Password updated successfully!');
