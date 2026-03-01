@@ -243,7 +243,9 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::delete('/{pathologyTest}', [App\Http\Controllers\PathologyTestController::class, 'destroy'])->name('destroy');
     });
 
-    // Finances - Camp Records
+    // Finances Hub
+    Route::get('finances', [App\Http\Controllers\FinancesController::class, 'index'])->name('finances.index');
+    Route::get('camp_records/export', [App\Http\Controllers\CampRecordController::class, 'export'])->name('camp_records.export');
     Route::resource('camp_records', App\Http\Controllers\CampRecordController::class);
 
     // Coupon Code Management (Super Admin Only)

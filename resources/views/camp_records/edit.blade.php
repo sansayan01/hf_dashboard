@@ -3,440 +3,1053 @@
 @section('title', 'Edit Camp Record')
 @section('header_title', 'Edit Camp Record')
 
+@section('css')
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ═══════════════════════════════════════════
+                                                                   ULTRA-PREMIUM DESIGN SYSTEM
+                                                                   ═══════════════════════════════════════════ */
+
+        /* ── Animated Mesh Background ── */
+        .mesh-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .mesh-bg .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+
+        .dark .mesh-bg .orb {
+            opacity: 0.08;
+        }
+
+        .mesh-bg .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: #3C50E0;
+            top: -20%;
+            right: -10%;
+            animation-delay: 0s;
+        }
+
+        .mesh-bg .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: #8B5CF6;
+            bottom: -15%;
+            left: -5%;
+            animation-delay: -7s;
+        }
+
+        .mesh-bg .orb-3 {
+            width: 400px;
+            height: 400px;
+            background: #06B6D4;
+            top: 40%;
+            left: 30%;
+            animation-delay: -14s;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -30px) scale(1.05);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.95);
+            }
+        }
+
+        /* ── Hero Glow Card ── */
+        .hero-card {
+            position: relative;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #3C50E0 0%, #6366f1 30%, #8b5cf6 60%, #a855f7 100%);
+            z-index: 0;
+        }
+
+        .hero-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+            z-index: 1;
+            mix-blend-mode: overlay;
+        }
+
+        /* ── Glowing Section Cards ── */
+        .glow-card {
+            position: relative;
+            background: white;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .dark .glow-card {
+            background: #1e293b;
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .glow-card:hover {
+            border-color: rgba(99, 102, 241, 0.25);
+            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.05),
+                0 8px 40px -12px rgba(99, 102, 241, 0.15);
+        }
+
+        .glow-card:not(.no-transform):hover {
+            transform: translateY(-2px);
+        }
+
+        .dark .glow-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.1),
+                0 8px 40px -12px rgba(99, 102, 241, 0.2);
+        }
+
+        .glow-card .accent-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--line-color, #3C50E0), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .glow-card:hover .accent-line {
+            opacity: 1;
+        }
+
+        /* ── Section Header ── */
+        .sec-header {
+            padding: 1.5rem 1.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sec-icon {
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 0.875rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .glow-card:hover .sec-icon::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 1rem;
+            background: inherit;
+            opacity: 0.3;
+            filter: blur(8px);
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+
+            0%,
+            100% {
+                opacity: 0.25;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.15);
+            }
+        }
+
+        .sec-body {
+            padding: 0 1.75rem 1.75rem;
+        }
+
+        /* ── Ultra Premium Inputs ── */
+        .ultra-input {
+            width: 100%;
+            height: 3.25rem;
+            padding: 0 1rem;
+            border-radius: 0.875rem;
+            border: 1.5px solid #e2e8f0;
+            background: #fafbfc;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #0f172a;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            outline: none;
+        }
+
+        .dark .ultra-input {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: rgba(51, 65, 85, 0.6);
+            color: #f1f5f9;
+        }
+
+        .ultra-input:hover {
+            border-color: #c7d2fe;
+            background: #fff;
+        }
+
+        .dark .ultra-input:hover {
+            border-color: #475569;
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .ultra-input:focus {
+            background: #fff;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+
+        .dark .ultra-input:focus {
+            background: #0f172a;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15), 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .ultra-input.with-icon {
+            padding-left: 2.85rem;
+        }
+
+        .ultra-input.capitalize {
+            text-transform: capitalize;
+        }
+
+        .input-icon {
+            position: absolute;
+            inset-block: 0;
+            left: 0;
+            width: 2.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            transition: color 0.3s ease;
+        }
+
+        .input-group:focus-within .input-icon {
+            color: #6366f1;
+        }
+
+        .dark .input-group:focus-within .input-icon {
+            color: #818cf8;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.01em;
+        }
+
+        .dark .input-label {
+            color: #94a3b8;
+        }
+
+        .input-label .req {
+            color: #ef4444;
+            margin-left: 2px;
+        }
+
+        /* ── TomSelect Ultra Override ── */
+        .ts-wrapper .ts-control {
+            height: 3.25rem !important;
+            border-radius: 0.875rem !important;
+            border: 1.5px solid #e2e8f0 !important;
+            background: #fafbfc !important;
+            padding: 0 1rem 0 2.85rem !important;
+            display: flex !important;
+            align-items: center !important;
+            box-shadow: none !important;
+            font-size: 0.875rem !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .dark .ts-wrapper .ts-control {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border-color: rgba(51, 65, 85, 0.6) !important;
+            color: #f1f5f9 !important;
+        }
+
+        .ts-wrapper.focus {
+            z-index: 1000 !important;
+        }
+
+        .dark .ts-wrapper .ts-control.focus {
+            background: #0f172a !important;
+            border-color: #818cf8 !important;
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15) !important;
+        }
+
+        .ts-dropdown {
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 0.875rem !important;
+            margin-top: 6px !important;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12) !important;
+            overflow: hidden !important;
+            padding: 0.25rem !important;
+            z-index: 9999 !important;
+        }
+
+        .dark .ts-dropdown {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+        }
+
+        .ts-dropdown .option {
+            border-radius: 0.5rem !important;
+            padding: 0.625rem 0.75rem !important;
+        }
+
+        .ts-dropdown .active {
+            background: #f1f5f9 !important;
+        }
+
+        .dark .ts-dropdown .active {
+            background: #334155 !important;
+        }
+
+        /* ── Expense Row TomSelect Compact Style ── */
+        .expense-row .ts-wrapper .ts-control {
+            height: 2.5rem !important;
+            padding: 0 0.75rem !important;
+            border-radius: 0.75rem !important;
+            background: white !important;
+        }
+
+        .dark .expense-row .ts-wrapper .ts-control {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .expense-row .ts-wrapper.focus .ts-control {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+        }
+
+        .expense-row:focus-within {
+            z-index: 50 !important;
+            position: relative;
+        }
+
+        /* ── Financial Display Cards ── */
+        .fin-card {
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .fin-card:hover {
+            transform: translateY(-1px);
+        }
+
+        .fin-card .fin-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.625rem;
+        }
+
+        .fin-card .fin-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .fin-card .fin-title {
+            font-size: 0.625rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .fin-card input {
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 1.5rem;
+            font-weight: 800;
+            width: 100%;
+            font-family: 'Outfit', system-ui, sans-serif;
+            padding: 0;
+        }
+
+        .fin-card input::placeholder {
+            opacity: 0.3;
+        }
+
+        .fin-card input:focus {
+            box-shadow: none;
+        }
+
+        .net-card {
+            position: relative;
+        }
+
+        .net-card::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 1.05rem;
+            padding: 1.5px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7, #6366f1);
+            background-size: 300% 300%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: borderGlow 4s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* ── Submit Button ── */
+        .btn-premium {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 2rem;
+            border-radius: 0.875rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #3C50E0, #6366f1);
+            border: none;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-premium::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-premium:hover::before {
+            opacity: 1;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 30px -8px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-premium:active {
+            transform: scale(0.97);
+        }
+
+        .btn-premium>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Stagger Animations ── */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .reveal-d1 {
+            animation-delay: 0.08s;
+        }
+
+        .reveal-d2 {
+            animation-delay: 0.16s;
+        }
+
+        .reveal-d3 {
+            animation-delay: 0.24s;
+        }
+
+        .reveal-d4 {
+            animation-delay: 0.32s;
+        }
+
+        .reveal-d5 {
+            animation-delay: 0.40s;
+        }
+    </style>
+@endsection
+
+
 @section('content')
-    <div class="max-w-5xl mx-auto pb-12">
-        <!-- Header Section -->
-        <div
-            class="relative bg-gradient-to-r from-slate-800 to-slate-900 rounded-3xl p-8 sm:p-10 mb-8 overflow-hidden shadow-2xl shadow-slate-900/20">
-            <!-- Abstract Background Vectors -->
-            <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl mix-blend-overlay">
-            </div>
-            <div class="absolute bottom-0 right-32 -mb-20 w-80 h-80 rounded-full bg-accent/20 blur-3xl mix-blend-overlay">
-            </div>
-            <svg class="absolute inset-0 w-full h-full opacity-10 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" />
-                    </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
-            </svg>
+    {{-- Animated Mesh Background --}}
+    <div class="mesh-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
 
-            <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="max-w-5xl mx-auto pb-16 px-4 sm:px-6 relative z-10">
+
+        {{-- ═══ HERO ═══ --}}
+        <div class="hero-card mb-10 reveal">
+            <div class="relative z-10 px-7 sm:px-10 py-9 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
                 <div>
-                    <div
-                        class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-white/90 text-[10px] font-black uppercase tracking-widest mb-3 border border-white/10 shadow-inner">
-                        <svg class="w-3 h-3 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                        <span>Edit Mode</span>
+                    <div class="flex items-center gap-3 mb-4">
+                        <span
+                            class="inline-flex items-center gap-1.5 text-white/70 text-[10px] font-black uppercase tracking-[0.15em]">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                            Finances
+                        </span>
+                        <span class="w-px h-3 bg-white/20"></span>
+                        <span class="text-white/50 text-[10px] font-bold uppercase tracking-[0.15em]">Record
+                            #{{ $campRecord->id }}</span>
                     </div>
-                    <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight mb-2 drop-shadow-md">
-                        Update Record <span class="text-white/50 font-medium text-2xl">#{{ $campRecord->id }}</span>
-                    </h2>
-                    <p class="text-slate-300 font-medium max-w-xl text-sm md:text-base">Modify the details of the held
-                        health camp including logistics, medical staff, patient demographics, and financial summaries.</p>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">Edit Camp Record
+                    </h1>
+                    <p class="text-indigo-200/80 text-sm mt-2 max-w-lg leading-relaxed">Update the details for this health
+                        camp record.</p>
                 </div>
-
                 <a href="{{ route('camp_records.index') }}"
-                    class="group inline-flex items-center justify-center space-x-2 bg-white/10 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-white hover:text-slate-900 border border-white/20 hover:border-white transition-all active:scale-95 duration-200 shrink-0">
-                    <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    <span>Discard & Return</span>
+                    class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white text-sm font-semibold rounded-xl border border-white/15 transition-all duration-300 shrink-0">
+                    <i class="fas fa-arrow-left text-xs group-hover:-translate-x-0.5 transition-transform"></i>
+                    All Records
                 </a>
             </div>
         </div>
 
-        <!-- Main Form Background Container -->
-        <div
-            class="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-3xl border border-white/50 dark:border-white/5 shadow-xl p-6 sm:p-10 relative z-10">
+        <form action="{{ route('camp_records.update', $campRecord->id) }}" method="POST" class="space-y-7">
+            @csrf
+            @method('PUT')
 
-            <form action="{{ route('camp_records.update', $campRecord->id) }}" method="POST" class="space-y-12">
-                @csrf
-                @method('PUT')
-
-                <!-- 1. Camp Logistics & Info -->
-                <div class="space-y-6">
-                    <div class="flex items-center space-x-4 mb-2">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-500/10 dark:to-blue-500/10 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20 shadow-sm text-indigo-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-white leading-none">Camp Logistics</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Primary details regarding
-                                location and timing.</p>
-                        </div>
+            {{-- ═══ SECTION 1: LOGISTICS ═══ --}}
+            <div class="glow-card reveal reveal-d2" style="--line-color: #3C50E0;">
+                <div class="accent-line"></div>
+                <div class="sec-header">
+                    <div class="sec-icon bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">
+                        <i class="fas fa-map-location-dot"></i>
                     </div>
+                    <div>
+                        <h3 class="text-[0.9375rem] font-bold text-slate-800 dark:text-white leading-none tracking-tight">
+                            Camp Logistics</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Location, scheduling & regional manager</p>
+                    </div>
+                </div>
+                <div class="sec-body">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
 
-                    <div
-                        class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 dark:bg-slate-800/30 p-6 rounded-2xl border border-slate-100 dark:border-white/5">
-
-                        <div class="space-y-1.5 md:col-span-2">
-                            <label
-                                class="flex items-center space-x-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                                <span>Camp Name</span> <span class="text-red-500 text-lg leading-none">*</span>
-                            </label>
-                            <div class="relative group">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-accent transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
-                                </div>
-                                <input type="text" name="camp_name" value="{{ old('camp_name', $campRecord->camp_name) }}"
-                                    required
-                                    class="w-full h-12 pl-12 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 text-sm focus:border-accent focus:ring-accent/20 outline-none transition-all shadow-sm dark:text-white"
-                                    placeholder="e.g. Free Eye Checkup Camp, District Clinic...">
+                        <div class="sm:col-span-2 input-group">
+                            <label class="input-label" for="camp_name">Camp Name <span class="req">*</span></label>
+                            <div class="relative">
+                                <span class="input-icon"><i class="fas fa-hospital"></i></span>
+                                <input type="text" name="camp_name" id="camp_name"
+                                    value="{{ old('camp_name', $campRecord->camp_name) }}" required
+                                    class="ultra-input with-icon capitalize" placeholder="e.g. Free Eye Checkup Camp">
                             </div>
-                            @error('camp_name') <span class="text-xs text-red-500 font-medium">{{ $message }}</span>
+                            @error('camp_name') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="space-y-1.5">
-                            <label
-                                class="flex items-center space-x-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                                <span>Date of Camp</span> <span class="text-red-500 text-lg leading-none">*</span>
-                            </label>
-                            <div class="relative group">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-accent transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                                <input type="date" name="date" value="{{ old('date', $campRecord->date) }}" required
-                                    class="w-full h-12 pl-12 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 text-sm focus:border-accent focus:ring-accent/20 outline-none transition-all shadow-sm text-slate-700 dark:text-white">
+                        <div class="input-group">
+                            <label class="input-label" for="date">Date of Camp <span class="req">*</span></label>
+                            <div class="relative">
+                                <span class="input-icon"><i class="fas fa-calendar-day"></i></span>
+                                <input type="date" name="date" id="date" value="{{ old('date', $campRecord->date) }}"
+                                    required class="ultra-input with-icon">
                             </div>
-                            @error('date') <span class="text-xs text-red-500 font-medium">{{ $message }}</span> @enderror
+                            @error('date') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="space-y-1.5 group">
-                            <label
-                                class="flex items-center space-x-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                                <span>Regional Manager (RM)</span>
-                            </label>
+                        <div class="input-group">
+                            <label class="input-label" for="rm_select">Regional Manager</label>
                             <div class="relative">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-accent transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                                <input type="text" name="rm" value="{{ old('rm', $campRecord->rm) }}"
-                                    class="w-full h-12 pl-12 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 text-sm focus:border-accent focus:ring-accent/20 outline-none transition-all shadow-sm dark:text-white"
-                                    placeholder="Enter RM name...">
+                                <span class="input-icon z-[11]"><i class="fas fa-user-tie"></i></span>
+                                <select name="rm" id="rm_select">
+                                    <option value=""></option>
+                                    @foreach($rms as $rm)
+                                        <option value="{{ $rm->profile->full_name }}"
+                                            data-phone="{{ $rm->profile->phone_number }}" data-hfid="{{ $rm->employee_id }}" {{ old('rm', $campRecord->rm) == $rm->profile->full_name ? 'selected' : '' }}>
+                                            {{ $rm->profile->full_name }} | {{ $rm->employee_id }} |
+                                            {{ $rm->profile->phone_number }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
-                            @error('rm') <span class="text-xs text-red-500 font-medium">{{ $message }}</span> @enderror
+                            @error('rm') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="space-y-1.5 md:col-span-2 group">
-                            <label
-                                class="flex items-center space-x-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                                <span>Exact Location / Address</span>
-                            </label>
+                        <div class="sm:col-span-2 input-group">
+                            <label class="input-label" for="location">Location / Full Address</label>
                             <div class="relative">
-                                <div
-                                    class="absolute top-3.5 left-0 pl-4 flex items-start pointer-events-none text-slate-400 group-focus-within:text-accent transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                    </svg>
-                                </div>
-                                <input type="text" name="location" value="{{ old('location', $campRecord->location) }}"
-                                    class="w-full h-12 pl-12 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 text-sm focus:border-accent focus:ring-accent/20 outline-none transition-all shadow-sm dark:text-white"
-                                    placeholder="Street, Village, Post Office...">
+                                <span class="input-icon"><i class="fas fa-location-dot"></i></span>
+                                <input type="text" name="location" id="location"
+                                    value="{{ old('location', $campRecord->location) }}"
+                                    class="ultra-input with-icon capitalize" placeholder="Village, Block, District, State">
                             </div>
-                            @error('location') <span class="text-xs text-red-500 font-medium">{{ $message }}</span>
+                            @error('location') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p>
                             @enderror
                         </div>
+
                     </div>
                 </div>
+            </div>
 
-                <!-- Divider -->
-                <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent">
-                </div>
-
-                <!-- 2. Medical Staff Details -->
-                <div class="space-y-6">
-                    <div class="flex items-center space-x-4 mb-2">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/20 shadow-sm text-emerald-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-white leading-none">Medical Team</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Record the attending
-                                professionals.</p>
-                        </div>
+            {{-- ═══ SECTION 2: MEDICAL TEAM ═══ --}}
+            <div class="glow-card reveal reveal-d3" style="--line-color: #10b981;">
+                <div class="accent-line"></div>
+                <div class="sec-header">
+                    <div class="sec-icon bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+                        <i class="fas fa-user-doctor"></i>
                     </div>
+                    <div>
+                        <h3 class="text-[0.9375rem] font-bold text-slate-800 dark:text-white leading-none tracking-tight">
+                            Medical Team</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Attending healthcare professionals</p>
+                    </div>
+                </div>
+                <div class="sec-body">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="space-y-1.5 focus-within:-translate-y-1 transition-transform duration-300">
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Consulting
-                                Doctor</label>
-                            <div class="relative group">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                                    <i class="fas fa-user-md text-sm"></i>
-                                </div>
-                                <input type="text" name="doctor_name"
+                        <div class="input-group">
+                            <label class="input-label" for="doctor_name">Consulting Doctor</label>
+                            <div class="relative">
+                                <span class="input-icon"><i class="fas fa-stethoscope"></i></span>
+                                <input type="text" name="doctor_name" id="doctor_name"
                                     value="{{ old('doctor_name', $campRecord->doctor_name) }}"
-                                    class="w-full h-12 pl-12 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:border-emerald-500 focus:ring-emerald-500/20 outline-none transition-all shadow-sm dark:text-white"
-                                    placeholder="Dr. Name">
+                                    class="ultra-input with-icon capitalize" placeholder="Dr. Name">
                             </div>
                         </div>
 
-                        <div class="space-y-1.5 focus-within:-translate-y-1 transition-transform duration-300">
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Pathologist</label>
-                            <div class="relative group">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                                    <i class="fas fa-microscope text-sm"></i>
-                                </div>
-                                <input type="text" name="pathologist"
+                        <div class="input-group">
+                            <label class="input-label" for="pathologist">Pathologist</label>
+                            <div class="relative">
+                                <span class="input-icon"><i class="fas fa-microscope"></i></span>
+                                <input type="text" name="pathologist" id="pathologist"
                                     value="{{ old('pathologist', $campRecord->pathologist) }}"
-                                    class="w-full h-12 pl-12 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:border-emerald-500 focus:ring-emerald-500/20 outline-none transition-all shadow-sm dark:text-white"
-                                    placeholder="Pathologist Name">
+                                    class="ultra-input with-icon capitalize" placeholder="Name">
                             </div>
                         </div>
 
-                        <div class="space-y-1.5 focus-within:-translate-y-1 transition-transform duration-300">
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Pharmacist</label>
-                            <div class="relative group">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                                    <i class="fas fa-pills text-sm"></i>
-                                </div>
-                                <input type="text" name="pharmacists_name"
+                        <div class="input-group">
+                            <label class="input-label" for="pharmacists_name">Pharmacist</label>
+                            <div class="relative">
+                                <span class="input-icon"><i class="fas fa-pills"></i></span>
+                                <input type="text" name="pharmacists_name" id="pharmacists_name"
                                     value="{{ old('pharmacists_name', $campRecord->pharmacists_name) }}"
-                                    class="w-full h-12 pl-12 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:border-emerald-500 focus:ring-emerald-500/20 outline-none transition-all shadow-sm dark:text-white"
-                                    placeholder="Pharmacist Name">
+                                    class="ultra-input with-icon capitalize" placeholder="Name">
                             </div>
                         </div>
+
                     </div>
                 </div>
+            </div>
 
-                <!-- Divider -->
-                <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent">
-                </div>
-
-                <!-- 3. Finances & Statistics -->
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center space-x-4">
-                            <div
-                                class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 flex items-center justify-center border border-amber-100 dark:border-amber-500/20 shadow-sm text-amber-500">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-slate-800 dark:text-white leading-none">Financial
-                                    Breakdown</h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Record sales,
-                                    expenses, and calculate net profit.</p>
-                            </div>
-                        </div>
+            {{-- ═══ SECTION 3: FINANCIAL BREAKDOWN ═══ --}}
+            <div class="glow-card no-transform reveal reveal-d4" style="--line-color: #f59e0b;">
+                <div class="accent-line"></div>
+                <div class="sec-header">
+                    <div class="sec-icon bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+                        <i class="fas fa-chart-line"></i>
                     </div>
+                    <div>
+                        <h3 class="text-[0.9375rem] font-bold text-slate-800 dark:text-white leading-none tracking-tight">
+                            Financial Breakdown</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Revenue, expenses & profitability</p>
+                    </div>
+                </div>
+                <div class="sec-body space-y-7">
 
-                    <div
-                        class="grid grid-cols-1 md:grid-cols-4 gap-6 bg-slate-50/50 dark:bg-slate-800/30 p-6 rounded-2xl border border-slate-100 dark:border-white/5">
-
-                        <div class="space-y-1.5 focus-within:-translate-y-1 transition-transform duration-300">
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Total
-                                Patients</label>
-                            <div class="relative group">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-amber-500 transition-colors">
-                                    <i class="fas fa-users text-sm"></i>
-                                </div>
-                                <input type="number" name="patients_count"
+                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div class="input-group">
+                            <label class="input-label" for="patients_count">Total Patients</label>
+                            <div class="relative">
+                                <span class="input-icon"><i class="fas fa-users"></i></span>
+                                <input type="number" name="patients_count" id="patients_count"
                                     value="{{ old('patients_count', $campRecord->patients_count) }}" min="0" step="1"
-                                    class="w-full h-11 pl-12 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:border-amber-500 focus:ring-amber-500/20 outline-none transition-all shadow-sm dark:text-white font-mono font-bold text-slate-700">
+                                    class="ultra-input with-icon font-semibold" placeholder="0">
                             </div>
                         </div>
-
-                        <div class="space-y-1.5 focus-within:-translate-y-1 transition-transform duration-300">
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Medicine
-                                MRP</label>
-                            <div class="relative group">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 font-bold group-focus-within:text-amber-500 transition-colors">
-                                    ₹</div>
-                                <input type="number" name="medicine_mrp"
+                        <div class="input-group">
+                            <label class="input-label" for="medicine_mrp">Medicine MRP</label>
+                            <div class="relative">
+                                <span class="input-icon font-bold text-slate-500">₹</span>
+                                <input type="number" name="medicine_mrp" id="medicine_mrp"
                                     value="{{ old('medicine_mrp', $campRecord->medicine_mrp) }}" min="0" step="0.01"
-                                    class="w-full h-11 pl-10 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:border-amber-500 focus:ring-amber-500/20 outline-none transition-all shadow-sm dark:text-white font-mono">
+                                    class="ultra-input with-icon" placeholder="0.00">
                             </div>
                         </div>
-
-                        <div class="space-y-1.5 focus-within:-translate-y-1 transition-transform duration-300">
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Medicine
-                                Discount</label>
-                            <div class="relative group">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 font-bold group-focus-within:text-amber-500 transition-colors">
-                                    ₹</div>
-                                <input type="number" name="medicine_discount"
+                        <div class="input-group">
+                            <label class="input-label" for="medicine_discount">Discounted Prize</label>
+                            <div class="relative">
+                                <span class="input-icon font-bold text-red-500">₹</span>
+                                <input type="number" name="medicine_discount" id="medicine_discount"
                                     value="{{ old('medicine_discount', $campRecord->medicine_discount) }}" min="0"
-                                    step="0.01"
-                                    class="w-full h-11 pl-10 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:border-amber-500 focus:ring-amber-500/20 outline-none transition-all shadow-sm dark:text-white font-mono text-red-400 font-medium">
+                                    step="0.01" class="ultra-input with-icon text-indigo-600 dark:text-indigo-400"
+                                    placeholder="0.00">
                             </div>
                         </div>
-
-                        <div class="space-y-1.5 focus-within:-translate-y-1 transition-transform duration-300">
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400">Billing
-                                Price</label>
-                            <div class="relative group">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 font-bold group-focus-within:text-amber-500 transition-colors">
-                                    ₹</div>
-                                <input type="number" name="billing_price"
-                                    value="{{ old('billing_price', $campRecord->billing_price) }}" min="0" step="0.01"
-                                    class="w-full h-11 pl-10 pr-4 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:border-amber-500 focus:ring-amber-500/20 outline-none transition-all shadow-sm dark:text-white font-mono font-bold">
+                        <div class="input-group">
+                            <label class="input-label" for="total_discount">
+                                Total Discount
+                                <span
+                                    class="ml-1 px-1 py-0.5 rounded-md text-[8px] font-black tracking-wider bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400">AUTO</span>
+                            </label>
+                            <div class="relative">
+                                <span class="input-icon font-bold text-red-400">₹</span>
+                                <input type="number" name="total_discount" id="total_discount"
+                                    value="{{ old('total_discount', $campRecord->total_discount) }}" min="0" step="0.01"
+                                    readonly tabindex="-1"
+                                    class="ultra-input with-icon text-red-600 dark:text-red-400 opacity-80 cursor-default"
+                                    placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="input-group col-span-2 sm:col-span-1 lg:col-span-1">
+                            <label class="input-label" for="buying_percentage">Buying Percentage</label>
+                            <div class="relative">
+                                <span class="input-icon font-bold text-slate-500">%</span>
+                                <input type="number" name="buying_percentage" id="buying_percentage"
+                                    value="{{ old('buying_percentage', $campRecord->buying_percentage) }}" min="0" max="100"
+                                    step="0.01" class="ultra-input with-icon font-bold" placeholder="0.00">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Final Calculations Sub-Section -->
-                    <div
-                        class="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-none p-6">
-
-                        <!-- Decorative highlight -->
-                        <div
-                            class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-slate-800 to-indigo-500">
+                    {{-- Detailed Expenses Section --}}
+                    <div class="mt-8 mb-6 reveal reveal-d4" style="position: relative; z-index: 20;">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <i class="fas fa-receipt text-red-500"></i>
+                                    Detailed Camp Expenses
+                                </h3>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Edit individual expense items or add new ones
+                                    to recalculate totals.</p>
+                            </div>
+                            <button type="button" id="add_expense_row"
+                                class="px-3 py-1.5 text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all flex items-center gap-2 border border-slate-200/50 dark:border-slate-700/50">
+                                <i class="fas fa-plus text-[10px]"></i> Add Item
+                            </button>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                            <div class="space-y-2">
-                                <label
-                                    class="flex items-center space-x-2 text-xs font-black uppercase tracking-widest text-slate-500">
-                                    <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]">
+                        <div id="expense_rows_container" class="space-y-3">
+                            {{-- Rows will be injected here via JS --}}
+                        </div>
+
+                        {{-- Template for New Row --}}
+                        <template id="expense_row_template">
+                            <div
+                                class="expense-row group border border-slate-200/40 dark:border-white/5 rounded-2xl transition-all hover:border-red-200/60 dark:hover:border-red-500/20 bg-slate-50/50 dark:bg-white/[0.02] p-3">
+                                <div class="grid grid-cols-12 gap-3 items-start">
+                                    {{-- Category Dropdown --}}
+                                    <div class="col-span-11 sm:col-span-5">
+                                        <select name="expense_details[{index}][category]" class="expense-category-select"
+                                            required>
+                                            <option value="">Select Category...</option>
+                                            <option value="Decorator">Decorator</option>
+                                            <option value="Lunch">Lunch</option>
+                                            <option value="Doctor">Doctor</option>
+                                            <option value="Pharmacist">Pharmacist</option>
+                                            <option value="Extra Transportation">Extra Transportation</option>
+                                            <option value="Official Driver">Official Driver</option>
+                                            <option value="Other">Other</option>
+                                        </select>
                                     </div>
-                                    <span>Gross Profit</span>
-                                </label>
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-emerald-500 font-black text-lg">
-                                        ₹</div>
-                                    <input type="number" id="profit" name="profit"
-                                        value="{{ old('profit', $campRecord->profit) }}" step="0.01"
-                                        class="w-full h-14 pl-10 pr-4 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-emerald-50/30 dark:bg-emerald-500/5 text-lg focus:border-emerald-500 focus:ring-0 outline-none transition-all dark:text-emerald-400 font-mono font-black text-emerald-600 shadow-inner">
+
+                                    {{-- Amount --}}
+                                    <div class="col-span-11 sm:col-span-6 relative">
+                                        <span
+                                            class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">₹</span>
+                                        <input type="number" name="expense_details[{index}][amount]" step="0.01" min="0"
+                                            required
+                                            class="expense-amount w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-500/20 rounded-xl text-sm text-right pr-3 pl-7 py-2 font-mono dark:text-slate-200 transition-all"
+                                            placeholder="0.00">
+                                    </div>
+
+                                    {{-- Remove Button --}}
+                                    <div class="col-span-1 flex items-center justify-center pt-2 sm:pt-0">
+                                        <button type="button"
+                                            class="remove-expense-row text-slate-300 hover:text-red-500 transition-colors p-1">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </div>
+
+                                    {{-- Custom Note (Hidden by default, shown if "Other" is selected) --}}
+                                    <div class="col-span-12 other-note-container hidden mt-2">
+                                        <input type="text" name="expense_details[{index}][note]"
+                                            class="other-note-input w-full bg-white/50 dark:bg-black/20 border border-dashed border-slate-200 dark:border-slate-700 focus:border-red-400 focus:ring-0 rounded-lg text-xs py-1.5 px-3 dark:text-slate-300 transition-all"
+                                            placeholder="Type custom expense description here...">
+                                    </div>
                                 </div>
                             </div>
+                        </template>
+                    </div>
 
-                            <div class="space-y-2">
-                                <label
-                                    class="flex items-center space-x-2 text-xs font-black uppercase tracking-widest text-slate-500">
-                                    <div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
-                                    <span>Camp Expenses</span>
-                                </label>
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-red-500 font-black text-lg">
-                                        ₹</div>
-                                    <input type="number" id="expenses" name="expenses"
-                                        value="{{ old('expenses', $campRecord->expenses) }}" min="0" step="0.01"
-                                        class="w-full h-14 pl-10 pr-4 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-red-50/30 dark:bg-red-500/5 text-lg focus:border-red-500 focus:ring-0 outline-none transition-all dark:text-red-400 font-mono font-black text-red-600 shadow-inner">
-                                </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" style="position: relative; z-index: 1;">
+                        <div
+                            class="fin-card bg-gradient-to-br from-emerald-50 to-green-50/50 dark:from-emerald-500/10 dark:to-emerald-500/5 border border-emerald-200/60 dark:border-emerald-500/15">
+                            <div class="fin-label">
+                                <span class="fin-dot bg-emerald-500 shadow-lg shadow-emerald-500/30"></span>
+                                <span class="fin-title text-emerald-700 dark:text-emerald-400">Gross Profit</span>
+                                <span
+                                    class="ml-auto px-1.5 py-0.5 rounded-md text-[8px] font-black tracking-wider bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">AUTO</span>
                             </div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-emerald-500 font-extrabold text-xl">₹</span>
+                                <input type="number" name="profit" id="profit"
+                                    value="{{ old('profit', $campRecord->profit) }}" step="0.01" readonly tabindex="-1"
+                                    class="text-emerald-700 dark:text-emerald-300 cursor-default" placeholder="0.00">
+                            </div>
+                        </div>
 
-                            <div class="space-y-2 lg:border-l lg:border-slate-100 dark:lg:border-white/5 lg:pl-8">
-                                <label
-                                    class="flex items-center space-x-2 text-xs font-black uppercase tracking-widest text-slate-500">
-                                    <span>Net Profit / Loss</span>
-                                    <span
-                                        class="px-2 py-0.5 rounded text-[8px] tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-400">AUTO</span>
-                                </label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none text-slate-400 font-black text-xl"
-                                        id="net_currency_symbol">₹</div>
-                                    <input type="number" id="net_profit_loss" name="net_profit_loss"
-                                        value="{{ old('net_profit_loss', $campRecord->net_profit_loss) }}" step="0.01"
-                                        readonly
-                                        class="w-full h-14 pl-8 pr-4 bg-transparent border-0 text-3xl focus:ring-0 outline-none font-mono font-black"
-                                        tabindex="-1">
-                                </div>
-                                <p class="text-[10px] font-medium text-slate-400" id="net_helper_text">Calculated: Profit -
-                                    Expenses</p>
+                        <div
+                            class="fin-card bg-gradient-to-br from-red-50 to-rose-50/50 dark:from-red-500/10 dark:to-red-500/5 border border-red-200/60 dark:border-red-500/15">
+                            <div class="fin-label">
+                                <span class="fin-dot bg-red-500 shadow-lg shadow-red-500/30"></span>
+                                <span class="fin-title text-red-700 dark:text-red-400">Camp Expenses</span>
+                                <span
+                                    class="ml-auto px-1.5 py-0.5 rounded-md text-[8px] font-black tracking-wider bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400">AUTO</span>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-red-500 font-extrabold text-xl">₹</span>
+                                <input type="number" name="expenses" id="expenses"
+                                    value="{{ old('expenses', $campRecord->expenses) }}" step="0.01" min="0" readonly
+                                    tabindex="-1" class="text-red-700 dark:text-red-300 cursor-default" placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <div class="fin-card net-card bg-slate-50/80 dark:bg-white/[0.03]">
+                            <div class="fin-label">
+                                <span class="fin-title text-slate-500">Net Profit / Loss</span>
+                                <span
+                                    class="px-1.5 py-0.5 rounded-md text-[8px] font-black tracking-wider bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-500/20 dark:to-purple-500/20 text-indigo-600 dark:text-indigo-400">AUTO</span>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="font-extrabold text-xl text-slate-400 transition-colors duration-500"
+                                    id="net_sign">₹</span>
+                                <input type="number" name="net_profit_loss" id="net_profit_loss"
+                                    value="{{ old('net_profit_loss', $campRecord->net_profit_loss) }}" step="0.01" readonly
+                                    class="text-slate-800 dark:text-white transition-colors duration-500" tabindex="-1"
+                                    placeholder="—">
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Form Actions -->
-                <div
-                    class="flex flex-col sm:flex-row items-center justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-8 border-t border-slate-100 dark:border-white/5">
-                    <a href="{{ route('camp_records.index') }}"
-                        class="w-full sm:w-auto px-6 py-3.5 text-center text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
-                        Cancel Updates
-                    </a>
-                    <button type="submit"
-                        class="w-full sm:w-auto px-10 py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-white rounded-xl text-sm font-black tracking-wide shadow-xl shadow-slate-900/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
-                        <svg class="w-5 h-5 -ml-1 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>Update Record</span>
-                    </button>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            {{-- ═══ ACTION BAR ═══ --}}
+            <div class="flex items-center justify-between pt-3 reveal reveal-d5">
+                <a href="{{ route('camp_records.index') }}"
+                    class="px-5 py-2.5 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
+                    <i class="fas fa-xmark text-xs mr-1.5 opacity-60"></i> Cancel
+                </a>
+                <button type="submit" class="btn-premium">
+                    <span>Update Record</span>
+                    <i class="fas fa-arrow-right text-xs opacity-80"></i>
+                </button>
+            </div>
+
+        </form>
     </div>
 
+    {{-- ═══ SCRIPTS ═══ --}}
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const profitInput = document.getElementById('profit');
-            const expensesInput = document.getElementById('expenses');
-            const netInput = document.getElementById('net_profit_loss');
-            const netSymbol = document.getElementById('net_currency_symbol');
+            new TomSelect('#rm_select', {
+                create: true,
+                placeholder: "Search by name, phone or HF ID...",
+                allowEmptyOption: true,
+                maxOptions: 50,
+                searchField: ['text', 'phone', 'hfid'],
+                render: {
+                    option: function (data, escape) {
+                        return `<div class="py-2 px-2">
+                                                                                            <div class="font-semibold text-sm text-slate-800 dark:text-white">${escape(data.text)}</div>
+                                                                                            <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+                                                                                                <span><i class="fas fa-id-badge mr-1"></i>${escape(data.hfid)}</span>
+                                                                                                <span><i class="fas fa-phone mr-1"></i>${escape(data.phone)}</span>
+                                                                                            </div>
+                                                                                        </div>`;
+                    },
+                    item: function (data, escape) {
+                        return `<div class="text-sm font-medium">${escape(data.text)}</div>`;
+                    }
+                }
+            });
 
-            function calculateNet() {
-                const profit = parseFloat(profitInput.value) || 0;
-                const expenses = parseFloat(expensesInput.value) || 0;
-                const net = profit - expenses;
+            // Calculations — defined BEFORE pre-population so calc() is available during addExpenseRow callbacks
+            const mrpEl = document.getElementById('medicine_mrp');
+            const discPrizeEl = document.getElementById('medicine_discount');
+            const totalDiscEl = document.getElementById('total_discount');
+            const buyingPercEl = document.getElementById('buying_percentage');
 
-                // Format number nicely, removing negative sign since we'll handle colors
-                netInput.value = Math.abs(net).toFixed(2);
+            const profitEl = document.getElementById('profit');
+            const expensesEl = document.getElementById('expenses');
+            const netEl = document.getElementById('net_profit_loss');
+            const signEl = document.getElementById('net_sign');
 
-                if (net >= 0) {
-                    // Profit Mode
-                    netInput.classList.remove('text-red-500', 'dark:text-red-400');
-                    netInput.classList.add('text-emerald-600', 'dark:text-emerald-400');
-                    netSymbol.classList.remove('text-red-500', 'text-slate-400');
-                    netSymbol.classList.add('text-emerald-600');
-                    netSymbol.innerText = '+₹';
+            function calc() {
+                const mrp = parseFloat(mrpEl.value) || 0;
+                const dPrize = parseFloat(discPrizeEl.value) || 0;
+                const bPerc = parseFloat(buyingPercEl.value) || 0;
+
+                // 1. Total Discount = MRP - Discounted Prize
+                totalDiscEl.value = Math.max(0, mrp - dPrize).toFixed(2);
+
+                // 2. Gross Profit = MRP - (MRP * Buying%)
+                const cost = mrp * (bPerc / 100);
+                const grossProfit = Math.max(0, mrp - cost);
+                profitEl.value = grossProfit.toFixed(2);
+
+                // 3. Detailed Expenses Summation
+                let totalExp = 0;
+                document.querySelectorAll('.expense-amount').forEach(input => {
+                    totalExp += parseFloat(input.value) || 0;
+                });
+                expensesEl.value = totalExp.toFixed(2);
+
+                // 4. Net Profit = Gross Profit - Total Expenses
+                const n = grossProfit - totalExp;
+
+                if (n >= 0) {
+                    netEl.value = n.toFixed(2);
+                    netEl.style.color = '#059669';
+                    signEl.style.color = '#059669';
+                    signEl.textContent = '+₹';
                 } else {
-                    // Loss Mode
-                    netInput.classList.remove('text-emerald-600', 'dark:text-emerald-400');
-                    netInput.classList.add('text-red-500', 'dark:text-red-400');
-                    netSymbol.classList.remove('text-emerald-600', 'text-slate-400');
-                    netSymbol.classList.add('text-red-500');
-                    netSymbol.innerText = '-₹';
+                    netEl.value = Math.abs(n).toFixed(2);
+                    netEl.style.color = '#dc2626';
+                    signEl.style.color = '#dc2626';
+                    signEl.textContent = '-₹';
                 }
             }
 
-            profitInput.addEventListener('input', calculateNet);
-            expensesInput.addEventListener('input', calculateNet);
+            // --- Dynamic Expenses Logic ---
+            const container = document.getElementById('expense_rows_container');
+            const template = document.getElementById('expense_row_template');
+            const addButton = document.getElementById('add_expense_row');
+            let rowCount = 0;
 
-            // Initial calculation
-            calculateNet();
+            function addExpenseRow(data = null) {
+                const html = template.innerHTML.replace(/{index}/g, rowCount++);
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                const row = div.firstElementChild;
+                container.appendChild(row);
+
+                const select = row.querySelector('.expense-category-select');
+                const amountInput = row.querySelector('.expense-amount');
+                const otherContainer = row.querySelector('.other-note-container');
+                const otherInput = row.querySelector('.other-note-input');
+
+                // Initialize TomSelect
+                const ts = new TomSelect(select, {
+                    create: false,
+                    placeholder: "Select Category...",
+                    onChange: function (value) {
+                        if (value === 'Other') {
+                            otherContainer.classList.remove('hidden');
+                            otherInput.required = true;
+                            otherInput.focus();
+                        } else {
+                            otherContainer.classList.add('hidden');
+                            otherInput.required = false;
+                            otherInput.value = '';
+                        }
+                        calc();
+                    }
+                });
+
+                if (data) {
+                    ts.setValue(data.category || '');
+                    amountInput.value = data.amount || '';
+                    if (data.category === 'Other') {
+                        otherContainer.classList.remove('hidden');
+                        otherInput.value = data.note || '';
+                        otherInput.required = true;
+                    }
+                }
+
+                // Add listeners to new inputs
+                amountInput.addEventListener('input', calc);
+                row.querySelector('.remove-expense-row').addEventListener('click', () => {
+                    ts.destroy();
+                    row.remove();
+                    calc();
+                });
+            }
+
+            addButton.addEventListener('click', () => addExpenseRow());
+
+            // Pre-populate existing rows
+            const existingDetails = @json($campRecord->expense_details ?? []);
+            if (existingDetails && existingDetails.length > 0) {
+                existingDetails.forEach(detail => addExpenseRow(detail));
+            } else {
+                addExpenseRow();
+            }
+
+            mrpEl.addEventListener('input', calc);
+            discPrizeEl.addEventListener('input', calc);
+            buyingPercEl.addEventListener('input', calc);
+            // Run initial calc after everything is populated
+            calc();
         });
     </script>
 @endsection
