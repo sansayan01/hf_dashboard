@@ -39,49 +39,55 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Attendance is locked and cannot be modified.'], 403);
         }
 
-        if (!$attendance) {
-            $attendance = new Attendance();
-            $attendance->user_id = $user->id;
-            $attendance->date = $attendanceDate->startOfDay();
-        }
-
-        // 3. Mark logic
-        $attendance->marked_by = $effectiveUser->id;
-        $attendance->status = $request->status;
-
-        if ($request->status === 'present') {
-            /** @var IncentiveConfig|null $config */
-            $config = $user->getCurrentIncentive($attendance->date);
-            if ($config) {
-                $attendance->incentive_amount = $config->incentive_amount;
-                // DAB mode users don't get fixed TA; their ta_amount comes from appointment completions
-                $attendance->ta_amount = $user->isDabMode() ? 0 : $config->ta_amount;
-            } else {
-                $attendance->incentive_amount = $attendance->incentive_amount ?? 0;
-                $attendance->ta_amount = $user->isDabMode() ? 0 : ($attendance->ta_amount ?? 0);
+        try {
+            if (!$attendance) {
+                $attendance = new Attendance();
+                $attendance->user_id = $user->id;
+                $attendance->date = $attendanceDate->startOfDay();
             }
 
-            // Explicitly preserve or initialize activity amounts
-            $attendance->medicines_amount = $attendance->medicines_amount ?? 0;
-            $attendance->pathology_amount = $attendance->pathology_amount ?? 0;
-            $attendance->membership_amount = $attendance->membership_amount ?? 0;
-            $attendance->ots_amount = $attendance->ots_amount ?? 0;
-        } else {
-            // Reset amounts if marking as absent
-            $attendance->incentive_amount = 0;
-            $attendance->ta_amount = 0;
-            $attendance->medicines_amount = 0;
-            $attendance->pathology_amount = 0;
-            $attendance->membership_amount = 0;
-            $attendance->ots_amount = 0;
+            // 3. Mark logic
+            $attendance->marked_by = $effectiveUser->id;
+            $attendance->status = $request->status;
+
+            if ($request->status === 'present') {
+                /** @var IncentiveConfig|null $config */
+                $config = $user->getCurrentIncentive($attendance->date);
+                if ($config) {
+                    $attendance->incentive_amount = $config->incentive_amount;
+                    // DAB mode users don't get fixed TA; their ta_amount comes from appointment completions
+                    $attendance->ta_amount = $user->isDabMode() ? 0 : $config->ta_amount;
+                } else {
+                    $attendance->incentive_amount = $attendance->incentive_amount ?? 0;
+                    $attendance->ta_amount = $user->isDabMode() ? 0 : ($attendance->ta_amount ?? 0);
+                }
+
+                // Explicitly preserve or initialize activity amounts
+                $attendance->medicines_amount = $attendance->medicines_amount ?? 0;
+                $attendance->pathology_amount = $attendance->pathology_amount ?? 0;
+                $attendance->membership_amount = $attendance->membership_amount ?? 0;
+                $attendance->ots_amount = $attendance->ots_amount ?? 0;
+            } else {
+                // Reset amounts if marking as absent
+                $attendance->incentive_amount = 0;
+                $attendance->ta_amount = 0;
+                $attendance->medicines_amount = 0;
+                $attendance->pathology_amount = 0;
+                $attendance->membership_amount = 0;
+                $attendance->ots_amount = 0;
+            }
+
+            $attendance->save();
+
+            return response()->json([
+                'message' => 'Attendance marked successfully',
+                'attendance' => $attendance
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'System Error: ' . $e->getMessage() . ' at line ' . $e->getLine()
+            ], 500);
         }
-
-        $attendance->save();
-
-        return response()->json([
-            'message' => 'Attendance marked successfully',
-            'attendance' => $attendance
-        ]);
     }
 
     public function index()
