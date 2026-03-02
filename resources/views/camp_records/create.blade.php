@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ═══════════════════════════════════════════
-                                                           ULTRA-PREMIUM DESIGN SYSTEM
-                                                           ═══════════════════════════════════════════ */
+                                                               ULTRA-PREMIUM DESIGN SYSTEM
+                                                               ═══════════════════════════════════════════ */
 
         /* ── Animated Mesh Background ── */
         .mesh-bg {
@@ -953,12 +953,12 @@
                 render: {
                     option: function (data, escape) {
                         return `<div class="py-2 px-2">
-                                                                                    <div class="font-semibold text-sm text-slate-800 dark:text-white">${escape(data.text)}</div>
-                                                                                    <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
-                                                                                        <span><i class="fas fa-id-badge mr-1"></i>${escape(data.hfid)}</span>
-                                                                                        <span><i class="fas fa-phone mr-1"></i>${escape(data.phone)}</span>
-                                                                                    </div>
-                                                                                </div>`;
+                                                                                        <div class="font-semibold text-sm text-slate-800 dark:text-white">${escape(data.text)}</div>
+                                                                                        <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+                                                                                            <span><i class="fas fa-id-badge mr-1"></i>${escape(data.hfid)}</span>
+                                                                                            <span><i class="fas fa-phone mr-1"></i>${escape(data.phone)}</span>
+                                                                                        </div>
+                                                                                    </div>`;
                     },
                     item: function (data, escape) {
                         return `<div class="text-sm font-medium">${escape(data.text)}</div>`;
@@ -1031,9 +1031,9 @@
                 // 1. Total Discount = MRP - Discounted Prize
                 totalDiscEl.value = Math.max(0, mrp - dPrize).toFixed(2);
 
-                // 2. Gross Profit = MRP - (MRP * Buying%)
+                // 2. Gross Profit = Discounted Prize - (MRP * Buying%)
                 const cost = mrp * (bPerc / 100);
-                const grossProfit = Math.max(0, mrp - cost);
+                const grossProfit = dPrize - cost;
                 profitEl.value = grossProfit.toFixed(2);
 
                 // 3. Detailed Expenses Summation
