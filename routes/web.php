@@ -246,6 +246,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // Finances Hub
     Route::get('finances', [App\Http\Controllers\FinancesController::class, 'index'])->name('finances.index');
     Route::get('camp_records/export', [App\Http\Controllers\CampRecordController::class, 'export'])->name('camp_records.export');
+    Route::get('camp_records/{camp_record}/pdf', [App\Http\Controllers\CampRecordController::class, 'exportPdf'])->name('camp_records.pdf');
     Route::resource('camp_records', App\Http\Controllers\CampRecordController::class);
 
     // Coupon Code Management (Super Admin Only)

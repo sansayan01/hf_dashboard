@@ -140,7 +140,21 @@ class CampRecordController extends Controller
             fclose($file);
         };
 
-        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportPdf(Request $request, CampRecord $campRecord)
+    {
+        $this->authorizeSuperAdmin();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('camp_records.pdf', compact('campRecord'));
+
+        $filename = 'camp_record_' . $campRecord->id . '_' . now()->format('Ymd_His') . '.pdf';
+
+        if ($request->has('preview')) {
+            return $pdf->stream($filename);
+        }
+
+        return $pdf->download($filename);
     }
 
     public function create()
