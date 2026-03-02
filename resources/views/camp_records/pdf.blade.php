@@ -149,7 +149,7 @@
 </head>
 <body>
     <img src="{{ public_path('img/hf_gold_logo.png') }}" class="watermark">
-    <img src="{{ public_path('img/secretary_stamp.png') }}" class="stamp">
+    <img src="{{ public_path('img/foundation_stamp.png') }}" class="stamp">
 
     <div class="header">
         <h1>Humanity Foundation</h1>
