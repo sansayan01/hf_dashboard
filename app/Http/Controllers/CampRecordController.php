@@ -173,6 +173,26 @@ class CampRecordController extends Controller
             'net_profit_loss' => 'nullable|numeric',
         ]);
 
+        // Server-side recalculation for data integrity
+        $mrp = floatval($validated['medicine_mrp'] ?? 0);
+        $dPrize = floatval($validated['medicine_discount'] ?? 0);
+        $bPerc = floatval($validated['buying_percentage'] ?? 0);
+
+        $validated['total_discount'] = max(0, $mrp - $dPrize);
+        $cost = $mrp * ($bPerc / 100);
+        $grossProfit = $dPrize - $cost;
+        $validated['profit'] = round($grossProfit, 2);
+
+        // Sum expense details
+        $totalExpenses = 0;
+        if (!empty($validated['expense_details']) && is_array($validated['expense_details'])) {
+            foreach ($validated['expense_details'] as $detail) {
+                $totalExpenses += floatval($detail['amount'] ?? 0);
+            }
+        }
+        $validated['expenses'] = round($totalExpenses, 2);
+        $validated['net_profit_loss'] = round($grossProfit - $totalExpenses, 2);
+
         CampRecord::create($validated);
 
         return redirect()->route('camp_records.index')
@@ -208,6 +228,26 @@ class CampRecordController extends Controller
             'expense_details' => 'nullable|array',
             'net_profit_loss' => 'nullable|numeric',
         ]);
+
+        // Server-side recalculation for data integrity
+        $mrp = floatval($validated['medicine_mrp'] ?? 0);
+        $dPrize = floatval($validated['medicine_discount'] ?? 0);
+        $bPerc = floatval($validated['buying_percentage'] ?? 0);
+
+        $validated['total_discount'] = max(0, $mrp - $dPrize);
+        $cost = $mrp * ($bPerc / 100);
+        $grossProfit = $dPrize - $cost;
+        $validated['profit'] = round($grossProfit, 2);
+
+        // Sum expense details
+        $totalExpenses = 0;
+        if (!empty($validated['expense_details']) && is_array($validated['expense_details'])) {
+            foreach ($validated['expense_details'] as $detail) {
+                $totalExpenses += floatval($detail['amount'] ?? 0);
+            }
+        }
+        $validated['expenses'] = round($totalExpenses, 2);
+        $validated['net_profit_loss'] = round($grossProfit - $totalExpenses, 2);
 
         $campRecord->update($validated);
 

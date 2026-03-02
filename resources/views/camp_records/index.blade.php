@@ -68,7 +68,7 @@
                                 <div class="text-[10px] text-white/50 font-bold uppercase tracking-wider">Net Profit Total
                                 </div>
                                 <div class="text-xl font-black text-white leading-none mt-0.5">
-                                    ₹{{ number_format($records->sum('net_profit_loss'), 0) }}</div>
+                                    ₹{{ number_format($records->sum('profit') - $records->sum('expenses'), 0) }}</div>
                             </div>
                         </div>
                     </div>
@@ -424,11 +424,12 @@
                                     </td>
 
                                     <td class="p-5 align-middle text-right">
-                                        @if($record->net_profit_loss >= 0)
+                                        @php $actualNetPL = ($record->profit ?? 0) - ($record->expenses ?? 0); @endphp
+                                        @if($actualNetPL >= 0)
                                             <div class="inline-flex flex-col items-end">
                                                 <span
                                                     class="inline-flex items-center px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm font-black border border-emerald-500/20 font-mono shadow-sm">
-                                                    +{{ number_format($record->net_profit_loss, 2) }}
+                                                    +{{ number_format($actualNetPL, 2) }}
                                                 </span>
                                                 <span
                                                     class="text-[9px] font-bold text-emerald-500/70 uppercase tracking-widest mt-1">Profit</span>
@@ -437,7 +438,7 @@
                                             <div class="inline-flex flex-col items-end">
                                                 <span
                                                     class="inline-flex items-center px-3 py-1 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg text-sm font-black border border-red-500/20 font-mono shadow-sm">
-                                                    -{{ number_format(abs($record->net_profit_loss), 2) }}
+                                                    {{ number_format($actualNetPL, 2) }}
                                                 </span>
                                                 <span
                                                     class="text-[9px] font-bold text-red-500/70 uppercase tracking-widest mt-1">Loss</span>

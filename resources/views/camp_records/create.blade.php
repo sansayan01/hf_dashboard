@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ═══════════════════════════════════════════
-                                                               ULTRA-PREMIUM DESIGN SYSTEM
-                                                               ═══════════════════════════════════════════ */
+                                                                       ULTRA-PREMIUM DESIGN SYSTEM
+                                                                       ═══════════════════════════════════════════ */
 
         /* ── Animated Mesh Background ── */
         .mesh-bg {
@@ -913,10 +913,12 @@
                             <div class="flex items-baseline gap-1">
                                 <span class="font-extrabold text-xl text-slate-400 transition-colors duration-500"
                                     id="net_sign">₹</span>
-                                <input type="number" name="net_profit_loss" id="net_profit_loss"
-                                    value="{{ old('net_profit_loss') }}" step="0.01" readonly
-                                    class="text-slate-800 dark:text-white transition-colors duration-500" tabindex="-1"
-                                    placeholder="—">
+                                <input type="number" id="net_profit_loss_display"
+                                    value="{{ old('net_profit_loss') ? abs(old('net_profit_loss')) : '' }}" step="0.01"
+                                    readonly class="text-slate-800 dark:text-white transition-colors duration-500"
+                                    tabindex="-1" placeholder="—">
+                                <input type="hidden" name="net_profit_loss" id="net_profit_loss"
+                                    value="{{ old('net_profit_loss') }}">
                             </div>
                         </div>
                     </div>
@@ -953,12 +955,12 @@
                 render: {
                     option: function (data, escape) {
                         return `<div class="py-2 px-2">
-                                                                                        <div class="font-semibold text-sm text-slate-800 dark:text-white">${escape(data.text)}</div>
-                                                                                        <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
-                                                                                            <span><i class="fas fa-id-badge mr-1"></i>${escape(data.hfid)}</span>
-                                                                                            <span><i class="fas fa-phone mr-1"></i>${escape(data.phone)}</span>
-                                                                                        </div>
-                                                                                    </div>`;
+                                                                                                <div class="font-semibold text-sm text-slate-800 dark:text-white">${escape(data.text)}</div>
+                                                                                                <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+                                                                                                    <span><i class="fas fa-id-badge mr-1"></i>${escape(data.hfid)}</span>
+                                                                                                    <span><i class="fas fa-phone mr-1"></i>${escape(data.phone)}</span>
+                                                                                                </div>
+                                                                                            </div>`;
                     },
                     item: function (data, escape) {
                         return `<div class="text-sm font-medium">${escape(data.text)}</div>`;
@@ -1021,6 +1023,7 @@
             const profitEl = document.getElementById('profit');
             const expensesEl = document.getElementById('expenses');
             const netEl = document.getElementById('net_profit_loss');
+            const netDisplayEl = document.getElementById('net_profit_loss_display');
             const signEl = document.getElementById('net_sign');
 
             function calc() {
@@ -1045,15 +1048,16 @@
 
                 // 4. Net Profit = Gross Profit - Total Expenses
                 const n = grossProfit - totalExp;
+                netEl.value = n.toFixed(2);
 
                 if (n >= 0) {
-                    netEl.value = n.toFixed(2);
-                    netEl.style.color = '#059669';
+                    netDisplayEl.value = n.toFixed(2);
+                    netDisplayEl.style.color = '#059669';
                     signEl.style.color = '#059669';
                     signEl.textContent = '+₹';
                 } else {
-                    netEl.value = Math.abs(n).toFixed(2);
-                    netEl.style.color = '#dc2626';
+                    netDisplayEl.value = Math.abs(n).toFixed(2);
+                    netDisplayEl.style.color = '#dc2626';
                     signEl.style.color = '#dc2626';
                     signEl.textContent = '-₹';
                 }
