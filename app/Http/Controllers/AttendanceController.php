@@ -19,23 +19,27 @@ class AttendanceController extends Controller
         ]);
 
         $user = User::findOrFail($request->user_id);
+        $isMarkableRole = $user->isRO() || $user->isRM() || $user->isBM() || $user->isDM();
+
+        // Field staff (RO, RM, BM, DM) need attendance tracking if on TAB mode
+        if (!$isMarkableRole) {
+            return response()->json(['message' => 'Attendance is only required for Field Staff (RO, RM, BM, DM).'], 400);
+        }
         $effectiveUser = User::getEffectiveUser();
 
-        // 1. Permission check: Only SuperAdmin can modify attendance
-        if (!$effectiveUser->isSuperAdmin()) {
-            return response()->json(['message' => 'Unauthorized. Only Super Admin can modify attendance.'], 403);
+        // 1. Permission check: SuperAdmin or anyone who can access/view the user in their team
+        if (!$effectiveUser->isSuperAdmin() && !$effectiveUser->canAccess($user)) {
+            return response()->json(['message' => 'Unauthorized. You do not have permission to modify this attendance.'], 403);
         }
 
         // 2. Lock logic: SuperAdmin can always edit. 
-        // Direct manager (parent) can edit/mark even for past days if it's within a reasonable window (or always as per user request).
         $attendanceDate = Carbon::parse($request->date);
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $attendanceDate->format('Y-m-d'))
             ->first();
 
-        // If it's locked and not SuperAdmin, check if it's the parent. 
-        // User wants RMs to be able to mark later.
-        if ($attendance && $attendance->isLocked() && !$effectiveUser->isSuperAdmin() && $effectiveUser->id !== $user->parent_id) {
+        // If it's locked and not SuperAdmin, check if the effective user has access.
+        if ($attendance && $attendance->isLocked() && !$effectiveUser->isSuperAdmin() && !$effectiveUser->canAccess($user)) {
             return response()->json(['message' => 'Attendance is locked and cannot be modified.'], 403);
         }
 
@@ -101,13 +105,25 @@ class AttendanceController extends Controller
     {
         $effectiveUser = User::getEffectiveUser();
 
-        // RM sees their ROs (only TAB mode users)
+        // RMs and SuperAdmins only mark attendance for ROs (who are in TAB mode)
+        // Note: TAB mode is defined as anything NOT 'dab'.
         if ($effectiveUser->isSuperAdmin()) {
             $ros = User::where('designation', 'ro')
-                ->where('salary_mode', 'tab')
+                ->where('salary_mode', '!=', 'dab')
+                ->active()
                 ->get();
         } else {
-            abort(403, 'Unauthorized. Only Super Admin can access this page.');
+            // Get all visible downline IDs and filter for ROs in TAB mode
+            $visibleIds = $effectiveUser->getDataVisibilityIds();
+            $ros = User::whereIn('id', $visibleIds)
+                ->where('designation', 'ro')
+                ->where('salary_mode', '!=', 'dab')
+                ->active()
+                ->get();
+
+            if ($ros->isEmpty() && !$effectiveUser->canViewDownline()) {
+                abort(403, 'Unauthorized. You do not have permission to access attendance marking.');
+            }
         }
 
         return view('attendance.mark', compact('ros'));

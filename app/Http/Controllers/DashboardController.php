@@ -138,23 +138,18 @@ class DashboardController extends Controller
 
         $salaryMode = $user->salary_mode ?? 'tab';
 
-        // Requirement: TA based dashboard should be only visible for the RO. TA is not for the RM, BM, DM.
-        // Therefore, if the user is in TAB mode and is not an RO, we hide the earnings section completely.
-        if ($salaryMode === 'tab' && $user->designation !== 'ro') {
-            return null;
-        }
+
 
         $monthStart = now()->startOfMonth();
         $earningsData = \App\Models\Attendance::where('user_id', $user->id)
             ->where('date', '>=', $monthStart)
             ->selectRaw("
                 SUM(ta_amount) as monthly_ta,
-                SUM(incentive_amount) as monthly_incentive_base,
                 SUM(medicines_amount) as monthly_medicines,
                 SUM(pathology_amount) as monthly_pathology,
                 SUM(membership_amount) as monthly_membership,
                 SUM(ots_amount) as monthly_ots,
-                SUM(incentive_amount + medicines_amount + pathology_amount + membership_amount + ots_amount) as monthly_incentives,
+                SUM(medicines_amount + pathology_amount + membership_amount + ots_amount) as monthly_incentives,
                 SUM(total_amount) as monthly_total
             ")
             ->first();
@@ -213,7 +208,7 @@ class DashboardController extends Controller
             $todayBase = $isTodayPresent ? $taRate : 0;
         }
 
-        $todayIncentives = $todayEarnings ? ($todayEarnings->incentive_amount + $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount) : 0;
+        $todayIncentives = $todayEarnings ? ($todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount) : 0;
 
         $todayTotal = $todayBase + $todayIncentives;
 
@@ -223,7 +218,6 @@ class DashboardController extends Controller
             'monthly_incentives' => $earningsData->monthly_incentives ?? 0,
             'monthly_breakdown' => [
                 'ta' => $monthlyBase,
-                'base_incentive' => $earningsData->monthly_incentive_base ?? 0,
                 'medicines' => $earningsData->monthly_medicines ?? 0,
                 'pathology' => $earningsData->monthly_pathology ?? 0,
                 'membership' => $earningsData->monthly_membership ?? 0,

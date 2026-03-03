@@ -55,7 +55,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
         </li>
     <?php endif; ?>
 
-    <?php if($effectiveUser->isSuperAdmin()): ?>
+    <?php if($effectiveUser->isRO()): ?>
         <li>
             <a href="<?php echo e(route('attendance.dashboard')); ?>"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e(request()->is('attendance*') ? 'bg-accent text-white shadow-lg' : ''); ?>">

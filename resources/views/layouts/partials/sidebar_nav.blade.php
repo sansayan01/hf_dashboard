@@ -55,7 +55,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
         </li>
     @endif
 
-    @if($effectiveUser->isSuperAdmin())
+    @if($effectiveUser->isRO())
         <li>
             <a href="{{ route('attendance.dashboard') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->is('attendance*') ? 'bg-accent text-white shadow-lg' : '' }}">

@@ -121,7 +121,11 @@
 
     <!-- Earnings Overview (RO, RM, BM, DM) -->
     <?php if(isset($earnings) && $earnings): ?>
-        <div class="grid grid-cols-1 <?php echo e($user->isRO() ? 'md:grid-cols-3' : 'md:grid-cols-2'); ?> gap-2 md:gap-6 mb-8">
+        <?php
+            $isDab = ($earnings['salary_mode'] ?? 'tab') === 'dab' && isset($earnings['dab']);
+            $showTA = $user->isRO() && ($earnings['salary_mode'] ?? 'tab') === 'tab';
+        ?>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 mb-8">
             <!-- Monthly Earning -->
             <div
                 class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
@@ -140,41 +144,54 @@
 
                         </div>
                         <span
-                            class="text-[10px] font-black text-blue-500 bg-blue-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Monthly</span>
+                            class="text-[10px] font-black text-blue-500 bg-blue-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Analytics</span>
                     </div>
                 </div>
-                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Earnings</h3>
+                <h3 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Monthly Total Earnings</h3>
                 <p class="text-3xl font-black text-slate-800 dark:text-white" data-live-sync="earnings.monthly_total">
                     ₹<?php echo e(number_format($earnings['monthly_total'], 2)); ?>
 
                 </p>
-                <div class="mt-4 grid grid-cols-2 gap-y-2 text-[10px] font-bold uppercase tracking-tight">
-                    <div class="flex items-center text-slate-500">
-                        <div class="w-2 h-2 rounded-full bg-slate-300 mr-1.5"></div>
-                        <span
-                            data-live-sync="earnings.monthly_ta"><?php echo e(($earnings['salary_mode'] ?? 'tab') === 'dab' ? 'SERVICE' : 'TA'); ?>:
-                            ₹<?php echo e(number_format($earnings['monthly_breakdown']['ta'], 2)); ?></span>
-                    </div>
+                <div class="mt-2 flex items-center space-x-2">
+                    <span
+                        class="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">Today:
+                        ₹<?php echo e(number_format($earnings['today_total'], 2)); ?></span>
+                </div>
+
+                <div class="mt-4 grid grid-cols-2 gap-y-2 text-[9px] font-bold uppercase tracking-tight">
+                    <?php if($showTA || $isDab): ?>
+                        <div class="flex items-center text-slate-500">
+                            <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mr-1.5"></div>
+                            <span
+                                data-live-sync="earnings.monthly_ta"><?php echo e(($earnings['salary_mode'] ?? 'tab') === 'dab' ? 'DA' : 'TA'); ?>:
+                                ₹<?php echo e(number_format($earnings['monthly_breakdown']['ta'], 2)); ?></span>
+                        </div>
+                    <?php endif; ?>
                     <div class="flex items-center text-emerald-500">
-                        <div class="w-2 h-2 rounded-full bg-emerald-500/40 mr-1.5"></div>
-                        <span data-live-sync="earnings.monthly_medicines">M:
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mr-1.5"></div>
+                        <span data-live-sync="earnings.monthly_medicines">Med:
                             ₹<?php echo e(number_format($earnings['monthly_breakdown']['medicines'], 2)); ?></span>
                     </div>
                     <div class="flex items-center text-purple-500">
-                        <div class="w-2 h-2 rounded-full bg-purple-500/40 mr-1.5"></div>
-                        <span data-live-sync="earnings.monthly_pathology">P:
+                        <div class="w-1.5 h-1.5 rounded-full bg-purple-500/40 mr-1.5"></div>
+                        <span data-live-sync="earnings.monthly_pathology">Path:
                             ₹<?php echo e(number_format($earnings['monthly_breakdown']['pathology'], 2)); ?></span>
                     </div>
                     <div class="flex items-center text-amber-500">
-                        <div class="w-2 h-2 rounded-full bg-amber-500/40 mr-1.5"></div>
-                        <span data-live-sync="earnings.monthly_membership">MB:
+                        <div class="w-1.5 h-1.5 rounded-full bg-amber-500/40 mr-1.5"></div>
+                        <span data-live-sync="earnings.monthly_membership">Mem:
                             ₹<?php echo e(number_format($earnings['monthly_breakdown']['membership'], 2)); ?></span>
+                    </div>
+                    <div class="flex items-center text-rose-400">
+                        <div class="w-1.5 h-1.5 rounded-full bg-rose-400/40 mr-1.5"></div>
+                        <span data-live-sync="earnings.monthly_ots">OTs:
+                            ₹<?php echo e(number_format($earnings['monthly_breakdown']['ots'], 2)); ?></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Monthly TA / DAB Earnings -->
-            <?php if(($earnings['salary_mode'] ?? 'tab') === 'dab' && isset($earnings['dab'])): ?>
+            <!-- Dynamic Box 2 -->
+            <?php if($isDab): ?>
                 
                 <div
                     class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
@@ -190,14 +207,16 @@
                         <span
                             class="text-[10px] font-black text-violet-500 bg-violet-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Monthly</span>
                     </div>
-                    <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Monthly Earnings</h3>
+                    <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Service Earnings</h3>
                     <p class="text-3xl font-black text-slate-800 dark:text-white" data-live-sync="earnings.dab_earnings">
                         ₹<?php echo e(number_format($earnings['dab']['earnings'], 2)); ?>
 
                     </p>
+                    <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest"><?php echo e($earnings['dab']['count']); ?>
 
+                        Successful Appointments</p>
                 </div>
-            <?php else: ?>
+            <?php elseif($showTA): ?>
                 
                 <div
                     class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
@@ -213,7 +232,7 @@
                         <span
                             class="text-[10px] font-black text-emerald-500 bg-emerald-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Monthly</span>
                     </div>
-                    <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">TA</h3>
+                    <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Travel Allowance</h3>
                     <p class="text-3xl font-black text-slate-800 dark:text-white" data-live-sync="earnings.monthly_ta">
                         ₹<?php echo e(number_format($earnings['monthly_ta'], 2)); ?>
 
@@ -222,7 +241,35 @@
                         <div class="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
                             <div class="bg-emerald-500 h-full rounded-full" style="width: 100%"></div>
                         </div>
-                        <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">Travel Allowance Summary</p>
+                        <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">Fixed Daily Allowance Basis
+                        </p>
+                    </div>
+                </div>
+            <?php else: ?>
+                
+                <div
+                    class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full -mr-4 -mt-4 blur-xl"></div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div
+                            class="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                        <span
+                            class="text-[10px] font-black text-emerald-500 bg-emerald-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Today</span>
+                    </div>
+                    <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Today's Earnings</h3>
+                    <p class="text-3xl font-black text-slate-800 dark:text-white" data-live-sync="earnings.today_total">
+                        ₹<?php echo e(number_format($earnings['today_total'], 2)); ?>
+
+                    </p>
+                    <div class="mt-4 grid grid-cols-2 gap-1 text-[9px] font-bold uppercase tracking-tight text-slate-500">
+                        <span>Med: ₹<?php echo e(number_format($earnings['today_breakdown']['medicines'], 2)); ?></span>
+                        <span>Path: ₹<?php echo e(number_format($earnings['today_breakdown']['pathology'], 2)); ?></span>
+                        <span>OTs: ₹<?php echo e(number_format($earnings['today_breakdown']['ots'], 2)); ?></span>
                     </div>
                 </div>
             <?php endif; ?>
@@ -242,7 +289,7 @@
                     <span
                         class="text-[10px] font-black text-indigo-500 bg-indigo-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Monthly</span>
                 </div>
-                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Incentives</h3>
+                <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Activity Incentives</h3>
                 <p class="text-3xl font-black text-slate-800 dark:text-white" data-live-sync="earnings.monthly_incentives">
                     ₹<?php echo e(number_format($earnings['monthly_incentives'], 2)); ?></p>
                 <div class="mt-4 grid grid-cols-2 gap-2">

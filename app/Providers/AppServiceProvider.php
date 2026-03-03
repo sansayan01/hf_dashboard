@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Observers for Google Sheets Sync
         \App\Models\User::observe(\App\Observers\GoogleSheetSyncObserver::class);
+        \App\Models\User::observe(\App\Observers\UserHierarchyObserver::class);
         \App\Models\Survey::observe(\App\Observers\GoogleSheetSyncObserver::class);
         \App\Models\Appointment::observe(\App\Observers\GoogleSheetSyncObserver::class);
     }

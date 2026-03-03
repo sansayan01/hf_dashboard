@@ -24,7 +24,7 @@ class UserController extends Controller
         $currentUser = User::getEffectiveUser();
 
         // Base query
-        $query = User::with('profile');
+        $query = User::with(['profile', 'todayAttendance']);
 
         // Hierarchy scoping (only see subordinates)
         if (!$currentUser->isSuperAdmin()) {
@@ -608,20 +608,10 @@ class UserController extends Controller
                 $screenshotPath = $request->file('payment_screenshot')->store('payment_screenshots', 'public');
                 $userData['payment_screenshot'] = $screenshotPath;
 
-                // AI Verification
-                $aiService = app(AIService::class);
-                $expectedAmount = User::getJoiningDonationAmount($designation);
-                $verification = $aiService->verifyPaymentScreenshot(storage_path('app/public/' . $screenshotPath), $expectedAmount);
-
-                if (!$verification['success']) {
-                    // Delete the screenshot if verification fails to avoid clutter
-                    Storage::disk('public')->delete($screenshotPath);
-                    DB::rollBack();
-                    return back()->withInput()->with('error', 'Payment Verification Failed: ' . $verification['message']);
-                }
-
-                $userData['payment_reference'] = $verification['transaction_id'];
-                $userData['payment_status'] = 'completed'; // Mark as completed if AI verified it as a success screen
+                // AI Verification Removed for speed. 
+                // Since the user status defaults to 'pending', the admin will manually verify the uploaded screenshot.
+                $userData['payment_status'] = 'pending';
+                $userData['payment_reference'] = 'Manual Verification Required';
             }
 
             // If creating Office In-Charge, add upline information
@@ -637,24 +627,11 @@ class UserController extends Controller
                 }
             }
 
-            // Determine Account Status: Auto-approve for Admins OR if AI verified the payment
+            // Determine Account Status: 
+            // Force all new user creations to be 'pending' so they must be manually approved by a Super Admin.
             $userData['status'] = 'pending';
-            if ($currentUser->isSuperAdmin() || \App\Models\RolePermission::check($currentUser->designation, 'can_approve_users')) {
-                $userData['status'] = 'active';
-            } elseif (isset($userData['payment_status']) && $userData['payment_status'] === 'completed') {
-                $userData['status'] = 'active';
-            }
 
             $newUser = User::create($userData);
-
-            // If the user was auto-approved, we should send the approval email now
-            if ($newUser->status === 'active') {
-                try {
-                    \Mail::to($newUser->email)->queue(new UserApproved($newUser, $currentUser));
-                } catch (\Exception $e) {
-                    \Log::error('Failed to queue auto-approval email: ' . $e->getMessage());
-                }
-            }
 
             // Mark coupon as used if applied
             if (isset($couponUsed) && $couponUsed && isset($coupon)) {
@@ -698,6 +675,9 @@ class UserController extends Controller
 
             DB::commit();
 
+            // Send email AFTER commit to prevent transaction blocking if email fails/hangs
+            // Removed auto-active email logic since all users are pending now.
+
             return redirect()->route('users.show', $newUser->id)
                 ->with('success', 'Registration Successful! Your account is now under review. Once the administration approves your profile, your account will be activated. You will then receive a formal notification containing your generated Employee ID, secure login password, and official Joining Letter.');
 
@@ -739,8 +719,10 @@ class UserController extends Controller
             abort(403, 'Unauthorized access');
         }
 
+        $isMarkableRole = $user->isRO() || $user->isRM() || $user->isBM() || $user->isDM();
+        $isTabMode = ($user->salary_mode ?? 'tab') === 'tab';
         $attendanceSummary = null;
-        if ($user->isRO() && ($user->salary_mode ?? 'tab') === 'tab' && ($currentUser->isSuperAdmin() || $currentUser->id === $user->parent_id)) {
+        if ($isMarkableRole && $isTabMode && ($currentUser->isSuperAdmin() || $currentUser->id === $user->id || ($currentUser->canAccess($user) && !$currentUser->isRO()))) {
             $attendances = $user->attendances()
                 ->whereMonth('date', now()->month)
                 ->whereYear('date', now()->year)
@@ -1113,9 +1095,17 @@ class UserController extends Controller
             $user->id
         );
 
-        // Send Approval Email (Queued for performance as it generates PDF)
+        // Send Approval Email asynchronously after the HTTP response is sent
+        // This prevents the page from "loading/hanging" while generating the PDF and emailing
         try {
-            Mail::to($user->email)->queue(new UserApproved($user, $currentUser));
+            $mailable = new UserApproved($user, $currentUser);
+            app()->terminating(function () use ($user, $mailable) {
+                try {
+                    \Mail::to($user->email)->send($mailable);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send approval email (Terminating): ' . $e->getMessage());
+                }
+            });
         } catch (\Exception $e) {
             \Log::error('Failed to queue approval email: ' . $e->getMessage());
         }
@@ -1171,6 +1161,7 @@ class UserController extends Controller
                 ]);
 
             // Prepare bulk activity logs (insert all at once)
+            $emailsToSend = [];
             foreach ($accessibleUsers as $user) {
                 /** @var \App\Models\User $user */
                 $activityLogs[] = [
@@ -1184,13 +1175,8 @@ class UserController extends Controller
                     'updated_at' => $now,
                 ];
 
-                // Queue approval emails (non-blocking, processed in background)
-                try {
-                    \Mail::to($user->email)->queue(new UserApproved($user, $currentUser));
-                } catch (\Exception $e) {
-                    \Log::error('Failed to queue bulk approval email for user ' . $user->id . ': ' . $e->getMessage());
-                }
-
+                // Defer email instantiation and sending until after the response is sent
+                $emailsToSend[] = $user;
                 $approvedCount++;
             }
 
@@ -1201,7 +1187,20 @@ class UserController extends Controller
 
             \DB::commit();
 
-            return back()->with('success', "{$approvedCount} members approved successfully and notifications queued.");
+            // Send emails asynchronously after the response is returned to the user
+            if (!empty($emailsToSend)) {
+                app()->terminating(function () use ($emailsToSend, $currentUser) {
+                    foreach ($emailsToSend as $user) {
+                        try {
+                            \Mail::to($user->email)->send(new UserApproved($user, $currentUser));
+                        } catch (\Exception $e) {
+                            \Log::error('Failed to send bulk approval email for user ' . $user->id . ': ' . $e->getMessage());
+                        }
+                    }
+                });
+            }
+
+            return back()->with('success', "{$approvedCount} members approved successfully.");
 
         } catch (\Exception $e) {
             \DB::rollBack();
