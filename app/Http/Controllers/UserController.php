@@ -85,7 +85,7 @@ class UserController extends Controller
         $users = $query->latest()->paginate($limit)->withQueryString();
 
         // Calculate Stats for the top bar (matches Dashboard)
-        $allDownlineIds = $currentUser->getAllDownlineIds();
+        $allDownlineIds = $currentUser->getTeamDownlineIds();
         $stats = [
             'total_downline' => count($allDownlineIds),
             'pending_approvals' => $currentUser->getPendingApprovalsCount(),

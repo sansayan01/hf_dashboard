@@ -21,9 +21,9 @@ class AttendanceController extends Controller
         $user = User::findOrFail($request->user_id);
         $effectiveUser = User::getEffectiveUser();
 
-        // 1. Permission check: Only SuperAdmin or the user's RM (parent) can mark attendance
-        if (!$effectiveUser->isSuperAdmin() && $effectiveUser->id !== $user->parent_id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        // 1. Permission check: Only SuperAdmin can modify attendance
+        if (!$effectiveUser->isSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized. Only Super Admin can modify attendance.'], 403);
         }
 
         // 2. Lock logic: SuperAdmin can always edit. 
@@ -55,11 +55,18 @@ class AttendanceController extends Controller
                 $config = $user->getCurrentIncentive($attendance->date);
                 if ($config) {
                     $attendance->incentive_amount = $config->incentive_amount;
-                    // DAB mode users don't get fixed TA; their ta_amount comes from appointment completions
-                    $attendance->ta_amount = $user->isDabMode() ? 0 : $config->ta_amount;
+
+                    // For TAB users, set the fixed daily TA from config.
+                    // For DAB users, ta_amount is managed by AppointmentController completions.
+                    // We only set it to 0 if it's a NEW attendance record for a DAB user.
+                    if (!$user->isDabMode()) {
+                        $attendance->ta_amount = $config->ta_amount;
+                    } else {
+                        $attendance->ta_amount = $attendance->ta_amount ?? 0;
+                    }
                 } else {
                     $attendance->incentive_amount = $attendance->incentive_amount ?? 0;
-                    $attendance->ta_amount = $user->isDabMode() ? 0 : ($attendance->ta_amount ?? 0);
+                    $attendance->ta_amount = $attendance->ta_amount ?? 0;
                 }
 
                 // Explicitly preserve or initialize activity amounts
@@ -95,17 +102,12 @@ class AttendanceController extends Controller
         $effectiveUser = User::getEffectiveUser();
 
         // RM sees their ROs (only TAB mode users)
-        if ($effectiveUser->isRM()) {
-            $ros = $effectiveUser->children()
-                ->where('designation', 'ro')
-                ->where('salary_mode', 'tab')
-                ->get();
-        } elseif ($effectiveUser->isSuperAdmin()) {
+        if ($effectiveUser->isSuperAdmin()) {
             $ros = User::where('designation', 'ro')
                 ->where('salary_mode', 'tab')
                 ->get();
         } else {
-            abort(403);
+            abort(403, 'Unauthorized. Only Super Admin can access this page.');
         }
 
         return view('attendance.mark', compact('ros'));

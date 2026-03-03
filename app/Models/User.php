@@ -212,9 +212,13 @@ class User extends Authenticatable
             ->whereBetween('updated_at', [$start, $end])
             ->count();
 
+        // Get configured DA amount (fallback to ₹20 if not configured)
+        $config = $this->getCurrentIncentive($start);
+        $daAmount = ($config && $config->da_amount > 0) ? $config->da_amount : 20;
+
         return [
             'count' => $count,
-            'earnings' => $count * 20,
+            'earnings' => $count * $daAmount,
         ];
     }
 
@@ -497,7 +501,7 @@ class User extends Authenticatable
 
     public function getDashboardChildrenCount()
     {
-        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_dashboard_children_count", 3600, function () {
+        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_dashboard_children_count_v2", 300, function () {
             if ($this->isSuperAdmin() || ($this->isOfficeInCharge() && !$this->upline)) {
                 $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
                 return self::where(function ($q) use ($saRoleIds) {
@@ -543,7 +547,7 @@ class User extends Authenticatable
     // Helper to get recursive IDs (Iterative to avoid N+1 and deep recursion)
     public function getAllDownlineIds()
     {
-        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_downline_ids", 3600, function () {
+        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_downline_ids_v2", 300, function () {
             if ($this->isSuperAdmin()) {
                 return self::where('designation', '!=', 'super_admin')->pluck('id')->toArray();
             }
@@ -576,6 +580,24 @@ class User extends Authenticatable
     }
 
     /**
+     * Get IDs of all "Team" members (excludes Staff and System roles)
+     */
+    public function getTeamDownlineIds()
+    {
+        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_team_downline_ids", 300, function () {
+            $allIds = $this->getAllDownlineIds();
+            if (empty($allIds))
+                return [];
+
+            return self::whereIn('id', $allIds)
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'camp_organizer', 'staff'])
+                ->where('is_office_in_charge', false)
+                ->pluck('id')
+                ->toArray();
+        });
+    }
+
+    /**
      * Get IDs of all users in the team of the RM assigned to this user's camp.
      * Useful for Pharmacists (staff) to restrict visibility to their camp's RM team.
      */
@@ -593,7 +615,7 @@ class User extends Authenticatable
     // Count total downline
     public function getDownlineCount()
     {
-        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_downline_count", 3600, function () {
+        return \Illuminate\Support\Facades\Cache::remember("user_{$this->id}_downline_count_v2", 300, function () {
             if ($this->isOfficeInCharge() && $this->upline) {
                 return $this->upline->getDownlineCount();
             }
@@ -609,19 +631,22 @@ class User extends Authenticatable
 
     public function getPendingApprovalsCount()
     {
-        if ($this->isOfficeInCharge()) {
-            // Proxy to Upline if available
-            return $this->upline ? $this->upline->getPendingApprovalsCount() : 0;
-            // Note: If Upline is DM, and DM logic returns 0, this returns 0. 
-            // This matches "Same Dashboard" requirement.
-        }
-
         if ($this->isSuperAdmin()) {
             return User::pending()->count();
         }
 
+        if ($this->isOfficeInCharge() && $this->upline) {
+            return $this->upline->getPendingApprovalsCount();
+        }
 
-        // Non-admin users cannot approve, so they have 0 pending approvals to handle
+        // For RM/BM/DM, check if they have approval permission
+        if (\App\Models\RolePermission::check($this->designation, 'can_approve_users')) {
+            $downlineIds = $this->getAllDownlineIds();
+            if (empty($downlineIds))
+                return 0;
+            return User::pending()->whereIn('id', $downlineIds)->count();
+        }
+
         return 0;
     }
 

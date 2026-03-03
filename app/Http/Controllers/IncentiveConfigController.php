@@ -24,7 +24,11 @@ class IncentiveConfigController extends Controller
         return view('admin.incentive_configs.index', compact('globalConfig'));
     }
 
-    public function store(Request $request)
+    /**
+     * Store TA-based incentive configuration.
+     * TA = Travel Allowance (Daily Rupees) - given when RO marks attendance (present).
+     */
+    public function storeTa(Request $request)
     {
         if (!auth()->user()->isSuperAdmin()) {
             abort(403);
@@ -32,24 +36,83 @@ class IncentiveConfigController extends Controller
 
         $validated = $request->validate([
             'designation' => 'required|in:dm,bm,rm,ro',
-            'incentive_amount' => 'required|numeric|min:0',
+            'ta_amount' => 'required|numeric|min:0',
             'medicines_amount' => 'required|numeric|min:0',
             'pathology_amount' => 'required|numeric|min:0',
             'membership_amount' => 'required|numeric|min:0',
             'ots_amount' => 'required|numeric|min:0',
-            'ta_amount' => 'required|numeric|min:0',
         ]);
 
-        // Set a retroactive date for global configs so they apply to past attendances too
+        // Enforcement: TA based dashboard should be only visible for the RO. TA is not for the RM, BM, DM.
+        if ($validated['designation'] !== 'ro') {
+            $validated['ta_amount'] = 0;
+        }
+
+        $validated['incentive_amount'] = 0;
         $validated['effective_from'] = '2024-01-01';
 
-        // Use updateOrCreate to keep things simple - one config per designation
+        // Preserve DA amount if config already exists
+        $existing = IncentiveConfig::where('designation', $validated['designation'])
+            ->whereNull('user_id')
+            ->first();
+
+        if ($existing) {
+            $validated['da_amount'] = $existing->da_amount ?? 0;
+        }
+
         IncentiveConfig::updateOrCreate(
             ['designation' => $validated['designation'], 'user_id' => null],
             $validated
         );
 
-        return redirect()->back()->with('success', 'Incentive configuration updated successfully.');
+        return redirect()->back()->with('success', 'TA-based incentive configuration updated successfully.');
+    }
+
+    /**
+     * Store DA-based incentive configuration.
+     * DA = Doctor Appointment - given when appointment is completed successfully.
+     */
+    public function storeDa(Request $request)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'designation' => 'required|in:dm,bm,rm,ro',
+            'da_amount' => 'required|numeric|min:0',
+            'medicines_amount' => 'required|numeric|min:0',
+            'pathology_amount' => 'required|numeric|min:0',
+            'membership_amount' => 'required|numeric|min:0',
+            'ots_amount' => 'required|numeric|min:0',
+        ]);
+
+        // Preserve existing TA config fields
+        $existing = IncentiveConfig::where('designation', $validated['designation'])
+            ->whereNull('user_id')
+            ->first();
+
+        $data = [
+            'designation' => $validated['designation'],
+            'da_amount' => $validated['da_amount'],
+            'medicines_amount' => $validated['medicines_amount'],
+            'pathology_amount' => $validated['pathology_amount'],
+            'membership_amount' => $validated['membership_amount'],
+            'ots_amount' => $validated['ots_amount'],
+            'effective_from' => '2024-01-01',
+        ];
+
+        if ($existing) {
+            $data['ta_amount'] = $existing->ta_amount ?? 0;
+            $data['incentive_amount'] = $existing->incentive_amount ?? 0;
+        }
+
+        IncentiveConfig::updateOrCreate(
+            ['designation' => $validated['designation'], 'user_id' => null],
+            $data
+        );
+
+        return redirect()->back()->with('success', 'DA-based incentive configuration updated successfully.');
     }
 
     public function destroy(IncentiveConfig $incentiveConfig)
@@ -82,7 +145,20 @@ class IncentiveConfigController extends Controller
                 $config = $user->getCurrentIncentive($attendance->date);
                 if ($config) {
                     $attendance->incentive_amount = $config->incentive_amount;
-                    $attendance->ta_amount = $config->ta_amount;
+
+                    if ($user->salary_mode === 'dab') {
+                        // For DAB mode, recalculate DA earnings for that day
+                        $daAmount = ($config->da_amount > 0) ? $config->da_amount : 20;
+                        $count = \App\Models\Appointment::where('created_by', $user->id)
+                            ->where('status', 'successful')
+                            ->whereDate('updated_at', $attendance->date->toDateString())
+                            ->count();
+                        $attendance->ta_amount = $count * $daAmount;
+                    } else {
+                        // For TAB mode, use configured TA (enforced to 0 for non-RO in storeTa)
+                        $attendance->ta_amount = $config->ta_amount;
+                    }
+
                     $attendance->save(); // Triggers total_amount calculation boot hook
                     $count++;
                 }

@@ -1,10 +1,8 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'My Team'); ?>
+<?php $__env->startSection('header_title', 'My Team'); ?>
 
-@section('title', 'My Team')
-@section('header_title', 'My Team')
-
-@section('content')
-    @php
+<?php $__env->startSection('content'); ?>
+    <?php
         $canBulkApprove = auth()->user()->isSuperAdmin() || \App\Models\RolePermission::check(auth()->user()->designation, 'can_approve_users');
         $stats = $stats ?? [
             'total_downline' => 0,
@@ -12,11 +10,11 @@
             'pending_approvals' => 0,
             'direct_children' => 0
         ];
-    @endphp
+    ?>
 
     <!-- Stats Grid -->
-    @if(!auth()->user()->isRO())
-        <div class="grid {{ auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2' }} gap-4 mb-6">
+    <?php if(!auth()->user()->isRO()): ?>
+        <div class="grid <?php echo e(auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2'); ?> gap-4 mb-6">
             <!-- Total Downline -->
             <div class="bg-white dark:bg-darkcard p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group">
                 <div class="flex items-center justify-between mb-3">
@@ -27,7 +25,7 @@
                     </div>
                 </div>
                 <h3 class="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Total Team</h3>
-                <p class="text-2xl font-black text-slate-800 dark:text-white">{{ number_format($stats['total_downline']) }}</p>
+                <p class="text-2xl font-black text-slate-800 dark:text-white"><?php echo e(number_format($stats['total_downline'])); ?></p>
             </div>
 
             <!-- Active Members -->
@@ -40,12 +38,12 @@
                     </div>
                 </div>
                 <h3 class="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Active Members</h3>
-                <p class="text-2xl font-black text-slate-800 dark:text-white">{{ number_format($stats['active_downline']) }}</p>
+                <p class="text-2xl font-black text-slate-800 dark:text-white"><?php echo e(number_format($stats['active_downline'])); ?></p>
             </div>
 
-            @if(auth()->user()->isSuperAdmin())
+            <?php if(auth()->user()->isSuperAdmin()): ?>
                 <!-- Pending Approvals -->
-                <div onclick="window.location.href='{{ route('users.index', ['status' => 'pending']) }}'" class="bg-white dark:bg-darkcard p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group cursor-pointer">
+                <div onclick="window.location.href='<?php echo e(route('users.index', ['status' => 'pending'])); ?>'" class="bg-white dark:bg-darkcard p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all group cursor-pointer">
                     <div class="flex items-center justify-between mb-3">
                         <div class="w-10 h-10 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,11 +52,11 @@
                         </div>
                     </div>
                     <h3 class="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Pending Approvals</h3>
-                    <p class="text-2xl font-black text-slate-800 dark:text-white">{{ number_format($stats['pending_approvals']) }}</p>
+                    <p class="text-2xl font-black text-slate-800 dark:text-white"><?php echo e(number_format($stats['pending_approvals'])); ?></p>
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="bg-white dark:bg-darkcard rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -67,15 +65,15 @@
                     <h3 class="font-bold text-lg text-slate-800 dark:text-white">Team Members</h3>
                     <span
                         class="px-2 py-0.5 bg-accent/10 text-accent text-[10px] font-black rounded-full border border-accent/20">
-                        {{ $users->total() }} Total
+                        <?php echo e($users->total()); ?> Total
                     </span>
                 </div>
                 <p class="text-sm text-slate-500 dark:text-slate-400">View and manage your network hierarchy.</p>
             </div>
 
             <div class="flex items-center space-x-3">
-                @if(request('view_all'))
-                    <a href="{{ route('users.index', request()->except('view_all')) }}"
+                <?php if(request('view_all')): ?>
+                    <a href="<?php echo e(route('users.index', request()->except('view_all'))); ?>"
                         title="Paginate"
                         class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,8 +83,8 @@
                         </svg>
                         <span class="hidden">Paginate</span>
                     </a>
-                @else
-                    <a href="{{ route('users.index', array_merge(request()->all(), ['view_all' => 1])) }}"
+                <?php else: ?>
+                    <a href="<?php echo e(route('users.index', array_merge(request()->all(), ['view_all' => 1]))); ?>"
                         title="View All"
                         class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,8 +93,8 @@
                         </svg>
                         <span class="hidden">View All</span>
                     </a>
-                @endif
-                <a href="{{ route('users.export', array_merge(request()->all(), ['type' => 'team'])) }}"
+                <?php endif; ?>
+                <a href="<?php echo e(route('users.export', array_merge(request()->all(), ['type' => 'team']))); ?>"
                     title="Download CSV"
                     class="px-3 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +115,7 @@
                     <span class="hidden">Filter</span>
                 </button>
 
-                @if(auth()->user()->isSuperAdmin())
+                <?php if(auth()->user()->isSuperAdmin()): ?>
                     <button type="submit" form="bulk-actions-form" id="bulk-approve-header-btn"
                         class="bulk-approve-btn hidden px-2 sm:px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-600/20 hover:bg-emerald-600 transition-all flex items-center space-x-2 border border-emerald-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +125,7 @@
                         <span class="hidden lg:inline">APPROVE SELECTED</span>
                     </button>
 
-                    <button type="submit" form="bulk-actions-form" formaction="{{ route('users.bulk-print-selection') }}"
+                    <button type="submit" form="bulk-actions-form" formaction="<?php echo e(route('users.bulk-print-selection')); ?>"
                         formtarget="_blank" style="background-color: #e11d48; color: white; border-color: #be185d;"
                         title="Print Selected"
                         class="px-3 py-2 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-600/20 hover:opacity-90 transition-all flex items-center justify-center border">
@@ -137,25 +135,25 @@
                         </svg>
                         <span class="hidden">PRINT SELECTED</span>
                     </button>
-                @endif
-                @if(auth()->user()->canCreateUsers())
-                    <a href="{{ route('users.create', ['type' => 'team']) }}"
+                <?php endif; ?>
+                <?php if(auth()->user()->canCreateUsers()): ?>
+                    <a href="<?php echo e(route('users.create', ['type' => 'team'])); ?>"
                         class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
                         + Add Member
                     </a>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
 
         <div id="filter-panel"
-            class="{{ request()->anyFilled(['district', 'block', 'gram_panchayat', 'designation', 'search']) ? '' : 'hidden' }} p-6 border-b border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
-            <form action="{{ route('users.index') }}" method="GET" class="no-loader space-y-4">
+            class="<?php echo e(request()->anyFilled(['district', 'block', 'gram_panchayat', 'designation', 'search']) ? '' : 'hidden'); ?> p-6 border-b border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
+            <form action="<?php echo e(route('users.index')); ?>" method="GET" class="no-loader space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Search
                             Member</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Name, ID or Phone..."
+                        <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Name, ID or Phone..."
                             class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                     </div>
 
@@ -167,10 +165,11 @@
                         <select name="designation"
                             class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
                             <option value="">All Roles</option>
-                            @foreach($allowedFilters as $val => $label)
-                                <option value="{{ $val }}" {{ request('designation') == $val ? 'selected' : '' }}>{{ $label }}
+                            <?php $__currentLoopData = $allowedFilters; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $val => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($val); ?>" <?php echo e(request('designation') == $val ? 'selected' : ''); ?>><?php echo e($label); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -211,9 +210,9 @@
                         <select name="status"
                             class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                             <option value="">All Status</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active Members
+                            <option value="active" <?php echo e(request('status') == 'active' ? 'selected' : ''); ?>>Active Members
                             </option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending Approvals
+                            <option value="pending" <?php echo e(request('status') == 'pending' ? 'selected' : ''); ?>>Pending Approvals
                             </option>
                         </select>
                     </div>
@@ -223,27 +222,27 @@
                         <button type="submit"
                             class="h-10 px-6 bg-accent text-white rounded-xl text-sm font-bold hover:opacity-90 transition">Apply
                             Filters</button>
-                        <a href="{{ route('users.index') }}"
+                        <a href="<?php echo e(route('users.index')); ?>"
                             class="h-10 px-6 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold flex items-center justify-center hover:opacity-90 transition">Reset</a>
                     </div>
                 </div>
             </form>
         </div>
 
-        <form id="bulk-actions-form" action="{{ route('users.bulk-approve') }}" method="POST">
-            @csrf
+        <form id="bulk-actions-form" action="<?php echo e(route('users.bulk-approve')); ?>" method="POST">
+            <?php echo csrf_field(); ?>
         </form>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 dark:bg-white/5">
-                        @if($canBulkApprove)
+                        <?php if($canBulkApprove): ?>
                             <th class="px-6 py-4 w-10 text-center">
                                 <input type="checkbox" id="user-select-all" form="bulk-actions-form"
                                     class="w-4 h-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-accent focus:ring-accent"
                                     title="Select All">
                             </th>
-                        @endif
+                        <?php endif; ?>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Member
                             Detail
                         </th>
@@ -252,10 +251,10 @@
                         </th>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Joined On
                         </th>
-                        @if(auth()->user()->isSuperAdmin())
+                        <?php if(auth()->user()->isSuperAdmin()): ?>
                             <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Salary Mode
                             </th>
-                        @endif
+                        <?php endif; ?>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Attendance
                         </th>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Status
@@ -265,107 +264,110 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 dark:divide-white/5">
-                    @forelse($users as $u)
+                    <?php $__empty_1 = true; $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $u): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                            @if($canBulkApprove)
+                            <?php if($canBulkApprove): ?>
                                 <td class="px-6 py-4">
-                                    <input type="checkbox" name="selected_users[]" value="{{ $u->id }}" form="bulk-actions-form"
-                                        data-status="{{ $u->status }}"
+                                    <input type="checkbox" name="selected_users[]" value="<?php echo e($u->id); ?>" form="bulk-actions-form"
+                                        data-status="<?php echo e($u->status); ?>"
                                         class="user-checkbox w-4 h-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-accent focus:ring-accent">
                                 </td>
-                            @endif
+                            <?php endif; ?>
                             <td class="px-6 py-4">
-                                <a href="{{ route('users.show', $u->id) }}" class="flex items-center space-x-3 group">
+                                <a href="<?php echo e(route('users.show', $u->id)); ?>" class="flex items-center space-x-3 group">
                                     <div
                                         class="w-10 h-10 rounded-full bg-accent/5 text-accent flex items-center justify-center font-bold overflow-hidden border border-slate-100 dark:border-white/5 group-hover:border-accent/30 transition-colors">
-                                        @if($u->profile?->profile_picture)
-                                            <img src="{{ $u->profile->getProfilePictureUrl() }}" alt="Avatar"
+                                        <?php if($u->profile?->profile_picture): ?>
+                                            <img src="<?php echo e($u->profile->getProfilePictureUrl()); ?>" alt="Avatar"
                                                 class="w-full h-full object-cover">
-                                        @else
-                                            {{ substr($u->profile?->full_name ?? $u->employee_id ?? 'U', 0, 1) }}
-                                        @endif
+                                        <?php else: ?>
+                                            <?php echo e(substr($u->profile?->full_name ?? $u->employee_id ?? 'U', 0, 1)); ?>
+
+                                        <?php endif; ?>
                                     </div>
                                     <div>
                                         <p class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-accent transition-colors">
-                                            {{ $u->profile?->full_name ?? 'Incomplete Profile' }}
+                                            <?php echo e($u->profile?->full_name ?? 'Incomplete Profile'); ?>
+
                                         </p>
-                                        <p class="text-[10px] text-bodydark font-bold uppercase">{{ $u->employee_id }}</p>
+                                        <p class="text-[10px] text-bodydark font-bold uppercase"><?php echo e($u->employee_id); ?></p>
                                     </div>
                                 </a>
                             </td>
                             <td class="px-6 py-4">
                                 <span
                                     class="px-3 py-1 bg-primary/5 dark:bg-white/5 text-primary dark:text-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/10 dark:border-white/10">
-                                    {{ $u->getDesignationLabel() }}
+                                    <?php echo e($u->getDesignationLabel()); ?>
+
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ $u->created_at->format('d M, Y') }}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium"><?php echo e($u->created_at->format('d M, Y')); ?></p>
                             </td>
-                            @if(auth()->user()->isSuperAdmin())
+                            <?php if(auth()->user()->isSuperAdmin()): ?>
                                 <td class="px-6 py-4">
-                                    @if($u->isRO())
-                                        <button onclick="toggleSalaryMode({{ $u->id }}, this)"
+                                    <?php if($u->isRO()): ?>
+                                        <button onclick="toggleSalaryMode(<?php echo e($u->id); ?>, this)"
                                             class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer border
-                                                {{ ($u->salary_mode ?? 'tab') === 'dab' ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20 hover:bg-violet-500/20' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:bg-blue-500/20' }}"
-                                            data-mode="{{ $u->salary_mode ?? 'tab' }}">
-                                            <span class="w-1.5 h-1.5 rounded-full {{ ($u->salary_mode ?? 'tab') === 'dab' ? 'bg-violet-500' : 'bg-blue-500' }}"></span>
-                                            <span class="mode-label">{{ strtoupper($u->salary_mode ?? 'tab') }}</span>
+                                                <?php echo e(($u->salary_mode ?? 'tab') === 'dab' ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20 hover:bg-violet-500/20' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:bg-blue-500/20'); ?>"
+                                            data-mode="<?php echo e($u->salary_mode ?? 'tab'); ?>">
+                                            <span class="w-1.5 h-1.5 rounded-full <?php echo e(($u->salary_mode ?? 'tab') === 'dab' ? 'bg-violet-500' : 'bg-blue-500'); ?>"></span>
+                                            <span class="mode-label"><?php echo e(strtoupper($u->salary_mode ?? 'tab')); ?></span>
                                         </button>
-                                    @else
+                                    <?php else: ?>
                                         <span class="text-[10px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-600">—</span>
-                                    @endif
+                                    <?php endif; ?>
                                 </td>
-                            @endif
+                            <?php endif; ?>
                             <td class="px-6 py-4">
-                                @if($u->isRO() && ($u->salary_mode ?? 'tab') === 'tab' && auth()->user()->isSuperAdmin())
-                                    @php
+                                <?php if($u->isRO() && ($u->salary_mode ?? 'tab') === 'tab' && auth()->user()->isSuperAdmin()): ?>
+                                    <?php
                                         $todayAtt = $u->todayAttendance;
                                         // Debug: Check what we're getting
                                         // dd($todayAtt); // Uncomment to debug
-                                    @endphp
-                                    <select onchange="markAttendance({{ $u->id }}, this.value, this)"
+                                    ?>
+                                    <select onchange="markAttendance(<?php echo e($u->id); ?>, this.value, this)"
                                         class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-accent/20 transition-all
-                                                                {{ is_null($todayAtt) ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : ($todayAtt->status === 'present' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger') }}">
-                                        <option value="" {{ is_null($todayAtt) ? 'selected' : '' }}>Mark</option>
-                                        <option value="present" {{ !is_null($todayAtt) && $todayAtt->status === 'present' ? 'selected' : '' }}>
+                                                                <?php echo e(is_null($todayAtt) ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : ($todayAtt->status === 'present' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger')); ?>">
+                                        <option value="" <?php echo e(is_null($todayAtt) ? 'selected' : ''); ?>>Mark</option>
+                                        <option value="present" <?php echo e(!is_null($todayAtt) && $todayAtt->status === 'present' ? 'selected' : ''); ?>>
                                             Present</option>
-                                        <option value="absent" {{ !is_null($todayAtt) && $todayAtt->status === 'absent' ? 'selected' : '' }}>
+                                        <option value="absent" <?php echo e(!is_null($todayAtt) && $todayAtt->status === 'absent' ? 'selected' : ''); ?>>
                                             Absent</option>
                                     </select>
 
-                                    {{-- Debug info (remove after testing) --}}
-                                    @if(request()->has('debug'))
-                                        <small class="text-xs text-red-500">{{ $todayAtt ? 'Has: ' . $todayAtt->status : 'NULL' }}</small>
-                                    @endif
-                                @elseif($u->isRO() && ($u->salary_mode ?? 'tab') === 'tab')
-                                    <a href="{{ route('attendance.show', $u->id) }}"
+                                    
+                                    <?php if(request()->has('debug')): ?>
+                                        <small class="text-xs text-red-500"><?php echo e($todayAtt ? 'Has: ' . $todayAtt->status : 'NULL'); ?></small>
+                                    <?php endif; ?>
+                                <?php elseif($u->isRO() && ($u->salary_mode ?? 'tab') === 'tab'): ?>
+                                    <a href="<?php echo e(route('attendance.show', $u->id)); ?>"
                                         class="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
                                         View Log
                                     </a>
 
-                                @else
+                                <?php else: ?>
                                     <span class="text-[10px] font-black uppercase tracking-widest text-slate-300">-</span>
-                                @endif
+                                <?php endif; ?>
                             </td>
                             <td class="px-6 py-4">
-                                @if($u->status === 'active')
+                                <?php if($u->status === 'active'): ?>
                                     <span class="inline-flex items-center space-x-1.5 text-success">
                                         <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
                                         <span class="text-[10px] font-black uppercase tracking-widest">Active</span>
                                     </span>
-                                @else
+                                <?php else: ?>
                                     <span class="inline-flex items-center space-x-1.5 text-warning">
                                         <span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
                                         <span class="text-[10px] font-black uppercase tracking-widest">Pending</span>
                                     </span>
-                                @endif
+                                <?php endif; ?>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end space-x-2">
-                                    @if($u->status === 'pending' && auth()->user()->canApprove($u))
-                                        <form action="{{ route('users.approve', $u->id) }}" method="POST" class="inline">
-                                            @csrf
+                                    <?php if($u->status === 'pending' && auth()->user()->canApprove($u)): ?>
+                                        <form action="<?php echo e(route('users.approve', $u->id)); ?>" method="POST" class="inline">
+                                            <?php echo csrf_field(); ?>
                                             <button type="submit"
                                                 class="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition-all text-[10px] font-black uppercase tracking-widest flex items-center space-x-1"
                                                 title="Approve Member">
@@ -376,11 +378,11 @@
                                                 <span>Approve</span>
                                             </button>
                                         </form>
-                                    @endif
+                                    <?php endif; ?>
 
                                     <div
                                         class="flex items-center justify-end space-x-2 transition-opacity">
-                                        <a href="{{ route('users.show', $u->id) }}"
+                                        <a href="<?php echo e(route('users.show', $u->id)); ?>"
                                             class="p-2 text-slate-400 hover:text-accent transition">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -391,8 +393,8 @@
                                             </svg>
                                         </a>
 
-                                        @if(auth()->user()->isSuperAdmin())
-                                            <a href="{{ route('users.id-card', $u->id) }}" target="_blank"
+                                        <?php if(auth()->user()->isSuperAdmin()): ?>
+                                            <a href="<?php echo e(route('users.id-card', $u->id)); ?>" target="_blank"
                                                 class="p-2 text-violet-500 hover:bg-violet-500/10 rounded-lg transition"
                                                 title="Generate ID Card">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,10 +403,10 @@
                                                 </svg>
                                             </a>
 
-                                            <form action="{{ route('users.destroy', $u->id) }}" method="POST"
+                                            <form action="<?php echo e(route('users.destroy', $u->id)); ?>" method="POST"
                                                 onsubmit="return confirm('Move to BIN?')">
-                                                @csrf
-                                                @method('DELETE')
+                                                <?php echo csrf_field(); ?>
+                                                <?php echo method_field('DELETE'); ?>
                                                 <button type="submit" class="p-2 text-danger hover:bg-danger/10 rounded-lg transition"
                                                     title="Delete User">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -414,14 +416,14 @@
                                                     </svg>
                                                 </button>
                                             </form>
-                                        @endif
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </td>
                         </tr>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="{{ auth()->user()->isSuperAdmin() ? 7 : 6 }}" class="px-6 py-20 text-center">
+                            <td colspan="<?php echo e(auth()->user()->isSuperAdmin() ? 7 : 6); ?>" class="px-6 py-20 text-center">
                                 <div class="max-w-xs mx-auto text-slate-400 dark:text-slate-500">
                                     <svg class="w-12 h-12 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -435,7 +437,7 @@
                             </td>
 
                         </tr>
-                    @endforelse
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -456,9 +458,9 @@
                         </svg>
                         <span>Approve Selected</span>
                     </button>
-                    @if(auth()->user()->isSuperAdmin())
+                    <?php if(auth()->user()->isSuperAdmin()): ?>
 
-                        <button type="submit" form="bulk-actions-form" formaction="{{ route('users.bulk-print-selection') }}"
+                        <button type="submit" form="bulk-actions-form" formaction="<?php echo e(route('users.bulk-print-selection')); ?>"
                             formtarget="_blank" style="background-color: #e11d48; color: white; border-color: #be185d;"
                             title="Print Selected"
                             class="px-4 py-2.5 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-rose-600/20 hover:opacity-90 flex items-center justify-center border">
@@ -468,7 +470,7 @@
                             </svg>
                             <span class="hidden">PRINT SELECTED</span>
                         </button>
-                    @endif
+                    <?php endif; ?>
                     <button type="button" onclick="cancelSelection()"
                         class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-black uppercase tracking-widest rounded-xl transition-all">
                         Cancel
@@ -477,16 +479,17 @@
             </div>
         </div>
 
-        @if($users instanceof \Illuminate\Pagination\LengthAwarePaginator)
+        <?php if($users instanceof \Illuminate\Pagination\LengthAwarePaginator): ?>
             <div class="p-6 border-t border-slate-100 italic">
-                {{ $users->links() }}
-            </div>
-        @endif
-    </div>
-@endsection
+                <?php echo e($users->links()); ?>
 
-@section('js')
-    <script src="{{ asset('js/locations.js') }}"></script>
+            </div>
+        <?php endif; ?>
+    </div>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('js'); ?>
+    <script src="<?php echo e(asset('js/locations.js')); ?>"></script>
     <script>
         function toggleFilters() {
             const panel = document.getElementById('filter-panel');
@@ -561,7 +564,7 @@
             // Setup Districts
             Object.keys(districts).forEach(district => {
                 const option = new Option(district, district);
-                if ("{{ request('district') }}" === district) option.selected = true;
+                if ("<?php echo e(request('district')); ?>" === district) option.selected = true;
                 districtSelect.add(option);
             });
 
@@ -573,11 +576,11 @@
                 if (district && districts[district]) {
                     Object.keys(districts[district]).forEach(block => {
                         const option = new Option(block, block);
-                        if ("{{ request('block') }}" === block) option.selected = true;
+                        if ("<?php echo e(request('block')); ?>" === block) option.selected = true;
                         blockSelect.add(option);
                     });
 
-                    if ("{{ request('block') }}") {
+                    if ("<?php echo e(request('block')); ?>") {
                         updateGPs();
                     }
                 }
@@ -591,7 +594,7 @@
                 if (district && block && districts[district][block]) {
                     districts[district][block].forEach(gp => {
                         const option = new Option(gp, gp);
-                        if ("{{ request('gram_panchayat') }}" === gp) option.selected = true;
+                        if ("<?php echo e(request('gram_panchayat')); ?>" === gp) option.selected = true;
                         gpSelect.add(option);
                     });
                 }
@@ -607,16 +610,16 @@
         });
 
         function markAttendance(userId, status, element) {
-            fetch('{{ route("attendance.store") }}', {
+            fetch('<?php echo e(route("attendance.store")); ?>', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                 },
                 body: JSON.stringify({
                     user_id: userId,
                     status: status,
-                    date: '{{ date("Y-m-d") }}'
+                    date: '<?php echo e(date("Y-m-d")); ?>'
                 })
             })
                 .then(response => response.json())
@@ -672,14 +675,14 @@
             }
 
             // Sync with server in background
-            let url = "{{ route('users.toggle-salary-mode', ':id') }}";
+            let url = "<?php echo e(route('users.toggle-salary-mode', ':id')); ?>";
             url = url.replace(':id', userId);
 
             fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                 }
             })
             .then(response => response.json())
@@ -706,4 +709,5 @@
             });
         }
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/users/index.blade.php ENDPATH**/ ?>

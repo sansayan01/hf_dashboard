@@ -438,20 +438,75 @@
                 return false;
             }
 
-            const aadhaarInput = document.querySelector('input[name="aadhar_number"]');
-            if (aadhaarInput && aadhaarInput.value && aadhaarInput.value.length !== 12) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Aadhaar',
-                    text: 'Aadhaar Number must be exactly 12 digits.',
-                    background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#ffffff',
-                    color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#1e293b'
+        }
                 });
-                aadhaarInput.focus();
-                return false;
+
+        // Real-time Uniqueness Check for Aadhaar
+        const aadharInput = document.querySelector('input[name="aadhar_number"]');
+        if (aadharInput) {
+            aadharInput.addEventListener('input', function () {
+                const val = this.value;
+                if (val.length === 12) {
+                    checkPatientUniqueness('aadhar_number', val);
+                }
+            });
+        }
+
+        // Real-time Uniqueness Check for Phone
+        const phoneInput = document.querySelector('input[name="phone_number"]');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function () {
+                const val = this.value;
+                if (val.length === 10) {
+                    checkPatientUniqueness('phone_number', val);
+                }
+            });
+        }
+
+        async function checkPatientUniqueness(field, value) {
+            try {
+                const response = await fetch('{{ route("patients.check-uniqueness") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ field: field, value: value })
+                });
+
+                const data = await response.json();
+                if (data.exists) {
+                    const p = data.patient;
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Patient Already Exists!',
+                        html: `
+                                    <div class="text-left p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-white/5 mt-4">
+                                        <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Patient Details</p>
+                                        <div class="space-y-2">
+                                            <p class="text-sm font-bold text-slate-700 dark:text-white">Name: <span class="text-accent">${p.full_name}</span></p>
+                                            <p class="text-sm font-bold text-slate-700 dark:text-white">ID: <span class="text-accent">${p.patient_id}</span></p>
+                                            <p class="text-sm font-bold text-slate-700 dark:text-white">Phone: <span class="text-accent">${p.phone_number}</span></p>
+                                            <p class="text-sm font-bold text-slate-700 dark:text-white">Role: <span class="px-2 py-0.5 rounded text-[10px] ${p.is_member ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500'} font-black uppercase">${p.is_member ? 'Premium Member' : 'Regular Patient'}</span></p>
+                                        </div>
+                                        <div class="mt-6">
+                                            <a href="/patients/${p.id}" class="inline-block w-full text-center px-4 py-3 bg-accent text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:scale-105">View Profile</a>
+                                        </div>
+                                    </div>
+                                `,
+                        confirmButtonText: 'Got It',
+                        background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#ffffff',
+                        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#1e293b',
+                        confirmButtonColor: '#3C50E0',
+                        customClass: {
+                            popup: 'rounded-3xl border border-white/10 shadow-2xl overflow-hidden'
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Uniqueness check failed:', err);
             }
-        });
+        }
     </script>
 @endsection
 ```

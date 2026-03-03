@@ -237,10 +237,10 @@ class PatientController extends Controller
             'relative_name' => 'nullable|string|max:255',
             'age' => 'required|integer|min:1|max:120',
             'gender' => 'required|in:male,female,other',
-            'phone_number' => 'required|string|size:10',
+            'phone_number' => 'required|string|size:10|unique:surveys,phone_number',
             'address' => 'required|string',
             'pin' => 'required|string|size:6',
-            'aadhar_number' => 'nullable|string|size:12',
+            'aadhar_number' => 'nullable|string|size:12|unique:surveys,aadhar_number',
             'pan_number' => 'nullable|string|regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
             'blood_group' => 'nullable|string|max:5',
             'district' => 'nullable|string|max:255',
@@ -328,6 +328,48 @@ class PatientController extends Controller
         );
 
         return redirect()->route('patients.index')->with('success', 'Patient registered successfully!');
+    }
+
+    /**
+     * Check for uniqueness via AJAX
+     */
+    public function checkUniqueness(Request $request)
+    {
+        $field = $request->field; // phone_number, aadhar_number
+        $value = $request->value;
+        $excludeId = $request->exclude_id;
+
+        if (!$field || !$value) {
+            return response()->json(['exists' => false]);
+        }
+
+        $allowedFields = ['phone_number', 'aadhar_number'];
+        if (!in_array($field, $allowedFields)) {
+            return response()->json(['exists' => false]);
+        }
+
+        $query = Survey::where($field, $value);
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+        $patient = $query->first();
+
+        if ($patient) {
+            return response()->json([
+                'exists' => true,
+                'patient' => [
+                    'id' => $patient->id,
+                    'full_name' => $patient->full_name,
+                    'patient_id' => $patient->patient_id,
+                    'phone_number' => $patient->phone_number,
+                    'aadhar_number' => $patient->aadhar_number,
+                    'is_member' => $patient->is_member,
+                ],
+                'message' => "A patient with this " . ($field === 'aadhar_number' ? 'Aadhaar' : 'Phone') . " number already exists in our database."
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
     }
 
     /**

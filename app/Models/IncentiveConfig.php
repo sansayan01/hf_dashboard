@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $designation
  * @property float $incentive_amount
  * @property float $ta_amount
+ * @property float $da_amount
  * @property float $medicines_amount
  * @property float $pathology_amount
  * @property float $membership_amount
@@ -28,6 +29,7 @@ class IncentiveConfig extends Model
         'designation',
         'incentive_amount',
         'ta_amount',
+        'da_amount',
         'medicines_amount',
         'pathology_amount',
         'membership_amount',

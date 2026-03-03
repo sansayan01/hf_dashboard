@@ -101,6 +101,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/', [PatientController::class, 'index'])->name('index');
         Route::get('/create', [PatientController::class, 'create'])->name('create');
         Route::post('/', [PatientController::class, 'store'])->name('store');
+        Route::post('/check-uniqueness', [PatientController::class, 'checkUniqueness'])->name('check-uniqueness');
 
         // Membership Management
         Route::get('/{patient}/membership', [App\Http\Controllers\MembershipController::class, 'show'])->name('membership');
@@ -162,7 +163,8 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // Incentive Configuration (Admin Only)
     Route::middleware(['auth'])->prefix('admin/incentive-configs')->name('admin.incentive-configs.')->group(function () {
         Route::get('/', [IncentiveConfigController::class, 'index'])->name('index');
-        Route::post('/', [IncentiveConfigController::class, 'store'])->name('store');
+        Route::post('/store-ta', [IncentiveConfigController::class, 'storeTa'])->name('store-ta');
+        Route::post('/store-da', [IncentiveConfigController::class, 'storeDa'])->name('store-da');
         Route::post('/sync', [IncentiveConfigController::class, 'syncAttendances'])->name('sync');
         Route::delete('/{incentiveConfig}', [IncentiveConfigController::class, 'destroy'])->name('destroy');
     });

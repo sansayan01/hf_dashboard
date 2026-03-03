@@ -1,12 +1,12 @@
-@extends('layouts.app')
 
-@section('title', 'Incentive Configurations')
-@section('header_title', 'Incentive Management')
 
-@section('content')
+<?php $__env->startSection('title', 'Incentive Configurations'); ?>
+<?php $__env->startSection('header_title', 'Incentive Management'); ?>
+
+<?php $__env->startSection('content'); ?>
     <div class="p-6 max-w-3xl mx-auto h-full pb-20">
 
-        {{-- Tab Navigation --}}
+        
         <div
             class="flex mb-6 bg-white dark:bg-darkcard rounded-2xl shadow-lg border border-slate-200 dark:border-white/5 p-1.5 gap-2">
             <button onclick="switchTab('ta')" id="tab-ta"
@@ -29,7 +29,7 @@
             </button>
         </div>
 
-        {{-- TA Based Incentives Tab --}}
+        
         <div id="panel-ta" class="tab-panel">
             <div class="bg-white dark:bg-darkcard rounded-3xl shadow-xl p-8 border border-slate-200 dark:border-white/5">
                 <div class="text-center mb-8">
@@ -46,8 +46,8 @@
                         present</p>
                 </div>
 
-                <form action="{{ route('admin.incentive-configs.store-ta') }}" method="POST" class="space-y-6">
-                    @csrf
+                <form action="<?php echo e(route('admin.incentive-configs.store-ta')); ?>" method="POST" class="space-y-6">
+                    <?php echo csrf_field(); ?>
                     <div>
                         <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Target
                             Designation</label>
@@ -111,12 +111,12 @@
                     </div>
                 </form>
 
-                {{-- Sync Section --}}
+                
                 <div class="mt-8 pt-8 border-t border-slate-100 dark:border-white/5 text-center">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Maintenance</p>
-                    <form action="{{ route('admin.incentive-configs.sync') }}" method="POST"
+                    <form action="<?php echo e(route('admin.incentive-configs.sync')); ?>" method="POST"
                         onsubmit="return confirm('Sync all past attendance records with current TA configs? This will update TA and Basic Incentives for all historical data.')">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <button type="submit"
                             class="px-8 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center justify-center mx-auto space-x-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +134,7 @@
             </div>
         </div>
 
-        {{-- DA Based Incentives Tab --}}
+        
         <div id="panel-da" class="tab-panel hidden">
             <div class="bg-white dark:bg-darkcard rounded-3xl shadow-xl p-8 border border-slate-200 dark:border-white/5">
                 <div class="text-center mb-8">
@@ -151,8 +151,8 @@
                         completion</p>
                 </div>
 
-                <form action="{{ route('admin.incentive-configs.store-da') }}" method="POST" class="space-y-6">
-                    @csrf
+                <form action="<?php echo e(route('admin.incentive-configs.store-da')); ?>" method="POST" class="space-y-6">
+                    <?php echo csrf_field(); ?>
                     <div>
                         <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Target
                             Designation</label>
@@ -209,7 +209,7 @@
                         </div>
                     </div>
 
-                    {{-- Info Card --}}
+                    
                     <div
                         class="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 rounded-2xl p-5">
                         <div class="flex items-start gap-3">
@@ -243,7 +243,7 @@
     </div>
 
     <script>
-        const configs = @json($globalConfig->keyBy('designation'));
+        const configs = <?php echo json_encode($globalConfig->keyBy('designation'), 15, 512) ?>;
 
         function switchTab(tab) {
             // Hide all panels
@@ -310,4 +310,5 @@
         switchTab('ta');
         document.getElementById('ta_designation_select').dispatchEvent(new Event('change'));
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/admin/incentive_configs/index.blade.php ENDPATH**/ ?>

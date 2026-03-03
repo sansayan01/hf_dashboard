@@ -35,7 +35,7 @@ class DashboardController extends Controller
         $canViewReports = $user->isSuperAdmin() || \App\Models\RolePermission::check($user->designation, 'can_view_reports');
         $canApprove = $user->isSuperAdmin() || \App\Models\RolePermission::check($user->designation, 'can_approve_users');
 
-        $downlineIds = $canViewDownline ? $user->getAllDownlineIds() : [];
+        $downlineIds = $canViewDownline ? $user->getTeamDownlineIds() : [];
         $allAccessibleIds = array_merge($downlineIds, [$user->id]);
 
         if ($user->isOfficeInCharge() && $user->upline_id) {
@@ -136,11 +136,20 @@ class DashboardController extends Controller
             return null;
         }
 
+        $salaryMode = $user->salary_mode ?? 'tab';
+
+        // Requirement: TA based dashboard should be only visible for the RO. TA is not for the RM, BM, DM.
+        // Therefore, if the user is in TAB mode and is not an RO, we hide the earnings section completely.
+        if ($salaryMode === 'tab' && $user->designation !== 'ro') {
+            return null;
+        }
+
         $monthStart = now()->startOfMonth();
         $earningsData = \App\Models\Attendance::where('user_id', $user->id)
             ->where('date', '>=', $monthStart)
             ->selectRaw("
                 SUM(ta_amount) as monthly_ta,
+                SUM(incentive_amount) as monthly_incentive_base,
                 SUM(medicines_amount) as monthly_medicines,
                 SUM(pathology_amount) as monthly_pathology,
                 SUM(membership_amount) as monthly_membership,
@@ -154,32 +163,82 @@ class DashboardController extends Controller
             ->where('date', now()->toDateString())
             ->first();
 
-        // DAB data (only relevant for ROs in DAB mode)
+        $salaryMode = $user->salary_mode ?? 'tab';
+
+        // Requirement: When TAB is the salary model, show them only the salary according to their attendance.
+        // When DAB is the salary model, show them only the salary according to their successful doctor appointments.
+        // Even if switched mid-month, we show only the current mode's basis.
+
+        $monthlyBase = 0;
         $dabData = null;
-        if ($user->isRO() && $user->isDabMode()) {
+
+        if ($salaryMode === 'dab') {
+            // DAB Mode: Recompute purely from successful appointments this month
             $dabData = $user->getMonthlyDabEarnings();
+            $monthlyBase = $dabData['earnings'];
+        } else {
+            // TAB Mode: Recompute purely from days marked 'present' this month
+            // (We check user designation RO because non-ROs don't get TA)
+            $presentDaysCount = \App\Models\Attendance::where('user_id', $user->id)
+                ->where('date', '>=', $monthStart)
+                ->where('status', 'present')
+                ->count();
+
+            $config = $user->getCurrentIncentive();
+            $taRate = ($config && $user->designation === 'ro') ? $config->ta_amount : 0;
+            $monthlyBase = $presentDaysCount * $taRate;
         }
 
+        // Monthly Total = Recomputed Base (TA or DA) + All other incentives recorded in attendance (medicines, etc.)
+        $monthlyTotal = $monthlyBase + ($earningsData->monthly_incentives ?? 0);
+
+        // Calculate Today's "Base" (Daily TA or Today's DA)
+        $todayBase = 0;
+        if ($salaryMode === 'dab') {
+            $config = $user->getCurrentIncentive();
+            $daAmount = ($config && $config->da_amount > 0) ? $config->da_amount : 20;
+
+            $todayBase = \App\Models\Appointment::where('created_by', $user->id)
+                ->where('status', 'successful')
+                ->whereDate('updated_at', now()->toDateString())
+                ->count() * $daAmount;
+        } else {
+            $isTodayPresent = \App\Models\Attendance::where('user_id', $user->id)
+                ->where('date', now()->toDateString())
+                ->where('status', 'present')
+                ->exists();
+
+            $config = $user->getCurrentIncentive();
+            $taRate = ($config && $user->designation === 'ro') ? $config->ta_amount : 0;
+            $todayBase = $isTodayPresent ? $taRate : 0;
+        }
+
+        $todayIncentives = $todayEarnings ? ($todayEarnings->incentive_amount + $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount) : 0;
+
+        $todayTotal = $todayBase + $todayIncentives;
+
         return [
-            'salary_mode' => $user->salary_mode ?? 'tab',
-            'monthly_ta' => $earningsData->monthly_ta ?? 0,
+            'salary_mode' => $salaryMode,
+            'monthly_ta' => $monthlyBase,
             'monthly_incentives' => $earningsData->monthly_incentives ?? 0,
             'monthly_breakdown' => [
+                'ta' => $monthlyBase,
+                'base_incentive' => $earningsData->monthly_incentive_base ?? 0,
                 'medicines' => $earningsData->monthly_medicines ?? 0,
                 'pathology' => $earningsData->monthly_pathology ?? 0,
                 'membership' => $earningsData->monthly_membership ?? 0,
                 'ots' => $earningsData->monthly_ots ?? 0,
             ],
-            'monthly_total' => $earningsData->monthly_total ?? 0,
-            'today_total' => $todayEarnings ? $todayEarnings->total_amount : 0,
-            'today_breakdown' => $todayEarnings ? [
-                'ta' => $todayEarnings->ta_amount,
-                'medicines' => $todayEarnings->medicines_amount,
-                'pathology' => $todayEarnings->pathology_amount,
-                'membership' => $todayEarnings->membership_amount,
-                'ots' => $todayEarnings->ots_amount,
-                'incentives' => $todayEarnings->incentive_amount + $todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount
-            ] : ['ta' => 0, 'medicines' => 0, 'pathology' => 0, 'membership' => 0, 'ots' => 0, 'incentives' => 0],
+            'monthly_total' => $monthlyTotal,
+            'today_total' => $todayTotal,
+            'today_breakdown' => [
+                'ta' => $todayBase,
+                'medicines' => $todayEarnings->medicines_amount ?? 0,
+                'pathology' => $todayEarnings->pathology_amount ?? 0,
+                'membership' => $todayEarnings->membership_amount ?? 0,
+                'ots' => $todayEarnings->ots_amount ?? 0,
+                'incentives' => $todayIncentives
+            ],
             'dab' => $dabData,
         ];
     }

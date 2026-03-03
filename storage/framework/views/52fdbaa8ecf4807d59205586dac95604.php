@@ -1,11 +1,9 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Dashboard'); ?>
+<?php $__env->startSection('header_title', 'Dashboard Overview'); ?>
 
-@section('title', 'Dashboard')
-@section('header_title', 'Dashboard Overview')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <meta name="live-page" content="dashboard">
-    @php
+    <?php
         $user = $user ?? auth()->user();
         $isViewAs = $isViewAs ?? false;
         $canViewReports = $canViewReports ?? false;
@@ -17,8 +15,8 @@
             'pending_approvals' => 0,
             'direct_children' => 0
         ];
-    @endphp
-    @if(isset($isViewAs) && $isViewAs)
+    ?>
+    <?php if(isset($isViewAs) && $isViewAs): ?>
         <div
             class="bg-indigo-600 text-white rounded-2xl p-4 mb-8 shadow-lg shadow-indigo-600/20 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -32,22 +30,22 @@
                 </div>
                 <div>
                     <p class="font-bold text-sm">Viewing Dashboard As: <span
-                            class="font-black underline">{{ $user->profile?->full_name ?? $user->employee_id }}</span></p>
+                            class="font-black underline"><?php echo e($user->profile?->full_name ?? $user->employee_id); ?></span></p>
                     <p class="text-[10px] opacity-80 uppercase tracking-widest">You are in read-only view mode</p>
                 </div>
             </div>
-            <a href="{{ route('dashboard') }}"
+            <a href="<?php echo e(route('dashboard')); ?>"
                 class="px-4 py-2 bg-white text-indigo-600 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-indigo-50 transition border border-transparent hover:border-white/20">Back
                 to My Dashboard</a>
         </div>
-    @endif
+    <?php endif; ?>
     <!-- Stats Grid -->
-    @if($canViewDownline)
+    <?php if($canViewDownline): ?>
         <div
-            class="grid {{ auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2' }} md:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} lg:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} gap-2 md:gap-6 mb-2">
+            class="grid <?php echo e(auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2'); ?> md:grid-cols-<?php echo e(auth()->user()->isSuperAdmin() ? '3' : '2'); ?> lg:grid-cols-<?php echo e(auth()->user()->isSuperAdmin() ? '3' : '2'); ?> gap-2 md:gap-6 mb-2">
             <!-- Total Downline -->
             <div
-                class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+                class="glass bg-white dark:bg-darkbg/40 <?php echo e(auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2'); ?> md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-accent/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                     <div
@@ -59,20 +57,21 @@
                         </svg>
                     </div>
                     <span class="text-[7px] md:text-xs font-black text-success bg-success/10 px-1 md:px-2 py-0.5 rounded-full"
-                        data-live-sync="stats.direct_children">+{{ $stats['direct_children'] }}</span>
+                        data-live-sync="stats.direct_children">+<?php echo e($stats['direct_children']); ?></span>
                 </div>
                 <h3
                     class="text-slate-400 dark:text-slate-500 text-[8px] md:text-sm font-black uppercase tracking-widest mb-0.5 md:mb-2 relative z-10 truncate">
                     Team</h3>
                 <p class="text-sm md:text-4xl font-black text-slate-800 dark:text-blue-400 relative z-10"
                     data-live-sync="stats.total_downline">
-                    {{ number_format($stats['total_downline']) }}
+                    <?php echo e(number_format($stats['total_downline'])); ?>
+
                 </p>
             </div>
 
             <!-- Active Members -->
             <div
-                class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
+                class="glass bg-white dark:bg-darkbg/40 <?php echo e(auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2'); ?> md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-success/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
                     <div
@@ -88,13 +87,14 @@
                     Active</h3>
                 <p class="text-sm md:text-4xl font-black text-slate-800 dark:text-emerald-400 relative z-10"
                     data-live-sync="stats.active_downline">
-                    {{ number_format($stats['active_downline']) }}
+                    <?php echo e(number_format($stats['active_downline'])); ?>
+
                 </p>
             </div>
 
-            @if(auth()->user()->isSuperAdmin())
+            <?php if(auth()->user()->isSuperAdmin()): ?>
                 <!-- Pending Approvals -->
-                <div onclick="window.location.href='{{ route('users.index', ['status' => 'pending']) }}'"
+                <div onclick="window.location.href='<?php echo e(route('users.index', ['status' => 'pending'])); ?>'"
                     class="glass bg-white dark:bg-darkbg/40 p-1.5 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative cursor-pointer">
                     <div class="absolute top-0 right-0 w-12 h-12 bg-pink-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                     <div class="flex items-center justify-between mb-1 md:mb-4 relative z-10">
@@ -111,16 +111,17 @@
                         Pending</h3>
                     <p class="text-sm md:text-4xl font-black text-slate-800 dark:text-pink-400 relative z-10"
                         data-live-sync="stats.pending_approvals">
-                        {{ number_format($stats['pending_approvals']) }}
+                        <?php echo e(number_format($stats['pending_approvals'])); ?>
+
                     </p>
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
-    @endif
+    <?php endif; ?>
 
     <!-- Earnings Overview (RO, RM, BM, DM) -->
-    @if(isset($earnings) && $earnings)
-        <div class="grid grid-cols-1 {{ $user->isRO() ? 'md:grid-cols-3' : 'md:grid-cols-2' }} gap-2 md:gap-6 mb-8">
+    <?php if(isset($earnings) && $earnings): ?>
+        <div class="grid grid-cols-1 <?php echo e($user->isRO() ? 'md:grid-cols-3' : 'md:grid-cols-2'); ?> gap-2 md:gap-6 mb-8">
             <!-- Monthly Earning -->
             <div
                 class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
@@ -135,7 +136,8 @@
                     </div>
                     <div class="flex items-center space-x-2">
                         <div data-live-sync="salary_mode_badge">
-                            {!! (($earnings['salary_mode'] ?? 'tab') === 'dab' ? '<span class="text-[9px] font-black text-violet-500 bg-violet-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest border border-violet-500/20">SERVICE</span>' : '<span class="text-[9px] font-black text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest border border-blue-500/20">TAB</span>') !!}
+                            <?php echo (($earnings['salary_mode'] ?? 'tab') === 'dab' ? '<span class="text-[9px] font-black text-violet-500 bg-violet-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest border border-violet-500/20">SERVICE</span>' : '<span class="text-[9px] font-black text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest border border-blue-500/20">TAB</span>'); ?>
+
                         </div>
                         <span
                             class="text-[10px] font-black text-blue-500 bg-blue-500/5 px-2 py-1 rounded-full uppercase tracking-widest">Monthly</span>
@@ -143,36 +145,37 @@
                 </div>
                 <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Earnings</h3>
                 <p class="text-3xl font-black text-slate-800 dark:text-white" data-live-sync="earnings.monthly_total">
-                    ₹{{ number_format($earnings['monthly_total'], 2) }}
+                    ₹<?php echo e(number_format($earnings['monthly_total'], 2)); ?>
+
                 </p>
                 <div class="mt-4 grid grid-cols-2 gap-y-2 text-[10px] font-bold uppercase tracking-tight">
                     <div class="flex items-center text-slate-500">
                         <div class="w-2 h-2 rounded-full bg-slate-300 mr-1.5"></div>
                         <span
-                            data-live-sync="earnings.monthly_ta">{{ ($earnings['salary_mode'] ?? 'tab') === 'dab' ? 'SERVICE' : 'TA' }}:
-                            ₹{{ number_format($earnings['monthly_breakdown']['ta'], 2) }}</span>
+                            data-live-sync="earnings.monthly_ta"><?php echo e(($earnings['salary_mode'] ?? 'tab') === 'dab' ? 'SERVICE' : 'TA'); ?>:
+                            ₹<?php echo e(number_format($earnings['monthly_breakdown']['ta'], 2)); ?></span>
                     </div>
                     <div class="flex items-center text-emerald-500">
                         <div class="w-2 h-2 rounded-full bg-emerald-500/40 mr-1.5"></div>
                         <span data-live-sync="earnings.monthly_medicines">M:
-                            ₹{{ number_format($earnings['monthly_breakdown']['medicines'], 2) }}</span>
+                            ₹<?php echo e(number_format($earnings['monthly_breakdown']['medicines'], 2)); ?></span>
                     </div>
                     <div class="flex items-center text-purple-500">
                         <div class="w-2 h-2 rounded-full bg-purple-500/40 mr-1.5"></div>
                         <span data-live-sync="earnings.monthly_pathology">P:
-                            ₹{{ number_format($earnings['monthly_breakdown']['pathology'], 2) }}</span>
+                            ₹<?php echo e(number_format($earnings['monthly_breakdown']['pathology'], 2)); ?></span>
                     </div>
                     <div class="flex items-center text-amber-500">
                         <div class="w-2 h-2 rounded-full bg-amber-500/40 mr-1.5"></div>
                         <span data-live-sync="earnings.monthly_membership">MB:
-                            ₹{{ number_format($earnings['monthly_breakdown']['membership'], 2) }}</span>
+                            ₹<?php echo e(number_format($earnings['monthly_breakdown']['membership'], 2)); ?></span>
                     </div>
                 </div>
             </div>
 
             <!-- Monthly TA / DAB Earnings -->
-            @if(($earnings['salary_mode'] ?? 'tab') === 'dab' && isset($earnings['dab']))
-                {{-- DAB Mode: Doctor Appointment Earnings --}}
+            <?php if(($earnings['salary_mode'] ?? 'tab') === 'dab' && isset($earnings['dab'])): ?>
+                
                 <div
                     class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
                     <div class="absolute top-0 right-0 w-16 h-16 bg-violet-500/5 rounded-full -mr-4 -mt-4 blur-xl"></div>
@@ -189,12 +192,13 @@
                     </div>
                     <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Monthly Earnings</h3>
                     <p class="text-3xl font-black text-slate-800 dark:text-white" data-live-sync="earnings.dab_earnings">
-                        ₹{{ number_format($earnings['dab']['earnings'], 2) }}
+                        ₹<?php echo e(number_format($earnings['dab']['earnings'], 2)); ?>
+
                     </p>
 
                 </div>
-            @else
-                {{-- TAB Mode: Travel Allowance --}}
+            <?php else: ?>
+                
                 <div
                     class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
                     <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full -mr-4 -mt-4 blur-xl"></div>
@@ -211,7 +215,8 @@
                     </div>
                     <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">TA</h3>
                     <p class="text-3xl font-black text-slate-800 dark:text-white" data-live-sync="earnings.monthly_ta">
-                        ₹{{ number_format($earnings['monthly_ta'], 2) }}
+                        ₹<?php echo e(number_format($earnings['monthly_ta'], 2)); ?>
+
                     </p>
                     <div class="mt-4">
                         <div class="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
@@ -220,7 +225,7 @@
                         <p class="text-[9px] text-slate-500 font-bold mt-2 uppercase tracking-widest">Travel Allowance Summary</p>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Monthly Incentives -->
             <div
@@ -239,27 +244,27 @@
                 </div>
                 <h3 class="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Total Incentives</h3>
                 <p class="text-3xl font-black text-slate-800 dark:text-white" data-live-sync="earnings.monthly_incentives">
-                    ₹{{ number_format($earnings['monthly_incentives'], 2) }}</p>
+                    ₹<?php echo e(number_format($earnings['monthly_incentives'], 2)); ?></p>
                 <div class="mt-4 grid grid-cols-2 gap-2">
                     <div class="flex flex-col">
                         <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest">Med</span>
                         <span class="text-xs font-bold text-slate-700 dark:text-slate-300"
-                            data-live-sync="earnings.monthly_medicines">₹{{ number_format($earnings['monthly_breakdown']['medicines'], 2) }}</span>
+                            data-live-sync="earnings.monthly_medicines">₹<?php echo e(number_format($earnings['monthly_breakdown']['medicines'], 2)); ?></span>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest">Path</span>
                         <span class="text-xs font-bold text-slate-700 dark:text-slate-300"
-                            data-live-sync="earnings.monthly_pathology">₹{{ number_format($earnings['monthly_breakdown']['pathology'], 2) }}</span>
+                            data-live-sync="earnings.monthly_pathology">₹<?php echo e(number_format($earnings['monthly_breakdown']['pathology'], 2)); ?></span>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest">Mem</span>
                         <span class="text-xs font-bold text-slate-700 dark:text-slate-300"
-                            data-live-sync="earnings.monthly_membership">₹{{ number_format($earnings['monthly_breakdown']['membership'], 2) }}</span>
+                            data-live-sync="earnings.monthly_membership">₹<?php echo e(number_format($earnings['monthly_breakdown']['membership'], 2)); ?></span>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-[8px] text-slate-400 uppercase font-black tracking-widest">OTs</span>
                         <span class="text-xs font-bold text-slate-700 dark:text-slate-300"
-                            data-live-sync="earnings.monthly_ots">₹{{ number_format($earnings['monthly_breakdown']['ots'], 2) }}</span>
+                            data-live-sync="earnings.monthly_ots">₹<?php echo e(number_format($earnings['monthly_breakdown']['ots'], 2)); ?></span>
                     </div>
                 </div>
                 <div
@@ -268,13 +273,13 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?>
 
     <!-- Reports Grid -->
-    @if($canViewReports)
+    <?php if($canViewReports): ?>
         <div class="grid grid-cols-2 gap-2 md:gap-6 mb-10">
             <!-- Survey Reports -->
-            <a href="{{ route('surveys.index') }}"
+            <a href="<?php echo e(route('surveys.index')); ?>"
                 class="block glass bg-white dark:bg-darkbg/40 p-2 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-indigo-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-2 md:mb-6 relative z-10">
@@ -291,7 +296,8 @@
                             </h3>
                             <p class="text-xl md:text-3xl font-black text-slate-800 dark:text-white"
                                 data-live-sync="reports.surveys_total">
-                                {{ number_format($reports['surveys']['total']) }}
+                                <?php echo e(number_format($reports['surveys']['total'])); ?>
+
                             </p>
                         </div>
                     </div>
@@ -302,28 +308,31 @@
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Today</p>
                         <p class="text-sm md:text-lg font-black text-indigo-500" data-live-sync="reports.surveys_daily">
-                            {{ number_format($reports['surveys']['daily']) }}
+                            <?php echo e(number_format($reports['surveys']['daily'])); ?>
+
                         </p>
                     </div>
                     <div
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Week</p>
                         <p class="text-sm md:text-lg font-black text-indigo-500" data-live-sync="reports.surveys_weekly">
-                            {{ number_format($reports['surveys']['weekly']) }}
+                            <?php echo e(number_format($reports['surveys']['weekly'])); ?>
+
                         </p>
                     </div>
                     <div
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Month</p>
                         <p class="text-sm md:text-lg font-black text-indigo-500" data-live-sync="reports.surveys_monthly">
-                            {{ number_format($reports['surveys']['monthly']) }}
+                            <?php echo e(number_format($reports['surveys']['monthly'])); ?>
+
                         </p>
                     </div>
                 </div>
             </a>
 
             <!-- Appointment Reports -->
-            <a href="{{ route('appointments.all') }}"
+            <a href="<?php echo e(route('appointments.all')); ?>"
                 class="block glass bg-white dark:bg-darkbg/40 p-2 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-emerald-500/5 rounded-full -mr-3 -mt-3 blur-xl"></div>
                 <div class="flex items-center justify-between mb-2 md:mb-6 relative z-10">
@@ -340,7 +349,8 @@
                             </h3>
                             <p class="text-xl md:text-3xl font-black text-slate-800 dark:text-white"
                                 data-live-sync="reports.appointments_total">
-                                {{ number_format($reports['appointments']['total']) }}
+                                <?php echo e(number_format($reports['appointments']['total'])); ?>
+
                             </p>
                         </div>
                     </div>
@@ -351,30 +361,33 @@
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Today</p>
                         <p class="text-sm md:text-lg font-black text-emerald-500" data-live-sync="reports.appointments_daily">
-                            {{ number_format($reports['appointments']['daily']) }}
+                            <?php echo e(number_format($reports['appointments']['daily'])); ?>
+
                         </p>
                     </div>
                     <div
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Week</p>
                         <p class="text-sm md:text-lg font-black text-emerald-500" data-live-sync="reports.appointments_weekly">
-                            {{ number_format($reports['appointments']['weekly']) }}
+                            <?php echo e(number_format($reports['appointments']['weekly'])); ?>
+
                         </p>
                     </div>
                     <div
                         class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 md:p-3 text-center border border-slate-100 dark:border-white/5">
                         <p class="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Month</p>
                         <p class="text-sm md:text-lg font-black text-emerald-500" data-live-sync="reports.appointments_monthly">
-                            {{ number_format($reports['appointments']['monthly']) }}
+                            <?php echo e(number_format($reports['appointments']['monthly'])); ?>
+
                         </p>
                     </div>
                 </div>
             </a>
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        @if($canViewDownline)
+        <?php if($canViewDownline): ?>
             <!-- Hierarchy Tree Preview -->
             <div id="down-tree-card"
                 class="col-span-1 lg:col-span-2 glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden flex flex-col transition-all h-[60vh] relative z-20">
@@ -418,11 +431,11 @@
                 <div class="p-6 flex-1 bg-slate-50/30 dark:bg-transparent overflow-auto relative" id="tree-canvas">
                     <div id="tree-zoom-container" class="origin-top-left transition-transform duration-200">
                         <div id="tree-root" class="space-y-2">
-                            @if($user->isOfficeInCharge() && $user->upline)
-                                @include('dashboard.partials.tree_item', ['item' => $user->upline])
-                            @else
-                                @include('dashboard.partials.tree_item', ['item' => $user])
-                            @endif
+                            <?php if($user->isOfficeInCharge() && $user->upline): ?>
+                                <?php echo $__env->make('dashboard.partials.tree_item', ['item' => $user->upline], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            <?php else: ?>
+                                <?php echo $__env->make('dashboard.partials.tree_item', ['item' => $user], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -440,12 +453,12 @@
                     </div>
                 </div>
             </div>
-        @endif
+        <?php endif; ?>
 
         <!-- Recent Activity & Pending Approvals -->
         <div class="space-y-8">
             <!-- Pending Approvals Quick Action -->
-            @include('dashboard.partials.pending_approvals')
+            <?php echo $__env->make('dashboard.partials.pending_approvals', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
             <!-- Recent Activity -->
             <div id="timeline-card"
@@ -458,14 +471,14 @@
                         Viewer</button>
                 </div>
                 <div class="p-6 flex-1 overflow-y-auto space-y-6 custom-scrollbar" id="live-timeline">
-                    @include('dashboard.partials.timeline_items', ['recentActivities' => $recentActivities])
+                    <?php echo $__env->make('dashboard.partials.timeline_items', ['recentActivities' => $recentActivities], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                 </div>
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('css')
+<?php $__env->startSection('css'); ?>
     <style>
         .tree-item .tree-children {
             transition: all 0.3s ease-in-out;
@@ -587,11 +600,11 @@
             border-radius: 12px;
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('js')
+<?php $__env->startSection('js'); ?>
     <script>
-        window.APP_URL = "{{ url('/') }}";
+        window.APP_URL = "<?php echo e(url('/')); ?>";
 
         async function toggleTreeItem(event, itemId) {
             event.stopPropagation();
@@ -777,7 +790,7 @@
 
         // Auto-expand root
         document.addEventListener('DOMContentLoaded', () => {
-            const rootId = "{{ ($user->isOfficeInCharge() && $user->upline) ? $user->upline->id : $user->id }}";
+            const rootId = "<?php echo e(($user->isOfficeInCharge() && $user->upline) ? $user->upline->id : $user->id); ?>";
             const rootChildren = document.getElementById(`children-${rootId}`);
             if (rootChildren) {
                 // Manually trigger toggle for first load to fetch children
@@ -791,4 +804,5 @@
         });
 
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/dashboard/index.blade.php ENDPATH**/ ?>

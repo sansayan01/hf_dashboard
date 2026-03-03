@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Attendance Dashboard'); ?>
+<?php $__env->startSection('header_title', $user->id === auth()->id() ? 'My Attendance' : ($user->profile->full_name ?? $user->employee_id) . "'s Attendance"); ?>
 
-@section('title', 'Attendance Dashboard')
-@section('header_title', $user->id === auth()->id() ? 'My Attendance' : ($user->profile->full_name ?? $user->employee_id) . "'s Attendance")
-
-@section('css')
+<?php $__env->startSection('css'); ?>
     <style>
         .calendar-container {
             display: grid;
@@ -87,32 +85,32 @@
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
-    {{-- Filter Toggle Header Bar - Same pattern as My Team --}}
-    @if(!empty($viewableUsers) && count($viewableUsers) > 0 && auth()->user()->designation !== 'ro')
+<?php $__env->startSection('content'); ?>
+    
+    <?php if(!empty($viewableUsers) && count($viewableUsers) > 0 && auth()->user()->designation !== 'ro'): ?>
         <div class="bg-white dark:bg-darkcard rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm mb-6">
             <div class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <div class="flex items-center space-x-3">
                         <h3 class="font-bold text-lg text-slate-800 dark:text-white">Attendance Dashboard</h3>
-                        @php
+                        <?php
                             $isFiltered = request()->anyFilled(['district', 'block', 'gram_panchayat', 'designation', 'search', 'status']);
-                        @endphp
-                        @if($isFiltered)
+                        ?>
+                        <?php if($isFiltered): ?>
                             <span
                                 class="px-2 py-0.5 bg-accent/10 text-accent text-[10px] font-black rounded-full border border-accent/20 animate-pulse">
-                                {{ count($viewableUsers) }} Matching
+                                <?php echo e(count($viewableUsers)); ?> Matching
                             </span>
-                        @endif
+                        <?php endif; ?>
                     </div>
                     <p class="text-sm text-slate-500 dark:text-slate-400">View and filter attendance records.</p>
                 </div>
 
                 <div class="flex items-center space-x-3">
-                    @if(auth()->user()->isSuperAdmin())
-                        <a href="{{ route('attendance.reports') }}" title="Advanced Report"
+                    <?php if(auth()->user()->isSuperAdmin()): ?>
+                        <a href="<?php echo e(route('attendance.reports')); ?>" title="Advanced Report"
                             class="px-3 py-2 bg-accent text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all flex items-center space-x-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -130,24 +128,24 @@
                             </svg>
                             <span class="hidden">Filter</span>
                         </button>
-                    @endif
+                    <?php endif; ?>
                 </div>
             </div>
 
-            {{-- Filter Panel - Inside the card, same as My Team --}}
+            
             <div id="filter-panel"
-                class="{{ $isFiltered ? '' : 'hidden' }} p-6 border-t border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
-                <form action="{{ route('attendance.dashboard') }}" method="GET" class="no-loader space-y-4">
-                    @if(request('user_id'))
-                        <input type="hidden" name="user_id" value="{{ request('user_id') }}">
-                    @endif
+                class="<?php echo e($isFiltered ? '' : 'hidden'); ?> p-6 border-t border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
+                <form action="<?php echo e(route('attendance.dashboard')); ?>" method="GET" class="no-loader space-y-4">
+                    <?php if(request('user_id')): ?>
+                        <input type="hidden" name="user_id" value="<?php echo e(request('user_id')); ?>">
+                    <?php endif; ?>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Search -->
                         <div>
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Search
                                 Member</label>
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Name, ID or Phone..."
+                            <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Name, ID or Phone..."
                                 class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                         </div>
 
@@ -158,10 +156,11 @@
                             <select name="designation"
                                 class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
                                 <option value="">All Roles</option>
-                                @foreach($allowedFilters as $val => $label)
-                                    <option value="{{ $val }}" {{ request('designation') == $val ? 'selected' : '' }}>{{ $label }}
+                                <?php $__currentLoopData = $allowedFilters; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $val => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($val); ?>" <?php echo e(request('designation') == $val ? 'selected' : ''); ?>><?php echo e($label); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -203,9 +202,9 @@
                             <select name="status"
                                 class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
                                 <option value="">All Status</option>
-                                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active Members
+                                <option value="active" <?php echo e(request('status') == 'active' ? 'selected' : ''); ?>>Active Members
                                 </option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending Approvals
+                                <option value="pending" <?php echo e(request('status') == 'pending' ? 'selected' : ''); ?>>Pending Approvals
                                 </option>
                             </select>
                         </div>
@@ -214,23 +213,23 @@
                             <button type="submit"
                                 class="h-10 px-6 bg-accent text-white rounded-xl text-sm font-bold hover:opacity-90 transition">Apply
                                 Filters</button>
-                            <a href="{{ route('attendance.dashboard') }}"
+                            <a href="<?php echo e(route('attendance.dashboard')); ?>"
                                 class="h-10 px-6 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold flex items-center justify-center hover:opacity-90 transition">Reset</a>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
-    @endif
+    <?php endif; ?>
 
     <div id="calendar-wrapper"
         class="space-y-8 max-w-7xl mx-auto overflow-y-auto h-full pb-20 transition-opacity duration-300">
-        @include('attendance.partials.calendar_content')
+        <?php echo $__env->make('attendance.partials.calendar_content', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('js')
-    <script src="{{ asset('js/locations.js') }}"></script>
+<?php $__env->startSection('js'); ?>
+    <script src="<?php echo e(asset('js/locations.js')); ?>"></script>
     <script>
         function toggleFilters() {
             const panel = document.getElementById('filter-panel');
@@ -251,7 +250,7 @@
                 // Setup Districts
                 Object.keys(districts).forEach(district => {
                     const option = new Option(district, district);
-                    if ("{{ request('district') }}" === district) option.selected = true;
+                    if ("<?php echo e(request('district')); ?>" === district) option.selected = true;
                     districtSelect.add(option);
                 });
 
@@ -263,11 +262,11 @@
                     if (district && districts[district]) {
                         Object.keys(districts[district]).forEach(block => {
                             const option = new Option(block, block);
-                            if ("{{ request('block') }}" === block) option.selected = true;
+                            if ("<?php echo e(request('block')); ?>" === block) option.selected = true;
                             blockSelect.add(option);
                         });
 
-                        if ("{{ request('block') }}") {
+                        if ("<?php echo e(request('block')); ?>") {
                             updateGPs();
                         }
                     }
@@ -281,7 +280,7 @@
                     if (district && block && districts[district][block]) {
                         districts[district][block].forEach(gp => {
                             const option = new Option(gp, gp);
-                            if ("{{ request('gram_panchayat') }}" === gp) option.selected = true;
+                            if ("<?php echo e(request('gram_panchayat')); ?>" === gp) option.selected = true;
                             gpSelect.add(option);
                         });
                     }
@@ -341,7 +340,7 @@
         }
 
         function showDetails(dateRaw, dateFormatted, status, incentive, ta, med, path, mem, ots, total, markedBy, time, userId) {
-            const isSuperAdmin = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }};
+            const isSuperAdmin = <?php echo e(auth()->user()->isSuperAdmin() ? 'true' : 'false'); ?>;
             const canUpdate = isSuperAdmin;
             const isPastOrToday = new Date(dateRaw) <= new Date(new Date().toDateString());
 
@@ -422,11 +421,11 @@
                 ...getSwalConfig()
             });
 
-            fetch("{{ route('attendance.store') }}", {
+            fetch("<?php echo e(route('attendance.store')); ?>", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
                 },
                 body: JSON.stringify({
                     user_id: userId,
@@ -452,4 +451,5 @@
                 });
         }
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/attendance/calendar.blade.php ENDPATH**/ ?>
