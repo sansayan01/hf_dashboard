@@ -13,7 +13,7 @@
         }
 
         .profile-hero::before {
-            
+
             content: '';
             position: absolute;
             inset: 0;
@@ -473,7 +473,7 @@
                                     @csrf
                                     <button type="submit"
                                         class="btn-action inline-flex items-center gap-2 px-5 py-2.5 font-bold rounded-xl text-xs shadow-lg transition
-                                                                        {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
+                                                                                {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -751,7 +751,8 @@
                                     </div>
                                 @endif
                                 @if($user->payment_screenshot)
-                                    <a href="{{ route('storage.bridge', ['path' => $user->payment_screenshot]) }}" target="_blank"
+                                    <a href="{{ route('storage.bridge', ['path' => $user->payment_screenshot]) }}"
+                                        target="_blank"
                                         class="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -956,12 +957,102 @@
 @endsection
 
 @section('js')
-    <script>     // Dropdown toggle     function toggleIDCardDropdown() {         const dropdown = document.getElementById('id-card-dropdown');         dropdown.classList.toggle('hidden');     }     document.addEventListener('click', function (event) {         const dropdown = document.getElementById('id-card-dropdown');         const button = event.target.closest('button[onclick="toggleIDCardDropdown()"]');         if (!button && dropdown && !dropdown.contains(event.target)) {             dropdown.classList.add('hidden');         }     });
-        // Password Reveal Toggle     let isShowingPassword = false;     function togglePlainPassword() {         const passwordText = document.getElementById('plain-password-text');         const toggleBtn = document.getElementById('password-toggle-btn');         const plainValue = @json($user->password_plain);
-        if (!isShowingPassword) {
-            passwordText.innerText = plainValue; passwordText.style.letterSpacing = '0.05em'; // Reduce spacing for readability             toggleBtn.innerText = 'Hide';             isShowingPassword = true;         } else {             passwordText.innerText = '••••••••';             passwordText.style.letterSpacing = '0.3em'; // Restore spacing for dots             toggleBtn.innerText = 'Show';             isShowingPassword = false;         }     }
-            // Scroll reveal animation     const observer = new IntersectionObserver((entries) => {         entries.forEach((entry, i) => {             if (entry.isIntersecting) {                 setTimeout(() => {                     entry.target.classList.add('visible');                 }, i * 80);                 observer.unobserve(entry.target);             }         });     }, { threshold: 0.1 });
-            document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
-            function markAttendance(userId, status, element) { if (!status) return; fetch('{{ route("attendance.store") }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify({ user_id: userId, status: status, date: '{{ date("Y-m-d") }}' }) }).then(response => response.json()).then(data => { if (data.attendance) { if (typeof Toast !== 'undefined') { Toast.fire({ icon: 'success', title: data.message }); } else { alert(data.message); } } else { if (typeof Toast !== 'undefined') { Toast.fire({ icon: 'error', title: data.message || 'Something went wrong' }); } else { alert(data.message || 'Something went wrong'); } } }).catch(error => { console.error('Error:', error); if (typeof Toast !== 'undefined') { Toast.fire({ icon: 'error', title: 'System Error' }); } else { alert('System Error'); } }); }
+    <script>
+        // Dropdown toggle
+        function toggleIDCardDropdown() {
+            const dropdown = document.getElementById('id-card-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function (event) {
+            const dropdown = document.getElementById('id-card-dropdown');
+            const button = event.target.closest('button[onclick="toggleIDCardDropdown()"]');
+            if (!button && dropdown && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Password Reveal Toggle
+        let isShowingPassword = false;
+
+        function togglePlainPassword() {
+            const passwordText = document.getElementById('plain-password-text');
+            const toggleBtn = document.getElementById('password-toggle-btn');
+            const plainValue = @json($user->password_plain);
+
+            if (!isShowingPassword) {
+                passwordText.innerText = plainValue;
+                passwordText.style.letterSpacing = '0.05em'; // Reduce spacing for readability
+                toggleBtn.innerText = 'Hide';
+                isShowingPassword = true;
+            } else {
+                passwordText.innerText = '••••••••';
+                passwordText.style.letterSpacing = '0.3em'; // Restore spacing for dots
+                toggleBtn.innerText = 'Show';
+                isShowingPassword = false;
+            }
+        }
+
+        // Scroll reveal animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, i * 80);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+
+        function markAttendance(userId, status, element) {
+            if (!status) return;
+            fetch('{{ route("attendance.store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    status: status,
+                    date: '{{ date("Y-m-d") }}'
+                })
+            }).then(response => response.json()).then(data => {
+                if (data.attendance) {
+                    if (typeof Toast !== 'undefined') {
+                        Toast.fire({
+                            icon: 'success',
+                            title: data.message
+                        });
+                    } else {
+                        alert(data.message);
+                    }
+                } else {
+                    if (typeof Toast !== 'undefined') {
+                        Toast.fire({
+                            icon: 'error',
+                            title: data.message || 'Something went wrong'
+                        });
+                    } else {
+                        alert(data.message || 'Something went wrong');
+                    }
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                if (typeof Toast !== 'undefined') {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'System Error'
+                    });
+                } else {
+                    alert('System Error');
+                }
+            });
+        }
     </script>
 @endsection
