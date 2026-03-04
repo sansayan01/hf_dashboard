@@ -110,7 +110,11 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
+<<<<<<< HEAD
                             <label id="id-generation-label" class="block text-sm font-bold text-slate-700">Volunteer ID Generation</label>
+=======
+                            <label class="block text-sm font-bold text-slate-700">Employee ID Generation</label>
+>>>>>>> not-completed
                             
                             @if(auth()->user()->isSuperAdmin())
                                 <div class="flex space-x-4">

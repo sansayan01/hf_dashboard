@@ -35,8 +35,9 @@ class UserController extends Controller
             $downlineIds = $currentUser->getAllDownline()->pluck('id');
             $query->whereIn('id', $downlineIds);
         } else {
-            // Super Admin sees everyone except themselves
-            $query->where('id', '!=', $currentUser->id);
+            // Super Admin sees everyone except themselves and Office In-Charges
+            $query->where('id', '!=', $currentUser->id)
+                ->where('designation', '!=', 'office_in_charge');
         }
 
         // Exclude Staff and Office In-Charge from My Team view (managed in Staff section)

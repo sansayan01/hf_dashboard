@@ -172,6 +172,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // AI Assistant
     Route::post('/ai/chat', [\App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');
 
+<<<<<<< HEAD
     // Chatbot Training (Super Admin only)
     Route::get('/ai/training', [\App\Http\Controllers\AIController::class, 'trainingIndex'])->name('ai.training.index');
     Route::post('/ai/training', [\App\Http\Controllers\AIController::class, 'trainingStore'])->name('ai.training.store');
@@ -326,6 +327,8 @@ Route::get('/diag/file-check', function () {
 
     $html .= "</ul>";
     return $html;
+=======
+>>>>>>> not-completed
 });
 
 // Diagnostic route - Moved outside auth for debugging
@@ -334,11 +337,42 @@ Route::get('/diag/oic', function () {
         $out = "<div style='font-family: sans-serif; padding: 20px;'>";
         $out .= "<h1 style='color: #3C50E0;'>System Diagnostic</h1>";
 
+<<<<<<< HEAD
         $out .= "<h2>Office In Charge Accounts</h2>";
+=======
+        $out .= "<h2>Session & Cookies</h2>";
+        $out .= "<b>Session Driver:</b> " . config('session.driver') . "<br>";
+        $out .= "<b>Is Writable:</b> " . (is_writable(storage_path('framework/sessions')) ? "<span style='color: green;'>YES</span>" : "<span style='color: red;'>NO</span>") . "<br>";
+        $out .= "<b>Session Secure Cookie:</b> " . (config('session.secure') ? "True" : "False") . "<br>";
+        $out .= "<b>Session SameSite:</b> " . config('session.same_site', 'lax') . "<br>";
+
+        $out .= "<h2>URL/Domain Check</h2>";
+        $out .= "<b>APP_URL (env):</b> " . env('APP_URL') . "<br>";
+        $out .= "<b>Current URL:</b> " . url()->current() . "<br>";
+        $out .= "<b>URL Host match:</b> " . (str_contains(env('APP_URL'), request()->getHost()) ? "<span style='color: green;'>MATCH</span>" : "<span style='color: orange;'>MISMATCH</span>") . "<br>";
+
+        $out .= "<h2>Database Connection</h2>";
+>>>>>>> not-completed
         try {
-            $oics = \App\Models\User::where('designation', 'office_in_charge')
-                ->orWhere('is_office_in_charge', true)
+            \Illuminate\Support\Facades\DB::connection()->getPdo();
+            $out .= "<span style='color: green;'>Database Connected Successfully</span><br>";
+        } catch (\Exception $e) {
+            $out .= "<span style='color: red;'>Database Failed: " . $e->getMessage() . "</span><br>";
+        }
+
+        $out .= "<h2>PHP Extensions</h2>";
+        $extensions = ['pdo_mysql', 'mysqli', 'openssl', 'mbstring', 'gd', 'curl'];
+        foreach ($extensions as $ext) {
+            $status = extension_loaded($ext) ? "<span style='color: green;'>LOADED</span>" : "<span style='color: red;'>MISSING</span>";
+            $out .= "<b>$ext:</b> $status<br>";
+        }
+
+        $out .= "<h2>Accounts Summary</h2>";
+        try {
+            $counts = \App\Models\User::select('designation', \DB::raw('count(*) as total'))
+                ->groupBy('designation')
                 ->get();
+<<<<<<< HEAD
             $out .= "Found " . $oics->count() . " OIC users.<br><br>";
             foreach ($oics as $u) {
                 // Ensure helper methods exist or use properties
@@ -387,11 +421,34 @@ Route::get('/diag/oic', function () {
             $out .= "Error counting: " . $e->getMessage();
         }
 
+=======
+            foreach ($counts as $c) {
+                $out .= "<b>{$c->designation}:</b> {$c->total}<br>";
+            }
+        } catch (\Exception $e) {
+            $out .= "Error counting: " . $e->getMessage();
+        }
+
+>>>>>>> not-completed
         $out .= "</div>";
         return $out;
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }
+<<<<<<< HEAD
+=======
+});
+
+Route::get('/diag/clear', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        return "Caches cleared successfully! Try logging in again.";
+    } catch (\Exception $e) {
+        return "Error clearing caches: " . $e->getMessage();
+    }
+>>>>>>> not-completed
 });
 
 Route::get('/diag/clear', function () {
