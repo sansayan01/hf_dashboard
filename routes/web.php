@@ -253,6 +253,10 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::get('expenses/export', [App\Http\Controllers\ExpenseController::class, 'export'])->name('expenses.export');
     Route::resource('expenses', App\Http\Controllers\ExpenseController::class);
 
+    // Income Tracker
+    Route::get('incomes/export', [App\Http\Controllers\IncomeController::class, 'export'])->name('incomes.export');
+    Route::resource('incomes', App\Http\Controllers\IncomeController::class);
+
     // Coupon Code Management (Super Admin Only)
     Route::prefix('coupons')->name('coupons.')->group(function () {
         Route::get('/', [App\Http\Controllers\CouponCodeController::class, 'index'])->name('index');

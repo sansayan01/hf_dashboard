@@ -109,6 +109,34 @@
                     </div>
                 </a>
 
+                <!-- Income Tracker Option -->
+                <a href="{{ route('incomes.index') }}"
+                    class="group flex items-center justify-between p-6 sm:px-8 hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
+                    <div class="flex items-center space-x-5">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-500/10 dark:to-cyan-500/10 flex items-center justify-center border border-teal-100 dark:border-teal-500/20 shadow-sm text-teal-500 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4
+                                class="text-lg font-bold text-slate-800 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                                Income Tracker</h4>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5 max-w-lg">Record,
+                                categorize, and analyze all incoming funds and revenue.</p>
+                        </div>
+                    </div>
+                    <!-- Right Chev -->
+                    <div
+                        class="text-slate-300 dark:text-slate-600 group-hover:text-teal-500 dark:group-hover:text-teal-400 group-hover:translate-x-1 transition-all">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </a>
+
             </div>
         </div>
     </div>
