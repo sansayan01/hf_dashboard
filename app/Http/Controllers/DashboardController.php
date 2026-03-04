@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\ActivityLog;
+use App\Models\Income;
+use App\Models\Expense;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -46,6 +48,7 @@ class DashboardController extends Controller
         $reports = $canViewReports ? $this->getReports($allAccessibleIds) : [];
         $recentActivities = $this->getRecentActivities($allAccessibleIds);
         $earnings = $this->getEarnings($user);
+        $financials = $user->isSuperAdmin() ? $this->getFinancialOverview() : null;
 
         $pendingUsers = [];
         if ($canApprove) {
@@ -62,7 +65,7 @@ class DashboardController extends Controller
 
         $isViewAs = $currentUser->id !== $user->id;
 
-        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'canViewReports', 'canViewDownline', 'earnings', 'pendingUsers'));
+        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'canViewReports', 'canViewDownline', 'earnings', 'pendingUsers', 'financials'));
     }
 
     private function getStats(User $user, array $downlineIds, bool $canViewDownline): array
@@ -289,6 +292,74 @@ class DashboardController extends Controller
             'status' => $user->status,
             'profile_picture' => $user->profile?->profile_picture ?? null,
             'children' => $children,
+        ];
+    }
+
+    /**
+     * Get financial overview data for Super Admin dashboard
+     */
+    private function getFinancialOverview(): array
+    {
+        $now = now();
+        $monthStart = $now->copy()->startOfMonth();
+        $lastMonthStart = $now->copy()->subMonth()->startOfMonth();
+        $lastMonthEnd = $now->copy()->subMonth()->endOfMonth();
+
+        // This month totals
+        $thisMonthIncome = Income::where('income_date', '>=', $monthStart)->sum('amount');
+        $thisMonthExpense = Expense::where('expense_date', '>=', $monthStart)->sum('amount');
+
+        // Last month totals
+        $lastMonthIncome = Income::whereBetween('income_date', [$lastMonthStart, $lastMonthEnd])->sum('amount');
+        $lastMonthExpense = Expense::whereBetween('expense_date', [$lastMonthStart, $lastMonthEnd])->sum('amount');
+
+        // Month-over-month changes
+        $incomeChange = $lastMonthIncome > 0
+            ? round((($thisMonthIncome - $lastMonthIncome) / $lastMonthIncome) * 100, 1)
+            : ($thisMonthIncome > 0 ? 100 : 0);
+        $expenseChange = $lastMonthExpense > 0
+            ? round((($thisMonthExpense - $lastMonthExpense) / $lastMonthExpense) * 100, 1)
+            : ($thisMonthExpense > 0 ? 100 : 0);
+
+        // 6-month trend
+        $monthlyTrend = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $date = $now->copy()->subMonths($i);
+            $mStart = $date->copy()->startOfMonth();
+            $mEnd = $date->copy()->endOfMonth();
+            $monthlyTrend->push([
+                'label' => $date->format('M'),
+                'income' => round(Income::whereBetween('income_date', [$mStart, $mEnd])->sum('amount'), 2),
+                'expense' => round(Expense::whereBetween('expense_date', [$mStart, $mEnd])->sum('amount'), 2),
+            ]);
+        }
+
+        // Top 3 categories
+        $topIncomeCategories = Income::where('income_date', '>=', $monthStart)
+            ->selectRaw('category, SUM(amount) as total')
+            ->groupBy('category')->orderByDesc('total')->limit(3)->get();
+
+        $topExpenseCategories = Expense::where('expense_date', '>=', $monthStart)
+            ->selectRaw('category, SUM(amount) as total')
+            ->groupBy('category')->orderByDesc('total')->limit(3)->get();
+
+        // Recent 5 combined entries
+        $recentIncomes = Income::latest('income_date')->latest('created_at')->limit(5)->get()->toBase()
+            ->map(fn($i) => ['type' => 'income', 'title' => $i->title, 'amount' => $i->amount, 'category' => $i->category, 'date' => $i->income_date]);
+        $recentExpenses = Expense::latest('expense_date')->latest('created_at')->limit(5)->get()->toBase()
+            ->map(fn($e) => ['type' => 'expense', 'title' => $e->title, 'amount' => $e->amount, 'category' => $e->category, 'date' => $e->expense_date]);
+        $recentFinancials = $recentIncomes->merge($recentExpenses)->sortByDesc('date')->take(5)->values();
+
+        return [
+            'thisMonthIncome' => $thisMonthIncome,
+            'thisMonthExpense' => $thisMonthExpense,
+            'netFlow' => $thisMonthIncome - $thisMonthExpense,
+            'incomeChange' => $incomeChange,
+            'expenseChange' => $expenseChange,
+            'monthlyTrend' => $monthlyTrend,
+            'topIncomeCategories' => $topIncomeCategories,
+            'topExpenseCategories' => $topExpenseCategories,
+            'recentFinancials' => $recentFinancials,
         ];
     }
 

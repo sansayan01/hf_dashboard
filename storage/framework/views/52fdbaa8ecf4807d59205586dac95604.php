@@ -434,6 +434,316 @@
         </div>
     <?php endif; ?>
 
+    
+    <?php if($user->isSuperAdmin() && isset($financials) && $financials): ?>
+        <div class="mb-10">
+            
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-slate-800 dark:bg-white/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-800 dark:text-white tracking-tight">Financial Overview</h3>
+                        <p class="text-[10px] text-slate-400 font-semibold"><?php echo e(now()->format('F Y')); ?></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="<?php echo e(route('incomes.create')); ?>"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-all shadow-sm shadow-emerald-500/20 hover:shadow-md hover:shadow-emerald-500/30 hover:-translate-y-0.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Record Income
+                    </a>
+                    <a href="<?php echo e(route('expenses.create')); ?>"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-lg transition-all shadow-sm shadow-rose-500/20 hover:shadow-md hover:shadow-rose-500/30 hover:-translate-y-0.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Record Expense
+                    </a>
+                    <a href="<?php echo e(route('finances.index')); ?>"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-darkbg/60 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                        Finances Hub
+                    </a>
+                </div>
+            </div>
+
+            
+            <div class="grid grid-cols-3 gap-2 md:gap-4 mb-5">
+                
+                <a href="<?php echo e(route('incomes.index')); ?>"
+                    class="glass bg-white dark:bg-darkbg/40 p-3 md:p-5 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
+                    <div class="absolute top-0 right-0 w-14 h-14 bg-emerald-500/5 rounded-full -mr-4 -mt-4 blur-xl"></div>
+                    <div class="flex items-center justify-between mb-2 md:mb-3 relative z-10">
+                        <div
+                            class="w-7 h-7 md:w-9 md:h-9 bg-emerald-500/10 text-emerald-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                            </svg>
+                        </div>
+                        <?php if($financials['incomeChange'] != 0): ?>
+                            <span
+                                class="text-[9px] md:text-[10px] font-black px-1.5 py-0.5 rounded-full <?php echo e($financials['incomeChange'] > 0 ? 'text-emerald-600 bg-emerald-500/10' : 'text-rose-500 bg-rose-500/10'); ?>">
+                                <?php echo e($financials['incomeChange'] > 0 ? '+' : ''); ?><?php echo e($financials['incomeChange']); ?>%
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                    <h3
+                        class="text-slate-400 dark:text-slate-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5 md:mb-1">
+                        Income</h3>
+                    <p class="text-sm md:text-2xl font-black text-emerald-600 dark:text-emerald-400"
+                        style="font-variant-numeric:tabular-nums">₹<?php echo e(number_format($financials['thisMonthIncome'], 2)); ?></p>
+                </a>
+
+                
+                <a href="<?php echo e(route('expenses.index')); ?>"
+                    class="glass bg-white dark:bg-darkbg/40 p-3 md:p-5 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
+                    <div class="absolute top-0 right-0 w-14 h-14 bg-rose-500/5 rounded-full -mr-4 -mt-4 blur-xl"></div>
+                    <div class="flex items-center justify-between mb-2 md:mb-3 relative z-10">
+                        <div
+                            class="w-7 h-7 md:w-9 md:h-9 bg-rose-500/10 text-rose-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                            </svg>
+                        </div>
+                        <?php if($financials['expenseChange'] != 0): ?>
+                            <span
+                                class="text-[9px] md:text-[10px] font-black px-1.5 py-0.5 rounded-full <?php echo e($financials['expenseChange'] > 0 ? 'text-rose-500 bg-rose-500/10' : 'text-emerald-600 bg-emerald-500/10'); ?>">
+                                <?php echo e($financials['expenseChange'] > 0 ? '+' : ''); ?><?php echo e($financials['expenseChange']); ?>%
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                    <h3
+                        class="text-slate-400 dark:text-slate-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5 md:mb-1">
+                        Expenses</h3>
+                    <p class="text-sm md:text-2xl font-black text-rose-500 dark:text-rose-400"
+                        style="font-variant-numeric:tabular-nums">₹<?php echo e(number_format($financials['thisMonthExpense'], 2)); ?></p>
+                </a>
+
+                
+                <?php $netPositive = $financials['netFlow'] >= 0; ?>
+                <div
+                    class="glass bg-white dark:bg-darkbg/40 p-3 md:p-5 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group overflow-hidden relative">
+                    <div
+                        class="absolute top-0 right-0 w-14 h-14 <?php echo e($netPositive ? 'bg-blue-500/5' : 'bg-amber-500/5'); ?> rounded-full -mr-4 -mt-4 blur-xl">
+                    </div>
+                    <div class="flex items-center justify-between mb-2 md:mb-3 relative z-10">
+                        <div
+                            class="w-7 h-7 md:w-9 md:h-9 <?php echo e($netPositive ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'); ?> rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <span
+                            class="text-[9px] md:text-[10px] font-black px-1.5 py-0.5 rounded-full <?php echo e($netPositive ? 'text-blue-600 bg-blue-500/10' : 'text-amber-600 bg-amber-500/10'); ?>">
+                            <?php echo e($netPositive ? 'SURPLUS' : 'DEFICIT'); ?>
+
+                        </span>
+                    </div>
+                    <h3
+                        class="text-slate-400 dark:text-slate-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-0.5 md:mb-1">
+                        Net Flow</h3>
+                    <p class="text-sm md:text-2xl font-black <?php echo e($netPositive ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'); ?>"
+                        style="font-variant-numeric:tabular-nums">
+                        <?php echo e($netPositive ? '+' : '-'); ?>₹<?php echo e(number_format(abs($financials['netFlow']), 2)); ?>
+
+                    </p>
+                </div>
+            </div>
+
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                <div
+                    class="lg:col-span-2 glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="text-xs font-black text-slate-800 dark:text-white">Income vs Expenses</h4>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Last 6 months trend</p>
+                        </div>
+                        <div class="flex items-center gap-3 text-[10px] font-bold">
+                            <span class="flex items-center gap-1"><span class="w-5 h-[3px] bg-emerald-500 rounded-full"></span>
+                                <span class="text-slate-400">Income</span></span>
+                            <span class="flex items-center gap-1"><span class="w-5 h-[3px] bg-rose-400 rounded-full"></span>
+                                <span class="text-slate-400">Expense</span></span>
+                        </div>
+                    </div>
+                    <div style="height:200px"><canvas id="financialTrendChart"></canvas></div>
+                </div>
+
+                
+                <div class="space-y-4 md:space-y-5">
+                    
+                    <div
+                        class="glass bg-white dark:bg-darkbg/40 p-4 md:p-5 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm">
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Top Categories</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mb-2">Income</p>
+                                <?php $__empty_1 = true; $__currentLoopData = $financials['topIncomeCategories']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <div class="mb-2">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span
+                                                class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 truncate max-w-[80px]"><?php echo e($cat->category); ?></span>
+                                            <span class="text-[10px] font-bold text-slate-800 dark:text-white"
+                                                style="font-variant-numeric:tabular-nums">₹<?php echo e(number_format($cat->total)); ?></span>
+                                        </div>
+                                        <div class="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                            <div class="h-full bg-emerald-500 rounded-full"
+                                                style="width:<?php echo e($financials['thisMonthIncome'] > 0 ? ($cat->total / $financials['thisMonthIncome']) * 100 : 0); ?>%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <p class="text-[10px] text-slate-400">No data</p>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-bold text-rose-400 uppercase tracking-widest mb-2">Expense</p>
+                                <?php $__empty_1 = true; $__currentLoopData = $financials['topExpenseCategories']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <div class="mb-2">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span
+                                                class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 truncate max-w-[80px]"><?php echo e($cat->category); ?></span>
+                                            <span class="text-[10px] font-bold text-slate-800 dark:text-white"
+                                                style="font-variant-numeric:tabular-nums">₹<?php echo e(number_format($cat->total)); ?></span>
+                                        </div>
+                                        <div class="w-full h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                            <div class="h-full bg-rose-400 rounded-full"
+                                                style="width:<?php echo e($financials['thisMonthExpense'] > 0 ? ($cat->total / $financials['thisMonthExpense']) * 100 : 0); ?>%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <p class="text-[10px] text-slate-400">No data</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div
+                        class="glass bg-white dark:bg-darkbg/40 p-4 md:p-5 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Activity</h4>
+                            <span class="flex h-2 w-2 relative"><span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span
+                                    class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span>
+                        </div>
+                        <div class="space-y-2">
+                            <?php $__empty_1 = true; $__currentLoopData = $financials['recentFinancials']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $entry): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <div
+                                    class="flex items-center justify-between py-1.5 <?php echo e(!$loop->last ? 'border-b border-slate-50 dark:border-white/3' : ''); ?>">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div
+                                            class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 <?php echo e($entry['type'] === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'); ?>">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="<?php echo e($entry['type'] === 'income' ? 'M7 11l5-5m0 0l5 5m-5-5v12' : 'M17 13l-5 5m0 0l-5-5m5 5V6'); ?>" />
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p
+                                                class="text-[11px] font-semibold text-slate-700 dark:text-slate-200 truncate max-w-[120px]">
+                                                <?php echo e($entry['title']); ?></p>
+                                            <p class="text-[9px] text-slate-400 font-medium"><?php echo e($entry['date']->format('d M')); ?></p>
+                                        </div>
+                                    </div>
+                                    <span
+                                        class="text-[11px] font-bold flex-shrink-0 <?php echo e($entry['type'] === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'); ?>"
+                                        style="font-variant-numeric:tabular-nums">
+                                        <?php echo e($entry['type'] === 'income' ? '+' : '-'); ?>₹<?php echo e(number_format($entry['amount'], 2)); ?>
+
+                                    </span>
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                <p class="text-[10px] text-slate-400 text-center py-4">No financial activity yet</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const isDark = document.documentElement.classList.contains('dark');
+                const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+                const trendCtx = document.getElementById('financialTrendChart');
+                if (!trendCtx) return;
+
+                const trendData = <?php echo json_encode($financials['monthlyTrend'], 15, 512) ?>;
+                const incomeGradient = trendCtx.getContext('2d').createLinearGradient(0, 0, 0, 200);
+                incomeGradient.addColorStop(0, 'rgba(5,150,105,0.12)');
+                incomeGradient.addColorStop(1, 'rgba(5,150,105,0.01)');
+                const expenseGradient = trendCtx.getContext('2d').createLinearGradient(0, 0, 0, 200);
+                expenseGradient.addColorStop(0, 'rgba(244,63,94,0.12)');
+                expenseGradient.addColorStop(1, 'rgba(244,63,94,0.01)');
+
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: trendData.map(d => d.label),
+                        datasets: [
+                            {
+                                label: 'Income',
+                                data: trendData.map(d => d.income),
+                                borderColor: '#059669', backgroundColor: incomeGradient,
+                                borderWidth: 2.5, fill: true, tension: 0.4,
+                                pointBackgroundColor: '#059669', pointBorderColor: isDark ? '#1a1f2e' : '#fff',
+                                pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
+                            },
+                            {
+                                label: 'Expenses',
+                                data: trendData.map(d => d.expense),
+                                borderColor: '#f43f5e', backgroundColor: expenseGradient,
+                                borderWidth: 2.5, fill: true, tension: 0.4,
+                                pointBackgroundColor: '#f43f5e', pointBorderColor: isDark ? '#1a1f2e' : '#fff',
+                                pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: isDark ? '#1e293b' : '#fff',
+                                titleColor: isDark ? '#e2e8f0' : '#1e293b',
+                                bodyColor: isDark ? '#94a3b8' : '#64748b',
+                                borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e5e7eb',
+                                borderWidth: 1, cornerRadius: 10, padding: 10,
+                                titleFont: { weight: 700, size: 12 }, bodyFont: { weight: 500, size: 12 },
+                                callbacks: {
+                                    label: ctx => ctx.dataset.label + ': ₹' + ctx.parsed.y.toLocaleString('en-IN', { minimumFractionDigits: 2 })
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { size: 11, weight: 600 }, color: isDark ? '#64748b' : '#94a3b8' } },
+                            y: { grid: { color: gridColor }, border: { display: false }, ticks: { font: { size: 10 }, color: isDark ? '#64748b' : '#94a3b8', callback: v => '₹' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v) } }
+                        }
+                    }
+                });
+            });
+        </script>
+    <?php endif; ?>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <?php if($canViewDownline): ?>
             <!-- Hierarchy Tree Preview -->
