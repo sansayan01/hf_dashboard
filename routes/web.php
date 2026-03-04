@@ -249,6 +249,10 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::get('camp_records/{camp_record}/pdf', [App\Http\Controllers\CampRecordController::class, 'exportPdf'])->name('camp_records.pdf');
     Route::resource('camp_records', App\Http\Controllers\CampRecordController::class);
 
+    // Expense Tracker
+    Route::get('expenses/export', [App\Http\Controllers\ExpenseController::class, 'export'])->name('expenses.export');
+    Route::resource('expenses', App\Http\Controllers\ExpenseController::class);
+
     // Coupon Code Management (Super Admin Only)
     Route::prefix('coupons')->name('coupons.')->group(function () {
         Route::get('/', [App\Http\Controllers\CouponCodeController::class, 'index'])->name('index');

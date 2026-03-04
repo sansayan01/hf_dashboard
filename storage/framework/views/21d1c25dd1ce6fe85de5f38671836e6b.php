@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
-@section('header_title', 'Finances Dashboard')
 
-@section('content')
+<?php $__env->startSection('header_title', 'Finances Dashboard'); ?>
+
+<?php $__env->startSection('content'); ?>
     <div class="max-w-4xl mx-auto pb-12">
         <!-- Premium Header Section -->
         <div
@@ -54,7 +54,7 @@
             <div class="divide-y divide-slate-100 dark:divide-white/5">
 
                 <!-- Camp Records Option -->
-                <a href="{{ route('camp_records.index') }}"
+                <a href="<?php echo e(route('camp_records.index')); ?>"
                     class="group flex items-center justify-between p-6 sm:px-8 hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                     <div class="flex items-center space-x-5">
                         <div
@@ -82,7 +82,7 @@
                 </a>
 
                 <!-- Expense Tracker Option -->
-                <a href="{{ route('expenses.index') }}"
+                <a href="<?php echo e(route('expenses.index')); ?>"
                     class="group flex items-center justify-between p-6 sm:px-8 hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                     <div class="flex items-center space-x-5">
                         <div
@@ -112,4 +112,5 @@
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views\finances\index.blade.php ENDPATH**/ ?>
