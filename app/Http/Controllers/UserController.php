@@ -1628,7 +1628,7 @@ class UserController extends Controller
             try {
                 $sa = User::where('designation', 'super_admin')->first();
                 if ($sa) {
-                    $whatsApp = app(\App\Services\WhatsAppService::class);
+                    $whatsApp = app(WhatsAppService::class);
                     $whatsApp->sendMessage($sa->profile->phone_number ?? '', "New Signed Offer Letter Uploaded!\n\nUpline: " . ($currentUser->profile?->full_name ?? 'Staff') . "\nNewbie: " . ($user->profile?->full_name ?? 'Member') . "\n\nPlease review and approve.");
                 }
             } catch (\Exception $e) {

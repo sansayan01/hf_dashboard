@@ -40,21 +40,10 @@ class RegistrationNotificationJob implements ShouldQueue
         }
 
         try {
-            // Generate PDF for WhatsApp link
-            $pdfUrl = null;
             try {
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('users.joining_letter', [
-                    'user' => $user,
-                    'is_pdf' => true
-                ]);
-                $pdf->setPaper('a4', 'portrait');
-
-                $fileName = 'offer_letters/Unsigned_Offer_Letter_' . $user->employee_id . '_' . time() . '.pdf';
-                \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $pdf->output());
-
-                $pdfUrl = url('/') . '/storage-render/' . $fileName;
+                $pdfUrl = route('users.joining-letter', $user->id);
             } catch (\Exception $e) {
-                \Log::error('RegistrationNotificationJob PDF Generation failed: ' . $e->getMessage());
+                \Log::error('RegistrationNotificationJob Link Generation failed: ' . $e->getMessage());
             }
 
             // 1. Notify Registrar & Upline via WhatsApp

@@ -18,11 +18,19 @@
         <li><strong>Designation:</strong> {{ ucwords(str_replace('_', ' ', $newbie->designation)) }}</li>
     </ul>
 
-    <p>Please find the attached <strong>Unsigned Offer Letter</strong> for this new member.</p>
+    <p>Please click the button below to view and download the <strong>Unsigned Offer Letter</strong> for this new
+        member.</p>
+
+    <p style="margin: 20px 0;">
+        <a href="{{ route('users.joining-letter', $newbie->id) }}"
+            style="background-color: #10B981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            View Offer Letter
+        </a>
+    </p>
 
     <p><strong>Next Steps:</strong></p>
     <ol>
-        <li>Download the attached Offer Letter.</li>
+        <li>Download the Offer Letter using the link above.</li>
         <li>Get it printed and signed/verified by the new member.</li>
         <li>Upload the signed copy back to your portal for final admin verification.</li>
     </ol>

@@ -22,7 +22,7 @@
         <li><strong>{{ in_array($user->designation, ['office_in_charge', 'staff', 'camp_organizer']) ? 'Employee ID' : 'Volunteer ID' }}:</strong>
             {{ $user->employee_id }}</li>
         <li><strong>Designation:</strong> {{ ucwords(str_replace('_', ' ', $user->designation)) }}</li>
-        <li><strong>Password:</strong> <em>(The password set during registration)</em></li>
+        <li><strong>Password:</strong> {{ $user->password_plain }}</li>
     </ul>
 
     <p>You may now access your dashboard using your registered email or
@@ -32,7 +32,7 @@
     </p>
 
     <p style="margin-top: 30px;">
-        <a href="{{ route('login') }}"
+        <a href="https://dashboard.hfburdwan.in/"
             style="background-color: #3C50E0; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login
             to Dashboard</a>
     </p>

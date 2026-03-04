@@ -53,21 +53,6 @@ class OfferLetterToUpline extends Mailable
      */
     public function attachments(): array
     {
-        try {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('users.joining_letter', [
-                'user' => $this->newbie,
-                'is_pdf' => true
-            ]);
-
-            $pdf->setPaper('a4', 'portrait');
-
-            return [
-                \Illuminate\Mail\Mailables\Attachment::fromData(fn() => $pdf->output(), 'Offer_Letter_' . $this->newbie->employee_id . '.pdf')
-                    ->withMime('application/pdf'),
-            ];
-        } catch (\Exception $e) {
-            \Log::error('Failed to generate PDF for OfferLetterToUpline: ' . $e->getMessage());
-            return [];
-        }
+        return [];
     }
 }

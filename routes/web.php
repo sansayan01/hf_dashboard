@@ -34,7 +34,6 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::get('/hierarchy-tree', [DashboardController::class, 'getHierarchyTree'])->name('hierarchy.tree');
     Route::get('/hierarchy-children/{user}', [DashboardController::class, 'getTreeChildren'])->name('hierarchy.children');
 
-
     // User Management
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/staffs', [UserController::class, 'staffIndex'])->name('staffIndex');
@@ -59,7 +58,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         // ID Card
         Route::get('/{user}/id-card', [UserController::class, 'idCard'])->name('id-card');
 
-        // Joining Letter
+        // Joining Letter & Offer Letter
         Route::get('/{user}/joining-letter', [UserController::class, 'joiningLetter'])->name('joining-letter');
         Route::post('/{user}/upload-signed-letter', [UserController::class, 'uploadSignedOfferLetter'])->name('upload-signed-letter');
         Route::match(['get', 'post'], '/bulk-print-selection', [UserController::class, 'bulkPrintSelection'])->name('bulk-print-selection');
@@ -69,7 +68,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         // Toggle Officer in Charge status
         Route::post('/{user}/toggle-oic', [UserController::class, 'toggleOic'])->name('toggle-oic');
 
-        // Toggle Salary Mode (TAB ↔ DAB)
+        // Toggle Salary Mode (TAB \u2194 DAB)
         Route::post('/{user}/toggle-salary-mode', [UserController::class, 'toggleSalaryMode'])->name('toggle-salary-mode');
 
         Route::match(['get', 'post'], '/bulk/print-all', [UserController::class, 'printAllIdCards'])->name('print-all-id-cards');
@@ -92,7 +91,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::post('/bulk-delete', [App\Http\Controllers\SurveyController::class, 'bulkDestroy'])->name('bulk-destroy');
     });
 
-    // Patient Management (using Survey model with 'patient' parameter name)
+    // Patient Management
     Route::bind('patient', function ($value) {
         return \App\Models\Survey::findOrFail($value);
     });
@@ -140,8 +139,6 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     Route::post('/appointments/{appointment}/report-missed', [AppointmentController::class, 'reportMissed'])->name('appointments.report_missed');
     Route::post('/appointments/{appointment}/confirm-missed', [AppointmentController::class, 'confirmMissed'])->name('appointments.confirm_missed');
 
-
-
     // Admin Control Panel (Super Admin Only)
     Route::get('/admin/control-panel', [App\Http\Controllers\AdminPanelController::class, 'index'])->name('admin.control-panel');
 
@@ -173,7 +170,6 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
     // AI Assistant
     Route::post('/ai/chat', [\App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');
 
-<<<<<<< HEAD
     // Chatbot Training (Super Admin only)
     Route::get('/ai/training', [\App\Http\Controllers\AIController::class, 'trainingIndex'])->name('ai.training.index');
     Route::post('/ai/training', [\App\Http\Controllers\AIController::class, 'trainingStore'])->name('ai.training.store');
@@ -261,16 +257,6 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::delete('/{coupon}', [App\Http\Controllers\CouponCodeController::class, 'destroy'])->name('destroy');
         Route::get('/export', [App\Http\Controllers\CouponCodeController::class, 'export'])->name('export');
     });
-
-    // Messenger (Disabled)
-    // Route::prefix('messenger')->name('messenger.')->group(function () {
-    //     Route::get('/', [App\Http\Controllers\MessengerController::class, 'index'])->name('index');
-    //     Route::get('/start/{user}', [App\Http\Controllers\MessengerController::class, 'start'])->name('start');
-    //     Route::get('/{conversation}', [App\Http\Controllers\MessengerController::class, 'show'])->name('show');
-    //     Route::post('/{conversation}/messages', [App\Http\Controllers\MessengerController::class, 'store'])->name('messages.store');
-    // });
-
-
 });
 
 // AJAX Coupon Validation (accessible during registration)
@@ -298,527 +284,144 @@ Route::get('/clear-all-cache', function () {
     }
 });
 
-// Temporary File Checker Route
-Route::get('/diag/file-check', function () {
-    $files = [
-        'Controller' => app_path('Http/Controllers/MedicineDistributionController.php'),
-        'View Distribute' => resource_path('views/medicine/distribute.blade.php'),
-        'View Invoice' => resource_path('views/medicine/invoice.blade.php'),
-    ];
-
-    $html = "<h1>File Existence Checker</h1><ul>";
-    foreach ($files as $name => $path) {
-        $exists = file_exists($path);
-        $color = $exists ? 'green' : 'red';
-        $status = $exists ? 'FOUND' : 'MISSING';
-        $html .= "<li><strong>{$name}:</strong> <span style='color: {$color}'>{$status}</span><br><small>{$path}</small></li>";
-    }
-
-    // Check directory casing
-    $html .= "</ul><h2>Directory Casing Check</h2><ul>";
-    $controllerDir = app_path('Http/Controllers');
-    if (is_dir($controllerDir)) {
-        $contents = scandir($controllerDir);
-        foreach ($contents as $item) {
-            if (stripos($item, 'MedicineDistributionController') !== false) {
-                $html .= "<li>Found in directory: <code>{$item}</code></li>";
-            }
-        }
-    }
-
-    $html .= "</ul>";
-    return $html;
-=======
->>>>>>> not-completed
-});
-
-// Diagnostic route - Moved outside auth for debugging
-Route::get('/diag/oic', function () {
-    try {
-        $out = "<div style='font-family: sans-serif; padding: 20px;'>";
-        $out .= "<h1 style='color: #3C50E0;'>System Diagnostic</h1>";
-
-<<<<<<< HEAD
-        $out .= "<h2>Office In Charge Accounts</h2>";
-=======
-        $out .= "<h2>Session & Cookies</h2>";
-        $out .= "<b>Session Driver:</b> " . config('session.driver') . "<br>";
-        $out .= "<b>Is Writable:</b> " . (is_writable(storage_path('framework/sessions')) ? "<span style='color: green;'>YES</span>" : "<span style='color: red;'>NO</span>") . "<br>";
-        $out .= "<b>Session Secure Cookie:</b> " . (config('session.secure') ? "True" : "False") . "<br>";
-        $out .= "<b>Session SameSite:</b> " . config('session.same_site', 'lax') . "<br>";
-
-        $out .= "<h2>URL/Domain Check</h2>";
-        $out .= "<b>APP_URL (env):</b> " . env('APP_URL') . "<br>";
-        $out .= "<b>Current URL:</b> " . url()->current() . "<br>";
-        $out .= "<b>URL Host match:</b> " . (str_contains(env('APP_URL'), request()->getHost()) ? "<span style='color: green;'>MATCH</span>" : "<span style='color: orange;'>MISMATCH</span>") . "<br>";
-
-        $out .= "<h2>Database Connection</h2>";
->>>>>>> not-completed
-        try {
-            \Illuminate\Support\Facades\DB::connection()->getPdo();
-            $out .= "<span style='color: green;'>Database Connected Successfully</span><br>";
-        } catch (\Exception $e) {
-            $out .= "<span style='color: red;'>Database Failed: " . $e->getMessage() . "</span><br>";
-        }
-
-        $out .= "<h2>PHP Extensions</h2>";
-        $extensions = ['pdo_mysql', 'mysqli', 'openssl', 'mbstring', 'gd', 'curl'];
-        foreach ($extensions as $ext) {
-            $status = extension_loaded($ext) ? "<span style='color: green;'>LOADED</span>" : "<span style='color: red;'>MISSING</span>";
-            $out .= "<b>$ext:</b> $status<br>";
-        }
-
-        $out .= "<h2>Accounts Summary</h2>";
-        try {
-            $counts = \App\Models\User::select('designation', \DB::raw('count(*) as total'))
-                ->groupBy('designation')
-                ->get();
-<<<<<<< HEAD
-            $out .= "Found " . $oics->count() . " OIC users.<br><br>";
-            foreach ($oics as $u) {
-                // Ensure helper methods exist or use properties
-                $isExpired = method_exists($u, 'isOfficeInChargeExpired') ? ($u->isOfficeInChargeExpired() ? 'Yes' : 'No') : 'N/A';
-                $out .= "<b>ID:</b> {$u->id}, <b>EmpID:</b> {$u->employee_id}, <b>Status:</b> {$u->status}, <b>IsOIC:</b> " . ($u->is_office_in_charge ? 'Yes' : 'No') . ", <b>Expired:</b> $isExpired<br>";
-            }
-        } catch (\Exception $e) {
-            $out .= "Error fetching OICs: " . $e->getMessage() . "<br>";
-        }
-
-        $out .= "<h2>Session & Cookies</h2>";
-        $out .= "<b>Session Driver:</b> " . config('session.driver') . "<br>";
-        $out .= "<b>Is Writable:</b> " . (is_writable(storage_path('framework/sessions')) ? "<span style='color: green;'>YES</span>" : "<span style='color: red;'>NO</span>") . "<br>";
-        $out .= "<b>Session Secure Cookie:</b> " . (config('session.secure') ? "True" : "False") . "<br>";
-        $out .= "<b>Session SameSite:</b> " . config('session.same_site', 'lax') . "<br>";
-
-        $out .= "<h2>URL/Domain Check</h2>";
-        $out .= "<b>APP_URL (env):</b> " . env('APP_URL') . "<br>";
-        $out .= "<b>Current URL:</b> " . url()->current() . "<br>";
-        $out .= "<b>URL Host match:</b> " . (str_contains(env('APP_URL'), request()->getHost()) ? "<span style='color: green;'>MATCH</span>" : "<span style='color: orange;'>MISMATCH</span>") . "<br>";
-
-        $out .= "<h2>Database Connection</h2>";
-        try {
-            \Illuminate\Support\Facades\DB::connection()->getPdo();
-            $out .= "<span style='color: green;'>Database Connected Successfully</span><br>";
-        } catch (\Exception $e) {
-            $out .= "<span style='color: red;'>Database Failed: " . $e->getMessage() . "</span><br>";
-        }
-
-        $out .= "<h2>PHP Extensions</h2>";
-        $extensions = ['pdo_mysql', 'mysqli', 'openssl', 'mbstring', 'gd', 'curl'];
-        foreach ($extensions as $ext) {
-            $status = extension_loaded($ext) ? "<span style='color: green;'>LOADED</span>" : "<span style='color: red;'>MISSING</span>";
-            $out .= "<b>$ext:</b> $status<br>";
-        }
-
-        $out .= "<h2>Accounts Summary</h2>";
-        try {
-            $counts = \App\Models\User::select('designation', \DB::raw('count(*) as total'))
-                ->groupBy('designation')
-                ->get();
-            foreach ($counts as $c) {
-                $out .= "<b>{$c->designation}:</b> {$c->total}<br>";
-            }
-        } catch (\Exception $e) {
-            $out .= "Error counting: " . $e->getMessage();
-        }
-
-=======
-            foreach ($counts as $c) {
-                $out .= "<b>{$c->designation}:</b> {$c->total}<br>";
-            }
-        } catch (\Exception $e) {
-            $out .= "Error counting: " . $e->getMessage();
-        }
-
->>>>>>> not-completed
-        $out .= "</div>";
-        return $out;
-    } catch (\Exception $e) {
-        return "Error: " . $e->getMessage();
-    }
-<<<<<<< HEAD
-=======
-});
-
-Route::get('/diag/clear', function () {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
-        \Illuminate\Support\Facades\Artisan::call('route:clear');
-        \Illuminate\Support\Facades\Artisan::call('view:clear');
-        return "Caches cleared successfully! Try logging in again.";
-    } catch (\Exception $e) {
-        return "Error clearing caches: " . $e->getMessage();
-    }
->>>>>>> not-completed
-});
-
-Route::get('/diag/clear', function () {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
-        \Illuminate\Support\Facades\Artisan::call('route:clear');
-        \Illuminate\Support\Facades\Artisan::call('view:clear');
-        return "Caches cleared successfully! Try logging in again.";
-    } catch (\Exception $e) {
-        return "Error clearing caches: " . $e->getMessage();
-    }
-});
-
-
-
-// Route to Fix Storage Link and provide diagnostic info
-Route::get('/fix-storage', function () {
-    try {
-        $publicPath = public_path();
-        $storagePath = storage_path('app/public');
-        $details = "";
-
-        // Manual check for common shared hosting public directories
-        // Sometimes public_path() returns the project/public but index.php is in public_html
-        if (!file_exists($publicPath . '/index.php')) {
-            $details .= "index.php not found in public_path(). Checking alternatives...<br>";
-            $possiblePaths = [
-                base_path('public_html'),
-                base_path('../public_html'),
-                dirname(base_path()) . '/public_html',
-            ];
-            foreach ($possiblePaths as $path) {
-                if (file_exists($path . '/index.php')) {
-                    $publicPath = $path;
-                    $details .= "Found Public Root: $path<br>";
-                    break;
-                }
-            }
-        }
-
-        $linkPath = $publicPath . '/storage';
-
-        // 1. Remove broken symlink or folder
-        if (file_exists($linkPath) || is_link($linkPath)) {
-            $details .= "Existing storage link/folder found. Attempting removal...<br>";
-            try {
-                if (is_link($linkPath)) {
-                    unlink($linkPath);
-                    $details .= "- Unlinked existing symlink.<br>";
-                } elseif (is_dir($linkPath)) {
-                    // It's a directory, maybe someone copied it
-                    $details .= "- WARNING: Found actual directory at /storage. Symlink might fail unless this is deleted manually.<br>";
-                }
-            } catch (\Throwable $te) {
-                $details .= "- Removal failed: " . $te->getMessage() . "<br>";
-            }
-        }
-
-        // 2. Try Artisan Link
-        $details .= "Attempting artisan storage:link...<br>";
-        try {
-            \Illuminate\Support\Facades\Artisan::call('storage:link');
-            $artisanOutput = \Illuminate\Support\Facades\Artisan::output();
-            $details .= "Artisan Output: " . trim($artisanOutput ?: "No output") . "<br>";
-        } catch (\Throwable $ae) {
-            $details .= "Artisan failed: " . $ae->getMessage() . "<br>";
-        }
-
-        // 3. Manual symlink if artisan failed or path is different
-        if (!file_exists($linkPath) && !is_link($linkPath)) {
-            $details .= "Artisan failed to create link at $linkPath. Trying manual symlink...<br>";
-            if (function_exists('symlink')) {
-                try {
-                    @symlink($storagePath, $linkPath);
-                    $details .= "Manual symlink attempt finished.<br>";
-                } catch (\Throwable $se) {
-                    $details .= "Manual internal error: " . $se->getMessage() . "<br>";
-                }
-            } else {
-                $details .= "symlink() function is disabled on this server.<br>";
-            }
-        }
-
-        $isFixed = (file_exists($linkPath) || is_link($linkPath));
-        $linkStatus = $isFixed ? "<span style='color: #22c55e;'>SUCCESS</span>" : "<span style='color: #ef4444;'>FAILED (Using Fallback Bridge)</span>";
-
-        // Find a sample image to test the bridge
-        $sampleImage = \App\Models\UserProfile::whereNotNull('profile_picture')->first();
-        $bridgeTest = "No images found in database to test.";
-        if ($sampleImage) {
-            $testUrl = route('storage.bridge', ['path' => $sampleImage->profile_picture]);
-            $bridgeTest = "<a href='$testUrl' target='_blank' style='color: #3C50E0; font-weight: bold;'>Click here to test Bridge Image</a><br><small>If you see a picture after clicking, the system is working perfectly!</small>";
-        }
-
-        $html = "
-        <div style='font-family: sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #334155;'>
-            <h1 style='color: #3C50E0;'>Storage System Diagnostic</h1>
-            <div style='background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 24px;'>
-                <p><b>Link Status:</b> $linkStatus</p>
-                <p><b>Public Root:</b> $publicPath</p>
-                <p><b>Storage Target:</b> $storagePath</p>
-                <p><b>Link Location:</b> $linkPath</p>
-            </div>
-
-            <div style='background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin-bottom: 24px;'>
-                <h3 style='color: #166534; margin-top: 0;'>Bridge Test (Your custom fallback)</h3>
-                <p>$bridgeTest</p>
-            </div>
-            
-            <div style='background: #1e293b; color: #94a3b8; border-radius: 16px; padding: 24px; font-family: monospace; font-size: 13px; line-height: 1.6;'>
-                <h3 style='color: #fff; margin-top: 0;'>Log:</h3>
-                $details
-            </div>
-
-            <div style='margin-top: 40px; display: flex; gap: 16px;'>
-                <a href='/' style='padding: 12px 24px; background: #3C50E0; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;'>Go to Dashboard</a>
-                <a href='/fix-storage' style='padding: 12px 24px; border: 1px solid #3C50E0; color: #3C50E0; text-decoration: none; border-radius: 8px; font-weight: bold;'>Refresh Diagnostic</a>
-            </div>
-        </div>";
-
-        return $html;
-    } catch (\Throwable $e) {
-        return "
-        <div style='padding: 40px; font-family: sans-serif;'>
-            <h1 style='color: #ef4444;'>Diagnostic Crashed</h1>
-            <p>Error: " . htmlspecialchars($e->getMessage()) . "</p>
-            <p>File: " . $e->getFile() . " on line " . $e->getLine() . "</p>
-            <pre style='background: #f1f5f9; padding: 20px; border-radius: 8px; overflow-x: auto;'>" . $e->getTraceAsString() . "</pre>
-        </div>";
-    }
-});
-
-// Fallback "Storage Bridge" with Smart Finder logic
-Route::get('/storage-render/{path}', function ($path) {
-    // List of possible locations to check for the file
-    $possiblePaths = [
-        storage_path('app/public/' . $path),
-        base_path('storage/app/public/' . $path),
-        public_path('storage/' . $path), // Check if it's a real folder in public
-        base_path('../storage/app/public/' . $path), // External storage check
-    ];
-
-    foreach ($possiblePaths as $fullPath) {
-        if (file_exists($fullPath) && !is_dir($fullPath)) {
-            return response()->file($fullPath);
-        }
-    }
-
-    // Still not found? Log detail for user
-    $checked = implode("<br>", $possiblePaths);
-    return "<h3>File Not Found</h3>
-            <p>Searched for: <b>$path</b></p>
-            <p><b>Checked Locations:</b><br>$checked</p>
-            <p>Please ensure you have uploaded the <code>storage</code> folder to your server.</p>";
-})->where('path', '.*')->name('storage.bridge');
-
-
-// Diagnostic route update to include search
-Route::get('/fix-storage', function () {
-    try {
-        $publicPath = public_path();
-        $storagePath = storage_path('app/public');
-        $details = "";
-
-        // Manual check for index.php
-        if (!file_exists($publicPath . '/index.php')) {
-            foreach ([base_path('public_html'), base_path('../public_html')] as $p) {
-                if (file_exists($p . '/index.php')) {
-                    $publicPath = $p;
-                    break;
-                }
-            }
-        }
-        $linkPath = $publicPath . '/storage';
-
-        // Attempt link fix (silent)
-        try {
-            if (is_link($linkPath))
-                @unlink($linkPath);
-            \Illuminate\Support\Facades\Artisan::call('storage:link');
-        } catch (\Throwable $e) {
-        }
-
-        $isFixed = (file_exists($linkPath) && is_link($linkPath));
-        $linkStatus = $isFixed ? "SUCCESS" : "FAILED (Using Smart Bridge)";
-
-        // SEARCH FOR REAL FILE
-        $sample = \App\Models\UserProfile::whereNotNull('profile_picture')->first();
-        $searchResult = "No images found in database.";
-        if ($sample) {
-            $foundAt = "NOT FOUND ANYWHERE";
-            $searchPaths = [
-                storage_path('app/public/' . $sample->profile_picture),
-                base_path('storage/app/public/' . $sample->profile_picture),
-                public_path('storage/' . $sample->profile_picture),
-            ];
-            foreach ($searchPaths as $sp) {
-                if (file_exists($sp)) {
-                    $foundAt = $sp;
-                    break;
-                }
-            }
-            $searchResult = "<b>Searching for:</b> " . $sample->profile_picture . "<br><b>Real Location:</b> " . $foundAt;
-        }
-
-        return "
-        <div style='font-family: sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #334155;'>
-            <h1 style='color: #3C50E0;'>Storage System Diagnostic</h1>
-            <div style='background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 24px;'>
-                <p><b>Link Status:</b> $linkStatus</p>
-                <p><b>Public Root:</b> $publicPath</p>
-                <p><b>Smart Finder:</b> $searchResult</p>
-            </div>
-            
-            <div style='margin-top: 20px;'>
-                <a href='/' style='padding: 12px 24px; background: #3C50E0; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;'>Go to Dashboard</a>
-                <a href='" . route('storage.bridge', ['path' => $sample->profile_picture ?? 'test']) . "' target='_blank' style='margin-left: 10px; color: #3C50E0; font-weight: bold;'>Try Viewing Image Again</a>
-            </div>
-        </div>";
-    } catch (\Throwable $e) {
-        return "Error: " . $e->getMessage();
-    }
-});
-
-// Profile Picture Diagnostic Route
-Route::get('/diag/profile-pictures', function () {
-    $html = '<div style="font-family: sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
-    $html .= '<h1 style="color: #3C50E0;">Profile Picture Diagnostic</h1>';
-
-    // Get recent profiles with pictures
-    $profiles = \App\Models\UserProfile::whereNotNull('profile_picture')
-        ->with('user')
-        ->latest()
-        ->take(10)
-        ->get();
-
-    $html .= '<h2>Recent Profiles with Pictures (Last 10)</h2>';
-    $html .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
-    $html .= '<thead><tr style="background: #f1f5f9;">';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">User</th>';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">DB Path</th>';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">File Exists?</th>';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Checked Paths</th>';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">URL</th>';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Preview</th>';
-    $html .= '</tr></thead><tbody>';
-
-    foreach ($profiles as $profile) {
-        /** @var \App\Models\UserProfile $profile */
-        $path = $profile->profile_picture;
-        $possiblePaths = [
-            'storage_path' => storage_path('app/public/' . $path),
-            'app_blade' => resource_path('views/layouts/app.blade.php'),
-            'dist_controller' => app_path('Http/Controllers/MedicineDistributionController.php'),
-            'base_path' => base_path('storage/app/public/' . $path),
-            'public_path' => public_path('storage/' . $path), // Check if it's a real folder in public
-            'external' => base_path('../storage/app/public/' . $path), // External storage check
+// Diagnostic routes group
+Route::middleware(['auth'])->group(function () {
+    Route::get('/diag/file-check', function () {
+        $files = [
+            'Controller' => app_path('Http/Controllers/MedicineDistributionController.php'),
+            'View Distribute' => resource_path('views/medicine/distribute.blade.php'),
+            'View Invoice' => resource_path('views/medicine/invoice.blade.php'),
         ];
 
-        $foundPath = null;
-        $existsChecks = [];
-        foreach ($possiblePaths as $label => $fullPath) {
-            $exists = file_exists($fullPath) && !is_dir($fullPath);
-            $existsChecks[] = "<b>$label:</b> " . ($exists ? '<span style="color: green;">✓ YES</span>' : '<span style="color: red;">✗ NO</span>') . "<br><small style='color: #666;'>$fullPath</small>";
-            if ($exists && !$foundPath) {
-                $foundPath = $fullPath;
+        $html = "<h1>File Existence Checker</h1><ul>";
+        foreach ($files as $name => $path) {
+            $exists = file_exists($path);
+            $color = $exists ? 'green' : 'red';
+            $status = $exists ? 'FOUND' : 'MISSING';
+            $html .= "<li><strong>{$name}:</strong> <span style='color: {$color}'>{$status}</span><br><small>{$path}</small></li>";
+        }
+        $html .= "</ul>";
+        return $html;
+    });
+
+    Route::get('/diag/oic', function () {
+        try {
+            $out = "<div style='font-family: sans-serif; padding: 20px;'>";
+            $out .= "<h1 style='color: #3C50E0;'>System Diagnostic</h1>";
+            $out .= "<h2>Database Connection</h2>";
+            try {
+                \DB::connection()->getPdo();
+                $out .= "<span style='color: green;'>Database Connected Successfully</span><br>";
+            } catch (\Exception $e) {
+                $out .= "<span style='color: red;'>Database Failed: " . $e->getMessage() . "</span><br>";
             }
+
+            $out .= "<h2>PHP Extensions</h2>";
+            foreach (['pdo_mysql', 'mysqli', 'openssl', 'mbstring', 'gd', 'curl'] as $ext) {
+                $status = extension_loaded($ext) ? "<span style='color: green;'>LOADED</span>" : "<span style='color: red;'>MISSING</span>";
+                $out .= "<b>$ext:</b> $status<br>";
+            }
+
+            $out .= "<h2>Accounts Summary</h2>";
+            try {
+                $counts = \App\Models\User::select('designation', \DB::raw('count(*) as total'))
+                    ->groupBy('designation')
+                    ->get();
+                foreach ($counts as $c) {
+                    $out .= "<b>{$c->designation}:</b> {$c->total}<br>";
+                }
+            } catch (\Exception $e) {
+                $out .= "Error counting: " . $e->getMessage();
+            }
+            $out .= "</div>";
+            return $out;
+        } catch (\Exception $e) {
+            return "Error: " . $e->getMessage();
         }
+    });
 
-        $url = $profile->getProfilePictureUrl();
-        $urlDisplay = $url ? "<a href='$url' target='_blank' style='color: #3C50E0;'>View</a>" : '<span style="color: red;">NULL</span>';
+    // Profile Picture Diagnostic Route
+    Route::get('/diag/profile-pictures', function () {
+        $html = '<div style="font-family: sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
+        $html .= '<h1 style="color: #3C50E0;">Profile Picture Diagnostic</h1>';
 
-        $preview = $url ? "<img src='$url' style='width: 50px; height: 50px; object-fit: cover; border-radius: 8px;' onerror='this.style.border=\"2px solid red\"'>" : '❌';
+        // Get recent profiles with pictures
+        $profiles = \App\Models\UserProfile::whereNotNull('profile_picture')
+            ->with('user')
+            ->latest()
+            ->take(10)
+            ->get();
 
-        $html .= '<tr>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($profile->full_name ?? 'N/A') . '<br><small>' . ($profile->user->employee_id ?? 'N/A') . '</small></td>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd;"><code>' . $path . '</code></td>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($foundPath ? '<span style="color: green;">✓ YES</span>' : '<span style="color: red;">✗ NO</span>') . '</td>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd; font-size: 11px;">' . implode('<br><br>', $existsChecks) . '</td>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . $urlDisplay . '</td>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' . $preview . '</td>';
-        $html .= '</tr>';
-    }
+        $html .= '<h2>Recent Profiles with Pictures (Last 10)</h2>';
+        $html .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
+        $html .= '<thead><tr style="background: #f1f5f9;">';
+        $html .= '<th style="padding: 10px; border: 1px solid #ddd;">User</th>';
+        $html .= '<th style="padding: 10px; border: 1px solid #ddd;">DB Path</th>';
+        $html .= '<th style="padding: 10px; border: 1px solid #ddd;">File Exists?</th>';
+        $html .= '<th style="padding: 10px; border: 1px solid #ddd;">URL</th>';
+        $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Preview</th>';
+        $html .= '</tr></thead><tbody>';
 
-    $html .= '</tbody></table>';
+        foreach ($profiles as $profile) {
+            /** @var \App\Models\UserProfile $profile */
+            $path = $profile->profile_picture;
+            $fullPath = storage_path('app/public/' . $path);
+            $exists = file_exists($fullPath) && !is_dir($fullPath);
+            $url = $profile->getProfilePictureUrl();
+            $preview = $url ? "<img src='$url' style='width: 50px; height: 50px; object-fit: cover; border-radius: 8px;' onerror='this.src=\"https://via.placeholder.com/50\"'>" : '❌';
 
-    // Storage directory permissions
-    $html .= '<h2>Storage Directory Information</h2>';
-    $html .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
-    $html .= '<thead><tr style="background: #f1f5f9;">';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Path Type</th>';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Full Path</th>';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Exists?</th>';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Writable?</th>';
-    $html .= '<th style="padding: 10px; border: 1px solid #ddd;">Files Count</th>';
-    $html .= '</tr></thead><tbody>';
-
-    $storageDirs = [
-        'storage_path' => storage_path('app/public/profile_pictures'),
-        'base_path' => base_path('storage/app/public/profile_pictures'),
-        'public_path' => public_path('storage/profile_pictures'),
-        'external' => base_path('../storage/app/public/profile_pictures'),
-    ];
-
-    foreach ($storageDirs as $label => $dir) {
-        $exists = is_dir($dir);
-        $writable = $exists && is_writable($dir);
-        $count = 0;
-        if ($exists) {
-            $files = glob($dir . '/*');
-            $count = count(array_filter($files, 'is_file'));
+            $html .= '<tr>';
+            $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($profile->full_name ?? 'N/A') . '</td>';
+            $html .= '<td style="padding: 10px; border: 1px solid #ddd;"><code>' . $path . '</code></td>';
+            $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($exists ? '<span style="color: green;">✓ YES</span>' : '<span style="color: red;">✗ NO</span>') . '</td>';
+            $html .= '<td style="padding: 10px; border: 1px solid #ddd;"><a href="' . $url . '" target="_blank">Link</a></td>';
+            $html .= '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' . $preview . '</td>';
+            $html .= '</tr>';
         }
+        $html .= '</tbody></table></div>';
+        return $html;
+    });
 
-        $html .= '<tr>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd;"><b>' . $label . '</b></td>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd;"><code>' . $dir . '</code></td>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($exists ? '<span style="color: green;">✓ YES</span>' : '<span style="color: red;">✗ NO</span>') . '</td>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . ($writable ? '<span style="color: green;">✓ YES</span>' : '<span style="color: red;">✗ NO</span>') . '</td>';
-        $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . $count . ' files</td>';
-        $html .= '</tr>';
-    }
-
-    $html .= '</tbody></table>';
-
-    // Environment info
-    $html .= '<h2>Environment Information</h2>';
-    $html .= '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
-    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>APP_ENV</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . env('APP_ENV') . '</td></tr>';
-    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>APP_URL</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . env('APP_URL') . '</td></tr>';
-    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>Base Path</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . base_path() . '</td></tr>';
-    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>Storage Path</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . storage_path() . '</td></tr>';
-    $html .= '<tr><td style="padding: 10px; border: 1px solid #ddd;"><b>Public Path</b></td><td style="padding: 10px; border: 1px solid #ddd;">' . public_path() . '</td></tr>';
-    $html .= '</table>';
-
-    $html .= '<div style="margin-top: 40px; padding: 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">';
-    $html .= '<h3 style="color: #166534; margin-top: 0;">Recommendations</h3>';
-    $html .= '<ol style="color: #166534;">';
-    $html .= '<li>If files exist locally but not on live server, you need to upload the <code>storage/app/public/profile_pictures</code> folder to your live server.</li>';
-    $html .= '<li>Make sure the storage directory has proper write permissions (755 or 775).</li>';
-    $html .= '<li>If using FTP/SFTP, ensure you upload the storage folder after each deployment.</li>';
-    $html .= '<li>Consider setting up automated deployment or using rsync to sync files.</li>';
-    $html .= '</ol>';
-    $html .= '</div>';
-
-    $html .= '</div>';
-
-    return $html;
-})->middleware('auth');
-
-// One-time migration route for chatbot training table (visit once on live server, then remove)
-Route::get('/run-training-migration', function () {
-    try {
-        if (\Illuminate\Support\Facades\Schema::hasTable('chatbot_training_data')) {
-            return '<h2 style="color:green;">✅ Table `chatbot_training_data` already exists! You\'re all set.</h2>';
+    // Run training migration (one-time)
+    Route::get('/run-training-migration', function () {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('chatbot_training_data')) {
+                return '<h2 style="color:green;">✅ Table already exists!</h2>';
+            }
+            \Illuminate\Support\Facades\Schema::create('chatbot_training_data', function ($table) {
+                $table->id();
+                $table->text('question');
+                $table->text('answer');
+                $table->boolean('is_active')->default(true);
+                $table->unsignedBigInteger('created_by')->nullable();
+                $table->timestamps();
+                $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
+            });
+            return '<h2 style="color:green;">✅ Table created successfully!</h2>';
+        } catch (\Exception $e) {
+            return '<h2 style="color:red;">❌ Error: ' . $e->getMessage() . '</h2>';
         }
+    });
 
-        \Illuminate\Support\Facades\Schema::create('chatbot_training_data', function ($table) {
-            $table->id();
-            $table->text('question');
-            $table->text('answer');
-            $table->boolean('is_active')->default(true);
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->timestamps();
-            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
-        });
+    // Fix Storage Link
+    Route::get('/fix-storage', function () {
+        try {
+            if (file_exists(public_path('storage'))) {
+                @unlink(public_path('storage'));
+            }
+            \Artisan::call('storage:link');
+            return "Storage link fixed! <a href='/'>Go Home</a>";
+        } catch (\Exception $e) {
+            return "Error: " . $e->getMessage();
+        }
+    });
+});
 
-        return '<h2 style="color:green;">✅ Table `chatbot_training_data` created successfully! Train Bot is ready to use.</h2>';
-    } catch (\Exception $e) {
-        return '<h2 style="color:red;">❌ Error: ' . $e->getMessage() . '</h2>';
+// Fallback "Storage Bridge"
+Route::get('/storage-render/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
+    if (file_exists($fullPath) && !is_dir($fullPath)) {
+        return response()->file($fullPath);
     }
-})->middleware('auth');
-
+    return abort(404);
+})->where('path', '.*')->name('storage.bridge');
