@@ -92,17 +92,19 @@ class ExpenseController extends Controller
             });
         }
 
+        // ── Clone Query for Stats & Charts ──
+        $statsQuery = clone $query;
         $expenses = $query->paginate(20)->withQueryString();
 
-        // ── Core Stats ──
-        $totalExpenses = Expense::sum('amount');
-        $totalCount = Expense::count();
+        // ── Core Stats (Now Filtered) ──
+        $totalExpenses = (clone $statsQuery)->sum('amount');
+        $totalCount = (clone $statsQuery)->count();
 
-        $thisMonthTotal = Expense::whereMonth('expense_date', now()->month)
+        $thisMonthTotal = (clone $statsQuery)->whereMonth('expense_date', now()->month)
             ->whereYear('expense_date', now()->year)
             ->sum('amount');
 
-        $lastMonthTotal = Expense::whereMonth('expense_date', now()->subMonth()->month)
+        $lastMonthTotal = (clone $statsQuery)->whereMonth('expense_date', now()->subMonth()->month)
             ->whereYear('expense_date', now()->subMonth()->year)
             ->sum('amount');
 
@@ -110,16 +112,16 @@ class ExpenseController extends Controller
             ? round((($thisMonthTotal - $lastMonthTotal) / $lastMonthTotal) * 100, 1)
             : ($thisMonthTotal > 0 ? 100 : 0);
 
-        $topCategory = Expense::selectRaw('category, SUM(amount) as total')
+        $topCategory = (clone $statsQuery)->selectRaw('category, SUM(amount) as total')
             ->groupBy('category')
             ->orderByDesc('total')
             ->first();
 
-        // ── Analytics: Monthly Trend (Last 6 months) ──
+        // ── Analytics: Monthly Trend (Filtered) ──
         $monthlyTrend = collect();
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $total = Expense::whereMonth('expense_date', $date->month)
+            $total = (clone $statsQuery)->whereMonth('expense_date', $date->month)
                 ->whereYear('expense_date', $date->year)
                 ->sum('amount');
             $monthlyTrend->push([
@@ -129,23 +131,23 @@ class ExpenseController extends Controller
             ]);
         }
 
-        // ── Analytics: Category Breakdown (Pie/Doughnut) ──
-        $categoryBreakdown = Expense::selectRaw('category, SUM(amount) as total, COUNT(*) as count')
+        // ── Analytics: Category Breakdown (Filtered) ──
+        $categoryBreakdown = (clone $statsQuery)->selectRaw('category, SUM(amount) as total, COUNT(*) as count')
             ->groupBy('category')
             ->orderByDesc('total')
             ->get();
 
-        // ── Analytics: Payment Method Breakdown ──
-        $paymentBreakdown = Expense::selectRaw('payment_method, SUM(amount) as total, COUNT(*) as count')
+        // ── Analytics: Payment Method Breakdown (Filtered) ──
+        $paymentBreakdown = (clone $statsQuery)->selectRaw('payment_method, SUM(amount) as total, COUNT(*) as count')
             ->groupBy('payment_method')
             ->orderByDesc('total')
             ->get();
 
-        // ── Analytics: Daily Spending (Last 30 days) ──
+        // ── Analytics: Daily Spending (Filtered) ──
         $dailySpending = collect();
         for ($i = 29; $i >= 0; $i--) {
             $date = now()->subDays($i);
-            $total = Expense::whereDate('expense_date', $date->toDateString())->sum('amount');
+            $total = (clone $statsQuery)->whereDate('expense_date', $date->toDateString())->sum('amount');
             $dailySpending->push([
                 'date' => $date->format('d'),
                 'day' => $date->format('D'),
@@ -153,22 +155,21 @@ class ExpenseController extends Controller
                 'total' => round($total, 2),
             ]);
         }
-
         $avgDailySpend = $dailySpending->avg('total');
 
-        // ── Recent Activity Feed (Latest 5) ──
-        $recentExpenses = Expense::with('creator')
+        // ── Recent Activity Feed (Filtered) ──
+        $recentExpenses = (clone $statsQuery)
             ->latest('expense_date')
             ->latest('created_at')
             ->limit(5)
             ->get();
 
-        // ── Advanced: Week-over-Week Comparison ──
-        $thisWeekTotal = Expense::whereBetween('expense_date', [
+        // ── Advanced: Week-over-Week Comparison (Filtered) ──
+        $thisWeekTotal = (clone $statsQuery)->whereBetween('expense_date', [
             now()->startOfWeek(),
             now()->endOfWeek()
         ])->sum('amount');
-        $lastWeekTotal = Expense::whereBetween('expense_date', [
+        $lastWeekTotal = (clone $statsQuery)->whereBetween('expense_date', [
             now()->subWeek()->startOfWeek(),
             now()->subWeek()->endOfWeek()
         ])->sum('amount');
@@ -176,17 +177,17 @@ class ExpenseController extends Controller
             ? round((($thisWeekTotal - $lastWeekTotal) / $lastWeekTotal) * 100, 1)
             : ($thisWeekTotal > 0 ? 100 : 0);
 
-        // ── Advanced: Top 5 Largest Expenses ──
-        $topExpenses = Expense::orderByDesc('amount')->limit(5)->get();
+        // ── Advanced: Top 5 Largest Expenses (Filtered) ──
+        $topExpenses = (clone $statsQuery)->orderByDesc('amount')->limit(5)->get();
 
-        // ── Advanced: Day-of-Week Spending Heatmap ──
-        $dayOfWeekSpending = collect(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])->map(function ($day, $i) {
-            $dayNum = $i + 1; // 1=Mon, 7=Sun
+        // ── Advanced: Day-of-Week Spending Heatmap (Filtered) ──
+        $dayOfWeekSpending = collect(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])->map(function ($day, $i) use ($statsQuery) {
+            $dayNum = $i + 1;
             // DAYOFWEEK returns 1 for Sunday, 2 for Monday, ..., 7 for Saturday.
             // Adjusting for 1=Mon, 7=Sun: if $dayNum is 7 (Sunday), use 1. Otherwise, use $dayNum + 1.
             $sqlDayNum = ($dayNum == 7) ? 1 : ($dayNum + 1);
-            $total = Expense::whereRaw('DAYOFWEEK(expense_date) = ?', [$sqlDayNum])->sum('amount');
-            $count = Expense::whereRaw('DAYOFWEEK(expense_date) = ?', [$sqlDayNum])->count();
+            $total = (clone $statsQuery)->whereRaw('DAYOFWEEK(expense_date) = ?', [$sqlDayNum])->sum('amount');
+            $count = (clone $statsQuery)->whereRaw('DAYOFWEEK(expense_date) = ?', [$sqlDayNum])->count();
             return ['day' => $day, 'total' => round($total, 2), 'count' => $count];
         });
 
@@ -197,14 +198,14 @@ class ExpenseController extends Controller
             ? round(($thisMonthTotal / $dayOfMonth) * $daysInMonth, 2)
             : 0;
 
-        // ── Advanced: Category Monthly Trend (Last 3 months for radar) ──
+        // ── Advanced: Category Monthly Trend (Filtered) ──
         $categoryMonthlyTrend = collect();
         $allCategories = Expense::select('category')->distinct()->pluck('category');
         for ($i = 2; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $monthData = ['label' => $date->format('M')];
             foreach ($allCategories as $cat) {
-                $monthData[$cat] = round(Expense::where('category', $cat)
+                $monthData[$cat] = round((clone $statsQuery)->where('category', $cat)
                     ->whereMonth('expense_date', $date->month)
                     ->whereYear('expense_date', $date->year)
                     ->sum('amount'), 2);
@@ -215,8 +216,40 @@ class ExpenseController extends Controller
         // ── Advanced: Expense Frequency (avg expenses per week in last 3 months) ──
         $threeMonthsAgo = now()->subMonths(3);
         $weekCount = max(now()->diffInWeeks($threeMonthsAgo), 1);
-        $threeMonthExpenseCount = Expense::where('expense_date', '>=', $threeMonthsAgo)->count();
+        $threeMonthExpenseCount = (clone $statsQuery)->where('expense_date', '>=', $threeMonthsAgo)->count();
         $expensesPerWeek = round($threeMonthExpenseCount / $weekCount, 1);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'table_html' => view('expenses.partials.table', compact('expenses'))->render(),
+                'pagination_html' => (string) $expenses->links(),
+                'active_filters_html' => view('expenses.partials.active_filters', compact('expenses'))->render(),
+                'stats' => [
+                    'totalExpenses' => number_format($totalExpenses, 2),
+                    'totalCount' => $totalCount,
+                    'thisMonthTotal' => number_format($thisMonthTotal, 2),
+                    'monthChange' => $monthChange,
+                    'topCategory' => $topCategory ? $topCategory->category : 'N/A',
+                    'thisWeekTotal' => number_format($thisWeekTotal, 2),
+                    'weekChange' => $weekChange,
+                    'projectedMonthly' => number_format($projectedMonthly, 2),
+                    'expensesPerWeek' => $expensesPerWeek,
+                    'burnPercent' => $projectedMonthly > 0 ? round(($thisMonthTotal / $projectedMonthly) * 100) : 0,
+                    'resultCount' => $expenses->total() . ' results',
+                    'activeCount' => collect(['search', 'category', 'payment_method', 'date_from', 'date_to', 'date_preset', 'amount_min', 'amount_max'])->filter(fn($k) => request()->filled($k))->count(),
+                ],
+                'charts' => [
+                    'monthlyTrend' => $monthlyTrend,
+                    'categoryBreakdown' => $categoryBreakdown,
+                    'paymentBreakdown' => $paymentBreakdown,
+                    'dailySpending' => $dailySpending,
+                    'dayOfWeekSpending' => $dayOfWeekSpending,
+                    'categoryMonthlyTrend' => $categoryMonthlyTrend,
+                    'topExpenses' => $topExpenses,
+                    'recentExpenses' => $recentExpenses
+                ]
+            ]);
+        }
 
         return view('expenses.index', compact(
             'expenses',
