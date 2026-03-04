@@ -500,8 +500,9 @@
                         class="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-800 transition">Reset
                         Form</button>
                     <button type="submit" id="register-button"
-                        class="px-10 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all hidden">
-                        Register User to Downline
+                        class="px-10 py-4 bg-accent text-white font-bold rounded-xl shadow-xl shadow-accent/20 hover:shadow-md hover:-translate-y-0.5 transition-all hidden items-center justify-center space-x-2">
+                        <span id="button-spinner" class="hidden animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></span>
+                        <span id="button-text">Register User to Downline</span>
                     </button>
                 </div>
             </form>
@@ -1065,8 +1066,7 @@
             // PAN Validation on Submit
             const form = document.querySelector('form');
             form.addEventListener('submit', function(e) {
-                
-                // ... (Existing PAN checks etc) ...
+                // Pre-submission checks
                 const panInput = document.querySelector('input[name="pan_number"]');
                 const panPattern = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
                 if (panInput && panInput.value && !panPattern.test(panInput.value)) {
@@ -1075,18 +1075,29 @@
                     panInput.focus();
                     return false;
                 }
-                // ... (Aadhaar, Phone, Pin Code checks) ...
                 const aadhaarInput = document.querySelector('input[name="aadhaar_number"]');
                 if (aadhaarInput && aadhaarInput.value && aadhaarInput.value.length !== 12) {
                      e.preventDefault(); alert('Aadhaar must be 12 digits'); aadhaarInput.focus(); return false;
                 }
-                 const phoneInput = document.querySelector('input[name="phone_number"]');
+                const phoneInput = document.querySelector('input[name="phone_number"]');
                 if (phoneInput && phoneInput.value && phoneInput.value.length !== 10) {
                     e.preventDefault(); alert('Phone must be 10 digits'); phoneInput.focus(); return false;
                 }
                 const pinInput = document.querySelector('input[name="pin_code"]');
                 if (pinInput && pinInput.value && pinInput.value.length !== 6) {
                     e.preventDefault(); alert('Pin Code must be 6 digits'); pinInput.focus(); return false;
+                }
+
+                // If code reaches here, form is valid - Show Loading State
+                const btn = document.getElementById('register-button');
+                const btnText = document.getElementById('button-text');
+                const btnSpinner = document.getElementById('button-spinner');
+                
+                if (btn && btnText && btnSpinner) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-70', 'cursor-not-allowed');
+                    btnText.innerText = 'Processing Registration...';
+                    btnSpinner.classList.remove('hidden');
                 }
             });
         };

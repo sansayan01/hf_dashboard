@@ -472,7 +472,7 @@
                                     @csrf
                                     <button type="submit"
                                         class="btn-action inline-flex items-center gap-2 px-5 py-2.5 font-bold rounded-xl text-xs shadow-lg transition
-                                                                                                                                                                {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
+                                                        {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -842,6 +842,73 @@
                         <p class="text-[9px] mt-2 text-center" style="color:rgba(255,255,255,0.3);">Direct / Total ratio</p>
                     @endif
                 </div>
+
+                {{-- Signed Offer Letter Upload (Upline/Admin Only) --}}
+                @if($user->status === 'pending' && (auth()->user()->isSuperAdmin() || auth()->user()->id === $user->parent_id))
+                    <div class="info-card scroll-reveal bg-white rounded-3xl p-6 border-2 border-dashed border-indigo-100">
+                        <h3 class="font-black text-slate-900 mb-4 flex items-center gap-2">
+                            <span class="w-2 h-6 bg-indigo-500 rounded-full"></span>
+                            Signed Offer Letter
+                        </h3>
+
+                        @if($user->offer_letter_signed)
+                            <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-black text-emerald-700 uppercase">File Uploaded</p>
+                                        <a href="{{ asset('storage/' . $user->offer_letter_signed) }}" target="_blank"
+                                            class="text-xs font-bold text-indigo-600 hover:text-indigo-500 underline">View Signed
+                                            Document</a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <form action="{{ route('users.upload-signed-letter', $user->id) }}" method="POST"
+                            enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Upload Signed
+                                    PDF</label>
+                                <input type="file" name="signed_letter" accept=".pdf" required
+                                    class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                                <p class="text-[9px] text-slate-400 px-1 italic">Max size: 10MB (PDF only)</p>
+                            </div>
+                            <button type="submit"
+                                class="w-full btn-action py-3 bg-indigo-600 text-white font-black rounded-xl text-xs shadow-lg shadow-indigo-200">
+                                {{ $user->offer_letter_signed ? 'Change Signed Letter' : 'Upload Signed Letter' }}
+                            </button>
+                        </form>
+                    </div>
+                @elseif($user->offer_letter_signed)
+                    <div class="info-card scroll-reveal bg-white rounded-3xl p-6">
+                        <h3 class="font-black text-slate-900 mb-4 flex items-center gap-2">
+                            <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
+                            Verified Offer Letter
+                        </h3>
+                        <a href="{{ asset('storage/' . $user->offer_letter_signed) }}" target="_blank"
+                            class="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-indigo-50 hover:border-indigo-100 transition-all group">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Signed Document</p>
+                                <p class="text-xs font-bold text-slate-700">Download/View Signed Letter</p>
+                            </div>
+                        </a>
+                    </div>
+                @endif
+
 
                 {{-- Recent Actions Timeline --}}
                 <div class="info-card scroll-reveal bg-white rounded-3xl p-6">

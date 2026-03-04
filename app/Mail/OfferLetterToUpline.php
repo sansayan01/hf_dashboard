@@ -14,26 +14,15 @@ class OfferLetterToUpline extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * The newbie user instance.
-     *
-     * @var \App\Models\User
-     */
-    public $user;
-
-    /**
-     * The upline user instance.
-     *
-     * @var \App\Models\User
-     */
+    public $newbie;
     public $upline;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(User $user, User $upline)
+    public function __construct(User $newbie, User $upline)
     {
-        $this->user = $user;
+        $this->newbie = $newbie;
         $this->upline = $upline;
     }
 
@@ -43,7 +32,7 @@ class OfferLetterToUpline extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'New Registration: Review Offer Letter for ' . ($this->user->profile->full_name ?? 'New Member'),
+            subject: 'Pending Offer Letter for Team Member: ' . ($this->newbie->profile->full_name ?? 'New Member'),
         );
     }
 
@@ -66,18 +55,18 @@ class OfferLetterToUpline extends Mailable
     {
         try {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('users.joining_letter', [
-                'user' => $this->user,
+                'user' => $this->newbie,
                 'is_pdf' => true
             ]);
 
             $pdf->setPaper('a4', 'portrait');
 
             return [
-                \Illuminate\Mail\Mailables\Attachment::fromData(fn() => $pdf->output(), 'Unsigned_Offer_Letter_' . $this->user->employee_id . '.pdf')
+                \Illuminate\Mail\Mailables\Attachment::fromData(fn() => $pdf->output(), 'Offer_Letter_' . $this->newbie->employee_id . '.pdf')
                     ->withMime('application/pdf'),
             ];
         } catch (\Exception $e) {
-            \Log::error('Failed to generate PDF for OfferLetterToUpline attachment: ' . $e->getMessage());
+            \Log::error('Failed to generate PDF for OfferLetterToUpline: ' . $e->getMessage());
             return [];
         }
     }

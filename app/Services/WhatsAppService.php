@@ -89,8 +89,8 @@ class WhatsAppService
      */
     public function notifyApprovedNewbie($newbie, $mediaUrl = null)
     {
-        $name = $newbie->profile->full_name ?? 'Member';
-        $phoneNumber = $newbie->profile->phone_number ?? '';
+        $name = $newbie->profile?->full_name ?? 'Member';
+        $phoneNumber = $newbie->profile?->phone_number ?? '';
 
         if (!$phoneNumber)
             return false;

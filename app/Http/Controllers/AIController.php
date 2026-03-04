@@ -815,7 +815,7 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
             $today = now()->format('d M Y');
 
             return "CONTEXT AS OF {$today}:\n" .
-                "USER: {$user->profile->full_name}\n" .
+                "USER: " . ($user->profile->full_name ?? 'Unknown') . "\n" .
                 "{$statsStr}\n" .
                 "TEAM (Recent Members):\n{$team}\n" .
                 "RECENT MEMBERSHIPS:\n{$members}\n" .

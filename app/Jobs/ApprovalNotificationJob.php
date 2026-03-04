@@ -61,10 +61,10 @@ class ApprovalNotificationJob implements ShouldQueue
             }
 
             // 1. Send Invite Email to User
-            Mail::to($user->email)->send(new NewbieInvitation($user));
+            Mail::to($user->email)->send(new \App\Mail\NewbieInvitation($user));
 
             // 2. Send UserApproved Email
-            Mail::to($user->email)->send(new UserApproved($user, $approver));
+            Mail::to($user->email)->send(new \App\Mail\UserApproved($user, $approver));
 
             // 3. Notify via WhatsApp
             $whatsApp->notifyApprovedNewbie($user, $pdfUrl);
@@ -73,4 +73,3 @@ class ApprovalNotificationJob implements ShouldQueue
         }
     }
 }
-// Trigger re-scan

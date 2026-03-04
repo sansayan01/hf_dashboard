@@ -86,9 +86,13 @@ class Survey extends Model
         });
 
         static::deleted(function ($survey) {
-            // When soft-deleted, change patient_id to free up the original ID for gap-filling
-            $survey->patient_id = 'TRASH_' . $survey->patient_id . '_' . now()->timestamp;
-            $survey->save();
+            // ONLY run this for soft deletes, not for permanent force deletes
+            if (!$survey->isForceDeleting()) {
+                if (strpos($survey->patient_id, 'TRASH_') !== 0) {
+                    $survey->patient_id = 'TRASH_' . $survey->patient_id . '_' . now()->timestamp;
+                    $survey->saveQuietly();
+                }
+            }
         });
 
         static::restoring(function ($survey) {

@@ -23,7 +23,6 @@
     <br>
     <p>Warm regards,</p>
     <p><strong>Humanity Foundation Team</strong></p>
-
 </body>
 
 </html>
