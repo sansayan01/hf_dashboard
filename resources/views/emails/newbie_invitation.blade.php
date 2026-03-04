@@ -17,8 +17,12 @@
     <p>In the meantime, you can keep your <strong>Volunteer ID: {{ $user->employee_id }}</strong> for future reference.
     </p>
 
-    <p>Once your account is approved, you will receive another email with instructions on how to access your dashboard.
-    </p>
+    <p>Please note that your <strong>Official Offer Letter</strong> has been sent to your <strong>Upline
+            Manager</strong>. You are requested to collect your offer letter from them and complete the necessary
+        signature formalities.</p>
+
+    <p>Once your signed document is uploaded and approved by our team, you will receive another email with instructions
+        on how to access your dashboard.</p>
 
     <br>
     <p>Warm regards,</p>

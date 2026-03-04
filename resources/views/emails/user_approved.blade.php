@@ -15,6 +15,9 @@
     <p>Your support means a lot to us, and together we can make a real difference in the lives of those who need it
         most.</p>
 
+    <p>Please ensure you have collected, signed, and submitted your official **Offer Letter** from your **Upline
+        Manager** for our records.</p>
+
     <p>Thank you for being part of this journey.</p>
 
     <h3>Your Official Details:</h3>

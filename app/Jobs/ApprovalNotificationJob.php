@@ -43,9 +43,12 @@ class ApprovalNotificationJob implements ShouldQueue
         }
 
         try {
-            // Generate PDF for WhatsApp link
-            $pdfUrl = null;
+            // 1. Send UserApproved Email (Greeting mail with ID, Password, and Login Link)
+            Mail::to($user->email)->send(new \App\Mail\UserApproved($user, $approver));
+
+            // 2. Notify via WhatsApp (Including the Letter)
             try {
+                // Generate PDF for WhatsApp link (if needed for the message)
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('users.joining_letter', [
                     'user' => $user,
                     'is_pdf' => true
@@ -56,18 +59,13 @@ class ApprovalNotificationJob implements ShouldQueue
                 \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $pdf->output());
 
                 $pdfUrl = url('/') . '/storage-render/' . $fileName;
-            } catch (\Exception $e) {
-                \Log::error('ApprovalNotificationJob PDF Generation failed: ' . $e->getMessage());
+                $whatsApp->notifyApprovedNewbie($user, $pdfUrl);
+            } catch (\Exception $pdfEx) {
+                \Log::error('ApprovalNotificationJob PDF/WhatsApp failed: ' . $pdfEx->getMessage());
+                // Still proceed, email is most important
+                $whatsApp->notifyApprovedNewbie($user, null);
             }
 
-            // 1. Send Invite Email to User
-            Mail::to($user->email)->send(new \App\Mail\NewbieInvitation($user));
-
-            // 2. Send UserApproved Email
-            Mail::to($user->email)->send(new \App\Mail\UserApproved($user, $approver));
-
-            // 3. Notify via WhatsApp
-            $whatsApp->notifyApprovedNewbie($user, $pdfUrl);
         } catch (\Exception $e) {
             Log::error('ApprovalNotificationJob failed for user ' . $this->userId . ': ' . $e->getMessage());
         }
