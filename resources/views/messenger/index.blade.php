@@ -267,8 +267,9 @@
             const { conversation, messages, other_user } = data;
 
             // Header
+            const bridgeUrl = "{{ route('storage.bridge', ['path' => 'PLACEHOLDER']) }}";
             const profileUrl = other_user?.profile?.profile_picture ?
-                `{{ asset('storage') }}/${other_user.profile.profile_picture}` :
+                bridgeUrl.replace('PLACEHOLDER', encodeURIComponent(other_user.profile.profile_picture)) :
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(other_user?.designation || 'User')}&color=7F9CF5&background=EBF4FF`;
 
             document.getElementById('headerImage').src = profileUrl;
@@ -288,23 +289,23 @@
                 // Date Divider
                 if (dateStr !== lastDate) {
                     area.insertAdjacentHTML('beforeend', `
-                        <div class="flex justify-center my-4">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-3 py-1 rounded-full">${dateStr}</span>
-                        </div>
-                    `);
+                            <div class="flex justify-center my-4">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-3 py-1 rounded-full">${dateStr}</span>
+                            </div>
+                        `);
                     lastDate = dateStr;
                 }
 
                 const html = `
-                    <div class="flex ${isMine ? 'justify-end' : 'justify-start'}">
-                        <div class="message-bubble ${isMine ? 'mine' : 'theirs'} p-3 shadow-sm text-sm">
-                            <p>${msg.body}</p>
-                            <div class="text-[9px] mt-1 opacity-70 ${isMine ? 'text-right' : 'text-left'}">
-                                ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div class="flex ${isMine ? 'justify-end' : 'justify-start'}">
+                            <div class="message-bubble ${isMine ? 'mine' : 'theirs'} p-3 shadow-sm text-sm">
+                                <p>${msg.body}</p>
+                                <div class="text-[9px] mt-1 opacity-70 ${isMine ? 'text-right' : 'text-left'}">
+                                    ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
                 area.insertAdjacentHTML('beforeend', html);
             });
 
@@ -351,15 +352,15 @@
                     const area = document.getElementById('messagesArea');
                     const date = new Date();
                     const html = `
-                        <div class="flex justify-end animate-fade-in-up">
-                            <div class="message-bubble mine p-3 shadow-sm text-sm">
-                                <p>${body}</p>
-                                <div class="text-[9px] mt-1 opacity-70 text-right">
-                                    ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <div class="flex justify-end animate-fade-in-up">
+                                <div class="message-bubble mine p-3 shadow-sm text-sm">
+                                    <p>${body}</p>
+                                    <div class="text-[9px] mt-1 opacity-70 text-right">
+                                        ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        `;
                     area.insertAdjacentHTML('beforeend', html);
                     scrollToBottom();
 

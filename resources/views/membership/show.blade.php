@@ -35,7 +35,7 @@
                 <div class="mt-8">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Payment Screenshot</p>
                     <div class="relative group max-w-sm">
-                        <img src="{{ asset('storage/' . $patient->payment_screenshot) }}"
+                        <img src="{{ route('storage.bridge', ['path' => $patient->payment_screenshot]) }}"
                             class="rounded-3xl border-4 border-white dark:border-white/5 shadow-xl group-hover:scale-[1.02] transition-transform cursor-zoom-in"
                             onclick="window.open(this.src)">
                         <div

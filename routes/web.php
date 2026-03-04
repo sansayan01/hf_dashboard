@@ -421,7 +421,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/storage-render/{path}', function ($path) {
     $fullPath = storage_path('app/public/' . $path);
     if (file_exists($fullPath) && !is_dir($fullPath)) {
-        return response()->file($fullPath);
+        return response()->file($fullPath, [
+            'Access-Control-Allow-Origin' => '*'
+        ]);
     }
     return abort(404);
 })->where('path', '.*')->name('storage.bridge');
