@@ -37,6 +37,9 @@
                 <span class="block text-[10px] text-slate-400">Ref: <?php echo e($expense->reference_number); ?></span>
             <?php endif; ?>
         </td>
+        <td>
+            <span class="text-xs font-medium text-slate-600 dark:text-slate-300"><?php echo e($expense->expense_by ?? '—'); ?></span>
+        </td>
         <td class="text-center">
             <?php if($expense->receipt_path): ?>
                 <a href="<?php echo e(route('storage.bridge', ['path' => $expense->receipt_path])); ?>" target="_blank"

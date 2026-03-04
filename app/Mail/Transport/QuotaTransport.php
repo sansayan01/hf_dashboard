@@ -32,7 +32,7 @@ class QuotaTransport extends AbstractTransport
         }
 
         // Delegate to the actual transport (e.g., SMTP)
-        $this->transport->send($message);
+        $this->transport->send($message->getOriginalMessage(), $message->getEnvelope());
 
         // Increment usage ONLY if send was successful
         Cache::increment($key);

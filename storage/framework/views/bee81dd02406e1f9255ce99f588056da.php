@@ -32,6 +32,11 @@
                 <?php echo e(\App\Models\Expense::PAYMENT_METHODS[request('payment_method')] ?? request('payment_method')); ?> ×
             </a>
         <?php endif; ?>
+        <?php if(request()->filled('expense_by')): ?>
+            <a href="javascript:void(0)" onclick="removeFilter('expense_by')" class="active-filter-tag">
+                By: <?php echo e(request('expense_by')); ?> ×
+            </a>
+        <?php endif; ?>
         <?php if(request()->filled('date_preset')): ?>
             <a href="javascript:void(0)" onclick="removeFilter('date_preset')" class="active-filter-tag">
                 <?php echo e($presets[request('date_preset')] ?? request('date_preset')); ?> ×

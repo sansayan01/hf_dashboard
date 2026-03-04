@@ -30,6 +30,12 @@ class Expense extends Model
         'other' => 'Other',
     ];
 
+    public const EXPENSE_BY_OPTIONS = [
+        'SK Alamgir',
+        'Raju Das',
+        'Sayan Mondal',
+    ];
+
     protected $fillable = [
         'title',
         'description',
@@ -40,6 +46,7 @@ class Expense extends Model
         'reference_number',
         'receipt_path',
         'created_by',
+        'expense_by',
         'notes',
     ];
 

@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
-@section('header_title', 'Add Expense')
 
-@section('css')
+<?php $__env->startSection('header_title', 'Add Expense'); ?>
+
+<?php $__env->startSection('css'); ?>
 <style>
     .form-card {
         background: #fff;
@@ -222,14 +222,14 @@
         color: #6366f1;
     }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="max-w-2xl mx-auto pb-12">
 
-    {{-- Header --}}
+    
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('expenses.index') }}" class="back-btn">
+        <a href="<?php echo e(route('expenses.index')); ?>" class="back-btn">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
         </a>
         <div>
@@ -238,12 +238,12 @@
         </div>
     </div>
 
-    {{-- Form Card --}}
+    
     <div class="form-card">
-        <form action="{{ route('expenses.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
+        <form action="<?php echo e(route('expenses.store')); ?>" method="POST" enctype="multipart/form-data">
+            <?php echo csrf_field(); ?>
 
-            {{-- Section 1: Basic Info --}}
+            
             <div class="form-section">
                 <div class="section-title">
                     <span class="icon-wrap bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
@@ -254,20 +254,48 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label class="field-label">Expense Title <span class="req">*</span></label>
-                        <input type="text" name="title" value="{{ old('title') }}" required placeholder="e.g. Office Rent Payment"
-                            class="field-input @error('title') has-error @enderror">
-                        @error('title')<p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p>@enderror
+                        <input type="text" name="title" value="<?php echo e(old('title')); ?>" required placeholder="e.g. Office Rent Payment"
+                            class="field-input <?php $__errorArgs = ['title'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> has-error <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                        <?php $__errorArgs = ['title'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-500 font-semibold mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                     <div>
                         <label class="field-label">Amount (₹) <span class="req">*</span></label>
-                        <input type="number" name="amount" value="{{ old('amount') }}" required step="0.01" min="0.01" placeholder="0.00"
-                            class="field-input @error('amount') has-error @enderror" style="font-variant-numeric:tabular-nums">
-                        @error('amount')<p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p>@enderror
+                        <input type="number" name="amount" value="<?php echo e(old('amount')); ?>" required step="0.01" min="0.01" placeholder="0.00"
+                            class="field-input <?php $__errorArgs = ['amount'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> has-error <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" style="font-variant-numeric:tabular-nums">
+                        <?php $__errorArgs = ['amount'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-500 font-semibold mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                 </div>
             </div>
 
-            {{-- Section 2: Classification --}}
+            
             <div class="form-section">
                 <div class="section-title">
                     <span class="icon-wrap bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
@@ -278,24 +306,52 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label class="field-label">Category <span class="req">*</span></label>
-                        <select name="category" required class="field-input @error('category') has-error @enderror">
+                        <select name="category" required class="field-input <?php $__errorArgs = ['category'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> has-error <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
                             <option value="">Select Category</option>
-                            @foreach(\App\Models\Expense::CATEGORIES as $cat)
-                                <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = \App\Models\Expense::CATEGORIES; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($cat); ?>" <?php echo e(old('category') == $cat ? 'selected' : ''); ?>><?php echo e($cat); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
-                        @error('category')<p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p>@enderror
+                        <?php $__errorArgs = ['category'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-500 font-semibold mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                     <div>
                         <label class="field-label">Date <span class="req">*</span></label>
-                        <input type="date" name="expense_date" value="{{ old('expense_date', date('Y-m-d')) }}" required max="{{ date('Y-m-d') }}"
-                            class="field-input @error('expense_date') has-error @enderror" style="font-variant-numeric:tabular-nums">
-                        @error('expense_date')<p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p>@enderror
+                        <input type="date" name="expense_date" value="<?php echo e(old('expense_date', date('Y-m-d'))); ?>" required max="<?php echo e(date('Y-m-d')); ?>"
+                            class="field-input <?php $__errorArgs = ['expense_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> has-error <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" style="font-variant-numeric:tabular-nums">
+                        <?php $__errorArgs = ['expense_date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-500 font-semibold mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                 </div>
             </div>
 
-            {{-- Section 3: Payment --}}
+            
             <div class="form-section">
                 <div class="section-title">
                     <span class="icon-wrap bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -306,34 +362,62 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label class="field-label">Payment Method <span class="req">*</span></label>
-                        <select name="payment_method" required class="field-input @error('payment_method') has-error @enderror">
-                            @foreach(\App\Models\Expense::PAYMENT_METHODS as $key => $label)
-                                <option value="{{ $key }}" {{ old('payment_method', 'cash') == $key ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
+                        <select name="payment_method" required class="field-input <?php $__errorArgs = ['payment_method'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> has-error <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                            <?php $__currentLoopData = \App\Models\Expense::PAYMENT_METHODS; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($key); ?>" <?php echo e(old('payment_method', 'cash') == $key ? 'selected' : ''); ?>><?php echo e($label); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
-                        @error('payment_method')<p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p>@enderror
+                        <?php $__errorArgs = ['payment_method'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-500 font-semibold mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                     <div>
                         <label class="field-label">Reference Number</label>
-                        <input type="text" name="reference_number" value="{{ old('reference_number') }}" placeholder="UPI / Cheque / Transaction ref"
+                        <input type="text" name="reference_number" value="<?php echo e(old('reference_number')); ?>" placeholder="UPI / Cheque / Transaction ref"
                             class="field-input">
                     </div>
                     <div>
                         <label class="field-label">Expense By <span class="req">*</span></label>
-                        <input type="text" name="expense_by" value="{{ old('expense_by') }}" required list="expense-by-list"
+                        <input type="text" name="expense_by" value="<?php echo e(old('expense_by')); ?>" required list="expense-by-list"
                             placeholder="Type or select a name..."
-                            class="field-input @error('expense_by') has-error @enderror">
+                            class="field-input <?php $__errorArgs = ['expense_by'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> has-error <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
                         <datalist id="expense-by-list">
-                            @foreach(\App\Models\Expense::EXPENSE_BY_OPTIONS as $option)
-                                <option value="{{ $option }}">
-                            @endforeach
+                            <?php $__currentLoopData = \App\Models\Expense::EXPENSE_BY_OPTIONS; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($option); ?>">
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </datalist>
-                        @error('expense_by')<p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p>@enderror
+                        <?php $__errorArgs = ['expense_by'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-500 font-semibold mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
                 </div>
             </div>
 
-            {{-- Section 4: Details & Attachments --}}
+            
             <div class="form-section">
                 <div class="section-title">
                     <span class="icon-wrap bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -346,7 +430,7 @@
                     <div>
                         <label class="field-label">Description</label>
                         <textarea name="description" rows="2" placeholder="Brief description of the expense..."
-                            class="field-input resize-none">{{ old('description') }}</textarea>
+                            class="field-input resize-none"><?php echo e(old('description')); ?></textarea>
                     </div>
 
                     <div>
@@ -361,28 +445,35 @@
                             </span>
                             <span class="text-[11px] text-slate-400">JPG, PNG, PDF — Max 5MB</span>
                         </label>
-                        @error('receipt')<p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p>@enderror
+                        <?php $__errorArgs = ['receipt'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?><p class="text-xs text-rose-500 font-semibold mt-1"><?php echo e($message); ?></p><?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div>
                         <label class="field-label">Additional Notes</label>
                         <textarea name="notes" rows="2" placeholder="Any additional notes or remarks..."
-                            class="field-input resize-none">{{ old('notes') }}</textarea>
+                            class="field-input resize-none"><?php echo e(old('notes')); ?></textarea>
                     </div>
                 </div>
             </div>
 
-            {{-- Footer --}}
+            
             <div class="form-footer">
-                <a href="{{ route('expenses.index') }}" class="btn-cancel">Cancel</a>
+                <a href="<?php echo e(route('expenses.index')); ?>" class="btn-cancel">Cancel</a>
                 <button type="submit" class="btn-save">Save Expense</button>
             </div>
         </form>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('js')
+<?php $__env->startSection('js'); ?>
 <script>
     document.getElementById('receipt-input').addEventListener('change', function() {
         const label = document.getElementById('receipt-label');
@@ -393,4 +484,5 @@
         }
     });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/expenses/create.blade.php ENDPATH**/ ?>

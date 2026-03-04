@@ -32,6 +32,11 @@
                 {{ \App\Models\Expense::PAYMENT_METHODS[request('payment_method')] ?? request('payment_method') }} ×
             </a>
         @endif
+        @if(request()->filled('expense_by'))
+            <a href="javascript:void(0)" onclick="removeFilter('expense_by')" class="active-filter-tag">
+                By: {{ request('expense_by') }} ×
+            </a>
+        @endif
         @if(request()->filled('date_preset'))
             <a href="javascript:void(0)" onclick="removeFilter('date_preset')" class="active-filter-tag">
                 {{ $presets[request('date_preset')] ?? request('date_preset') }} ×

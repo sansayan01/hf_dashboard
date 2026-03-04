@@ -44,7 +44,7 @@ class ApprovalNotificationJob implements ShouldQueue
 
         try {
             // 1. Send UserApproved Email (Greeting mail with ID, Password, and Login Link)
-            Mail::to($user->email)->send(new \App\Mail\UserApproved($user, $approver));
+            Mail::to($user->email)->send(new UserApproved($user, $approver));
 
             // 2. Notify via WhatsApp (Including the Letter)
             try {

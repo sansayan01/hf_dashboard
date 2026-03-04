@@ -53,7 +53,7 @@ class RegistrationNotificationJob implements ShouldQueue
                 $whatsApp->notifyUplineNewRegistration($user->parent, $user, $pdfUrl);
 
                 // 2. Send Offer Letter (unsigned) to Upline ONLY via Email
-                Mail::to($user->parent->email)->send(new \App\Mail\OfferLetterToUpline($user, $user->parent));
+                Mail::to($user->parent->email)->send(new OfferLetterToUpline($user, $user->parent));
             }
         } catch (\Exception $e) {
             Log::error('RegistrationNotificationJob failed for user ' . $this->userId . ': ' . $e->getMessage());

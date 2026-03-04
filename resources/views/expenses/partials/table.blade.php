@@ -37,6 +37,9 @@
                 <span class="block text-[10px] text-slate-400">Ref: {{ $expense->reference_number }}</span>
             @endif
         </td>
+        <td>
+            <span class="text-xs font-medium text-slate-600 dark:text-slate-300">{{ $expense->expense_by ?? '—' }}</span>
+        </td>
         <td class="text-center">
             @if($expense->receipt_path)
                 <a href="{{ route('storage.bridge', ['path' => $expense->receipt_path]) }}" target="_blank"
