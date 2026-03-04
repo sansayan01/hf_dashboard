@@ -21,54 +21,84 @@ class IncentiveService
     public function applyIncentive(User $user, string $category, float $baseAmount = 0)
     {
         $today = Carbon::today();
-        $config = $user->getCurrentIncentive();
+        $config = $user->getCurrentIncentive($today);
 
-        // Recursively apply to upline first (top-down or bottom-up? 
-        // Bottom-up (RO first, then RM, then BM, then DM) is usually safer for logic.
-        // Let's do the current user first.
         if ($config) {
             $attendance = Attendance::firstOrNew([
                 'user_id' => $user->id,
                 'date' => $today,
             ]);
 
-            $isNew = !$attendance->exists;
-
-            if ($isNew) {
-                // First activity of the day: Mark present and snapshot base amounts
-                $attendance->marked_by = auth()->id() ?: $user->id; // Use person who triggered the action or the user themselves
+            if (!$attendance->exists) {
+                $attendance->marked_by = auth()->id() ?: $user->id;
                 $attendance->status = 'present';
-                $attendance->incentive_amount = $config->incentive_amount;
-                $attendance->ta_amount = $config->ta_amount;
+                // Only RO gets basic incentive (Basic is removed from UI/Total but kept for Record if needed)
+                $attendance->incentive_amount = $user->isRO() ? ($config->incentive_amount ?? 0) : 0;
+                // Only RO gets TA in TAB mode. RM/BM/DM get 0 TA initial.
+                $attendance->ta_amount = ($user->isRO() && !$user->isDabMode()) ? ($config->ta_amount ?? 0) : 0;
                 $attendance->medicines_amount = 0;
                 $attendance->pathology_amount = 0;
                 $attendance->membership_amount = 0;
                 $attendance->ots_amount = 0;
             }
 
-            // Increment the specific category
-            $column = $category . '_amount'; // e.g., medicines_amount
+            $column = $category . '_amount';
             $configValue = $config->$column;
 
             if (in_array($category, ['medicines', 'pathology', 'ots'])) {
-                // Calculated as percentage of baseAmount
                 $increment = ($baseAmount * $configValue) / 100;
             } else {
-                // Fixed amount (e.g. Membership)
                 $increment = floatval($configValue);
             }
 
-            $attendance->$column += $increment;
-
+            $attendance->$column = ($attendance->$column ?? 0) + $increment;
             $attendance->save();
         }
 
-        // Recursively trigger for parent (Upline)
-        // Hierarchy: RO -> RM -> BM -> DM -> HS -> Super Admin
-        // Typically incentives stop at DM or HS as per requirements.
         $parent = $user->parent;
         if ($parent && !in_array($parent->designation, ['super_admin'])) {
             $this->applyIncentive($parent, $category, $baseAmount);
+        }
+    }
+
+    /**
+     * Specifically handle appointment incentives (DA) across hierarchy.
+     */
+    public function applyAppointmentIncentive(User $user, $date = null)
+    {
+        $date = $date ? Carbon::parse($date)->startOfDay() : Carbon::today();
+        $config = $user->getCurrentIncentive($date);
+
+        if ($config) {
+            $attendance = Attendance::firstOrNew([
+                'user_id' => $user->id,
+                'date' => $date,
+            ]);
+
+            if (!$attendance->exists) {
+                $attendance->marked_by = auth()->id() ?: $user->id;
+                $attendance->status = 'present';
+                // Only RO gets basic incentive record
+                $attendance->incentive_amount = $user->isRO() ? ($config->incentive_amount ?? 0) : 0;
+                // Only RO gets TA in TAB mode. RM/BM/DM get 0 TA initial.
+                $attendance->ta_amount = ($user->isRO() && !$user->isDabMode()) ? ($config->ta_amount ?? 0) : 0;
+                $attendance->medicines_amount = 0;
+                $attendance->pathology_amount = 0;
+                $attendance->membership_amount = 0;
+                $attendance->ots_amount = 0;
+            }
+
+            // DA earnings go into ta_amount field
+            // Super Admin sets da_amount in IncentiveConfig
+            $daAmount = ($config && $config->da_amount > 0) ? $config->da_amount : 0;
+
+            $attendance->ta_amount = ($attendance->ta_amount ?? 0) + $daAmount;
+            $attendance->save();
+        }
+
+        $parent = $user->parent;
+        if ($parent && !in_array($parent->designation, ['super_admin'])) {
+            $this->applyAppointmentIncentive($parent, $date);
         }
     }
 }

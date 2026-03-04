@@ -124,6 +124,7 @@
         <?php
             $isDab = ($earnings['salary_mode'] ?? 'tab') === 'dab' && isset($earnings['dab']);
             $showTA = $user->isRO() && ($earnings['salary_mode'] ?? 'tab') === 'tab';
+            $showDA = ($earnings['salary_mode'] ?? 'tab') === 'dab';
         ?>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 mb-8">
             <!-- Monthly Earning -->
@@ -159,7 +160,7 @@
                 </div>
 
                 <div class="mt-4 grid grid-cols-2 gap-y-2 text-[9px] font-bold uppercase tracking-tight">
-                    <?php if($showTA || $isDab): ?>
+                    <?php if($showTA || $showDA): ?>
                         <div class="flex items-center text-slate-500">
                             <div class="w-1.5 h-1.5 rounded-full bg-slate-300 mr-1.5"></div>
                             <span

@@ -396,37 +396,11 @@ class AppointmentController extends Controller
 
         $appointment->update(['status' => 'successful']);
 
-        // DAB salary mode: Credit DA amount to the user who created this appointment if they are in DAB mode
+        // Apply incentives recursively through hierarchy (RO -> RM -> BM -> DM)
         $creator = $appointment->creator;
-        $eligibleRoles = ['ro', 'rm', 'bm', 'dm'];
-
-        if ($creator && in_array($creator->designation, $eligibleRoles) && $creator->isDabMode()) {
+        if ($creator) {
             $appointmentDate = $appointment->appointment_date ?? now()->toDateString();
-
-            // Get configured DA amount (fallback to ₹20 if not configured)
-            $config = $creator->getCurrentIncentive(\Carbon\Carbon::parse($appointmentDate));
-            $daAmount = ($config && $config->da_amount > 0) ? $config->da_amount : 20;
-
-            $attendance = \App\Models\Attendance::firstOrNew([
-                'user_id' => $creator->id,
-                'date' => \Carbon\Carbon::parse($appointmentDate)->startOfDay(),
-            ]);
-
-            // If this is a new attendance record, initialize it
-            if (!$attendance->exists) {
-                $attendance->marked_by = auth()->id() ?? $creator->id;
-                $attendance->status = 'present';
-                $attendance->incentive_amount = 0;
-                $attendance->medicines_amount = 0;
-                $attendance->pathology_amount = 0;
-                $attendance->membership_amount = 0;
-                $attendance->ots_amount = 0;
-                $attendance->ta_amount = 0;
-            }
-
-            // Add configured DA amount to ta_amount (DAB earnings stored in ta_amount field)
-            $attendance->ta_amount = ($attendance->ta_amount ?? 0) + $daAmount;
-            $attendance->save(); // Triggers total_amount recalculation via boot hook
+            app(\App\Services\IncentiveService::class)->applyAppointmentIncentive($creator, $appointmentDate);
         }
 
         \App\Models\ActivityLog::logActivity(

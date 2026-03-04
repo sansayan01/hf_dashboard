@@ -137,10 +137,11 @@ class DashboardController extends Controller
         }
 
         $salaryMode = $user->salary_mode ?? 'tab';
-
-
-
         $monthStart = now()->startOfMonth();
+
+        // Read all earnings directly from attendance records
+        // These records are populated by IncentiveService which recursively credits
+        // the entire hierarchy (RO → RM → BM → DM) using each role's configured rates
         $earningsData = \App\Models\Attendance::where('user_id', $user->id)
             ->where('date', '>=', $monthStart)
             ->selectRaw("
@@ -158,66 +159,36 @@ class DashboardController extends Controller
             ->where('date', now()->toDateString())
             ->first();
 
-        $salaryMode = $user->salary_mode ?? 'tab';
+        // Monthly TA/DA base comes directly from attendance records
+        // For RO in TAB: ta_amount = Travel Allowance (set when attendance marked present)
+        // For any role in DAB: ta_amount = DA earnings (credited per successful appointment)
+        // For RM/BM/DM in TAB: ta_amount = 0 (they don't get TA, only activity commissions)
+        $monthlyTa = $earningsData->monthly_ta ?? 0;
+        $monthlyIncentives = $earningsData->monthly_incentives ?? 0;
+        $monthlyTotal = $monthlyTa + $monthlyIncentives;
 
-        // Requirement: When TAB is the salary model, show them only the salary according to their attendance.
-        // When DAB is the salary model, show them only the salary according to their successful doctor appointments.
-        // Even if switched mid-month, we show only the current mode's basis.
+        // Today's earnings - read directly from today's attendance record
+        $todayTa = $todayEarnings->ta_amount ?? 0;
+        $todayIncentives = $todayEarnings ? (
+            $todayEarnings->medicines_amount +
+            $todayEarnings->pathology_amount +
+            $todayEarnings->membership_amount +
+            $todayEarnings->ots_amount
+        ) : 0;
+        $todayTotal = $todayTa + $todayIncentives;
 
-        $monthlyBase = 0;
+        // DAB data for display (appointment count)
         $dabData = null;
-
         if ($salaryMode === 'dab') {
-            // DAB Mode: Recompute purely from successful appointments this month
             $dabData = $user->getMonthlyDabEarnings();
-            $monthlyBase = $dabData['earnings'];
-        } else {
-            // TAB Mode: Recompute purely from days marked 'present' this month
-            // (We check user designation RO because non-ROs don't get TA)
-            $presentDaysCount = \App\Models\Attendance::where('user_id', $user->id)
-                ->where('date', '>=', $monthStart)
-                ->where('status', 'present')
-                ->count();
-
-            $config = $user->getCurrentIncentive();
-            $taRate = ($config && $user->designation === 'ro') ? $config->ta_amount : 0;
-            $monthlyBase = $presentDaysCount * $taRate;
         }
-
-        // Monthly Total = Recomputed Base (TA or DA) + All other incentives recorded in attendance (medicines, etc.)
-        $monthlyTotal = $monthlyBase + ($earningsData->monthly_incentives ?? 0);
-
-        // Calculate Today's "Base" (Daily TA or Today's DA)
-        $todayBase = 0;
-        if ($salaryMode === 'dab') {
-            $config = $user->getCurrentIncentive();
-            $daAmount = ($config && $config->da_amount > 0) ? $config->da_amount : 20;
-
-            $todayBase = \App\Models\Appointment::where('created_by', $user->id)
-                ->where('status', 'successful')
-                ->whereDate('updated_at', now()->toDateString())
-                ->count() * $daAmount;
-        } else {
-            $isTodayPresent = \App\Models\Attendance::where('user_id', $user->id)
-                ->where('date', now()->toDateString())
-                ->where('status', 'present')
-                ->exists();
-
-            $config = $user->getCurrentIncentive();
-            $taRate = ($config && $user->designation === 'ro') ? $config->ta_amount : 0;
-            $todayBase = $isTodayPresent ? $taRate : 0;
-        }
-
-        $todayIncentives = $todayEarnings ? ($todayEarnings->medicines_amount + $todayEarnings->pathology_amount + $todayEarnings->membership_amount + $todayEarnings->ots_amount) : 0;
-
-        $todayTotal = $todayBase + $todayIncentives;
 
         return [
             'salary_mode' => $salaryMode,
-            'monthly_ta' => $monthlyBase,
-            'monthly_incentives' => $earningsData->monthly_incentives ?? 0,
+            'monthly_ta' => $monthlyTa,
+            'monthly_incentives' => $monthlyIncentives,
             'monthly_breakdown' => [
-                'ta' => $monthlyBase,
+                'ta' => $monthlyTa,
                 'medicines' => $earningsData->monthly_medicines ?? 0,
                 'pathology' => $earningsData->monthly_pathology ?? 0,
                 'membership' => $earningsData->monthly_membership ?? 0,
@@ -226,7 +197,7 @@ class DashboardController extends Controller
             'monthly_total' => $monthlyTotal,
             'today_total' => $todayTotal,
             'today_breakdown' => [
-                'ta' => $todayBase,
+                'ta' => $todayTa,
                 'medicines' => $todayEarnings->medicines_amount ?? 0,
                 'pathology' => $todayEarnings->pathology_amount ?? 0,
                 'membership' => $todayEarnings->membership_amount ?? 0,

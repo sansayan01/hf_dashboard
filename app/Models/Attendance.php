@@ -55,7 +55,7 @@ class Attendance extends Model
         parent::boot();
 
         static::saving(function ($attendance) {
-            $attendance->total_amount = ($attendance->incentive_amount ?? 0) +
+            $attendance->total_amount =
                 ($attendance->ta_amount ?? 0) +
                 ($attendance->medicines_amount ?? 0) +
                 ($attendance->pathology_amount ?? 0) +
