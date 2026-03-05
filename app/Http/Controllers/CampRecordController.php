@@ -59,6 +59,19 @@ class CampRecordController extends Controller
         $this->authorizeSuperAdmin();
         $query = $this->applyFilters(CampRecord::query(), $request);
         $records = $query->latest()->get();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'table_html' => view('camp_records.partials.table', compact('records'))->render(),
+                'pagination_html' => '',
+                'total' => $records->count(),
+                'stats' => [
+                    'count' => $records->count(),
+                    'net_profit' => $records->sum('profit') - $records->sum('expenses'),
+                ],
+            ]);
+        }
+
         return view('camp_records.index', compact('records'));
     }
 

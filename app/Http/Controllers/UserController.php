@@ -127,6 +127,15 @@ class UserController extends Controller
             }
         }
 
+        if ($request->ajax()) {
+            return response()->json([
+                'table_html' => view('users.partials.table', compact('users'))->render(),
+                'pagination_html' => $users->hasPages() ? (string) $users->links() : '',
+                'total' => $users->total(),
+                'stats' => $stats,
+            ]);
+        }
+
         return view('users.index', compact('users', 'allowedFilters', 'stats'));
     }
 
@@ -154,6 +163,14 @@ class UserController extends Controller
         }
 
         $users = $query->latest()->paginate(20)->withQueryString();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'table_html' => view('users.partials.staff_table', compact('users'))->render(),
+                'pagination_html' => $users->hasPages() ? (string) $users->links() : '',
+                'total' => $users->total(),
+            ]);
+        }
 
         return view('users.staff_index', compact('users'));
     }

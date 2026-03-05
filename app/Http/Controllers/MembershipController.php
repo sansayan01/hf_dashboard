@@ -43,6 +43,21 @@ class MembershipController extends Controller
 
         $patients = $query->latest()->paginate(20)->withQueryString();
 
+        if ($request->ajax()) {
+            $stats = [
+                'total' => $patients->total(),
+                'monthly_growth' => (clone $query)->where('created_at', '>=', now()->subMonth())->count(),
+                'active_plans' => (clone $query)->whereHas('appointments')->count(),
+            ];
+
+            return response()->json([
+                'table_html' => view('membership.partials.table', compact('patients'))->render(),
+                'pagination_html' => $patients->hasPages() ? (string) $patients->links() : '',
+                'total' => $patients->total(),
+                'stats' => $stats,
+            ]);
+        }
+
         return view('membership.index', compact('patients'));
     }
 

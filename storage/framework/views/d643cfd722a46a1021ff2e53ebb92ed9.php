@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Camp Records')
-@section('header_title', 'Camp Records Management')
 
-@section('content')
+<?php $__env->startSection('title', 'Camp Records'); ?>
+<?php $__env->startSection('header_title', 'Camp Records Management'); ?>
+
+<?php $__env->startSection('content'); ?>
     <div class="max-w-7xl mx-auto pb-12">
         <!-- Premium Header Section -->
         <div
@@ -53,7 +53,7 @@
                             <div>
                                 <div class="text-[10px] text-white/50 font-bold uppercase tracking-wider">Total Camps</div>
                                 <div id="stat-camp-count" class="text-xl font-black text-white leading-none mt-0.5">
-                                    {{ $records->count() }}</div>
+                                    <?php echo e($records->count()); ?></div>
                             </div>
                         </div>
 
@@ -70,14 +70,14 @@
                                 </div>
                                 <div class="text-xl font-black text-white leading-none mt-0.5">
                                     <span
-                                        id="stat-net-profit">₹{{ number_format($records->sum('profit') - $records->sum('expenses'), 0) }}</span>
+                                        id="stat-net-profit">₹<?php echo e(number_format($records->sum('profit') - $records->sum('expenses'), 0)); ?></span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <a href="{{ route('camp_records.create') }}"
+                <a href="<?php echo e(route('camp_records.create')); ?>"
                     class="group inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-accent to-blue-500 text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-accent/30 hover:shadow-2xl hover:shadow-accent/40 hover:-translate-y-1 transition-all active:scale-95 duration-300 shrink-0">
                     <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +89,7 @@
             </div>
         </div>
 
-        @if(session('success'))
+        <?php if(session('success')): ?>
             <div class="mb-8">
                 <div
                     class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-6 py-4 rounded-2xl font-bold text-sm flex items-center space-x-3">
@@ -100,18 +100,18 @@
                                 clip-rule="evenodd" />
                         </svg>
                     </div>
-                    <span>{{ session('success') }}</span>
+                    <span><?php echo e(session('success')); ?></span>
                 </div>
             </div>
-        @endif
+        <?php endif; ?>
 
-        {{-- ═══ ADVANCED FILTER SECTION ═══ --}}
+        
         <div class="mb-8" id="filter-wrapper">
-            {{-- Filter Toggle Button --}}
+            
             <button
                 onclick="document.getElementById('filter-panel').classList.toggle('hidden'); document.getElementById('filter-wrapper').querySelector('.chevron-icon').classList.toggle('rotate-180'); this.classList.toggle('rounded-b-none'); this.classList.toggle('border-b-0');"
                 type="button"
-                class="w-full flex items-center justify-between bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-2xl px-6 py-4 hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-all duration-300 group shadow-sm hover:shadow-md {{ request()->hasAny(['search', 'date_from', 'date_to', 'location', 'rm', 'doctor', 'profit_status', 'min_patients']) ? 'rounded-b-none border-b-0' : '' }}">
+                class="w-full flex items-center justify-between bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-2xl px-6 py-4 hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-all duration-300 group shadow-sm hover:shadow-md <?php echo e(request()->hasAny(['search', 'date_from', 'date_to', 'location', 'rm', 'doctor', 'profit_status', 'min_patients']) ? 'rounded-b-none border-b-0' : ''); ?>">
                 <div class="flex items-center space-x-3">
                     <div
                         class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
@@ -122,31 +122,32 @@
                     </div>
                     <div>
                         <span class="text-sm font-bold text-slate-700 dark:text-white">Advanced Filters</span>
-                        @php
+                        <?php
                             $activeFilters = collect(['search', 'date_from', 'date_to', 'location', 'rm', 'doctor', 'profit_status', 'min_patients'])
                                 ->filter(fn($f) => request()->filled($f))->count();
-                        @endphp
-                        @if($activeFilters > 0)
+                        ?>
+                        <?php if($activeFilters > 0): ?>
                             <span
-                                class="ml-2 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-black">{{ $activeFilters }}
+                                class="ml-2 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-black"><?php echo e($activeFilters); ?>
+
                                 active</span>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </div>
-                <svg class="chevron-icon w-5 h-5 text-slate-400 transition-transform duration-300 {{ request()->hasAny(['search', 'date_from', 'date_to', 'location', 'rm', 'doctor', 'profit_status', 'min_patients']) ? 'rotate-180' : '' }}"
+                <svg class="chevron-icon w-5 h-5 text-slate-400 transition-transform duration-300 <?php echo e(request()->hasAny(['search', 'date_from', 'date_to', 'location', 'rm', 'doctor', 'profit_status', 'min_patients']) ? 'rotate-180' : ''); ?>"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
 
-            {{-- Filter Panel --}}
+            
             <div id="filter-panel"
-                class="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 border-t-0 rounded-b-2xl px-6 pb-6 pt-2 shadow-lg {{ request()->hasAny(['search', 'date_from', 'date_to', 'location', 'rm', 'doctor', 'profit_status', 'min_patients']) ? '' : 'hidden' }}">
+                class="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 border-t-0 rounded-b-2xl px-6 pb-6 pt-2 shadow-lg <?php echo e(request()->hasAny(['search', 'date_from', 'date_to', 'location', 'rm', 'doctor', 'profit_status', 'min_patients']) ? '' : 'hidden'); ?>">
 
-                <form id="filterForm" method="GET" action="{{ route('camp_records.index') }}" class="no-loader">
-                    {{-- Row 1: Search + Date Range --}}
+                <form id="filterForm" method="GET" action="<?php echo e(route('camp_records.index')); ?>" class="no-loader">
+                    
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-                        {{-- Search --}}
+                        
                         <div class="md:col-span-4">
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Search</label>
@@ -156,31 +157,31 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                <input type="text" name="search" value="{{ request('search') }}"
+                                <input type="text" name="search" value="<?php echo e(request('search')); ?>"
                                     class="w-full h-10 pl-10 pr-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                                     placeholder="Camp name, location, RM...">
                             </div>
                         </div>
 
-                        {{-- Date From --}}
+                        
                         <div class="md:col-span-2">
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Date
                                 From</label>
-                            <input type="date" name="date_from" value="{{ request('date_from') }}"
+                            <input type="date" name="date_from" value="<?php echo e(request('date_from')); ?>"
                                 class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none">
                         </div>
 
-                        {{-- Date To --}}
+                        
                         <div class="md:col-span-2">
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Date
                                 To</label>
-                            <input type="date" name="date_to" value="{{ request('date_to') }}"
+                            <input type="date" name="date_to" value="<?php echo e(request('date_to')); ?>"
                                 class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none">
                         </div>
 
-                        {{-- Location --}}
+                        
                         <div class="md:col-span-4">
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Location</label>
@@ -192,35 +193,35 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                <input type="text" name="location" value="{{ request('location') }}"
+                                <input type="text" name="location" value="<?php echo e(request('location')); ?>"
                                     class="w-full h-10 pl-10 pr-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                                     placeholder="Filter by location...">
                             </div>
                         </div>
                     </div>
 
-                    {{-- Row 2: RM, Doctor, Profit Status, Min Patients --}}
+                    
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-5">
-                        {{-- RM --}}
+                        
                         <div class="md:col-span-3">
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">RM
                                 Name</label>
-                            <input type="text" name="rm" value="{{ request('rm') }}"
+                            <input type="text" name="rm" value="<?php echo e(request('rm')); ?>"
                                 class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                                 placeholder="Relationship Manager...">
                         </div>
 
-                        {{-- Doctor --}}
+                        
                         <div class="md:col-span-3">
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Doctor</label>
-                            <input type="text" name="doctor" value="{{ request('doctor') }}"
+                            <input type="text" name="doctor" value="<?php echo e(request('doctor')); ?>"
                                 class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                                 placeholder="Doctor name...">
                         </div>
 
-                        {{-- Profit/Loss Status --}}
+                        
                         <div class="md:col-span-3">
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">P/L
@@ -228,25 +229,25 @@
                             <select name="profit_status"
                                 class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none appearance-none">
                                 <option value="">All</option>
-                                <option value="profit" {{ request('profit_status') === 'profit' ? 'selected' : '' }}>Profit
+                                <option value="profit" <?php echo e(request('profit_status') === 'profit' ? 'selected' : ''); ?>>Profit
                                     Only</option>
-                                <option value="loss" {{ request('profit_status') === 'loss' ? 'selected' : '' }}>Loss Only
+                                <option value="loss" <?php echo e(request('profit_status') === 'loss' ? 'selected' : ''); ?>>Loss Only
                                 </option>
                             </select>
                         </div>
 
-                        {{-- Min Patients --}}
+                        
                         <div class="md:col-span-3">
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">Min
                                 Patients</label>
-                            <input type="number" name="min_patients" value="{{ request('min_patients') }}" min="0"
+                            <input type="number" name="min_patients" value="<?php echo e(request('min_patients')); ?>" min="0"
                                 class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                                 placeholder="0">
                         </div>
                     </div>
 
-                    {{-- Action Buttons --}}
+                    
                     <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
                         <button type="button" id="clearFilters"
                             class="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center space-x-1.5">
@@ -306,7 +307,7 @@
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-100 dark:divide-white/5">
-                        @include('camp_records.partials.table', ['records' => $records])
+                        <?php echo $__env->make('camp_records.partials.table', ['records' => $records], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                     </tbody>
                 </table>
             </div>
@@ -326,11 +327,11 @@
                 });
             }
             params.set('_t', Date.now());
-            const url = "{{ route('camp_records.export') }}" + '?' + params.toString();
+            const url = "<?php echo e(route('camp_records.export')); ?>" + '?' + params.toString();
             window.location.href = url;
         }
     </script>
-    <script src="{{ asset('js/live-filter.js') }}"></script>
+    <script src="<?php echo e(asset('js/live-filter.js')); ?>"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             new LiveFilter({
@@ -348,4 +349,5 @@
             });
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/camp_records/index.blade.php ENDPATH**/ ?>

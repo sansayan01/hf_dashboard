@@ -1,26 +1,24 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Pharmacist & Office In-Charge'); ?>
+<?php $__env->startSection('header_title', 'Pharmacist Management'); ?>
 
-@section('title', 'Pharmacist & Office In-Charge')
-@section('header_title', 'Pharmacist Management')
-
-@section('content')
-    @php
+<?php $__env->startSection('content'); ?>
+    <?php
         $canBulkApprove = auth()->user()->isSuperAdmin();
-    @endphp
+    ?>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <div class="flex items-center space-x-3">
                     <h3 class="font-bold text-lg text-slate-800">Pharmacist & Office In-Charge</h3>
-                    <span id="stat-total-badge"
+                    <span
                         class="px-2 py-0.5 bg-accent/10 text-accent text-[10px] font-black rounded-full border border-accent/20">
-                        <span id="stat-total">{{ $users->total() }}</span> Total
+                        <?php echo e($users->total()); ?> Total
                     </span>
                 </div>
                 <p class="text-sm text-slate-500">Manage your pharmacists and in-charges.</p>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="{{ route('users.export', array_merge(request()->all(), ['type' => 'staff'])) }}"
+                <a href="<?php echo e(route('users.export', array_merge(request()->all(), ['type' => 'staff']))); ?>"
                     class="px-2 sm:px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-all flex items-center space-x-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -39,7 +37,7 @@
                     <span class="hidden lg:inline uppercase tracking-widest">Filter</span>
                 </button>
 
-                @if(auth()->user()->isSuperAdmin())
+                <?php if(auth()->user()->isSuperAdmin()): ?>
                     <button type="submit" form="bulk-actions-form" id="bulk-approve-header-btn"
                         class="bulk-approve-btn hidden px-2 sm:px-4 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-600/20 hover:bg-emerald-600 transition-all flex items-center space-x-2 border border-emerald-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,7 +46,7 @@
                         <span class="hidden lg:inline">APPROVE SELECTED</span>
                     </button>
 
-                    <button type="submit" form="bulk-actions-form" formaction="{{ route('users.bulk-print-selection') }}"
+                    <button type="submit" form="bulk-actions-form" formaction="<?php echo e(route('users.bulk-print-selection')); ?>"
                         formtarget="_blank" style="background-color: #e11d48; color: white; border-color: #be185d;"
                         class="px-2 sm:px-4 py-2 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-600/20 hover:opacity-90 transition-all flex items-center space-x-2 border">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,59 +55,53 @@
                         </svg>
                         <span class="hidden lg:inline">PRINT SELECTED</span>
                     </button>
-                @endif
+                <?php endif; ?>
 
-                @if(auth()->user()->canCreateUsers())
-                    <a href="{{ route('users.create', ['type' => 'staff']) }}"
+                <?php if(auth()->user()->canCreateUsers()): ?>
+                    <a href="<?php echo e(route('users.create', ['type' => 'staff'])); ?>"
                         class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
                         + Add Member
                     </a>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
 
         <div id="filter-panel"
-            class="{{ request()->anyFilled(['search']) ? '' : 'hidden' }} p-6 border-b border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
-            <form id="filterForm" action="{{ route('users.staffIndex') }}" method="GET" class="no-loader space-y-4">
+            class="<?php echo e(request()->anyFilled(['search']) ? '' : 'hidden'); ?> p-6 border-b border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
+            <form id="filterForm" action="<?php echo e(route('users.staffIndex')); ?>" method="GET" class="no-loader space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Search
                             Member</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Name, ID or Phone..."
+                        <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Name, ID or Phone..."
                             class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
                     </div>
 
                     <div class="lg:col-span-3 flex items-end space-x-2">
-                        <button type="button" id="clearFilters"
-                            class="text-xs font-bold text-rose-500 hover:underline uppercase tracking-widest flex items-center space-x-2 h-10 px-4">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            <span>Clear</span>
-                        </button>
                         <button type="submit"
                             class="h-10 px-6 bg-accent text-white rounded-xl text-sm font-bold hover:opacity-90 transition">Apply
                             Filters</button>
+                        <a href="<?php echo e(route('users.staffIndex')); ?>"
+                            class="h-10 px-6 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold flex items-center justify-center hover:opacity-90 transition">Reset</a>
                     </div>
                 </div>
             </form>
         </div>
 
-        <form id="bulk-actions-form" action="{{ route('users.bulk-approve') }}" method="POST">
-            @csrf
+        <form id="bulk-actions-form" action="<?php echo e(route('users.bulk-approve')); ?>" method="POST">
+            <?php echo csrf_field(); ?>
         </form>
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50">
-                        @if($canBulkApprove)
+                        <?php if($canBulkApprove): ?>
                             <th class="px-6 py-4 w-10 text-center">
                                 <input type="checkbox" id="user-select-all" form="bulk-actions-form"
                                     class="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent" title="Select All">
                             </th>
-                        @endif
+                        <?php endif; ?>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Member Detail
                         </th>
                         <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
@@ -124,7 +116,7 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody" class="divide-y divide-slate-50">
-                    @include('users.partials.staff_table', ['users' => $users])
+                    <?php echo $__env->make('users.partials.staff_table', ['users' => $users], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                 </tbody>
             </table>
         </div>
@@ -145,8 +137,8 @@
                         </svg>
                         <span>Approve Selected</span>
                     </button>
-                    @if(auth()->user()->isSuperAdmin())
-                        <button type="submit" form="bulk-actions-form" formaction="{{ route('users.bulk-print-selection') }}"
+                    <?php if(auth()->user()->isSuperAdmin()): ?>
+                        <button type="submit" form="bulk-actions-form" formaction="<?php echo e(route('users.bulk-print-selection')); ?>"
                             formtarget="_blank" style="background-color: #e11d48; color: white; border-color: #be185d;"
                             class="px-2 sm:px-6 py-2.5 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-rose-600/20 hover:opacity-90 flex items-center space-x-2 border">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,7 +147,7 @@
                             </svg>
                             <span class="hidden lg:inline">PRINT SELECTED</span>
                         </button>
-                    @endif
+                    <?php endif; ?>
                     <button type="button" onclick="cancelSelection()"
                         class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-black uppercase tracking-widest rounded-xl transition-all">
                         Cancel
@@ -165,16 +157,17 @@
         </div>
 
         <div id="paginationContainer">
-            @if($users instanceof \Illuminate\Pagination\LengthAwarePaginator && $users->hasPages())
+            <?php if($users instanceof \Illuminate\Pagination\LengthAwarePaginator && $users->hasPages()): ?>
                 <div class="p-6 border-t border-slate-100 italic">
-                    {{ $users->links() }}
+                    <?php echo e($users->links()); ?>
+
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('js')
+<?php $__env->startSection('js'); ?>
     <script>
         function toggleFilters() {
             const panel = document.getElementById('filter-panel');
@@ -225,15 +218,10 @@
             }
         });
     </script>
-    <script src="{{ asset('js/live-filter.js') }}"></script>
+    <script src="<?php echo e(asset('js/live-filter.js')); ?>"></script>
     <script>
-        function toggleFilters() {
-            const panel = document.getElementById('filter-panel');
-            panel.classList.toggle('hidden');
-        }
-
         document.addEventListener('DOMContentLoaded', function () {
-            window._liveFilter = new LiveFilter({
+            new LiveFilter({
                 formId: 'filterForm',
                 tableBodyId: 'tableBody',
                 paginationId: 'paginationContainer',
@@ -255,4 +243,5 @@
             });
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/users/staff_index.blade.php ENDPATH**/ ?>

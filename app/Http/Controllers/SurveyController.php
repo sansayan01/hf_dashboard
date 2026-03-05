@@ -117,6 +117,15 @@ class SurveyController extends Controller
             $collectors = collect([$user])->merge($downline);
         }
 
+        if ($request->ajax()) {
+            return response()->json([
+                'table_html' => view('surveys.partials.table', compact('surveys'))->render(),
+                'pagination_html' => $surveys->hasPages() ? (string) $surveys->links() : '',
+                'total' => $surveys->total(),
+                'show_nia' => (bool) $request->show_nia,
+            ]);
+        }
+
         return view('surveys.index', compact('surveys', 'collectors'));
     }
 

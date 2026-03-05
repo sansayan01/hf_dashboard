@@ -67,6 +67,15 @@ class CouponCodeController extends Controller
             'expired' => CouponCode::unused()->expired()->count(),
         ];
 
+        if ($request->ajax()) {
+            return response()->json([
+                'table_html' => view('admin.coupons.partials.table', compact('coupons'))->render(),
+                'pagination_html' => $coupons->hasPages() ? (string) $coupons->links() : '',
+                'total' => $coupons->total(),
+                'stats' => $stats,
+            ]);
+        }
+
         return view('admin.coupons.index', compact('coupons', 'stats'));
     }
 

@@ -102,6 +102,14 @@ class AppointmentController extends Controller
 
         $appointments = $query->latest('appointment_date')->latest('appointment_time')->paginate(20);
 
+        if ($request->ajax()) {
+            return response()->json([
+                'table_html' => view('appointments.partials.table', compact('appointments'))->render(),
+                'pagination_html' => $appointments->hasPages() ? (string) $appointments->links() : '',
+                'total' => $appointments->total(),
+            ]);
+        }
+
         return view('appointments.all', compact('appointments'));
     }
 
