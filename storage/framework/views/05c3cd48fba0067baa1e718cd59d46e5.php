@@ -1,15 +1,15 @@
-@extends('layouts.app')
 
-@section('title', 'Edit Camp Record')
-@section('header_title', 'Edit Camp Record')
 
-@section('css')
+<?php $__env->startSection('title', 'Edit Camp Record'); ?>
+<?php $__env->startSection('header_title', 'Edit Camp Record'); ?>
+
+<?php $__env->startSection('css'); ?>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ═══════════════════════════════════════════
-                                                                                   ULTRA-PREMIUM DESIGN SYSTEM
-                                                                                   ═══════════════════════════════════════════ */
+                                                                               ULTRA-PREMIUM DESIGN SYSTEM
+                                                                               ═══════════════════════════════════════════ */
 
         /* ── Animated Mesh Background ── */
         .mesh-bg {
@@ -533,11 +533,11 @@
             animation-delay: 0.40s;
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
 
-@section('content')
-    {{-- Animated Mesh Background --}}
+<?php $__env->startSection('content'); ?>
+    
     <div class="mesh-bg">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
@@ -546,7 +546,7 @@
 
     <div class="max-w-5xl mx-auto pb-16 px-4 sm:px-6 relative z-10">
 
-        {{-- ═══ HERO ═══ --}}
+        
         <div class="hero-card mb-10 reveal">
             <div class="relative z-10 px-7 sm:px-10 py-9 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
                 <div>
@@ -558,14 +558,14 @@
                         </span>
                         <span class="w-px h-3 bg-white/20"></span>
                         <span class="text-white/50 text-[10px] font-bold uppercase tracking-[0.15em]">Record
-                            #{{ $campRecord->id }}</span>
+                            #<?php echo e($campRecord->id); ?></span>
                     </div>
                     <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">Edit Camp Record
                     </h1>
                     <p class="text-indigo-200/80 text-sm mt-2 max-w-lg leading-relaxed">Update the details for this health
                         camp record.</p>
                 </div>
-                <a href="{{ route('camp_records.index') }}"
+                <a href="<?php echo e(route('camp_records.index')); ?>"
                     class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white text-sm font-semibold rounded-xl border border-white/15 transition-all duration-300 shrink-0">
                     <i class="fas fa-arrow-left text-xs group-hover:-translate-x-0.5 transition-transform"></i>
                     All Records
@@ -573,11 +573,11 @@
             </div>
         </div>
 
-        <form action="{{ route('camp_records.update', $campRecord->id) }}" method="POST" class="space-y-7">
-            @csrf
-            @method('PUT')
+        <form action="<?php echo e(route('camp_records.update', $campRecord->id)); ?>" method="POST" class="space-y-7">
+            <?php echo csrf_field(); ?>
+            <?php echo method_field('PUT'); ?>
 
-            {{-- ═══ SECTION 1: LOGISTICS ═══ --}}
+            
             <div class="glow-card reveal reveal-d2" style="--line-color: #3C50E0;">
                 <div class="accent-line"></div>
                 <div class="sec-header">
@@ -598,21 +598,35 @@
                             <div class="relative">
                                 <span class="input-icon"><i class="fas fa-hospital"></i></span>
                                 <input type="text" name="camp_name" id="camp_name"
-                                    value="{{ old('camp_name', $campRecord->camp_name) }}" required
+                                    value="<?php echo e(old('camp_name', $campRecord->camp_name)); ?>" required
                                     class="ultra-input with-icon capitalize" placeholder="e.g. Free Eye Checkup Camp">
                             </div>
-                            @error('camp_name') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p>
-                            @enderror
+                            <?php $__errorArgs = ['camp_name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="mt-1.5 text-xs text-red-500 font-medium"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="input-group">
                             <label class="input-label" for="date">Date of Camp <span class="req">*</span></label>
                             <div class="relative">
                                 <span class="input-icon"><i class="fas fa-calendar-day"></i></span>
-                                <input type="date" name="date" id="date" value="{{ old('date', $campRecord->date) }}"
+                                <input type="date" name="date" id="date" value="<?php echo e(old('date', $campRecord->date)); ?>"
                                     required class="ultra-input with-icon">
                             </div>
-                            @error('date') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p> @enderror
+                            <?php $__errorArgs = ['date'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="mt-1.5 text-xs text-red-500 font-medium"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="input-group">
@@ -621,16 +635,24 @@
                                 <span class="input-icon z-[11]"><i class="fas fa-user-tie"></i></span>
                                 <select name="rm" id="rm_select">
                                     <option value=""></option>
-                                    @foreach($rms as $rm)
-                                        <option value="{{ $rm->profile->full_name }}"
-                                            data-phone="{{ $rm->profile->phone_number }}" data-hfid="{{ $rm->employee_id }}" {{ old('rm', $campRecord->rm) == $rm->profile->full_name ? 'selected' : '' }}>
-                                            {{ $rm->profile->full_name }} | {{ $rm->employee_id }} |
-                                            {{ $rm->profile->phone_number }}
+                                    <?php $__currentLoopData = $rms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rm): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($rm->profile->full_name); ?>"
+                                            data-phone="<?php echo e($rm->profile->phone_number); ?>" data-hfid="<?php echo e($rm->employee_id); ?>" <?php echo e(old('rm', $campRecord->rm) == $rm->profile->full_name ? 'selected' : ''); ?>>
+                                            <?php echo e($rm->profile->full_name); ?> | <?php echo e($rm->employee_id); ?> |
+                                            <?php echo e($rm->profile->phone_number); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
-                            @error('rm') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p> @enderror
+                            <?php $__errorArgs = ['rm'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="mt-1.5 text-xs text-red-500 font-medium"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="sm:col-span-2 input-group">
@@ -638,34 +660,48 @@
                             <div class="relative">
                                 <span class="input-icon"><i class="fas fa-location-dot"></i></span>
                                 <input type="text" name="location" id="location"
-                                    value="{{ old('location', $campRecord->location) }}"
+                                    value="<?php echo e(old('location', $campRecord->location)); ?>"
                                     class="ultra-input with-icon capitalize" placeholder="Village, Block, District, State">
                             </div>
-                            @error('location') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p>
-                            @enderror
+                            <?php $__errorArgs = ['location'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="mt-1.5 text-xs text-red-500 font-medium"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
-                        {{-- Camp Type --}}
+                        
                         <div class="sm:col-span-2 input-group">
                             <label class="input-label" for="camp_type">Camp Type <span class="req">*</span></label>
                             <div class="relative">
                                 <span class="input-icon"><i class="fas fa-tag"></i></span>
                                 <select name="camp_type" id="camp_type" required class="ultra-input with-icon">
-                                    <option value="travel_allowance" {{ old('camp_type', $campRecord->camp_type) == 'doctor_appointment' ? '' : 'selected' }}>Travel Allowance
+                                    <option value="travel_allowance" <?php echo e(old('camp_type', $campRecord->camp_type) == 'doctor_appointment' ? '' : 'selected'); ?>>Travel Allowance
                                         Based</option>
-                                    <option value="doctor_appointment" {{ old('camp_type', $campRecord->camp_type) == 'doctor_appointment' ? 'selected' : '' }}>Doctor
+                                    <option value="doctor_appointment" <?php echo e(old('camp_type', $campRecord->camp_type) == 'doctor_appointment' ? 'selected' : ''); ?>>Doctor
                                         Appointment Based</option>
                                 </select>
                             </div>
-                            @error('camp_type') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p>
-                            @enderror
+                            <?php $__errorArgs = ['camp_type'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="mt-1.5 text-xs text-red-500 font-medium"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                     </div>
                 </div>
             </div>
 
-            {{-- ═══ SECTION 2: MEDICAL TEAM ═══ --}}
+            
             <div class="glow-card reveal reveal-d3" style="--line-color: #10b981;">
                 <div class="accent-line"></div>
                 <div class="sec-header">
@@ -686,7 +722,7 @@
                             <div class="relative">
                                 <span class="input-icon"><i class="fas fa-stethoscope"></i></span>
                                 <input type="text" name="doctor_name" id="doctor_name"
-                                    value="{{ old('doctor_name', $campRecord->doctor_name) }}"
+                                    value="<?php echo e(old('doctor_name', $campRecord->doctor_name)); ?>"
                                     class="ultra-input with-icon capitalize" placeholder="Dr. Name">
                             </div>
                         </div>
@@ -696,7 +732,7 @@
                             <div class="relative">
                                 <span class="input-icon"><i class="fas fa-microscope"></i></span>
                                 <input type="text" name="pathologist" id="pathologist"
-                                    value="{{ old('pathologist', $campRecord->pathologist) }}"
+                                    value="<?php echo e(old('pathologist', $campRecord->pathologist)); ?>"
                                     class="ultra-input with-icon capitalize" placeholder="Name">
                             </div>
                         </div>
@@ -706,7 +742,7 @@
                             <div class="relative">
                                 <span class="input-icon"><i class="fas fa-pills"></i></span>
                                 <input type="text" name="pharmacists_name" id="pharmacists_name"
-                                    value="{{ old('pharmacists_name', $campRecord->pharmacists_name) }}"
+                                    value="<?php echo e(old('pharmacists_name', $campRecord->pharmacists_name)); ?>"
                                     class="ultra-input with-icon capitalize" placeholder="Name">
                             </div>
                         </div>
@@ -715,7 +751,7 @@
                 </div>
             </div>
 
-            {{-- ═══ SECTION 3: FINANCIAL BREAKDOWN ═══ --}}
+            
             <div class="glow-card no-transform reveal reveal-d4" style="--line-color: #f59e0b;">
                 <div class="accent-line"></div>
                 <div class="sec-header">
@@ -736,7 +772,7 @@
                             <div class="relative">
                                 <span class="input-icon"><i class="fas fa-users"></i></span>
                                 <input type="number" name="patients_count" id="patients_count"
-                                    value="{{ old('patients_count', $campRecord->patients_count) }}" min="0" step="1"
+                                    value="<?php echo e(old('patients_count', $campRecord->patients_count)); ?>" min="0" step="1"
                                     class="ultra-input with-icon font-semibold" placeholder="0">
                             </div>
                         </div>
@@ -745,7 +781,7 @@
                             <div class="relative">
                                 <span class="input-icon font-bold text-slate-500">₹</span>
                                 <input type="number" name="medicine_mrp" id="medicine_mrp"
-                                    value="{{ old('medicine_mrp', $campRecord->medicine_mrp) }}" min="0" step="0.01"
+                                    value="<?php echo e(old('medicine_mrp', $campRecord->medicine_mrp)); ?>" min="0" step="0.01"
                                     class="ultra-input with-icon" placeholder="0.00">
                             </div>
                         </div>
@@ -754,7 +790,7 @@
                             <div class="relative">
                                 <span class="input-icon font-bold text-red-500">₹</span>
                                 <input type="number" name="medicine_discount" id="medicine_discount"
-                                    value="{{ old('medicine_discount', $campRecord->medicine_discount) }}" min="0"
+                                    value="<?php echo e(old('medicine_discount', $campRecord->medicine_discount)); ?>" min="0"
                                     step="0.01" class="ultra-input with-icon text-indigo-600 dark:text-indigo-400"
                                     placeholder="0.00">
                             </div>
@@ -768,7 +804,7 @@
                             <div class="relative">
                                 <span class="input-icon font-bold text-red-400">₹</span>
                                 <input type="number" name="total_discount" id="total_discount"
-                                    value="{{ old('total_discount', $campRecord->total_discount) }}" min="0" step="0.01"
+                                    value="<?php echo e(old('total_discount', $campRecord->total_discount)); ?>" min="0" step="0.01"
                                     readonly tabindex="-1"
                                     class="ultra-input with-icon text-red-600 dark:text-red-400 opacity-80 cursor-default"
                                     placeholder="0.00">
@@ -779,13 +815,13 @@
                             <div class="relative">
                                 <span class="input-icon font-bold text-slate-500">%</span>
                                 <input type="number" name="buying_percentage" id="buying_percentage"
-                                    value="{{ old('buying_percentage', $campRecord->buying_percentage) }}" min="0" max="100"
+                                    value="<?php echo e(old('buying_percentage', $campRecord->buying_percentage)); ?>" min="0" max="100"
                                     step="0.01" class="ultra-input with-icon font-bold" placeholder="0.00">
                             </div>
                         </div>
                     </div>
 
-                    {{-- Doctor Appointment Fees (shown only for doctor_appointment camp type) --}}
+                    
                     <div id="doctor_fees_wrapper" class="hidden mt-4">
                         <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                             <div class="input-group col-span-2 lg:col-span-2">
@@ -799,7 +835,7 @@
                                 <div class="relative">
                                     <span class="input-icon font-bold text-violet-500">₹</span>
                                     <input type="number" name="doctor_appointment_fees" id="doctor_appointment_fees"
-                                        value="{{ old('doctor_appointment_fees', $campRecord->doctor_appointment_fees) }}"
+                                        value="<?php echo e(old('doctor_appointment_fees', $campRecord->doctor_appointment_fees)); ?>"
                                         min="0" step="0.01"
                                         class="ultra-input with-icon text-violet-600 dark:text-violet-400 font-semibold"
                                         placeholder="0.00">
@@ -812,7 +848,7 @@
                         </div>
                     </div>
 
-                    {{-- Detailed Expenses Section --}}
+                    
                     <div class="mt-8 mb-6 reveal reveal-d4" style="position: relative; z-index: 20;">
                         <div class="flex items-center justify-between mb-4">
                             <div>
@@ -830,15 +866,15 @@
                         </div>
 
                         <div id="expense_rows_container" class="space-y-3">
-                            {{-- Rows will be injected here via JS --}}
+                            
                         </div>
 
-                        {{-- Template for New Row --}}
+                        
                         <template id="expense_row_template">
                             <div
                                 class="expense-row group border border-slate-200/40 dark:border-white/5 rounded-2xl transition-all hover:border-red-200/60 dark:hover:border-red-500/20 bg-slate-50/50 dark:bg-white/[0.02] p-3">
                                 <div class="grid grid-cols-12 gap-3 items-start">
-                                    {{-- Category Dropdown --}}
+                                    
                                     <div class="col-span-11 sm:col-span-5">
                                         <select name="expense_details[{index}][category]" class="expense-category-select"
                                             required>
@@ -853,7 +889,7 @@
                                         </select>
                                     </div>
 
-                                    {{-- Amount --}}
+                                    
                                     <div class="col-span-11 sm:col-span-6 relative">
                                         <span
                                             class="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">₹</span>
@@ -863,7 +899,7 @@
                                             placeholder="0.00">
                                     </div>
 
-                                    {{-- Remove Button --}}
+                                    
                                     <div class="col-span-1 flex items-center justify-center pt-2 sm:pt-0">
                                         <button type="button"
                                             class="remove-expense-row text-slate-300 hover:text-red-500 transition-colors p-1">
@@ -871,7 +907,7 @@
                                         </button>
                                     </div>
 
-                                    {{-- Custom Note (Hidden by default, shown if "Other" is selected) --}}
+                                    
                                     <div class="col-span-12 other-note-container hidden mt-2">
                                         <input type="text" name="expense_details[{index}][note]"
                                             class="other-note-input w-full bg-white/50 dark:bg-black/20 border border-dashed border-slate-200 dark:border-slate-700 focus:border-red-400 focus:ring-0 rounded-lg text-xs py-1.5 px-3 dark:text-slate-300 transition-all"
@@ -894,7 +930,7 @@
                             <div class="flex items-baseline gap-1">
                                 <span class="text-emerald-500 font-extrabold text-xl">₹</span>
                                 <input type="number" name="profit" id="profit"
-                                    value="{{ old('profit', $campRecord->profit) }}" step="0.01" readonly tabindex="-1"
+                                    value="<?php echo e(old('profit', $campRecord->profit)); ?>" step="0.01" readonly tabindex="-1"
                                     class="text-emerald-700 dark:text-emerald-300 cursor-default" placeholder="0.00">
                             </div>
                         </div>
@@ -910,7 +946,7 @@
                             <div class="flex items-baseline gap-1">
                                 <span class="text-red-500 font-extrabold text-xl">₹</span>
                                 <input type="number" name="expenses" id="expenses"
-                                    value="{{ old('expenses', $campRecord->expenses) }}" step="0.01" min="0" readonly
+                                    value="<?php echo e(old('expenses', $campRecord->expenses)); ?>" step="0.01" min="0" readonly
                                     tabindex="-1" class="text-red-700 dark:text-red-300 cursor-default" placeholder="0.00">
                             </div>
                         </div>
@@ -925,11 +961,11 @@
                                 <span class="font-extrabold text-xl text-slate-400 transition-colors duration-500"
                                     id="net_sign">₹</span>
                                 <input type="number" id="net_profit_loss_display"
-                                    value="{{ abs(old('net_profit_loss', $campRecord->net_profit_loss)) }}" step="0.01"
+                                    value="<?php echo e(abs(old('net_profit_loss', $campRecord->net_profit_loss))); ?>" step="0.01"
                                     readonly class="text-slate-800 dark:text-white transition-colors duration-500"
                                     tabindex="-1" placeholder="—">
                                 <input type="hidden" name="net_profit_loss" id="net_profit_loss"
-                                    value="{{ old('net_profit_loss', $campRecord->net_profit_loss) }}">
+                                    value="<?php echo e(old('net_profit_loss', $campRecord->net_profit_loss)); ?>">
                             </div>
                         </div>
                     </div>
@@ -937,9 +973,9 @@
                 </div>
             </div>
 
-            {{-- ═══ ACTION BAR ═══ --}}
+            
             <div class="flex items-center justify-between pt-3 reveal reveal-d5">
-                <a href="{{ route('camp_records.index') }}"
+                <a href="<?php echo e(route('camp_records.index')); ?>"
                     class="px-5 py-2.5 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
                     <i class="fas fa-xmark text-xs mr-1.5 opacity-60"></i> Cancel
                 </a>
@@ -952,7 +988,7 @@
         </form>
     </div>
 
-    {{-- ═══ SCRIPTS ═══ --}}
+    
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -965,12 +1001,12 @@
                 render: {
                     option: function (data, escape) {
                         return `<div class="py-2 px-2">
-                                                                                                            <div class="font-semibold text-sm text-slate-800 dark:text-white">${escape(data.text)}</div>
-                                                                                                            <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
-                                                                                                                <span><i class="fas fa-id-badge mr-1"></i>${escape(data.hfid)}</span>
-                                                                                                                <span><i class="fas fa-phone mr-1"></i>${escape(data.phone)}</span>
-                                                                                                            </div>
-                                                                                                        </div>`;
+                                                                                                        <div class="font-semibold text-sm text-slate-800 dark:text-white">${escape(data.text)}</div>
+                                                                                                        <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+                                                                                                            <span><i class="fas fa-id-badge mr-1"></i>${escape(data.hfid)}</span>
+                                                                                                            <span><i class="fas fa-phone mr-1"></i>${escape(data.phone)}</span>
+                                                                                                        </div>
+                                                                                                    </div>`;
                     },
                     item: function (data, escape) {
                         return `<div class="text-sm font-medium">${escape(data.text)}</div>`;
@@ -978,7 +1014,7 @@
                 }
             });
 
-            // ── Element References ──
+            // Calculations — defined BEFORE pre-population so calc() is available during addExpenseRow callbacks
             const mrpEl = document.getElementById('medicine_mrp');
             const discPrizeEl = document.getElementById('medicine_discount');
             const totalDiscEl = document.getElementById('total_discount');
@@ -990,12 +1026,24 @@
             const netDisplayEl = document.getElementById('net_profit_loss_display');
             const signEl = document.getElementById('net_sign');
 
+            // Camp Type Toggle
             const campTypeEl = document.getElementById('camp_type');
             const doctorFeesWrapper = document.getElementById('doctor_fees_wrapper');
             const doctorFeesEl = document.getElementById('doctor_appointment_fees');
             const patientsEl = document.getElementById('patients_count');
 
-            // ── Calculation Function ──
+            function toggleDoctorFees() {
+                if (campTypeEl.value === 'doctor_appointment') {
+                    doctorFeesWrapper.classList.remove('hidden');
+                } else {
+                    doctorFeesWrapper.classList.add('hidden');
+                }
+                calc();
+            }
+
+            campTypeEl.addEventListener('change', toggleDoctorFees);
+            toggleDoctorFees(); // Initial state
+
             function calc() {
                 const mrp = parseFloat(mrpEl.value) || 0;
                 const dPrize = parseFloat(discPrizeEl.value) || 0;
@@ -1040,18 +1088,6 @@
                     signEl.textContent = '-₹';
                 }
             }
-
-            // ── Camp Type Toggle (after calc is defined) ──
-            function toggleDoctorFees() {
-                if (campTypeEl.value === 'doctor_appointment') {
-                    doctorFeesWrapper.classList.remove('hidden');
-                } else {
-                    doctorFeesWrapper.classList.add('hidden');
-                }
-                calc();
-            }
-
-            campTypeEl.addEventListener('change', toggleDoctorFees);
 
             // --- Dynamic Expenses Logic ---
             const container = document.getElementById('expense_rows_container');
@@ -1111,23 +1147,21 @@
             addButton.addEventListener('click', () => addExpenseRow());
 
             // Pre-populate existing rows
-            const existingDetails = @json($campRecord->expense_details ?? []);
+            const existingDetails = <?php echo json_encode($campRecord->expense_details ?? [], 15, 512) ?>;
             if (existingDetails && existingDetails.length > 0) {
                 existingDetails.forEach(detail => addExpenseRow(detail));
             } else {
                 addExpenseRow();
             }
 
-            // ── Event Listeners ──
             mrpEl.addEventListener('input', calc);
             discPrizeEl.addEventListener('input', calc);
             buyingPercEl.addEventListener('input', calc);
             patientsEl.addEventListener('input', calc);
             doctorFeesEl.addEventListener('input', calc);
-
-            // ── Initialize ──
-            toggleDoctorFees();
+            // Run initial calc after everything is populated
             calc();
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/camp_records/edit.blade.php ENDPATH**/ ?>

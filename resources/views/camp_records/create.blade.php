@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ═══════════════════════════════════════════
-                                                                       ULTRA-PREMIUM DESIGN SYSTEM
-                                                                       ═══════════════════════════════════════════ */
+                                                                                   ULTRA-PREMIUM DESIGN SYSTEM
+                                                                                   ═══════════════════════════════════════════ */
 
         /* ── Animated Mesh Background ── */
         .mesh-bg {
@@ -677,6 +677,20 @@
                             @enderror
                         </div>
 
+                        {{-- Camp Type --}}
+                        <div class="sm:col-span-2 input-group">
+                            <label class="input-label" for="camp_type">Camp Type <span class="req">*</span></label>
+                            <div class="relative">
+                                <span class="input-icon"><i class="fas fa-tag"></i></span>
+                                <select name="camp_type" id="camp_type" required class="ultra-input with-icon">
+                                    <option value="travel_allowance" {{ old('camp_type') == 'doctor_appointment' ? '' : 'selected' }}>Travel Allowance Based</option>
+                                    <option value="doctor_appointment" {{ old('camp_type') == 'doctor_appointment' ? 'selected' : '' }}>Doctor Appointment Based</option>
+                                </select>
+                            </div>
+                            @error('camp_type') <p class="mt-1.5 text-xs text-red-500 font-medium">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -793,6 +807,32 @@
                                 <input type="number" name="buying_percentage" id="buying_percentage"
                                     value="{{ old('buying_percentage') }}" min="0" max="100" step="0.01"
                                     class="ultra-input with-icon font-bold" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Doctor Appointment Fees (shown only for doctor_appointment camp type) --}}
+                    <div id="doctor_fees_wrapper" class="hidden mt-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div class="input-group col-span-2 lg:col-span-2">
+                                <label class="input-label" for="doctor_appointment_fees">
+                                    <i class="fas fa-user-doctor text-violet-500 mr-1"></i>
+                                    Doctor Appointment Fees
+                                    <span
+                                        class="ml-1 px-1 py-0.5 rounded-md text-[8px] font-black tracking-wider bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400">PER
+                                        PATIENT</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="input-icon font-bold text-violet-500">₹</span>
+                                    <input type="number" name="doctor_appointment_fees" id="doctor_appointment_fees"
+                                        value="{{ old('doctor_appointment_fees') }}" min="0" step="0.01"
+                                        class="ultra-input with-icon text-violet-600 dark:text-violet-400 font-semibold"
+                                        placeholder="0.00">
+                                </div>
+                                <p class="text-[10px] text-slate-400 mt-1 font-medium">
+                                    <i class="fas fa-info-circle mr-0.5"></i>
+                                    This fee will be multiplied by Total Patients and added to gross profit.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -955,12 +995,12 @@
                 render: {
                     option: function (data, escape) {
                         return `<div class="py-2 px-2">
-                                                                                                <div class="font-semibold text-sm text-slate-800 dark:text-white">${escape(data.text)}</div>
-                                                                                                <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
-                                                                                                    <span><i class="fas fa-id-badge mr-1"></i>${escape(data.hfid)}</span>
-                                                                                                    <span><i class="fas fa-phone mr-1"></i>${escape(data.phone)}</span>
-                                                                                                </div>
-                                                                                            </div>`;
+                                                                                                            <div class="font-semibold text-sm text-slate-800 dark:text-white">${escape(data.text)}</div>
+                                                                                                            <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+                                                                                                                <span><i class="fas fa-id-badge mr-1"></i>${escape(data.hfid)}</span>
+                                                                                                                <span><i class="fas fa-phone mr-1"></i>${escape(data.phone)}</span>
+                                                                                                            </div>
+                                                                                                        </div>`;
                     },
                     item: function (data, escape) {
                         return `<div class="text-sm font-medium">${escape(data.text)}</div>`;
@@ -1014,7 +1054,12 @@
 
             addButton.addEventListener('click', addExpenseRow);
 
-            // Calculations
+            // ── Element References (must be defined before calc) ──
+            const campTypeEl = document.getElementById('camp_type');
+            const doctorFeesWrapper = document.getElementById('doctor_fees_wrapper');
+            const doctorFeesEl = document.getElementById('doctor_appointment_fees');
+            const patientsEl = document.getElementById('patients_count');
+
             const mrpEl = document.getElementById('medicine_mrp');
             const discPrizeEl = document.getElementById('medicine_discount');
             const totalDiscEl = document.getElementById('total_discount');
@@ -1026,6 +1071,7 @@
             const netDisplayEl = document.getElementById('net_profit_loss_display');
             const signEl = document.getElementById('net_sign');
 
+            // ── Calculation Function ──
             function calc() {
                 const mrp = parseFloat(mrpEl.value) || 0;
                 const dPrize = parseFloat(discPrizeEl.value) || 0;
@@ -1034,9 +1080,17 @@
                 // 1. Total Discount = MRP - Discounted Prize
                 totalDiscEl.value = Math.max(0, mrp - dPrize).toFixed(2);
 
-                // 2. Gross Profit = Discounted Prize - (MRP * Buying%)
+                // 2. Gross Profit
                 const cost = mrp * (bPerc / 100);
-                const grossProfit = dPrize - cost;
+                let grossProfit = dPrize - cost;
+
+                // If doctor appointment based, add (patients × doctor fees)
+                if (campTypeEl.value === 'doctor_appointment') {
+                    const patients = parseInt(patientsEl.value) || 0;
+                    const docFees = parseFloat(doctorFeesEl.value) || 0;
+                    grossProfit += (patients * docFees);
+                }
+
                 profitEl.value = grossProfit.toFixed(2);
 
                 // 3. Detailed Expenses Summation
@@ -1063,13 +1117,29 @@
                 }
             }
 
+            // ── Camp Type Toggle (after calc is defined) ──
+            function toggleDoctorFees() {
+                if (campTypeEl.value === 'doctor_appointment') {
+                    doctorFeesWrapper.classList.remove('hidden');
+                } else {
+                    doctorFeesWrapper.classList.add('hidden');
+                    if (doctorFeesEl) doctorFeesEl.value = '';
+                }
+                calc();
+            }
+
+            campTypeEl.addEventListener('change', toggleDoctorFees);
+
+            // ── Event Listeners ──
             mrpEl.addEventListener('input', calc);
             discPrizeEl.addEventListener('input', calc);
             buyingPercEl.addEventListener('input', calc);
-            // No need for expensesEl listener as it's now AUTO
-            calc();
+            patientsEl.addEventListener('input', calc);
+            doctorFeesEl.addEventListener('input', calc);
 
-            // Initial row
+            // ── Initialize ──
+            toggleDoctorFees();
+            calc();
             addExpenseRow();
         });
     </script>

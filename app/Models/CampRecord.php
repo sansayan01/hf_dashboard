@@ -12,6 +12,7 @@ class CampRecord extends Model
 
     protected $fillable = [
         'camp_name',
+        'camp_type',
         'location',
         'rm',
         'date',
@@ -20,6 +21,7 @@ class CampRecord extends Model
         'medicine_discount',
         'total_discount',
         'buying_percentage',
+        'doctor_appointment_fees',
         'profit',
         'doctor_name',
         'pathologist',

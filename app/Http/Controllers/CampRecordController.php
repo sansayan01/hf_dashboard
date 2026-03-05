@@ -183,6 +183,7 @@ class CampRecordController extends Controller
 
         $validated = $request->validate([
             'camp_name' => 'required|string|max:255',
+            'camp_type' => 'required|in:travel_allowance,doctor_appointment',
             'location' => 'nullable|string|max:255',
             'rm' => 'nullable|string|max:255',
             'date' => 'required|date',
@@ -191,6 +192,7 @@ class CampRecordController extends Controller
             'medicine_discount' => 'nullable|numeric',
             'total_discount' => 'nullable|numeric',
             'buying_percentage' => 'nullable|numeric',
+            'doctor_appointment_fees' => 'nullable|numeric',
             'profit' => 'nullable|numeric',
             'doctor_name' => 'nullable|string|max:255',
             'pathologist' => 'nullable|string|max:255',
@@ -208,6 +210,14 @@ class CampRecordController extends Controller
         $validated['total_discount'] = max(0, $mrp - $dPrize);
         $cost = $mrp * ($bPerc / 100);
         $grossProfit = $dPrize - $cost;
+
+        // If doctor appointment based, add (patients × doctor fees) to gross profit
+        if (($validated['camp_type'] ?? 'travel_allowance') === 'doctor_appointment') {
+            $patients = intval($validated['patients_count'] ?? 0);
+            $doctorFees = floatval($validated['doctor_appointment_fees'] ?? 0);
+            $grossProfit += ($patients * $doctorFees);
+        }
+
         $validated['profit'] = round($grossProfit, 2);
 
         // Sum expense details
@@ -239,6 +249,7 @@ class CampRecordController extends Controller
 
         $validated = $request->validate([
             'camp_name' => 'required|string|max:255',
+            'camp_type' => 'required|in:travel_allowance,doctor_appointment',
             'location' => 'nullable|string|max:255',
             'rm' => 'nullable|string|max:255',
             'date' => 'required|date',
@@ -247,6 +258,7 @@ class CampRecordController extends Controller
             'medicine_discount' => 'nullable|numeric',
             'total_discount' => 'nullable|numeric',
             'buying_percentage' => 'nullable|numeric',
+            'doctor_appointment_fees' => 'nullable|numeric',
             'profit' => 'nullable|numeric',
             'doctor_name' => 'nullable|string|max:255',
             'pathologist' => 'nullable|string|max:255',
@@ -264,6 +276,14 @@ class CampRecordController extends Controller
         $validated['total_discount'] = max(0, $mrp - $dPrize);
         $cost = $mrp * ($bPerc / 100);
         $grossProfit = $dPrize - $cost;
+
+        // If doctor appointment based, add (patients × doctor fees) to gross profit
+        if (($validated['camp_type'] ?? 'travel_allowance') === 'doctor_appointment') {
+            $patients = intval($validated['patients_count'] ?? 0);
+            $doctorFees = floatval($validated['doctor_appointment_fees'] ?? 0);
+            $grossProfit += ($patients * $doctorFees);
+        }
+
         $validated['profit'] = round($grossProfit, 2);
 
         // Sum expense details
