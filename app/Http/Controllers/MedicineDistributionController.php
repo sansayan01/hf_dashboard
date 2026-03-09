@@ -24,18 +24,31 @@ class MedicineDistributionController extends Controller
         // Load the patient's creator (RO) for display
         $patient->load('creator.profile');
 
-        // Pharmacists and Office In-Charges can only see their assigned camp
-        if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
-            $camps = InventoryWarehouse::where('id', $user->camp_id)
-                ->where('type', InventoryWarehouse::TYPE_CAMP)
-                ->where('is_active', true)
-                ->get();
+        $query = InventoryWarehouse::where('is_active', true);
+
+        // Admins and Office Incharge can select both camps and warehouses
+        if ($user->isSuperAdmin() || $user->isOfficeInCharge()) {
+            $query->whereIn('type', [InventoryWarehouse::TYPE_CAMP, InventoryWarehouse::TYPE_WAREHOUSE]);
         } else {
-            // For other users, show all active camps
-            $camps = InventoryWarehouse::where('type', InventoryWarehouse::TYPE_CAMP)
-                ->where('is_active', true)
-                ->get();
+            // Others (like regular staff) see only camps
+            $query->where('type', InventoryWarehouse::TYPE_CAMP);
         }
+
+        // Apply camp restriction for assigned users
+        if ($user->camp_id) {
+            if ($user->designation === 'staff') {
+                // Pharmacists can only see their assigned camp
+                $query->where('id', $user->camp_id);
+            } elseif ($user->isOfficeInCharge()) {
+                // If OI is assigned a camp, they can see their assigned camp AND all warehouses
+                $query->where(function ($q) use ($user) {
+                    $q->where('id', $user->camp_id)
+                        ->orWhere('type', InventoryWarehouse::TYPE_WAREHOUSE);
+                });
+            }
+        }
+
+        $camps = $query->get();
 
         return view('medicine.distribute', compact('patient', 'camps'));
     }
