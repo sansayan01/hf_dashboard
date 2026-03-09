@@ -118,10 +118,10 @@ class Survey extends Model
     private static function generateSequenceId($prefix, $length, $latestOnly)
     {
         if ($latestOnly) {
-            // Find max sequence among all users (including trashed but not renamed ones) to avoid collision
             $last = self::withTrashed()
                 ->where('patient_id', 'like', $prefix . '%')
                 ->where('patient_id', 'not like', 'TRASH_%')
+                ->orderByRaw('LENGTH(patient_id) desc')
                 ->orderBy('patient_id', 'desc')
                 ->first();
 

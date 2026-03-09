@@ -32,7 +32,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Team</p>
-                        <h4 class="text-2xl font-black text-slate-800 dark:text-white">
+                        <h4 id="stat-total-team" class="text-2xl font-black text-slate-800 dark:text-white">
                             <?php echo e(number_format($stats['total_downline'])); ?>
 
                         </h4>
@@ -51,7 +51,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Members</p>
-                        <h4 class="text-2xl font-black text-slate-800 dark:text-white">
+                        <h4 id="stat-active-members" class="text-2xl font-black text-slate-800 dark:text-white">
                             <?php echo e(number_format($stats['active_downline'])); ?>
 
                         </h4>
@@ -71,7 +71,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Direct Reports</p>
-                        <h4 class="text-2xl font-black text-slate-800 dark:text-white">
+                        <h4 id="stat-direct-reports" class="text-2xl font-black text-slate-800 dark:text-white">
                             <?php echo e(number_format($stats['direct_children'])); ?>
 
                         </h4>
@@ -90,7 +90,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pending Verification</p>
-                        <h4 class="text-2xl font-black text-slate-800 dark:text-white">
+                        <h4 id="stat-pending-verification" class="text-2xl font-black text-slate-800 dark:text-white">
                             <?php echo e(number_format($stats['pending_approvals'])); ?>
 
                         </h4>
@@ -115,7 +115,8 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <!-- View All / Paginate Toggle -->
                     <?php if(request('view_all')): ?>
-                        <a href="<?php echo e(route('users.index', request()->except('view_all'))); ?>" title="Paginate"
+                        <a id="view-action-btn" href="<?php echo e(route('users.index', request()->except('view_all'))); ?>"
+                            title="Paginate"
                             class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -125,7 +126,8 @@
                             <span class="hidden">Paginate</span>
                         </a>
                     <?php else: ?>
-                        <a href="<?php echo e(route('users.index', array_merge(request()->all(), ['view_all' => 1]))); ?>" title="View All"
+                        <a id="view-action-btn"
+                            href="<?php echo e(route('users.index', array_merge(request()->all(), ['view_all' => 1]))); ?>" title="View All"
                             class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -136,7 +138,7 @@
                     <?php endif; ?>
 
                     <!-- Export -->
-                    <a href="<?php echo e(route('users.export', request()->all())); ?>" title="Download CSV"
+                    <a id="export-action-btn" href="<?php echo e(route('users.export', request()->all())); ?>" title="Download CSV"
                         class="px-3 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all flex items-center justify-center">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -191,7 +193,7 @@
             <div id="filter-panel"
                 class="<?php echo e(request()->anyFilled(['district', 'block', 'gram_panchayat', 'designation', 'search']) ? '' : 'hidden'); ?> p-6 border-b border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
                 <form action="<?php echo e(route('users.index')); ?>" method="GET" class="no-loader space-y-4" id="filterForm">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <!-- Search -->
                         <div>
                             <label
@@ -207,7 +209,7 @@
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Designation</label>
                             <select name="designation"
-                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition uppercase text-[10px] font-bold">
                                 <option value="">All Roles</option>
                                 <?php $__currentLoopData = $allowedFilters; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $val => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($val); ?>" <?php echo e(request('designation') == $val ? 'selected' : ''); ?>><?php echo e($label); ?>
@@ -217,12 +219,27 @@
                             </select>
                         </div>
 
+                        <!-- Status -->
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Status
+                                Filter</label>
+                            <select name="status"
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition uppercase text-[10px] font-bold">
+                                <option value="">All Status</option>
+                                <option value="active" <?php echo e(request('status') == 'active' ? 'selected' : ''); ?>>Active Members
+                                </option>
+                                <option value="pending" <?php echo e(request('status') == 'pending' ? 'selected' : ''); ?>>Pending
+                                    Approvals</option>
+                            </select>
+                        </div>
+
                         <!-- District -->
                         <div>
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">District</label>
                             <select name="district" id="district-filter"
-                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition text-[10px] font-bold uppercase">
                                 <option value="">All Districts</option>
                             </select>
                         </div>
@@ -232,7 +249,7 @@
                             <label
                                 class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Block</label>
                             <select name="block" id="block-filter"
-                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition text-[10px] font-bold uppercase">
                                 <option value="">All Blocks</option>
                             </select>
                         </div>
@@ -242,33 +259,25 @@
                             <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Gram
                                 Panchayat</label>
                             <select name="gram_panchayat" id="gp-filter"
-                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition text-[10px] font-bold uppercase">
                                 <option value="">All GPs</option>
                             </select>
                         </div>
+                    </div>
 
-                        <!-- Status -->
-                        <div>
-                            <label
-                                class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Status
-                                Filter</label>
-                            <select name="status"
-                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
-                                <option value="">All Status</option>
-                                <option value="active" <?php echo e(request('status') == 'active' ? 'selected' : ''); ?>>Active Members
-                                </option>
-                                <option value="pending" <?php echo e(request('status') == 'pending' ? 'selected' : ''); ?>>Pending
-                                    Approvals</option>
-                            </select>
-                        </div>
-
-                        <div class="lg:col-span-2 flex items-end space-x-2">
-                            <button type="submit"
-                                class="h-10 px-6 bg-accent text-white rounded-xl text-sm font-bold hover:opacity-90 transition">Apply
-                                Filters</button>
-                            <a href="<?php echo e(route('users.index')); ?>"
-                                class="h-10 px-6 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold flex items-center justify-center hover:opacity-90 transition">Reset</a>
-                        </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
+                        <button type="button" id="clearFilters"
+                            class="text-xs font-bold text-rose-500 hover:underline uppercase tracking-widest flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <span>Clear All Filters</span>
+                        </button>
+                        <button type="submit"
+                            class="bg-accent text-white px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg hover:shadow-accent/30 transition-all active:scale-95">
+                            Apply Filters
+                        </button>
                     </div>
                 </form>
             </div>
@@ -486,6 +495,28 @@
                     paginationContainer.innerHTML = data.pagination_html ? `<div class="p-6 border-t border-slate-100 italic">${data.pagination_html}</div>` : '';
                     if (totalBadge) totalBadge.textContent = data.total + ' Total';
                     history.pushState(null, '', url);
+
+                    // Update action buttons with new parameters mapping
+                    const viewBtn = document.getElementById('view-action-btn');
+                    if (viewBtn) {
+                        const viewUrl = new URL(viewBtn.href);
+                        const isViewAll = viewUrl.searchParams.has('view_all');
+                        viewUrl.search = params.toString();
+                        if (isViewAll) {
+                            viewUrl.searchParams.set('view_all', '1');
+                        } else {
+                            viewUrl.searchParams.delete('view_all');
+                        }
+                        viewBtn.href = viewUrl.toString();
+                    }
+
+                    const exportBtn = document.getElementById('export-action-btn');
+                    if (exportBtn) {
+                        const exportParams = new URL(exportBtn.href);
+                        exportParams.search = params.toString();
+                        exportBtn.href = exportParams.toString();
+                    }
+
                     initBulkSelection();
                     bindPaginationLinks();
                 } catch (e) {

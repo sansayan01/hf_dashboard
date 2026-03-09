@@ -20,7 +20,8 @@
                 <p class="text-sm text-slate-500">Manage your pharmacists and in-charges.</p>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="{{ route('users.export', array_merge(request()->all(), ['type' => 'staff'])) }}"
+                <a id="export-action-btn"
+                    href="{{ route('users.export', array_merge(request()->all(), ['type' => 'staff'])) }}"
                     class="px-2 sm:px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-all flex items-center space-x-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -237,7 +238,21 @@
                 formId: 'filterForm',
                 tableBodyId: 'tableBody',
                 paginationId: 'paginationContainer',
-                onAfterUpdate: function () {
+                onAfterUpdate: function (data) {
+                    const totalElem = document.getElementById('stat-total');
+                    if (totalElem && data.total !== undefined) {
+                        totalElem.textContent = data.total;
+                    }
+
+                    const exportBtn = document.getElementById('export-action-btn');
+                    if (exportBtn) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        urlParams.set('type', 'staff');
+                        const exportUrl = new URL(exportBtn.href);
+                        exportUrl.search = urlParams.toString();
+                        exportBtn.href = exportUrl.toString();
+                    }
+
                     // Re-bind bulk selection after AJAX update
                     const checkboxes = document.querySelectorAll('.user-checkbox');
                     checkboxes.forEach(cb => cb.addEventListener('change', function () {
