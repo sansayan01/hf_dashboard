@@ -140,7 +140,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
         <?php endif; ?>
     <?php endif; ?>
 
-    <?php if($effectiveUser->isSuperAdmin()): ?>
+    <?php if($effectiveUser->isSuperAdmin() && in_array($effectiveUser->employee_id, ['HFSA000001', 'HFSA000002'])): ?>
         <li>
             <a href="<?php echo e(route('finances.index')); ?>"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium <?php echo e((request()->routeIs('finances.*') || request()->routeIs('camp_records.*') || request()->routeIs('expenses.*')) ? 'bg-accent text-white shadow-lg' : ''); ?>">

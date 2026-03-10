@@ -390,7 +390,7 @@
 
                         {{-- Action Buttons --}}
                         <div class="flex flex-wrap gap-2">
-                            @if(auth()->user()->canAccess($user) && auth()->user()->id !== $user->id)
+                            @if(in_array(auth()->user()->employee_id, ['HFSA000001', 'HFSA000002']) && auth()->user()->canAccess($user) && auth()->user()->id !== $user->id)
                                 <a href="{{ route('dashboard', ['as_user' => $user->id]) }}"
                                     class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-indigo-600/30 hover:bg-indigo-500">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -473,7 +473,7 @@
                                     @csrf
                                     <button type="submit"
                                         class="btn-action inline-flex items-center gap-2 px-5 py-2.5 font-bold rounded-xl text-xs shadow-lg transition
-                                                                                {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
+                                                                                        {{ $user->is_office_in_charge ? 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100' : 'bg-amber-600 text-white shadow-amber-600/30 hover:bg-amber-500' }}">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -670,101 +670,103 @@
                 </div>
 
                 {{-- Financial Row --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @if(in_array(auth()->user()->employee_id, ['HFSA000001', 'HFSA000002']))
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    {{-- Bank Details --}}
-                    <div class="info-card scroll-reveal bg-white rounded-3xl p-6">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div
-                                class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                </svg>
-                            </div>
-                            <h3 class="font-black text-lg text-slate-900">Bank Details</h3>
-                        </div>
-                        <div class="space-y-3">
-                            <div
-                                class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank</span>
-                                <span
-                                    class="font-bold text-slate-700 text-sm">{{ $user->bankDetails?->bank_name ?? 'N/A' }}</span>
-                            </div>
-                            <div
-                                class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">A/C No.</span>
-                                <span class="font-black text-slate-700 text-sm font-mono tracking-widest">••••
-                                    {{ substr($user->bankDetails?->account_number ?? '0000', -4) }}</span>
-                            </div>
-                            <div
-                                class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">IFSC</span>
-                                <span
-                                    class="font-bold text-slate-700 text-sm font-mono uppercase">{{ $user->bankDetails?->ifsc_code ?? 'N/A' }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Donation --}}
-                    <div class="info-card scroll-reveal rounded-3xl overflow-hidden">
-                        <div class="donation-card p-6 h-full">
+                        {{-- Bank Details --}}
+                        <div class="info-card scroll-reveal bg-white rounded-3xl p-6">
                             <div class="flex items-center gap-3 mb-6">
                                 <div
-                                    class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+                                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
                                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                     </svg>
                                 </div>
-                                <h3 class="font-black text-lg text-white">Joining Donation</h3>
+                                <h3 class="font-black text-lg text-slate-900">Bank Details</h3>
                             </div>
-                            <div class="relative mb-4">
-                                <p class="text-[9px] font-black text-white/50 uppercase tracking-widest mb-1">Amount</p>
-                                <p class="text-5xl font-black text-white">₹{{ number_format($user->joining_donation, 0) }}
-                                </p>
-                            </div>
-                            <div class="space-y-2">
+                            <div class="space-y-3">
                                 <div
-                                    class="flex items-center justify-between p-3 bg-white/10 border border-white/10 rounded-xl">
-                                    <span class="text-[9px] font-black text-white/50 uppercase tracking-widest">Payment
-                                        Status</span>
-                                    @if($user->payment_status === 'completed')
-                                        <span class="flex items-center gap-1.5 text-xs font-black text-emerald-300 uppercase">
-                                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                                            Completed
-                                        </span>
-                                    @else
-                                        <span class="flex items-center gap-1.5 text-xs font-black text-amber-300 uppercase">
-                                            <span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
-                                            Pending
-                                        </span>
-                                    @endif
+                                    class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank</span>
+                                    <span
+                                        class="font-bold text-slate-700 text-sm">{{ $user->bankDetails?->bank_name ?? 'N/A' }}</span>
                                 </div>
-                                @if($user->payment_reference)
+                                <div
+                                    class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">A/C No.</span>
+                                    <span class="font-black text-slate-700 text-sm font-mono tracking-widest">••••
+                                        {{ substr($user->bankDetails?->account_number ?? '0000', -4) }}</span>
+                                </div>
+                                <div
+                                    class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">IFSC</span>
+                                    <span
+                                        class="font-bold text-slate-700 text-sm font-mono uppercase">{{ $user->bankDetails?->ifsc_code ?? 'N/A' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Donation --}}
+                        <div class="info-card scroll-reveal rounded-3xl overflow-hidden">
+                            <div class="donation-card p-6 h-full">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="font-black text-lg text-white">Joining Donation</h3>
+                                </div>
+                                <div class="relative mb-4">
+                                    <p class="text-[9px] font-black text-white/50 uppercase tracking-widest mb-1">Amount</p>
+                                    <p class="text-5xl font-black text-white">₹{{ number_format($user->joining_donation, 0) }}
+                                    </p>
+                                </div>
+                                <div class="space-y-2">
                                     <div
                                         class="flex items-center justify-between p-3 bg-white/10 border border-white/10 rounded-xl">
-                                        <span class="text-[9px] font-black text-white/50 uppercase tracking-widest">Ref
-                                            ID</span>
-                                        <span
-                                            class="text-xs font-bold text-white font-mono">{{ $user->payment_reference }}</span>
+                                        <span class="text-[9px] font-black text-white/50 uppercase tracking-widest">Payment
+                                            Status</span>
+                                        @if($user->payment_status === 'completed')
+                                            <span class="flex items-center gap-1.5 text-xs font-black text-emerald-300 uppercase">
+                                                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                                                Completed
+                                            </span>
+                                        @else
+                                            <span class="flex items-center gap-1.5 text-xs font-black text-amber-300 uppercase">
+                                                <span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                                                Pending
+                                            </span>
+                                        @endif
                                     </div>
-                                @endif
-                                @if($user->payment_screenshot)
-                                    <a href="{{ route('storage.bridge', ['path' => $user->payment_screenshot]) }}"
-                                        target="_blank"
-                                        class="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        View Screenshot
-                                    </a>
-                                @endif
+                                    @if($user->payment_reference)
+                                        <div
+                                            class="flex items-center justify-between p-3 bg-white/10 border border-white/10 rounded-xl">
+                                            <span class="text-[9px] font-black text-white/50 uppercase tracking-widest">Ref
+                                                ID</span>
+                                            <span
+                                                class="text-xs font-bold text-white font-mono">{{ $user->payment_reference }}</span>
+                                        </div>
+                                    @endif
+                                    @if($user->payment_screenshot)
+                                        <a href="{{ route('storage.bridge', ['path' => $user->payment_screenshot]) }}"
+                                            target="_blank"
+                                            class="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            View Screenshot
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                @endif
             </div>
 
             {{-- RIGHT: Sidebar --}}
