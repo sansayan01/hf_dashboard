@@ -48,7 +48,7 @@ class DashboardController extends Controller
         $reports = $canViewReports ? $this->getReports($allAccessibleIds) : [];
         $recentActivities = $this->getRecentActivities($allAccessibleIds);
         $earnings = $this->getEarnings($user);
-        $financials = $user->isSuperAdmin() ? $this->getFinancialOverview() : null;
+        $financials = $user->hasFinancePermission('view') ? $this->getFinancialOverview() : null;
 
         $pendingUsers = [];
         if ($canApprove) {
