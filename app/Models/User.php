@@ -845,6 +845,11 @@ class User extends Authenticatable
     // Check if user can edit another user's data
     public function canEdit(User $targetUser)
     {
+        // Prevent anyone except HFSA000001 from editing HFSA000001
+        if ($targetUser->employee_id === 'HFSA000001' && $this->employee_id !== 'HFSA000001') {
+            return false;
+        }
+
         // Super admin can always edit everyone
         if ($this->isSuperAdmin()) {
             return true;

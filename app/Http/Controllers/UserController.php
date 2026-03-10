@@ -1499,6 +1499,10 @@ class UserController extends Controller
             abort(403, 'Unauthorized access: You do not have permission to assign Officer in Charge status.');
         }
 
+        if ($user->employee_id === 'HFSA000001' && $currentUser->employee_id !== 'HFSA000001') {
+            abort(403, 'Unauthorized to edit HFSA000001');
+        }
+
         // Only ROs can be assigned as Officer in Charge via this button
         if (!$user->isRO()) {
             return back()->with('error', 'Only Relationship Officers can be assigned as Officer in Charge.');
@@ -1592,8 +1596,13 @@ class UserController extends Controller
      */
     public function toggleSalaryMode(User $user)
     {
-        if (!auth()->user()->isSuperAdmin()) {
+        $currentUser = auth()->user();
+        if (!$currentUser->isSuperAdmin()) {
             abort(403, 'Only Super Admin can change salary mode.');
+        }
+
+        if ($user->employee_id === 'HFSA000001' && $currentUser->employee_id !== 'HFSA000001') {
+            abort(403, 'Unauthorized to edit HFSA000001');
         }
 
         $oldMode = $user->salary_mode ?? 'tab';
@@ -1676,6 +1685,13 @@ class UserController extends Controller
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             }
             abort(403, 'Unauthorized');
+        }
+
+        if ($user->employee_id === 'HFSA000001' && $currentUser->employee_id !== 'HFSA000001') {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized to edit HFSA000001'], 403);
+            }
+            abort(403, 'Unauthorized to edit HFSA000001');
         }
 
         $request->validate([
