@@ -1240,6 +1240,11 @@ class UserController extends Controller
             return back()->with('error', 'You cannot delete yourself.');
         }
 
+        // Prevent deletion of special Super Admin
+        if ($user->employee_id === 'HFSA000001') {
+            return back()->with('error', 'HFSA000001 is a special user and cannot be deleted.');
+        }
+
         // Prevent Office In-Charge from deleting Super Admin
         if ($currentUser->isOfficeInCharge() && $user->isSuperAdmin()) {
             return back()->with('error', 'Permission denied: You cannot delete a Super Admin.');
@@ -1331,6 +1336,11 @@ class UserController extends Controller
         }
 
         $user = User::onlyTrashed()->findOrFail($id);
+
+        // Prevent permanent deletion of special Super Admin
+        if ($user->employee_id === 'HFSA000001') {
+            return back()->with('error', 'HFSA000001 is a special user and cannot be permanently deleted.');
+        }
 
         // Delete profile picture
         if ($user->profile && $user->profile->profile_picture) {

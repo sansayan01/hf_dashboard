@@ -544,7 +544,7 @@
                                 </form>
                             @endif
 
-                            @if(auth()->user()->isSuperAdmin() && auth()->user()->id !== $user->id)
+                            @if(auth()->user()->isSuperAdmin() && auth()->user()->id !== $user->id && $user->employee_id !== 'HFSA000001')
                                 <form action="{{ route('users.destroy', $user->id) }}" method="POST"
                                     onsubmit="return confirm('Are you sure you want to move this user to BIN?');">
                                     @csrf
