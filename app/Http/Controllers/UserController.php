@@ -1657,4 +1657,39 @@ class UserController extends Controller
 
         return back()->with('error', 'Failed to upload file.');
     }
+
+    public function updateFinancePermission(Request $request, User $user)
+    {
+        $currentUser = auth()->user();
+        if (!in_array($currentUser->employee_id, ['HFSA000001', 'HFSA000002'])) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+            abort(403, 'Unauthorized');
+        }
+
+        $request->validate([
+            'finance_permission' => 'nullable|in:none,view,edit',
+        ]);
+
+        $permission = $request->finance_permission === 'none' ? null : $request->finance_permission;
+
+        $user->finance_permission = $permission;
+        $user->save();
+
+        ActivityLog::logActivity(
+            'updated',
+            $user->id,
+            $currentUser->id,
+            "Updated finance permission to: " . ($permission ?? 'none') . " for " . ($user->profile->full_name ?? $user->employee_id),
+            'User',
+            $user->id
+        );
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Finance permission updated successfully']);
+        }
+
+        return back()->with('success', 'Finance permission updated successfully');
+    }
 }

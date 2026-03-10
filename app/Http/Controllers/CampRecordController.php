@@ -8,11 +8,11 @@ use App\Models\CampRecord;
 
 class CampRecordController extends Controller
 {
-    private function authorizeSuperAdmin()
+    private function authorizeFinanceAccess($action = 'view')
     {
         $currentUser = auth()->user();
-        if (!$currentUser || !$currentUser->isSuperAdmin()) {
-            abort(403, 'Unauthorized access: Only Super Admin can access the finances section.');
+        if (!$currentUser || !$currentUser->hasFinancePermission($action)) {
+            abort(403, 'Unauthorized access: You do not have permission to access the finances section.');
         }
     }
 
@@ -56,7 +56,7 @@ class CampRecordController extends Controller
 
     public function index(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('view');
         $query = $this->applyFilters(CampRecord::query(), $request);
         $records = $query->latest()->get();
 
@@ -77,7 +77,7 @@ class CampRecordController extends Controller
 
     public function export(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('view');
         $query = $this->applyFilters(CampRecord::query(), $request);
         $records = $query->latest()->get();
 
@@ -157,7 +157,7 @@ class CampRecordController extends Controller
 
     public function exportPdf(Request $request, CampRecord $campRecord)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('view');
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('camp_records.pdf', compact('campRecord'));
 
@@ -172,14 +172,14 @@ class CampRecordController extends Controller
 
     public function create()
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
         $rms = \App\Models\User::where('designation', 'rm')->with('profile')->get();
         return view('camp_records.create', compact('rms'));
     }
 
     public function store(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
 
         $validated = $request->validate([
             'camp_name' => 'required|string|max:255',
@@ -238,14 +238,14 @@ class CampRecordController extends Controller
 
     public function edit(CampRecord $campRecord)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
         $rms = \App\Models\User::where('designation', 'rm')->with('profile')->get();
         return view('camp_records.edit', compact('campRecord', 'rms'));
     }
 
     public function update(Request $request, CampRecord $campRecord)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
 
         $validated = $request->validate([
             'camp_name' => 'required|string|max:255',
@@ -304,7 +304,7 @@ class CampRecordController extends Controller
 
     public function destroy(CampRecord $campRecord)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
         $campRecord->delete();
 
         return redirect()->route('camp_records.index')

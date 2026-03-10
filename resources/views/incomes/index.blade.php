@@ -476,12 +476,14 @@
                     </svg>
                     Export
                 </a>
-                <a href="{{ route('incomes.create') }}" class="btn-primary">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Income
-                </a>
+                @if(auth()->user()->hasFinancePermission('edit'))
+                    <a href="{{ route('incomes.create') }}" class="btn-primary">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Income
+                    </a>
+                @endif
             </div>
         </div>
 
@@ -518,9 +520,11 @@
             <div class="card p-5">
                 <div class="stat-label mb-2">Top Income Category</div>
                 <div class="stat-value" style="font-size:18px" id="topCategoryStat">
-                    {{ $topCategory ? $topCategory->category : 'N/A' }}</div>
+                    {{ $topCategory ? $topCategory->category : 'N/A' }}
+                </div>
                 <div class="text-[11px] text-slate-400 font-medium mt-1">
-                    {{ $topCategory ? '₹' . number_format($topCategory->total, 2) : '—' }}</div>
+                    {{ $topCategory ? '₹' . number_format($topCategory->total, 2) : '—' }}
+                </div>
             </div>
         </div>
 
@@ -608,9 +612,11 @@
                                 <div class="activity-item">
                                     <div class="min-w-0">
                                         <p class="text-sm font-semibold text-slate-800 dark:text-white truncate">
-                                            {{ $recent->title }}</p>
+                                            {{ $recent->title }}
+                                        </p>
                                         <p class="text-[11px] text-slate-400 font-medium">{{ $recent->category }} ·
-                                            {{ $recent->income_date->format('d M') }}</p>
+                                            {{ $recent->income_date->format('d M') }}
+                                        </p>
                                     </div>
                                     <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400 ml-3 flex-shrink-0"
                                         style="font-variant-numeric:tabular-nums">+₹{{ number_format($recent->amount, 2) }}</span>
@@ -664,7 +670,8 @@
                 @endphp
                 <div class="flex items-end gap-2">
                     <div class="stat-value text-xl" id="growthPercentStat" style="color:{{ $growthColor }}">
-                        {{ $growthPercent }}%</div>
+                        {{ $growthPercent }}%
+                    </div>
                     <span class="text-xs font-medium text-slate-400 mb-1">of month elapsed</span>
                 </div>
                 <div class="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full mt-3 overflow-hidden">
@@ -794,7 +801,8 @@
                                 <option value="">All Methods</option>
                                 @foreach(\App\Models\Income::PAYMENT_METHODS as $key => $label)
                                     <option value="{{ $key }}" {{ request('payment_method') == $key ? 'selected' : '' }}>
-                                        {{ $label }}</option>
+                                        {{ $label }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>

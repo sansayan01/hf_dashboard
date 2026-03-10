@@ -420,7 +420,7 @@
     @endif
 
     {{-- ── FINANCIAL OVERVIEW (Super Admin Only) ── --}}
-    @if($user->isSuperAdmin() && in_array(auth()->user()->employee_id, ['HFSA000001', 'HFSA000002']) && isset($financials) && $financials)
+    @if($user->hasFinancePermission('view') && isset($financials) && $financials)
         <div class="mb-10">
             {{-- Quick Actions Bar --}}
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">

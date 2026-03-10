@@ -497,12 +497,14 @@
                     </svg>
                     Export
                 </a>
-                <a href="{{ route('expenses.create') }}" class="btn-primary">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Expense
-                </a>
+                @if(auth()->user()->hasFinancePermission('edit'))
+                    <a href="{{ route('expenses.create') }}" class="btn-primary">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Expense
+                    </a>
+                @endif
             </div>
         </div>
 
@@ -736,7 +738,7 @@
                                 <div class="flex items-center gap-3">
                                     <span
                                         class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black
-                                                                                                                {{ $ri === 0 ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400' }}">
+                                                                                                                            {{ $ri === 0 ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400' }}">
                                         {{ $ri + 1 }}
                                     </span>
                                     <div class="flex-1 min-w-0">
@@ -1276,27 +1278,27 @@
             if (isTopScale) {
                 const max = Math.max(...items.map(i => i.amount));
                 el.innerHTML = '<div class="space-y-3.5">' + items.map((item, ri) => `
-                                        <div class="flex items-center gap-3">
-                                            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${ri === 0 ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}">${ri + 1}</span>
-                                            <div class="flex-1 min-w-0">
-                                                <div class="flex items-center justify-between mb-1">
-                                                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[140px]">${item.title}</span>
-                                                    <span class="text-xs font-bold text-slate-900 dark:text-white ml-2">₹${parseFloat(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                            <div class="flex items-center gap-3">
+                                                <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${ri === 0 ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}">${ri + 1}</span>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center justify-between mb-1">
+                                                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[140px]">${item.title}</span>
+                                                        <span class="text-xs font-bold text-slate-900 dark:text-white ml-2">₹${parseFloat(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                                    </div>
+                                                    <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                        <div class="h-full rounded-full bg-indigo-500" style="width:${max > 0 ? (item.amount / max) * 100 : 0}%"></div>
+                                                    </div>
                                                 </div>
-                                                <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                                    <div class="h-full rounded-full bg-indigo-500" style="width:${max > 0 ? (item.amount / max) * 100 : 0}%"></div>
-                                                </div>
-                                            </div>
-                                        </div>`).join('') + '</div>';
+                                            </div>`).join('') + '</div>';
             } else {
                 el.innerHTML = '<div class="space-y-0.5">' + items.map(item => `
-                                        <div class="activity-item">
-                                            <div class="min-w-0">
-                                                <p class="text-sm font-semibold text-slate-800 dark:text-white truncate">${item.title}</p>
-                                                <p class="text-[11px] text-slate-400 font-medium">${item.category} · ${new Date(item.expense_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</p>
-                                            </div>
-                                            <span class="text-sm font-bold text-slate-900 dark:text-white ml-3 flex-shrink-0">₹${parseFloat(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                                        </div>`).join('') + '</div>';
+                                            <div class="activity-item">
+                                                <div class="min-w-0">
+                                                    <p class="text-sm font-semibold text-slate-800 dark:text-white truncate">${item.title}</p>
+                                                    <p class="text-[11px] text-slate-400 font-medium">${item.category} · ${new Date(item.expense_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</p>
+                                                </div>
+                                                <span class="text-sm font-bold text-slate-900 dark:text-white ml-3 flex-shrink-0">₹${parseFloat(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                            </div>`).join('') + '</div>';
             }
         }
 

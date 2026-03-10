@@ -93,6 +93,7 @@ class User extends Authenticatable
         'camp_id',
         'password_plain',
         'offer_letter_signed',
+        'finance_permission',
     ];
 
     /**
@@ -427,6 +428,21 @@ class User extends Authenticatable
         }
 
         return RolePermission::check($this->designation, 'can_edit_user_details');
+    }
+
+    public function hasFinancePermission($type = 'view')
+    {
+        if (in_array($this->employee_id, ['HFSA000001', 'HFSA000002'])) {
+            return true;
+        }
+
+        if ($type === 'view') {
+            return in_array($this->finance_permission, ['view', 'edit']);
+        } elseif ($type === 'edit') {
+            return $this->finance_permission === 'edit';
+        }
+
+        return false;
     }
 
     public function canApprove(User $user)

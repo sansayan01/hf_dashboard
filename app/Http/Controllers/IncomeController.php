@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class IncomeController extends Controller
 {
-    private function authorizeSuperAdmin()
+    private function authorizeFinanceAccess($action = 'view')
     {
         $currentUser = auth()->user();
-        if (!$currentUser || !$currentUser->isSuperAdmin()) {
-            abort(403, 'Unauthorized access: Only Super Admin can access income tracking.');
+        if (!$currentUser || !$currentUser->hasFinancePermission($action)) {
+            abort(403, 'Unauthorized access: You do not have permission to access income tracking.');
         }
     }
 
@@ -21,7 +21,7 @@ class IncomeController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('view');
 
         $query = Income::with('creator');
         $this->applyFilters($query, $request);
@@ -293,7 +293,7 @@ class IncomeController extends Controller
      */
     public function create()
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
         return view('incomes.create');
     }
 
@@ -302,7 +302,7 @@ class IncomeController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -337,7 +337,7 @@ class IncomeController extends Controller
      */
     public function edit(Income $income)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
         return view('incomes.edit', compact('income'));
     }
 
@@ -346,7 +346,7 @@ class IncomeController extends Controller
      */
     public function update(Request $request, Income $income)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -383,7 +383,7 @@ class IncomeController extends Controller
      */
     public function destroy(Income $income)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
 
         // Delete receipt file if exists
         if ($income->receipt_path) {
@@ -400,7 +400,7 @@ class IncomeController extends Controller
      */
     public function export(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('view');
 
         $query = Income::with('creator')->latest('income_date');
 

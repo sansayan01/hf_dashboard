@@ -53,7 +53,8 @@
                             <div>
                                 <div class="text-[10px] text-white/50 font-bold uppercase tracking-wider">Total Camps</div>
                                 <div id="stat-camp-count" class="text-xl font-black text-white leading-none mt-0.5">
-                                    {{ $records->count() }}</div>
+                                    {{ $records->count() }}
+                                </div>
                             </div>
                         </div>
 
@@ -77,15 +78,17 @@
                     </div>
                 </div>
 
-                <a href="{{ route('camp_records.create') }}"
-                    class="group inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-accent to-blue-500 text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-accent/30 hover:shadow-2xl hover:shadow-accent/40 hover:-translate-y-1 transition-all active:scale-95 duration-300 shrink-0">
-                    <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span>Add Record</span>
-                </a>
+                @if(auth()->user()->hasFinancePermission('edit'))
+                    <a href="{{ route('camp_records.create') }}"
+                        class="group inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-accent to-blue-500 text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-accent/30 hover:shadow-2xl hover:shadow-accent/40 hover:-translate-y-1 transition-all active:scale-95 duration-300 shrink-0">
+                        <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span>Add Record</span>
+                    </a>
+                @endif
             </div>
         </div>
 

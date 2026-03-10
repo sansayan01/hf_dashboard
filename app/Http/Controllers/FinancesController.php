@@ -6,17 +6,17 @@ use Illuminate\Http\Request;
 
 class FinancesController extends Controller
 {
-    private function authorizeSuperAdmin()
+    private function authorizeFinanceAccess()
     {
         $currentUser = auth()->user();
-        if (!$currentUser || !$currentUser->isSuperAdmin()) {
-            abort(403, 'Unauthorized access: Only Super Admin can access the finances section.');
+        if (!$currentUser || !$currentUser->hasFinancePermission('view')) {
+            abort(403, 'Unauthorized access: You do not have permission to access the finances section.');
         }
     }
 
     public function index()
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess();
         return view('finances.index');
     }
 }

@@ -44,6 +44,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         Route::get('/{user}', [UserController::class, 'show'])->name('show');
         Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
         Route::put('/{user}', [UserController::class, 'update'])->name('update');
+        Route::post('/{user}/finance-permission', [UserController::class, 'updateFinancePermission'])->name('finance-permission');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
 
         // Approval

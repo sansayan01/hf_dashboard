@@ -140,7 +140,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
         @endif
     @endif
 
-    @if($effectiveUser->isSuperAdmin() && in_array($effectiveUser->employee_id, ['HFSA000001', 'HFSA000002']))
+    @if($effectiveUser->hasFinancePermission('view'))
         <li>
             <a href="{{ route('finances.index') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ (request()->routeIs('finances.*') || request()->routeIs('camp_records.*') || request()->routeIs('expenses.*')) ? 'bg-accent text-white shadow-lg' : '' }}">

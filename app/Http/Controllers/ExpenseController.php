@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class ExpenseController extends Controller
 {
-    private function authorizeSuperAdmin()
+    private function authorizeFinanceAccess($action = 'view')
     {
         $currentUser = auth()->user();
-        if (!$currentUser || !$currentUser->isSuperAdmin()) {
-            abort(403, 'Unauthorized access: Only Super Admin can access expense tracking.');
+        if (!$currentUser || !$currentUser->hasFinancePermission($action)) {
+            abort(403, 'Unauthorized access: You do not have permission to access expense tracking.');
         }
     }
 
@@ -21,7 +21,7 @@ class ExpenseController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('view');
 
         $query = Expense::with('creator');
         $this->applyFilters($query, $request);
@@ -289,7 +289,7 @@ class ExpenseController extends Controller
      */
     public function create()
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
         return view('expenses.create');
     }
 
@@ -298,7 +298,7 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -332,7 +332,7 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
         return view('expenses.edit', compact('expense'));
     }
 
@@ -341,7 +341,7 @@ class ExpenseController extends Controller
      */
     public function update(Request $request, Expense $expense)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -377,7 +377,7 @@ class ExpenseController extends Controller
      */
     public function destroy(Expense $expense)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('edit');
 
         // Delete receipt file if exists
         if ($expense->receipt_path) {
@@ -394,7 +394,7 @@ class ExpenseController extends Controller
      */
     public function export(Request $request)
     {
-        $this->authorizeSuperAdmin();
+        $this->authorizeFinanceAccess('view');
 
         $query = Expense::with('creator')->latest('expense_date');
 
