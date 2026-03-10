@@ -1681,7 +1681,7 @@ class UserController extends Controller
             'updated',
             $user->id,
             $currentUser->id,
-            "Updated finance permission to: " . ($permission ?? 'none') . " for " . ($user->profile->full_name ?? $user->employee_id),
+            "Updated finance permission to: " . ($permission ?? 'none') . " for " . ($user->profile?->full_name ?? $user->employee_id),
             'User',
             $user->id
         );

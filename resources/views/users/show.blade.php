@@ -1106,22 +1106,22 @@
                 body: JSON.stringify({
                     finance_permission: permission
                 })
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        if (typeof Toast !== 'undefined') {
-                            Toast.fire({ icon: 'success', title: data.message });
-                        } else {
-                            alert(data.message);
-                        }
-                        setTimeout(() => location.reload(), 1000);
+            }).then(async response => {
+                const data = await response.json().catch(() => ({}));
+                if (response.ok && data.success) {
+                    if (typeof Toast !== 'undefined') {
+                        Toast.fire({ icon: 'success', title: data.message });
                     } else {
-                        alert(data.message || 'Something went wrong');
+                        alert(data.message);
                     }
-                }).catch(error => {
-                    console.error('Error:', error);
-                    alert('System Error');
-                });
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    throw new Error(data.message || 'Server returned ' + response.status);
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            });
         }
     </script>
 @endsection
