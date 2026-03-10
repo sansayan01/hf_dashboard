@@ -127,27 +127,29 @@
                             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </a>
-                <a href="{{ route('camp_records.edit', $record->id) }}"
-                    class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-accent hover:bg-accent/5 dark:hover:border-accent dark:hover:bg-accent/20 hover:text-accent dark:text-slate-300 text-slate-500 shadow-sm transition-all"
-                    title="Edit Record">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                </a>
-                <form action="{{ route('camp_records.destroy', $record->id) }}" method="POST" class="inline-block"
-                    onsubmit="return confirm('WARNING: Are you sure you want to permanently delete this camp record? This action cannot be undone.')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                        class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-red-500 hover:bg-red-50 dark:hover:border-red-500 dark:hover:bg-red-500/20 hover:text-red-600 dark:text-slate-300 text-slate-500 shadow-sm transition-all"
-                        title="Delete Record">
+                @if(auth()->user()->hasFinancePermission('edit'))
+                    <a href="{{ route('camp_records.edit', $record->id) }}"
+                        class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-accent hover:bg-accent/5 dark:hover:border-accent dark:hover:bg-accent/20 hover:text-accent dark:text-slate-300 text-slate-500 shadow-sm transition-all"
+                        title="Edit Record">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
-                    </button>
-                </form>
+                    </a>
+                    <form action="{{ route('camp_records.destroy', $record->id) }}" method="POST" class="inline-block"
+                        onsubmit="return confirm('WARNING: Are you sure you want to permanently delete this camp record? This action cannot be undone.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-red-500 hover:bg-red-50 dark:hover:border-red-500 dark:hover:bg-red-500/20 hover:text-red-600 dark:text-slate-300 text-slate-500 shadow-sm transition-all"
+                            title="Delete Record">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </form>
+                @endif
             </div>
         </td>
     </tr>
