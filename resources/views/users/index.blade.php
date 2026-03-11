@@ -186,9 +186,9 @@
 
             <!-- Filter Panel -->
             <div id="filter-panel"
-                class="{{ request()->anyFilled(['district', 'block', 'gram_panchayat', 'designation', 'search']) ? '' : 'hidden' }} p-6 border-b border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
+                class="{{ request()->anyFilled(['district', 'block', 'gram_panchayat', 'designation', 'search', 'upline_id']) ? '' : 'hidden' }} p-6 border-b border-slate-100 bg-slate-50/50 dark:bg-darkbg/20 transition-all">
                 <form action="{{ route('users.index') }}" method="GET" class="no-loader space-y-4" id="filterForm">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Search -->
                         <div>
                             <label
@@ -197,6 +197,15 @@
                             <input type="text" name="search" value="{{ request('search') }}"
                                 placeholder="Name, ID or Phone..."
                                 class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white">
+                        </div>
+
+                        <!-- Upline HFID -->
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">Upline HFID</label>
+                            <input type="text" name="upline_id" value="{{ request('upline_id') }}"
+                                placeholder="e.g. HFDM000001"
+                                class="w-full h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition dark:text-white uppercase">
                         </div>
 
                         <!-- Designation -->

@@ -74,6 +74,17 @@ class UserController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('upline_id')) {
+            $uplineId = $request->upline_id;
+            $query->where(function ($q) use ($uplineId) {
+                $q->whereHas('parent', function ($pq) use ($uplineId) {
+                    $pq->where('employee_id', $uplineId);
+                })->orWhereHas('upline', function ($uq) use ($uplineId) {
+                    $uq->where('employee_id', $uplineId);
+                });
+            });
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -227,6 +238,18 @@ class UserController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+
+        if ($request->filled('upline_id')) {
+            $uplineId = $request->upline_id;
+            $query->where(function ($q) use ($uplineId) {
+                $q->whereHas('parent', function ($pq) use ($uplineId) {
+                    $pq->where('employee_id', $uplineId);
+                })->orWhereHas('upline', function ($uq) use ($uplineId) {
+                    $uq->where('employee_id', $uplineId);
+                });
+            });
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
