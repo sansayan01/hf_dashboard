@@ -112,6 +112,27 @@
                     </div>
                 </div>
 
+                <!-- View All / Paginate Toggle -->
+                @if(request('view_all'))
+                    <a href="{{ route('appointments.all', request()->except('view_all')) }}"
+                        class="w-10 h-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200/10 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center shadow-sm"
+                        title="Paginate">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </a>
+                @else
+                    <a href="{{ route('appointments.all', array_merge(request()->all(), ['view_all' => 1])) }}"
+                        class="w-10 h-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200/10 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center shadow-sm"
+                        title="View All">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                        </svg>
+                    </a>
+                @endif
+
                 <a href="{{ route('appointments.export', request()->all()) }}"
                     class="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-xl border border-emerald-500/10 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center shadow-sm"
                     title="Download Filtered CSV">

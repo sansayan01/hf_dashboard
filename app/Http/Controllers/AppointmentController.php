@@ -100,7 +100,8 @@ class AppointmentController extends Controller
             });
         }
 
-        $appointments = $query->latest('appointment_date')->latest('appointment_time')->paginate(20);
+        $limit = $request->has('view_all') ? 5000 : 20;
+        $appointments = $query->latest('appointment_date')->latest('appointment_time')->paginate($limit);
 
         if ($request->ajax()) {
             return response()->json([
