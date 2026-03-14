@@ -136,7 +136,7 @@ class AppointmentController extends Controller
             $status = 'scheduled';
         }
 
-        $query = Appointment::with(['survey', 'creator.profile'])
+        $query = Appointment::with(['survey', 'creator.profile', 'creator.parent.profile'])
             ->whereIn('created_by', $allowedIds)
             ->whereHas('survey');
 
@@ -212,7 +212,8 @@ class AppointmentController extends Controller
                 'Location',
                 'Status',
                 'Recorded By',
-                'Employee ID'
+                'Employee ID',
+                'RM Name'
             ]);
 
             foreach ($appointments as $index => $a) {
@@ -228,7 +229,8 @@ class AppointmentController extends Controller
                     $a->location,
                     ucfirst(str_replace('_', ' ', $a->status)),
                     $a->creator->profile?->full_name ?? 'N/A',
-                    $a->creator->employee_id ?? 'N/A'
+                    $a->creator->employee_id ?? 'N/A',
+                    $a->creator->parent?->profile?->full_name ?? 'N/A'
                 ]);
             }
 
