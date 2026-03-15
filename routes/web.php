@@ -204,6 +204,7 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
         // Medicine CRUD
         Route::prefix('medicines')->name('medicines.')->group(function () {
+            Route::get('/export', [App\Http\Controllers\MedicineController::class, 'export'])->name('export');
             Route::get('/', [App\Http\Controllers\MedicineController::class, 'index'])->name('index');
             Route::get('/create', [App\Http\Controllers\MedicineController::class, 'create'])->name('create');
             Route::post('/', [App\Http\Controllers\MedicineController::class, 'store'])->name('store');

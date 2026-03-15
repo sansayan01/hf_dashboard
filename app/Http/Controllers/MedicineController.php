@@ -21,6 +21,63 @@ class MedicineController extends Controller
     }
 
     /**
+     * Export a CSV of all medicines.
+     */
+    public function export()
+    {
+        $medicines = Medicine::with('category', 'stocks')->orderBy('name')->get();
+
+        $filename = "medicines_registry_" . date('Y-m-d_H-i-s') . ".csv";
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = [
+            'Name', 
+            'Category', 
+            'Generic Name', 
+            'Unit', 
+            'Dosage', 
+            'Market Price', 
+            'Market Price Unit Count', 
+            'Units Per Box', 
+            'Total Stock', 
+            'Min Stock Level'
+        ];
+
+        $callback = function() use($medicines, $columns) {
+            $file = fopen('php://output', 'w');
+            // Add BOM for Excel UTF-8
+            fputs($file, "\xEF\xBB\xBF");
+            fputcsv($file, $columns);
+
+            foreach ($medicines as $medicine) {
+                fputcsv($file, [
+                    $medicine->name,
+                    $medicine->category ? $medicine->category->name : 'Uncategorized',
+                    $medicine->generic_name,
+                    $medicine->unit,
+                    $medicine->dosage,
+                    $medicine->market_price,
+                    $medicine->market_price_unit_count,
+                    $medicine->units_per_box,
+                    $medicine->totalStock, // Dynamic accessor
+                    $medicine->min_stock_level,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
      * Show the form for creating a new medicine.
      */
     public function create()
