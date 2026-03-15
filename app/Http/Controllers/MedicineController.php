@@ -45,6 +45,7 @@ class MedicineController extends Controller
             'Dosage', 
             'Market Price', 
             'Market Price Unit Count', 
+            'Price per Unit',
             'Units Per Box', 
             'Total Stock', 
             'Min Stock Level'
@@ -57,6 +58,11 @@ class MedicineController extends Controller
             fputcsv($file, $columns);
 
             foreach ($medicines as $medicine) {
+                $pricePerUnit = '';
+                if ($medicine->market_price && $medicine->market_price_unit_count) {
+                    $pricePerUnit = number_format($medicine->market_price / $medicine->market_price_unit_count, 2);
+                }
+
                 fputcsv($file, [
                     $medicine->name,
                     $medicine->category ? $medicine->category->name : 'Uncategorized',
@@ -65,6 +71,7 @@ class MedicineController extends Controller
                     $medicine->dosage,
                     $medicine->market_price,
                     $medicine->market_price_unit_count,
+                    $pricePerUnit,
                     $medicine->units_per_box,
                     $medicine->totalStock, // Dynamic accessor
                     $medicine->min_stock_level,
