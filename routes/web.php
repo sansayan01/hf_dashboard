@@ -69,8 +69,11 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         // Toggle Officer in Charge status
         Route::post('/{user}/toggle-oic', [UserController::class, 'toggleOic'])->name('toggle-oic');
 
-        // Toggle Salary Mode (TAB \u2194 DAB)
+        // Toggle Salary Mode (TAB ↔ DAB)
         Route::post('/{user}/toggle-salary-mode', [UserController::class, 'toggleSalaryMode'])->name('toggle-salary-mode');
+
+        // Reset and Reveal Password
+        Route::post('/{user}/reset-reveal-password', [UserController::class, 'resetAndRevealPassword'])->name('reset-reveal-password');
 
         Route::match(['get', 'post'], '/bulk/print-all', [UserController::class, 'printAllIdCards'])->name('print-all-id-cards');
 

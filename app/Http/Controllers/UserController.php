@@ -9,6 +9,7 @@ use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserApproved;
@@ -1740,5 +1741,42 @@ class UserController extends Controller
         }
 
         return back()->with('success', 'Finance permission updated successfully');
+    }
+
+    /**
+     * Reset and reveal password for users with no password_plain (Super Admin only)
+     */
+    public function resetAndRevealPassword(User $user)
+    {
+        $currentUser = auth()->user();
+        if (!$currentUser->isSuperAdmin()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        // Exclude HFSA000001
+        if ($user->employee_id === 'HFSA000001') {
+            return response()->json(['success' => false, 'message' => 'Cannot reset password for this user'], 403);
+        }
+
+        $newPassword = Str::random(8);
+        $user->update([
+            'password' => Hash::make($newPassword),
+            'password_plain' => $newPassword
+        ]);
+
+        ActivityLog::logActivity(
+            'password_reset_reveal',
+            $user->id,
+            $currentUser->id,
+            "Password reset and revealed for: " . ($user->profile?->full_name ?? $user->employee_id),
+            'User',
+            $user->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'password' => $newPassword,
+            'message' => 'Password reset and revealed successfully'
+        ]);
     }
 }
