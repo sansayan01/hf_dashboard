@@ -731,8 +731,19 @@
                                 <div
                                     class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
                                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">A/C No.</span>
-                                    <span class="font-black text-slate-700 text-sm font-mono tracking-widest">••••
-                                        {{ substr($user->bankDetails?->account_number ?? '0000', -4) }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-black text-slate-700 text-sm font-mono tracking-widest" id="account-number-text">••••{{ substr($user->bankDetails?->account_number ?? '0000', -4) }}</span>
+                                        @if($user->bankDetails?->account_number)
+                                            <button type="button" onclick="toggleAccountNumber()" id="account-toggle-btn"
+                                                class="flex items-center justify-center p-1.5 bg-white border border-emerald-200 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                                title="Toggle Visibility">
+                                                <svg class="w-4 h-4 toggle-icon-show" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            </button>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div
                                     class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors border border-transparent hover:border-emerald-100">
@@ -1028,6 +1039,35 @@
                 passwordText.style.letterSpacing = '0.3em'; // Restore spacing for dots
                 toggleBtn.innerText = 'Show';
                 isShowingPassword = false;
+            }
+        }
+
+        // Account Number Reveal Toggle
+        let isShowingAccount = false;
+        function toggleAccountNumber() {
+            const accountText = document.getElementById('account-number-text');
+            const toggleBtn = document.getElementById('account-toggle-btn');
+            const fullValue = @json($user->bankDetails?->account_number);
+            
+            if (!fullValue) return;
+
+            if (!isShowingAccount) {
+                accountText.innerText = fullValue;
+                toggleBtn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
+                `;
+                isShowingAccount = true;
+            } else {
+                accountText.innerText = "••••" + fullValue.slice(-4);
+                toggleBtn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                `;
+                isShowingAccount = false;
             }
         }
 
