@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Stock Transfer'); ?>
+<?php $__env->startSection('header_title', 'NGO Pharmacy | Move Stock'); ?>
 
-@section('title', 'Stock Transfer')
-@section('header_title', 'NGO Pharmacy | Move Stock')
-
-@section('css')
+<?php $__env->startSection('css'); ?>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <style>
         .ts-control {
@@ -54,9 +52,9 @@
             color: #94a3b8 !important;
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="max-w-2xl mx-auto">
         <div
             class="bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-100 dark:border-white/5 shadow-xl overflow-hidden text-slate-800 dark:text-white">
@@ -65,8 +63,8 @@
                 <p class="text-sm text-slate-500">Move medicine stock between warehouse locations.</p>
             </div>
 
-            <form action="{{ route('inventory.process-transfer') }}" method="POST" class="p-8 space-y-6">
-                @csrf
+            <form action="<?php echo e(route('inventory.process-transfer')); ?>" method="POST" class="p-8 space-y-6">
+                <?php echo csrf_field(); ?>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -75,11 +73,11 @@
                         <select name="from_warehouse_id" id="from_warehouse_id" required onchange="handleSourceChange()"
                             class="w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
                             <option value="">Select Source...</option>
-                            @foreach($warehouses as $wh)
-                                <option value="{{ $wh->id }}" data-type="{{ $wh->type }}" {{ ($preSelectedStock && $preSelectedStock->warehouse_id == $wh->id) ? 'selected' : '' }}>
-                                    {{ $wh->name }} ({{ ucfirst($wh->type) }})
+                            <?php $__currentLoopData = $warehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $wh): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($wh->id); ?>" data-type="<?php echo e($wh->type); ?>" <?php echo e(($preSelectedStock && $preSelectedStock->warehouse_id == $wh->id) ? 'selected' : ''); ?>>
+                                    <?php echo e($wh->name); ?> (<?php echo e(ucfirst($wh->type)); ?>)
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -89,9 +87,9 @@
                         <select name="to_warehouse_id" id="to_warehouse_id" required
                             class="w-full h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-accent/20 outline-none transition">
                             <option value="">Select Destination...</option>
-                            @foreach($warehouses as $wh)
-                                <option value="{{ $wh->id }}">{{ $wh->name }} ({{ ucfirst($wh->type) }})</option>
-                            @endforeach
+                            <?php $__currentLoopData = $warehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $wh): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($wh->id); ?>"><?php echo e($wh->name); ?> (<?php echo e(ucfirst($wh->type)); ?>)</option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -130,7 +128,7 @@
                 </div>
 
                 <div class="flex items-center justify-end space-x-4 pt-4">
-                    <a href="{{ route('inventory.index') }}"
+                    <a href="<?php echo e(route('inventory.index')); ?>"
                         class="text-sm font-bold text-slate-400 hover:text-slate-600 transition">Cancel</a>
                     <button type="submit"
                         class="px-8 h-12 bg-accent text-white rounded-2xl text-sm font-bold shadow-lg shadow-accent/20 hover:opacity-90 transition">
@@ -140,48 +138,49 @@
             </form>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('js')
+<?php $__env->startSection('js'); ?>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
         let itemCounter = 0;
         const tomSelectInstances = {};
         const stockOptions = `
                         <option value="">Select matching stock...</option>
-                        @foreach($medicines as $med)
-                            <optgroup label="{{ $med->name }} ({{ $med->unit }})">
-                                @foreach($med->stocks->groupBy(fn($s) => $s->warehouse_id . '-' . $s->batch_number) as $groupKey => $batchStocks)
-                                    @php 
+                        <?php $__currentLoopData = $medicines; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $med): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <optgroup label="<?php echo e($med->name); ?> (<?php echo e($med->unit); ?>)">
+                                <?php $__currentLoopData = $med->stocks->groupBy(fn($s) => $s->warehouse_id . '-' . $s->batch_number); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $groupKey => $batchStocks): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php 
                                                                                                                 $first = $batchStocks->sortBy('expiry_date')->first();
                                         $totalQty = $batchStocks->sum('quantity');
-                                    @endphp
-                                    <option value="{{ $first->id }}" 
-                                            data-warehouse="{{ $first->warehouse_id }}" 
-                                            data-quantity="{{ $totalQty }}"
-                                            data-unit="{{ $med->unit }}"
-                                            data-generic="{{ $med->generic_name }}"
-                                            data-units-per-box="{{ $med->units_per_box ?? 100 }}"
+                                    ?>
+                                    <option value="<?php echo e($first->id); ?>" 
+                                            data-warehouse="<?php echo e($first->warehouse_id); ?>" 
+                                            data-quantity="<?php echo e($totalQty); ?>"
+                                            data-unit="<?php echo e($med->unit); ?>"
+                                            data-generic="<?php echo e($med->generic_name); ?>"
+                                            data-units-per-box="<?php echo e($med->units_per_box ?? 100); ?>"
                                             class="stock-option">
-                                        {{ $med->name }} | {{ $med->generic_name }} | Batch: #{{ $first->batch_number }} | Exp: {{ $first->expiry_date->format('M Y') }} | Qty: {{ $totalQty }}
+                                        <?php echo e($med->name); ?> | <?php echo e($med->generic_name); ?> | Batch: #<?php echo e($first->batch_number); ?> | Exp: <?php echo e($first->expiry_date->format('M Y')); ?> | Qty: <?php echo e($totalQty); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </optgroup>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     `;
 
         document.addEventListener('DOMContentLoaded', function () {
             handleSourceChange();
 
-            @if(isset($preSelectedRepresentativeId))
+            <?php if(isset($preSelectedRepresentativeId)): ?>
                 // Wait for the first row to be created
                 setTimeout(() => {
                     const firstSelect = document.querySelector('.stock-select');
                     if (firstSelect && tomSelectInstances[1]) {
-                        tomSelectInstances[1].setValue('{{ $preSelectedRepresentativeId }}');
+                        tomSelectInstances[1].setValue('<?php echo e($preSelectedRepresentativeId); ?>');
                     }
                 }, 300);
-            @endif
+            <?php endif; ?>
                                                                                         });
 
         function handleSourceChange() {
@@ -649,4 +648,5 @@
             recalculateAllAvailable();
         }
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/inventory/transfer.blade.php ENDPATH**/ ?>

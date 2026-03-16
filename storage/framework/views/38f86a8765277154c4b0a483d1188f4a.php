@@ -686,26 +686,39 @@
                         </div>
 
                         
-                        <?php if(auth()->user()->isSuperAdmin()): ?>
+                        <?php if(auth()->user()->isSuperAdmin() && $user->employee_id !== 'HFSA000001'): ?>
                             <div
                                 class="md:col-span-2 data-field space-y-1.5 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 mt-2">
                                 <p class="text-[9px] font-black text-indigo-500 uppercase tracking-[0.2em]">Current Password
                                     (Super Admin Only)</p>
                                 <div class="flex items-center justify-between mt-1">
-                                    <?php if($user->password_plain): ?>
-                                        <p class="font-black text-slate-700 font-mono tracking-[0.3em] text-lg"
-                                            id="plain-password-text">••••••••</p>
-                                        <button type="button" onclick="togglePlainPassword()" id="password-toggle-btn"
-                                            class="px-3 py-1 bg-white border border-indigo-200 text-[10px] font-black text-indigo-600 uppercase tracking-widest rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
-                                            Show
-                                        </button>
-                                    <?php else: ?>
-                                        <p class="text-sm font-bold text-slate-400 italic">Not Captured (Pre-existing User)</p>
-                                        <a href="<?php echo e(route('users.edit', $user->id)); ?>"
-                                            class="text-[10px] bg-white border border-slate-200 text-slate-400 font-black uppercase tracking-widest p-1 px-4 rounded-lg hover:bg-indigo-600 hover:text-white transition shadow-sm">
-                                            Update Password
-                                        </a>
-                                    <?php endif; ?>
+                                    <div class="flex items-center gap-3">
+                                        <?php if($user->password_plain): ?>
+                                            <p class="font-black text-slate-700 font-mono tracking-[0.3em] text-lg"
+                                                id="plain-password-text">••••••••</p>
+                                            <button type="button" onclick="togglePlainPassword()" id="password-toggle-btn"
+                                                class="flex items-center justify-center p-1.5 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                                title="Toggle Visibility">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            </button>
+                                        <?php else: ?>
+                                            <p class="text-sm font-bold text-slate-400 italic" id="plain-password-text">Not Captured (Pre-existing User)</p>
+                                            <button type="button" onclick="resetAndRevealPassword()" id="password-reset-btn"
+                                                class="flex items-center justify-center p-1.5 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                                title="Reset and Reveal Password">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                </svg>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+                                    <a href="<?php echo e(route('users.edit', $user->id)); ?>"
+                                        class="text-[10px] bg-white border border-slate-200 text-slate-400 font-black uppercase tracking-widest p-1 px-4 rounded-lg hover:bg-indigo-600 hover:text-white transition shadow-sm">
+                                        Update Password
+                                    </a>
                                 </div>
                             </div>
                         <?php endif; ?>
@@ -1042,14 +1055,85 @@
             if (!isShowingPassword) {
                 passwordText.innerText = plainValue;
                 passwordText.style.letterSpacing = '0.05em'; // Reduce spacing for readability
-                toggleBtn.innerText = 'Hide';
+                toggleBtn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
+                `;
                 isShowingPassword = true;
             } else {
                 passwordText.innerText = '••••••••';
                 passwordText.style.letterSpacing = '0.3em'; // Restore spacing for dots
-                toggleBtn.innerText = 'Show';
+                toggleBtn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                `;
                 isShowingPassword = false;
             }
+        }
+
+        function resetAndRevealPassword() {
+            if (!confirm('Are you sure you want to reset this user\'s password and reveal it? The user will no longer be able to login with their old password.')) {
+                return;
+            }
+
+            const btn = document.getElementById('password-reset-btn');
+            const passwordText = document.getElementById('plain-password-text');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>';
+
+            fetch("<?php echo e(route('users.reset-reveal-password', $user->id)); ?>", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    passwordText.innerText = data.password;
+                    passwordText.classList.remove('italic', 'text-slate-400');
+                    passwordText.classList.add('font-mono', 'text-slate-700', 'text-lg');
+                    passwordText.style.letterSpacing = '0.05em';
+                    
+                    // Replace reset button with a toggle button
+                    btn.id = 'password-toggle-btn';
+                    btn.onclick = togglePlainPassword;
+                    btn.disabled = false;
+                    btn.innerHTML = `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                        </svg>
+                    `;
+                    isShowingPassword = true;
+
+                    if (typeof Toast !== 'undefined') {
+                        Toast.fire({ icon: 'success', title: data.message });
+                    }
+                } else {
+                    alert(data.message || 'Failed to reset password');
+                    btn.disabled = false;
+                    btn.innerHTML = `
+                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+                btn.disabled = false;
+                btn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                `;
+            });
         }
 
         // Account Number Reveal Toggle
