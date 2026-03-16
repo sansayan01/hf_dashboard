@@ -1119,11 +1119,26 @@
 
             // ── Camp Type Toggle (after calc is defined) ──
             function toggleDoctorFees() {
+                const label = doctorFeesWrapper.querySelector('.input-label');
+                let reqAsterisk = label.querySelector('.req-fees');
+                
                 if (campTypeEl.value === 'doctor_appointment') {
                     doctorFeesWrapper.classList.remove('hidden');
+                    if (doctorFeesEl) {
+                        doctorFeesEl.required = true;
+                        // Add asterisk if not already there
+                        if (!reqAsterisk) {
+                            label.insertAdjacentHTML('beforeend', '<span class="req req-fees">*</span>');
+                        }
+                    }
                 } else {
                     doctorFeesWrapper.classList.add('hidden');
-                    if (doctorFeesEl) doctorFeesEl.value = '';
+                    if (doctorFeesEl) {
+                        doctorFeesEl.required = false;
+                        doctorFeesEl.value = '';
+                        // Remove asterisk
+                        if (reqAsterisk) reqAsterisk.remove();
+                    }
                 }
                 calc();
             }
