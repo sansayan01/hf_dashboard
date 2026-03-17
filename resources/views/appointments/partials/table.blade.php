@@ -11,7 +11,7 @@
                     <div>
                         <h4 class="font-black text-slate-800 dark:text-white text-sm">{{ $appointment->survey->full_name }}</h4>
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">
-                            {{ $appointment->survey->patient_id }}</p>
+                                {{ $appointment->survey->patient_id ?? $appointment->survey->survey_id }}</p>
                     </div>
                 @else
                     <div

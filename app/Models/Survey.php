@@ -38,6 +38,7 @@ class Survey extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'survey_id',
         'patient_id',
         'full_name',
         'relative_name',
@@ -77,12 +78,11 @@ class Survey extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if (!$model->patient_id) {
-                if ($model->is_member) {
-                    $model->patient_id = static::generateMembershipId();
-                } else {
-                    $model->patient_id = static::generatePatientId();
-                }
+            if (!$model->survey_id) {
+                $model->survey_id = static::generateSurveyId();
+            }
+            if ($model->is_member && !$model->patient_id) {
+                $model->patient_id = static::generateMembershipId();
             }
         });
 
@@ -106,28 +106,33 @@ class Survey extends Model
         });
     }
 
+    public static function generateSurveyId($latestOnly = false)
+    {
+        return self::generateSequenceId('survey_id', 'HFS', 7, $latestOnly);
+    }
+
     public static function generatePatientId($latestOnly = false)
     {
-        return self::generateSequenceId('HFP', 7, $latestOnly);
+        return self::generateSequenceId('patient_id', 'HFP', 7, $latestOnly);
     }
 
     public static function generateMembershipId($latestOnly = false)
     {
-        return self::generateSequenceId('HFPM', 6, $latestOnly);
+        return self::generateSequenceId('patient_id', 'HFPM', 6, $latestOnly);
     }
 
-    private static function generateSequenceId($prefix, $length, $latestOnly)
+    private static function generateSequenceId($column, $prefix, $length, $latestOnly)
     {
         if ($latestOnly) {
             $last = self::withTrashed()
-                ->where('patient_id', 'like', $prefix . '%')
-                ->where('patient_id', 'not like', 'TRASH_%')
-                ->orderByRaw('LENGTH(patient_id) desc')
-                ->orderBy('patient_id', 'desc')
+                ->where($column, 'like', $prefix . '%')
+                ->where($column, 'not like', 'TRASH_%')
+                ->orderByRaw("LENGTH($column) desc")
+                ->orderBy($column, 'desc')
                 ->first();
 
             if ($last) {
-                $lastSequence = (int) substr($last->patient_id, strlen($prefix));
+                $lastSequence = (int) substr($last->$column, strlen($prefix));
                 $newSequence = str_pad($lastSequence + 1, $length, '0', STR_PAD_LEFT);
             } else {
                 $newSequence = str_pad(1, $length, '0', STR_PAD_LEFT);
@@ -135,9 +140,9 @@ class Survey extends Model
         } else {
             // Find first gap among active users
             $existingIds = self::withTrashed()
-                ->where('patient_id', 'like', $prefix . '%')
-                ->where('patient_id', 'not like', 'TRASH_%')
-                ->pluck('patient_id')
+                ->where($column, 'like', $prefix . '%')
+                ->where($column, 'not like', 'TRASH_%')
+                ->pluck($column)
                 ->map(function ($id) use ($prefix) {
                     $seqPart = substr($id, strlen($prefix));
                     return is_numeric($seqPart) ? (int) $seqPart : null;
@@ -159,9 +164,8 @@ class Survey extends Model
         }
 
         // Final verification to ensure we don't return a duplicate
-        // Use DB table directly to bypass any model scopes/soft delete filters that might hide the record
         $candidateId = $prefix . $newSequence;
-        while (\Illuminate\Support\Facades\DB::table('surveys')->where('patient_id', $candidateId)->exists()) {
+        while (\Illuminate\Support\Facades\DB::table('surveys')->where($column, $candidateId)->exists()) {
             $seq = (int) substr($candidateId, strlen($prefix));
             $seq++;
             $newSequence = str_pad($seq, $length, '0', STR_PAD_LEFT);

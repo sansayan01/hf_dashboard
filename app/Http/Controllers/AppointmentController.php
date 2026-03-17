@@ -308,6 +308,12 @@ class AppointmentController extends Controller
         $appointment->created_by = $user->id;
         $appointment->save();
 
+        // Generate official patient_id if they don't have one yet
+        if (!$patient->patient_id) {
+            $patient->patient_id = \App\Models\Survey::generatePatientId();
+            $patient->save();
+        }
+
         \App\Models\ActivityLog::logActivity(
             action: 'appointment_created',
             description: "New appointment scheduled for {$patient->full_name} for {$appointment->appointment_date}",

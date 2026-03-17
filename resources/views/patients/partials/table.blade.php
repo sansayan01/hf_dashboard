@@ -8,7 +8,7 @@
                 <div>
                     <h4 class="font-black text-slate-800 dark:text-white text-sm">{{ $patient->full_name }}</h4>
                     <div class="flex items-center space-x-2 text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">
-                        <span>{{ $patient->patient_id }}</span>
+                        <span>{{ $patient->patient_id ?? $patient->survey_id }}</span>
                         <span class="text-slate-300 dark:text-slate-700 font-black">•</span>
                         <span>{{ ucfirst($patient->gender) }}</span>
                     </div>
