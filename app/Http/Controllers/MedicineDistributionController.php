@@ -129,6 +129,13 @@ class MedicineDistributionController extends Controller
             $distribution->total_amount = 0; // Will update after calculating items
             $distribution->save();
 
+            // Generate official patient_id if they don't have one yet
+            $patient = $distribution->patient;
+            if (!$patient->patient_id) {
+                $patient->patient_id = \App\Models\Survey::generatePatientId();
+                $patient->save();
+            }
+
             $totalAmount = 0;
 
             foreach ($validated['medicines'] as $item) {

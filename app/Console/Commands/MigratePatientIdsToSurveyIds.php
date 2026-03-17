@@ -38,31 +38,14 @@ class MigratePatientIdsToSurveyIds extends Command
             }
         });
 
-        // Step 2: Clear patient_id for ALL non-member surveys
-        $this->info('Clearing patient_id for non-member surveys...');
-        Survey::withTrashed()->where('is_member', false)->update(['patient_id' => null]);
-        
-        // Step 3: Regenerate patient_id for those with appointments, ordered by creation date to maintain historical sequence
-        $this->info('Regenerating patient_id for actual clinical patients...');
-        $clinicalPatients = Survey::withTrashed()
+        // Step 2: Clear patient_id for ALL non-member surveys that DO NOT have appointments
+        $this->info('Clearing patient_id for non-member field surveys...');
+        $affected = Survey::withTrashed()
             ->where('is_member', false)
-            ->has('appointments')
-            ->orderBy('created_at')
-            ->get();
-
-        $seq = 1;
-        $bar = $this->output->createProgressBar(count($clinicalPatients));
-        $bar->start();
-
-        foreach ($clinicalPatients as $patient) {
-            $patient->patient_id = 'HFP' . str_pad($seq, 7, '0', STR_PAD_LEFT);
-            $patient->timestamps = false;
-            $patient->save();
-            $seq++;
-            $bar->advance();
-        }
-
-        $bar->finish();
-        $this->info("\nMigration completed successfully. Next patient ID will be: HFP" . str_pad($seq, 7, '0', STR_PAD_LEFT));
+            ->doesntHave('appointments') // ONLY clear if they have ZERO clinical appointments
+            ->update(['patient_id' => null]);
+            
+        $this->info("Cleared patient_id from {$affected} field surveys.");
+        $this->info("\nMigration completed successfully. The gap filler will now automatically recycle the missing IDs for the next clinic patients.");
     }
 }

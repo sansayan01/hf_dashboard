@@ -201,6 +201,7 @@ class SurveyController extends Controller
         $survey->pin = $validated['pin'];
         $survey->health_issues = $healthIssues;
         $survey->created_by = $createdBy;
+        $survey->recorded_by = Auth::id();
 
         // Retry logic for duplicate ID
         $maxRetries = 3;

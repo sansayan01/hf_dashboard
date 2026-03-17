@@ -152,7 +152,7 @@ class PatientController extends Controller
         $query = Survey::with('creator.profile')
             ->whereIn('created_by', $allowedIds)
             ->where('is_member', false)
-            ->has('appointments');
+            ->whereNotNull('patient_id');
 
         // Apply Search (Patient Name, Phone, or Collector)
         if ($request->filled('search')) {

@@ -90,6 +90,12 @@ class PathologyTestController extends Controller
             $pathologyTest->date = $validated['date'];
             $pathologyTest->save();
 
+            // Generate official patient_id if they don't have one yet
+            if (!$patient->patient_id) {
+                $patient->patient_id = \App\Models\Survey::generatePatientId();
+                $patient->save();
+            }
+
             DB::commit();
 
             // Apply incentive to the RO (Relationship Officer)
