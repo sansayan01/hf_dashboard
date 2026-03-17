@@ -89,10 +89,13 @@ class Survey extends Model
         static::deleted(function ($survey) {
             // ONLY run this for soft deletes, not for permanent force deletes
             if (!$survey->isForceDeleting()) {
-                if (strpos($survey->patient_id, 'TRASH_') !== 0) {
-                    $survey->patient_id = 'TRASH_' . $survey->patient_id . '_' . now()->timestamp;
-                    $survey->saveQuietly();
+                if ($survey->patient_id && strpos($survey->patient_id, 'TRASH_') !== 0) {
+                    $survey->patient_id = 'TRASH_' . $survey->patient_id . '_' . $survey->id;
                 }
+                if ($survey->survey_id && strpos($survey->survey_id, 'TRASH_') !== 0) {
+                    $survey->survey_id = 'TRASH_' . $survey->survey_id . '_' . $survey->id;
+                }
+                $survey->saveQuietly();
             }
         });
 

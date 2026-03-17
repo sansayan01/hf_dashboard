@@ -25,6 +25,28 @@ class MigratePatientIdsToSurveyIds extends Command
     {
         $this->info('Starting migration of patient IDs to survey IDs...');
 
+        // Step 0: Cleanup Trashed IDs that don't have TRASH_ prefix
+        $this->info('Cleaning up legacy deleted IDs to free up gaps...');
+        $trashed = Survey::onlyTrashed()
+            ->whereNotNull('patient_id')
+            ->where('patient_id', 'not like', 'TRASH_%')
+            ->get();
+
+        if ($trashed->count() > 0) {
+            $bar = $this->output->createProgressBar($trashed->count());
+            $bar->start();
+            foreach ($trashed as $t) {
+                $t->patient_id = 'TRASH_' . $t->patient_id . '_' . $t->id;
+                $t->timestamps = false;
+                $t->save();
+                $bar->advance();
+            }
+            $bar->finish();
+            $this->info("\nRenamed {$trashed->count()} legacy deleted IDs.");
+        } else {
+            $this->info("No legacy deleted IDs found.");
+        }
+
         // Step 1: Copy patient_id to survey_id (replace HFP/HFPM with HFS)
         $this->info('Copying patient_id to survey_id... this may take a moment.');
         Survey::withTrashed()->chunk(500, function ($surveys) {
@@ -42,7 +64,9 @@ class MigratePatientIdsToSurveyIds extends Command
         $this->info('Clearing patient_id for non-member field surveys...');
         $affected = Survey::withTrashed()
             ->where('is_member', false)
-            ->doesntHave('appointments') // ONLY clear if they have ZERO clinical appointments
+            ->doesntHave('appointments')
+            ->doesntHave('medicineDistributions') // NEW
+            ->doesntHave('pathologyTests')        // NEW
             ->update(['patient_id' => null]);
             
         $this->info("Cleared patient_id from {$affected} field surveys.");
