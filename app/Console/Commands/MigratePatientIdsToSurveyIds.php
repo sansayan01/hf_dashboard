@@ -36,6 +36,7 @@ class MigratePatientIdsToSurveyIds extends Command
             $bar = $this->output->createProgressBar($trashed->count());
             $bar->start();
             foreach ($trashed as $t) {
+                /** @var Survey $t */
                 $t->patient_id = 'TRASH_' . $t->patient_id . '_' . $t->id;
                 $t->timestamps = false;
                 $t->save();
