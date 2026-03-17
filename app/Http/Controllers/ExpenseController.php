@@ -152,30 +152,32 @@ class ExpenseController extends Controller
             ->first();
 
         // ── Analytics: Trends ──
-        $monthlyTrend = collect();
+        $monthlyTrendData = [];
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $total = (clone $statsQuery)->whereMonth('expense_date', $date->month)
                 ->whereYear('expense_date', $date->year)
                 ->sum('amount');
-            $monthlyTrend->push([
+            $monthlyTrendData[] = [
                 'label' => $date->format('M Y'),
                 'short' => $date->format('M'),
                 'total' => round($total, 2),
-            ]);
+            ];
         }
+        $monthlyTrend = collect($monthlyTrendData);
 
-        $dailySpending = collect();
+        $dailySpendingData = [];
         for ($i = 29; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $total = (clone $statsQuery)->whereDate('expense_date', $date->toDateString())->sum('amount');
-            $dailySpending->push([
+            $dailySpendingData[] = [
                 'date' => $date->format('d'),
                 'day' => $date->format('D'),
                 'full' => $date->format('d M'),
                 'total' => round($total, 2),
-            ]);
+            ];
         }
+        $dailySpending = collect($dailySpendingData);
         $avgDailySpend = $dailySpending->avg('total');
 
         // ── Analytics: Breakdowns ──
@@ -219,7 +221,7 @@ class ExpenseController extends Controller
         $dayOfMonth = now()->day;
         $projectedMonthly = $dayOfMonth > 0 ? round(($thisMonthTotal / $dayOfMonth) * now()->daysInMonth, 2) : 0;
 
-        $categoryMonthlyTrend = collect();
+        $categoryMonthlyTrendData = [];
         $allCategories = Expense::select('category')->distinct()->pluck('category');
         for ($i = 2; $i >= 0; $i--) {
             $date = now()->subMonths($i);
@@ -228,8 +230,9 @@ class ExpenseController extends Controller
                 $monthData[$cat] = round((clone $statsQuery)->where('category', $cat)
                     ->whereMonth('expense_date', $date->month)->whereYear('expense_date', $date->year)->sum('amount'), 2);
             }
-            $categoryMonthlyTrend->push($monthData);
+            $categoryMonthlyTrendData[] = $monthData;
         }
+        $categoryMonthlyTrend = collect($categoryMonthlyTrendData);
 
         $threeMonthsAgo = now()->subMonths(3);
         $threeMonthExpenseCount = (clone $statsQuery)->where('expense_date', '>=', $threeMonthsAgo)->count();
