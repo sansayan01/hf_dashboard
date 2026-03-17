@@ -13,7 +13,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                 </div>
-                <h3 id="stat-total" class="text-lg md:text-3xl font-black text-slate-800 dark:text-white leading-none">{{ $patients->total() }}</h3>
+                <h3 id="stat-total" class="text-lg md:text-3xl font-black text-slate-800 dark:text-white leading-none">{{ $stats['total'] }}</h3>
                 <p class="text-[7px] md:text-[10px] text-slate-500 font-bold uppercase tracking-tighter md:tracking-widest mt-1.5">Total Registry</p>
             </div>
 
@@ -24,7 +24,7 @@
                     </svg>
                 </div>
                 <h3 id="stat-high-risk" class="text-lg md:text-3xl font-black text-slate-800 dark:text-white leading-none">
-                    {{ $patients->filter(fn($p) => $p->health_issues && !in_array($p->health_issues, ['Normal', 'None']))->count() }}
+                    {{ $stats['high_risk'] }}
                 </h3>
                 <p class="text-[7px] md:text-[10px] text-slate-500 font-bold uppercase tracking-tighter md:tracking-widest mt-1.5">High Risks</p>
             </div>
@@ -36,7 +36,7 @@
                     </svg>
                 </div>
                 <h3 id="stat-weekly-gain" class="text-lg md:text-3xl font-black text-slate-800 dark:text-white leading-none">
-                    {{ $patients->where('created_at', '>=', now()->subDays(7))->count() }}
+                    {{ $stats['weekly_gain'] }}
                 </h3>
                 <p class="text-[7px] md:text-[10px] text-slate-500 font-bold uppercase tracking-tighter md:tracking-widest mt-1.5">Weekly Gain</p>
             </div>

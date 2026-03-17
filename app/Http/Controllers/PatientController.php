@@ -203,25 +203,25 @@ class PatientController extends Controller
             $collectors = collect([$user])->merge($downline);
         }
 
-        if ($request->ajax()) {
-            $stats = [
-                'total' => (clone $query)->count(),
-                'high_risk' => (clone $query)->where(function ($q) {
-                    $q->whereNotNull('health_issues')
-                        ->whereNotIn('health_issues', ['Normal', 'None', '']);
-                })->count(),
-                'weekly_gain' => (clone $query)->where('created_at', '>=', now()->subDays(7))->count(),
-            ];
+        $stats = [
+            'total' => (clone $query)->count(),
+            'high_risk' => (clone $query)->where(function ($q) {
+                $q->whereNotNull('health_issues')
+                    ->whereNotIn('health_issues', ['Normal', 'None', '', 'undefined']);
+            })->count(),
+            'weekly_gain' => (clone $query)->where('created_at', '>=', now()->subDays(7))->count(),
+        ];
 
+        if ($request->ajax()) {
             return response()->json([
                 'table_html' => view('patients.partials.table', compact('patients'))->render(),
                 'pagination_html' => $patients->hasPages() ? (string) $patients->links() : '',
-                'total' => $patients->total(),
+                'total' => $stats['total'],
                 'stats' => $stats,
             ]);
         }
 
-        return view('patients.index', compact('patients', 'collectors'));
+        return view('patients.index', compact('patients', 'collectors', 'stats'));
     }
 
     public function create()
