@@ -49,13 +49,18 @@ class MigratePatientIdsToSurveyIds extends Command
 
         // Step 1: Copy patient_id to survey_id (replace HFP/HFPM with HFS)
         $this->info('Copying patient_id to survey_id... this may take a moment.');
-        Survey::withTrashed()->chunk(500, function ($surveys) {
+        Survey::withTrashed()->whereNull('survey_id')->chunk(500, function ($surveys) {
             foreach ($surveys as $survey) {
                 if ($survey->patient_id) {
-                    $newId = str_replace(['HFPM', 'HFP'], 'HFS', $survey->patient_id);
-                    $survey->survey_id = $newId;
-                    $survey->timestamps = false;
-                    $survey->save();
+                    $newId = preg_replace('/^(HFPM|HFP)/', 'HFS', $survey->patient_id);
+                    
+                    // Check if this survey_id already exists to avoid unique constraint errors
+                    $exists = Survey::withTrashed()->where('survey_id', $newId)->exists();
+                    if (!$exists) {
+                        $survey->survey_id = $newId;
+                        $survey->timestamps = false;
+                        $survey->save();
+                    }
                 }
             }
         });
