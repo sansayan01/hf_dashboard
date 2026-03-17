@@ -99,7 +99,7 @@
                     <?php else: ?>
                         <p class="text-xs font-bold text-slate-700 dark:text-slate-200"><?php echo e($patient->creator->profile->full_name ?? ($patient->creator->employee_id ?? 'Unknown User')); ?></p>
                     <?php endif; ?>
-                    <p class="text-[10px] font-medium text-slate-400"><?php echo e($patient->created_at->format('M d, Y')); ?></p>
+                    <p class="text-[10px] font-medium text-slate-400 mt-0.5"><?php echo e($patient->created_at->format('M d, Y')); ?></p>
                 </div>
             </div>
         </td>

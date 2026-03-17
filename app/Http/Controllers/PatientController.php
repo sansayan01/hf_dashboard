@@ -312,6 +312,7 @@ class PatientController extends Controller
         $patient->health_issues = $healthIssues;
         $patient->insurance_loan_req = $validated['insurance_loan_req'] ?? 'No';
         $patient->created_by = $createdBy;
+        $patient->recorded_by = $user->id; // The person actually typing
 
         // Retry logic for handling duplicate ID race conditions
         $maxRetries = 3;

@@ -774,7 +774,7 @@ You are assisting users on the 'HF Dashboard'. Here is what they can do:
                 ->get()->map(function ($a) {
                     $pName = $a->survey->full_name ?? 'Unknown';
                     $date = $a->appointment_date ? $a->appointment_date->format('d M') : 'N/A';
-                    return "- {$a->appointment_id}: {$pName} on {$date} ({$a->status})";
+                    return "- #{$a->id}: {$pName} on {$date} ({$a->status})";
                 })->implode("\n");
 
             // Calculate Team Statistics

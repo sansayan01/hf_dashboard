@@ -61,7 +61,7 @@ class User extends Authenticatable
 
         static::restoring(function ($user) {
             // When restored, assign the latest available serial number as requested
-            $user->employee_id = self::generateEmployeeId($user->designation, true);
+            $user->employee_id = self::generateEmployeeId($user->designation, false);
         });
     }
 
@@ -819,7 +819,11 @@ class User extends Authenticatable
     public function getDataVisibilityIds()
     {
         if ($this->isSuperAdmin()) {
-            return self::where('designation', '!=', 'super_admin')->pluck('id')->toArray();
+            // Super Admin should see everyone except potentially other Super Admins,
+            // but MUST see themselves at minimum.
+            return self::where('designation', '!=', 'super_admin')
+                ->orWhere('id', $this->id)
+                ->pluck('id')->toArray();
         }
 
         if ($this->designation === 'staff') {

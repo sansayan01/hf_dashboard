@@ -124,10 +124,10 @@ class GoogleSheetSyncObserver
             } elseif ($model instanceof Appointment) {
                 $sheetName = 'Appointments';
                 $uniqueKey = 'appointmentId';
-                $uniqueValue = $model->appointment_id;
+                $uniqueValue = $model->id;
                 $data = [
                     'Action' => $action,
-                    'appointmentId' => $model->appointment_id,
+                    'appointmentId' => $model->id,
                     'patientId' => $model->survey?->patient_id ?? 'N/A',
                     'patientName' => $model->survey?->full_name ?? 'N/A',
                     'doctorType' => $model->doctor_type,

@@ -30,29 +30,16 @@
                         <div class="space-y-2">
                             <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Team
                                 Member (Search by Name or ID)</label>
-                            <input list="team_members" name="created_by_user_search" id="created_by_user_search"
-                                class="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none text-sm font-bold text-slate-700 dark:text-white transition-all focus:border-indigo-500"
-                                placeholder="Start typing name or volunteer ID..." oninput="updateUserId(this.value)">
-                            <input type="hidden" name="created_by_user" id="created_by_user"
-                                value="{{ old('created_by_user') }}">
-                            <datalist id="team_members">
+                            <select name="created_by_user" id="created_by_user"
+                                class="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none text-sm font-bold text-slate-700 dark:text-white transition-all focus:border-indigo-500 appearance-none">
+                                <option value="">Select a team member (Optional)</option>
                                 @foreach($users as $u)
-                                    <option value="{{ $u->employee_id }} - {{ $u->profile->full_name }}" data-id="{{ $u->id }}">
+                                    <option value="{{ $u->id }}" {{ old('created_by_user') == $u->id ? 'selected' : '' }}>
+                                        {{ $u->employee_id }} - {{ $u->profile->full_name }}
+                                    </option>
                                 @endforeach
-                            </datalist>
-                            <script>
-                                function updateUserId(value) {
-                                    const options = document.querySelectorAll('#team_members option');
-                                    let foundId = '';
-                                    options.forEach(option => {
-                                        if (option.value === value) {
-                                            foundId = option.getAttribute('data-id');
-                                        }
-                                    });
-                                    document.getElementById('created_by_user').value = foundId;
-                                }
-                            </script>
-                            <p class="text-[10px] text-slate-400 font-medium italic">If left empty, the patient will be
+                            </select>
+                            <p class="text-[10px] text-slate-400 font-medium italic mt-2">If left empty, the patient will be
                                 registered under your name.</p>
                         </div>
                     </div>

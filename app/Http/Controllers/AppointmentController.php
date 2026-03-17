@@ -91,7 +91,8 @@ class AppointmentController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('doctor_type', 'like', "%{$search}%")
+                $q->where('id', 'like', "%{$search}%")
+                    ->orWhere('doctor_type', 'like', "%{$search}%")
                     ->orWhere('location', 'like', "%{$search}%")
                     ->orWhereHas('survey', function ($sq) use ($search) {
                         $sq->where('full_name', 'like', "%{$search}%")
@@ -203,7 +204,7 @@ class AppointmentController extends Controller
 
             fputcsv($file, [
                 'SL',
-                'Appt ID',
+                'ID',
                 'Patient Name',
                 'Patient ID',
                 'Phone',
@@ -220,7 +221,7 @@ class AppointmentController extends Controller
             foreach ($appointments as $index => $a) {
                 fputcsv($file, [
                     $index + 1,
-                    $a->appointment_id,
+                    $a->id,
                     $a->survey->full_name ?? 'N/A',
                     $a->survey->patient_id ?? 'N/A',
                     $a->survey->phone_number ?? 'N/A',

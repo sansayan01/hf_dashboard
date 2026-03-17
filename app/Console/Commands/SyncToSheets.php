@@ -149,7 +149,7 @@ class SyncToSheets extends Command
     {
         $status = $this->sheetsService->syncData('Appointments', [
             'Action' => 'Initial Sync',
-            'appointmentId' => $model->appointment_id,
+            'appointmentId' => $model->id,
             'patientId' => $model->survey?->patient_id ?? 'N/A',
             'patientName' => $model->survey?->full_name ?? 'N/A',
             'doctorType' => $model->doctor_type,
@@ -157,12 +157,12 @@ class SyncToSheets extends Command
             'date' => $model->appointment_date ? \Illuminate\Support\Carbon::parse($model->appointment_date)->format('Y-m-d') : 'N/A',
             'time' => $model->appointment_time,
             'status' => $model->status,
-        ], 'appointmentId', $model->appointment_id);
+        ], 'appointmentId', $model->id);
 
         if ($status) {
-            $this->line(" - Synced: {$model->appointment_id}");
+            $this->line(" - Synced: #{$model->id}");
         } else {
-            $this->error(" - Failed: {$model->appointment_id}");
+            $this->error(" - Failed: #{$model->id}");
         }
     }
 }

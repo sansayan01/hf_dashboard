@@ -1,30 +1,28 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'All Appointments'); ?>
+<?php $__env->startSection('header_title', 'Appointment Central'); ?>
 
-@section('title', 'All Appointments')
-@section('header_title', 'Appointment Central')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="space-y-8">
         <!-- Header Actions -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2 relative z-50">
             <div>
                 <h3 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
-                    @if(request('view') === 'successful')
+                    <?php if(request('view') === 'successful'): ?>
                         Successful Appointments
-                    @elseif(request('view') === 'not_attended')
+                    <?php elseif(request('view') === 'not_attended'): ?>
                         Not Attended Registry
-                    @else
+                    <?php else: ?>
                         Scheduled Appointments
-                    @endif
+                    <?php endif; ?>
                 </h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1 italic">
-                    @if(request('view') === 'successful')
+                    <?php if(request('view') === 'successful'): ?>
                         History of completed clinical visits
-                    @elseif(request('view') === 'not_attended')
+                    <?php elseif(request('view') === 'not_attended'): ?>
                         Records of missed or unfulfilled appointments
-                    @else
+                    <?php else: ?>
                         Managing upcoming clinic visits across all registry
-                    @endif
+                    <?php endif; ?>
                 </p>
             </div>
             <div class="flex items-center gap-3">
@@ -33,14 +31,14 @@
                     <button type="button" onclick="toggleDropdown('appointment-filter-dropdown')"
                         class="px-5 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-black uppercase tracking-widest rounded-xl border border-slate-200/10 dark:border-white/5 shadow-sm flex items-center gap-2 hover:border-accent transition-all active:scale-95">
                         <span
-                            class="w-2 h-2 rounded-full {{ request('view') === 'successful' ? 'bg-emerald-500' : (request('view') === 'not_attended' ? 'bg-rose-500' : 'bg-accent') }}"></span>
-                        @if(request('view') === 'successful')
+                            class="w-2 h-2 rounded-full <?php echo e(request('view') === 'successful' ? 'bg-emerald-500' : (request('view') === 'not_attended' ? 'bg-rose-500' : 'bg-accent')); ?>"></span>
+                        <?php if(request('view') === 'successful'): ?>
                             View: Successful
-                        @elseif(request('view') === 'not_attended')
+                        <?php elseif(request('view') === 'not_attended'): ?>
                             View: Not Attended
-                        @else
+                        <?php else: ?>
                             View: Scheduled
-                        @endif
+                        <?php endif; ?>
                         <svg class="w-3 h-3 text-slate-400 transition-transform duration-200" id="dropdown-arrow"
                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
@@ -113,8 +111,8 @@
                 </div>
 
                 <!-- View All / Paginate Toggle -->
-                @if(request('view_all'))
-                    <a href="{{ route('appointments.all', request()->except('view_all')) }}"
+                <?php if(request('view_all')): ?>
+                    <a href="<?php echo e(route('appointments.all', request()->except('view_all'))); ?>"
                         class="w-10 h-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200/10 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center shadow-sm"
                         title="Paginate">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,8 +120,8 @@
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </a>
-                @else
-                    <a href="{{ route('appointments.all', array_merge(request()->all(), ['view_all' => 1])) }}"
+                <?php else: ?>
+                    <a href="<?php echo e(route('appointments.all', array_merge(request()->all(), ['view_all' => 1]))); ?>"
                         class="w-10 h-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200/10 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center shadow-sm"
                         title="View All">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,9 +129,9 @@
                                 d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                         </svg>
                     </a>
-                @endif
+                <?php endif; ?>
 
-                <a href="{{ route('appointments.export', request()->all()) }}"
+                <a href="<?php echo e(route('appointments.export', request()->all())); ?>"
                     class="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-xl border border-emerald-500/10 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center shadow-sm"
                     title="Download Filtered CSV">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +142,7 @@
 
                 <span
                     class="px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200/10 dark:border-white/5">
-                    <span id="stat-total">{{ $appointments->total() }}</span> Records
+                    <span id="stat-total"><?php echo e($appointments->total()); ?></span> Records
                 </span>
             </div>
         </div>
@@ -152,11 +150,11 @@
         <!-- Search & Filter Bar -->
         <div
             class="glass bg-white dark:bg-darkbg/40 p-4 md:p-6 rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm">
-            <form id="filterForm" action="{{ route('appointments.all') }}" method="GET"
+            <form id="filterForm" action="<?php echo e(route('appointments.all')); ?>" method="GET"
                 class="no-loader flex flex-col gap-4">
                 <div class="flex flex-col lg:flex-row items-center gap-4 w-full">
                     <div class="flex-1 w-full relative">
-                        <input type="text" name="search" id="search-input" value="{{ request('search') }}"
+                        <input type="text" name="search" id="search-input" value="<?php echo e(request('search')); ?>"
                             placeholder="Search Patient Name, ID, or Clinic Type..."
                             class="w-full pl-12 pr-4 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-accent focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white">
                         <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -168,12 +166,12 @@
                     </div>
 
                     <div class="w-full lg:w-48 relative">
-                        <input type="date" name="date" value="{{ request('date') }}"
+                        <input type="date" name="date" value="<?php echo e(request('date')); ?>"
                             class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800 border-2 border-transparent focus:border-accent focus:bg-white dark:focus:bg-slate-700 rounded-2xl transition-all outline-none text-sm font-bold text-slate-700 dark:text-white">
                     </div>
 
                     <div class="flex items-center space-x-3 w-full lg:w-auto">
-                        <input type="hidden" name="view" value="{{ request('view', 'scheduled') }}">
+                        <input type="hidden" name="view" value="<?php echo e(request('view', 'scheduled')); ?>">
                         <button type="button"
                             onclick="document.getElementById('advanced-filters').classList.toggle('hidden')"
                             class="px-4 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition">
@@ -186,18 +184,18 @@
                             class="flex-1 lg:flex-none px-8 py-4 bg-accent text-white font-black uppercase tracking-widest text-[10px] rounded-2xl shadow-lg shadow-accent/20 hover:scale-105 active:scale-95 transition-all">
                             Filter
                         </button>
-                        @if(request()->anyFilled(['search', 'date', 'district', 'block', 'gp']))
-                            <a href="{{ route('appointments.all', ['view' => request('view', 'scheduled')]) }}"
+                        <?php if(request()->anyFilled(['search', 'date', 'district', 'block', 'gp'])): ?>
+                            <a href="<?php echo e(route('appointments.all', ['view' => request('view', 'scheduled')])); ?>"
                                 class="px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-danger rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest border border-transparent hover:border-danger/20">
                                 Reset
                             </a>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </div>
 
                 <!-- Advanced Filters -->
                 <div id="advanced-filters"
-                    class="{{ request()->anyFilled(['district', 'block', 'gp']) ? '' : 'hidden' }} grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 dark:border-white/5 pt-4">
+                    class="<?php echo e(request()->anyFilled(['district', 'block', 'gp']) ? '' : 'hidden'); ?> grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 dark:border-white/5 pt-4">
                     <!-- District -->
                     <div>
                         <label
@@ -232,16 +230,16 @@
                     </div>
                 </div>
 
-                <script src="{{ asset('js/locations.js') }}"></script>
+                <script src="<?php echo e(asset('js/locations.js')); ?>"></script>
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         const districtSelect = document.getElementById('district-select');
                         const blockSelect = document.getElementById('block-select');
                         const gpSelect = document.getElementById('gp-select');
 
-                        const currentDistrict = "{{ request('district') }}";
-                        const currentBlock = "{{ request('block') }}";
-                        const currentGp = "{{ request('gp') }}";
+                        const currentDistrict = "<?php echo e(request('district')); ?>";
+                        const currentBlock = "<?php echo e(request('block')); ?>";
+                        const currentGp = "<?php echo e(request('gp')); ?>";
 
                         // 1. Populate Districts from all States
                         if (window.locationData) {
@@ -320,7 +318,7 @@
         </div>
 
         <div id="appointments-container">
-            @if($appointments->isEmpty())
+            <?php if($appointments->isEmpty()): ?>
                 <div
                     class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl p-20 text-center">
                     <div class="w-24 h-24 bg-accent/10 text-accent rounded-3xl flex items-center justify-center mx-auto mb-8">
@@ -335,14 +333,14 @@
                         patient profiles.
                     </p>
                 </div>
-            @else
+            <?php else: ?>
                 <div
                     class="glass bg-white dark:bg-darkbg/40 rounded-3xl border border-slate-200/10 dark:border-white/5 shadow-xl overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                                    {{-- <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">ID</th> --}}
+                                    
                                     <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Patient</th>
                                     <th class="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Schedule
                                     </th>
@@ -357,23 +355,24 @@
                                 </tr>
                             </thead>
                             <tbody id="tableBody" class="divide-y divide-slate-100 dark:divide-white/5">
-                                @include('appointments.partials.table', ['appointments' => $appointments])
+                                <?php echo $__env->make('appointments.partials.table', ['appointments' => $appointments], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                             </tbody>
                         </table>
                     </div>
                     <div id="paginationContainer">
-                        @if($appointments->hasPages())
+                        <?php if($appointments->hasPages()): ?>
                             <div class="p-8 border-t border-slate-100 dark:border-white/5">
-                                {{ $appointments->links() }}
+                                <?php echo e($appointments->links()); ?>
+
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
-@endsection
-@section('js')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('js'); ?>
     <script>
         function toggleDropdown(id) {
             const dropdown = document.getElementById(id);
@@ -404,7 +403,7 @@
             }
         });
     </script>
-    <script src="{{ asset('js/live-filter.js') }}"></script>
+    <script src="<?php echo e(asset('js/live-filter.js')); ?>"></script>
     <script>
         function setAppointmentView(view) {
             const form = document.getElementById('filterForm');
@@ -431,5 +430,6 @@
         });
     </script>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 ```
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\HF\resources\views/appointments/all.blade.php ENDPATH**/ ?>

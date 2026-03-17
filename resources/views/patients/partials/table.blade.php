@@ -97,7 +97,7 @@
                     @else
                         <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ $patient->creator->profile->full_name ?? ($patient->creator->employee_id ?? 'Unknown User') }}</p>
                     @endif
-                    <p class="text-[10px] font-medium text-slate-400">{{ $patient->created_at->format('M d, Y') }}</p>
+                    <p class="text-[10px] font-medium text-slate-400 mt-0.5">{{ $patient->created_at->format('M d, Y') }}</p>
                 </div>
             </div>
         </td>

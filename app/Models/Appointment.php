@@ -10,7 +10,6 @@ class Appointment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'appointment_id',
         'survey_id',
         'doctor_type',
         'location',
@@ -23,40 +22,6 @@ class Appointment extends Model
     protected $casts = [
         'appointment_date' => 'date:Y-m-d',
     ];
-
-    /**
-     * Auto-generate Appointment ID on creation
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (!$model->appointment_id) {
-                $model->appointment_id = static::generateAppointmentId();
-            }
-        });
-    }
-
-    public static function generateAppointmentId()
-    {
-        $prefix = 'HFDA';
-
-        // Find the last appointment ID with this prefix
-        $lastAppointment = self::where('appointment_id', 'like', $prefix . '%')
-            ->orderBy('appointment_id', 'desc')
-            ->first();
-
-        if ($lastAppointment) {
-            $lastId = $lastAppointment->appointment_id;
-            $lastSequence = (int) substr($lastId, strlen($prefix));
-            $newSequence = str_pad($lastSequence + 1, 6, '0', STR_PAD_LEFT);
-        } else {
-            $newSequence = '000001';
-        }
-
-        return $prefix . $newSequence;
-    }
 
     public function survey()
     {

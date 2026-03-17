@@ -65,7 +65,8 @@ class Survey extends Model
         'due_amount',
         'payment_method',
         'payment_screenshot',
-        'created_by'
+        'created_by',
+        'recorded_by'
     ];
 
     /**
@@ -96,21 +97,21 @@ class Survey extends Model
         });
 
         static::restoring(function ($survey) {
-            // When restored, assign the latest available serial number as requested
+            // When restored, assign the first available gap-filled ID
             if ($survey->is_member) {
-                $survey->patient_id = self::generateMembershipId(true);
+                $survey->patient_id = self::generateMembershipId(false);
             } else {
-                $survey->patient_id = self::generatePatientId(true);
+                $survey->patient_id = self::generatePatientId(false);
             }
         });
     }
 
-    public static function generatePatientId($latestOnly = true)
+    public static function generatePatientId($latestOnly = false)
     {
         return self::generateSequenceId('HFP', 7, $latestOnly);
     }
 
-    public static function generateMembershipId($latestOnly = true)
+    public static function generateMembershipId($latestOnly = false)
     {
         return self::generateSequenceId('HFPM', 6, $latestOnly);
     }
@@ -173,6 +174,11 @@ class Survey extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function recordedBy()
+    {
+        return $this->belongsTo(User::class, 'recorded_by');
     }
 
     public function appointments()
