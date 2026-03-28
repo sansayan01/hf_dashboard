@@ -71,13 +71,14 @@ class RolePermission extends Model
      */
     public static function bulkSetForRole(string $role, array $permissions): void
     {
-        // Determine which keys differ from PERMISSION_DEFAULTS — only store overrides
+        // Determine baseline for comparison based on role
+        $isSA = ($role === 'super_admin');
         $defaults = User::PERMISSION_DEFAULTS;
         $overrides = [];
 
         foreach ($permissions as $key => $value) {
-            $defaultValue = $defaults[$key] ?? false;
-            if ($value !== $defaultValue) {
+            $baselineValue = $isSA ? true : ($defaults[$key] ?? false);
+            if ($value !== $baselineValue) {
                 $overrides[$key] = $value;
             }
         }

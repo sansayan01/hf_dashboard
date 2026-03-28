@@ -251,16 +251,21 @@ class UserPermissionController extends Controller
         // So we must iterate through ALL known defaults.
         // If it's in $permissions, it's ON (true).
         // If it's not in $permissions, it's OFF (false).
-        foreach (User::PERMISSION_DEFAULTS as $key => $default) {
-            $submittedValue = isset($permissions[$key]) ? true : false;
+        $isSuperAdmin = $user->isSuperAdmin();
+        foreach (User::PERMISSION_DEFAULTS as $key => $systemDefault) {
+            $submittedValue = isset($permissions[$key]);
             
-            // Only store an override if the submitted value differs from the default
-            if ($submittedValue !== $default) {
+            // For Super Admins, the "baseline" (what they have if no override exists) is 'true'
+            // for everything. For others, it's the system default.
+            $baselineValue = $isSuperAdmin ? true : $systemDefault;
+            
+            // Only store an override if the submitted value differs from what they would normally have
+            if ($submittedValue !== $baselineValue) {
                 $overrides[$key] = $submittedValue;
             }
         }
 
-        // If all match defaults, store null (no overrides)
+        // If all match their respective baseline, store null (clean slate)
         $user->permissions = !empty($overrides) ? $overrides : null;
         $user->save();
 
