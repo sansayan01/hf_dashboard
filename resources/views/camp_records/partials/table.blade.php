@@ -127,7 +127,7 @@
                             d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </a>
-                @if(auth()->user()->hasFinancePermission('edit'))
+                @if(auth()->user()->hasPermission('finances.edit_camp_record'))
                     <a href="{{ route('camp_records.edit', $record->id) }}"
                         class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-accent hover:bg-accent/5 dark:hover:border-accent dark:hover:bg-accent/20 hover:text-accent dark:text-slate-300 text-slate-500 shadow-sm transition-all"
                         title="Edit Record">
@@ -136,6 +136,8 @@
                                 d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                     </a>
+                @endif
+                @if(auth()->user()->hasPermission('finances.delete_camp_record'))
                     <form action="{{ route('camp_records.destroy', $record->id) }}" method="POST" class="inline-block"
                         onsubmit="return confirm('WARNING: Are you sure you want to permanently delete this camp record? This action cannot be undone.')">
                         @csrf

@@ -17,8 +17,15 @@ class SurveyController extends Controller
     public function index(Request $request)
     {
         $user = User::getEffectiveUser();
+        
+        // Permission check
+        if (!$user->hasPermission('survey.view')) {
+            abort(403, 'Unauthorized: You do not have permission to view surveys.');
+        }
 
-
+        if ($request->has('show_nia') && $request->show_nia == 1 && !$user->hasPermission('survey.view_nia')) {
+            abort(403, 'Unauthorized: You do not have permission to view NIA records.');
+        }
         // Get all members this user is allowed to see data for
         // Pharmacists can see all surveys (they need to access patient information)
         $downline = collect(); // Initialize to prevent undefined variable error
@@ -137,7 +144,7 @@ class SurveyController extends Controller
         $user = Auth::user();
 
         // Permission check
-        if (!$user->isSuperAdmin() && !RolePermission::check($user->designation, 'can_create_surveys')) {
+        if (!$user->hasPermission('survey.create')) {
             abort(403, 'Unauthorized: You do not have permission to create surveys.');
         }
 
@@ -155,7 +162,7 @@ class SurveyController extends Controller
         $user = User::getEffectiveUser();
 
         // Permission check
-        if (!$user->isSuperAdmin() && !RolePermission::check($user->designation, 'can_create_surveys')) {
+        if (!$user->hasPermission('survey.create')) {
             abort(403, 'Unauthorized: You do not have permission to create surveys.');
         }
 
@@ -240,8 +247,11 @@ class SurveyController extends Controller
      */
     public function edit(Survey $survey)
     {
-        // Authorization Check: Only creator or their upline can edit
+        // Authorization & Permission Check
         $user = Auth::user();
+        if (!$user->hasPermission('survey.edit')) {
+            abort(403, 'Unauthorized: You do not have permission to edit surveys.');
+        }
         if ($user->id !== $survey->created_by && !$user->canAccess($survey->creator)) {
             abort(403);
         }
@@ -254,8 +264,11 @@ class SurveyController extends Controller
      */
     public function update(Request $request, Survey $survey)
     {
-        // Authorization Check
+        // Authorization & Permission Check
         $user = Auth::user();
+        if (!$user->hasPermission('survey.edit')) {
+            abort(403, 'Unauthorized: You do not have permission to edit surveys.');
+        }
         if ($user->id !== $survey->created_by && !$user->canAccess($survey->creator)) {
             abort(403);
         }
@@ -303,8 +316,11 @@ class SurveyController extends Controller
      */
     public function destroy(Survey $survey)
     {
-        // Authorization Check: Only creator or their upline can delete
+        // Authorization & Permission Check
         $user = Auth::user();
+        if (!$user->hasPermission('survey.delete')) {
+            abort(403, 'Unauthorized: You do not have permission to delete surveys.');
+        }
         if ($user->id !== $survey->created_by && !$user->canAccess($survey->creator)) {
             abort(403);
         }
@@ -335,8 +351,8 @@ class SurveyController extends Controller
     public function bulkDestroy(Request $request)
     {
         $user = Auth::user();
-        if (!$user->isSuperAdmin()) {
-            abort(403, 'Only Super Admins can perform bulk deletions.');
+        if (!$user->hasPermission('survey.bulk_delete')) {
+            abort(403, 'Unauthorized: You do not have permission to perform bulk deletions.');
         }
 
         $ids = $request->input('ids', []);

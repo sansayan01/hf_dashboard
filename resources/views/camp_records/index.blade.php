@@ -78,7 +78,7 @@
                     </div>
                 </div>
 
-                @if(auth()->user()->hasFinancePermission('edit'))
+                @if(auth()->user()->hasPermission('finances.create_camp_record'))
                     <a href="{{ route('camp_records.create') }}"
                         class="group inline-flex items-center justify-center space-x-2 bg-gradient-to-r from-accent to-blue-500 text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-accent/30 hover:shadow-2xl hover:shadow-accent/40 hover:-translate-y-1 transition-all active:scale-95 duration-300 shrink-0">
                         <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none"
@@ -260,14 +260,16 @@
                             <span>Clear All Filters</span>
                         </button>
                         <div class="flex items-center space-x-3">
-                            <button type="button" onclick="exportCSV()"
-                                class="inline-flex items-center space-x-2 bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 px-5 py-2.5 rounded-xl text-xs font-black hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-400 hover:-translate-y-0.5 transition-all active:scale-95 shadow-sm">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <span>Download CSV</span>
-                            </button>
+                            @if(auth()->user()->hasPermission('finances.export_camp_records'))
+                                <button type="button" onclick="exportCSV()"
+                                    class="inline-flex items-center space-x-2 bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 px-5 py-2.5 rounded-xl text-xs font-black hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-400 hover:-translate-y-0.5 transition-all active:scale-95 shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <span>Download CSV</span>
+                                </button>
+                            @endif
                             <button type="submit"
                                 class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-2.5 rounded-xl text-xs font-black shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all active:scale-95">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

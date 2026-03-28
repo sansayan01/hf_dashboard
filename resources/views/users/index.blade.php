@@ -1,7 +1,7 @@
 @php
     $effectiveUser = \App\Models\User::getEffectiveUser();
-    $canBulkApprove = $effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_approve_users');
-    $canMarkAttendanceHeader = ($effectiveUser->isSuperAdmin() || in_array($effectiveUser->designation, ['hs', 'dm', 'bm', 'rm']));
+    $canBulkApprove = $effectiveUser->hasPermission('team.bulk_actions') && $effectiveUser->hasPermission('team.approve_users');
+    $canMarkAttendanceHeader = $effectiveUser->hasPermission('attendance.mark');
 
     $stats = $stats ?? [
         'total_downline' => 0,
@@ -133,6 +133,7 @@
                     @endif
 
                     <!-- Export -->
+                    @if($effectiveUser->hasPermission('team.export'))
                     <a id="export-action-btn" href="{{ route('users.export', request()->all()) }}" title="Download CSV"
                         class="px-3 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all flex items-center justify-center">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,6 +143,7 @@
                         </svg>
                         <span class="hidden">Download CSV</span>
                     </a>
+                    @endif
 
                     <!-- Filter -->
                     <button type="button" onclick="toggleFilters()" title="Filter"
@@ -175,7 +177,7 @@
                         </button>
                     @endif
 
-                    @if($effectiveUser->canCreateUsers())
+                    @if($effectiveUser->hasPermission('team.create_users'))
                         <a href="{{ route('users.create', ['type' => 'team']) }}"
                             class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
                             + Add Member
@@ -309,7 +311,7 @@
                             <th
                                 class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 whitespace-nowrap">
                                 Joined On</th>
-                            @if($effectiveUser->isSuperAdmin())
+                            @if($effectiveUser->hasPermission('team.toggle_salary_mode'))
                                 <th
                                     class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 whitespace-nowrap">
                                     Salary Mode</th>

@@ -15,10 +15,10 @@ class PathologyTestController extends Controller
 {
     public function create(Survey $patient)
     {
-        $user = Auth::user();
+        $user = User::getEffectiveUser();
 
-        if (in_array($user->designation, ['ro', 'rm', 'bm', 'dm'])) {
-            abort(403, 'Unauthorized action.');
+        if (!$user->hasPermission('pathology.add')) {
+            abort(403, 'Unauthorized access.');
         }
 
 
@@ -42,6 +42,11 @@ class PathologyTestController extends Controller
 
     public function store(Request $request)
     {
+        $user = User::getEffectiveUser();
+        if (!$user->hasPermission('pathology.add')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $validated = $request->validate([
             'patient_id' => 'required|exists:surveys,id',
             'camp_id' => 'required|exists:inventory_warehouses,id',
@@ -53,11 +58,6 @@ class PathologyTestController extends Controller
         ]);
 
         $patient = Survey::findOrFail($validated['patient_id']);
-        $user = Auth::user();
-
-        if (in_array($user->designation, ['ro', 'rm', 'bm', 'dm'])) {
-            abort(403, 'Unauthorized action.');
-        }
 
 
         // The incentive goes to the person who registered the patient (RO)
@@ -116,6 +116,10 @@ class PathologyTestController extends Controller
 
     public function destroy(PathologyTest $pathologyTest)
     {
+        if (!User::getEffectiveUser()->hasPermission('pathology.delete')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         try {
             $patientId = $pathologyTest->patient_id;
             $pathologyTest->delete();

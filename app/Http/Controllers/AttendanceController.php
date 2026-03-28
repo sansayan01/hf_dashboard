@@ -28,7 +28,11 @@ class AttendanceController extends Controller
         $effectiveUser = User::getEffectiveUser();
 
         // 1. Permission check: SuperAdmin or anyone who can access/view the user in their team
-        if (!$effectiveUser->isSuperAdmin() && !$effectiveUser->canAccess($user)) {
+        if (!$effectiveUser->hasPermission('attendance.mark')) {
+            return response()->json(['message' => 'Unauthorized. You do not have permission to mark attendance.'], 403);
+        }
+        
+        if (!$effectiveUser->canAccess($user)) {
             return response()->json(['message' => 'Unauthorized. You do not have permission to modify this attendance.'], 403);
         }
 
@@ -105,6 +109,10 @@ class AttendanceController extends Controller
     {
         $effectiveUser = User::getEffectiveUser();
 
+        if (!$effectiveUser->hasPermission('attendance.mark')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // RMs and SuperAdmins only mark attendance for ROs (who are in TAB mode)
         // Note: TAB mode is defined as anything NOT 'dab'.
         if ($effectiveUser->isSuperAdmin()) {
@@ -132,6 +140,10 @@ class AttendanceController extends Controller
     public function roDashboard(Request $request)
     {
         $effectiveUser = User::getEffectiveUser();
+        
+        if (!$effectiveUser->hasPermission('attendance.view')) {
+            abort(403, 'Unauthorized access.');
+        }
         $user = $effectiveUser;
 
         // If a user_id is provided, check if the effective user can view that user.
@@ -286,6 +298,11 @@ class AttendanceController extends Controller
 
     public function show(User $user, Request $request)
     {
+        $effectiveUser = User::getEffectiveUser();
+
+        if (!$effectiveUser->hasPermission('attendance.view')) {
+            abort(403, 'Unauthorized access.');
+        }
         // Permission check
         if (!User::getEffectiveUser()->canAccess($user)) {
             abort(403);
@@ -386,6 +403,10 @@ class AttendanceController extends Controller
     {
         $user = User::getEffectiveUser();
 
+        if (!$user->hasPermission('attendance.view_report')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $query = Attendance::with(['user.profile', 'markedBy.profile']);
 
         if (!$user->isSuperAdmin()) {
@@ -417,6 +438,10 @@ class AttendanceController extends Controller
     public function exportReport(Request $request)
     {
         $user = User::getEffectiveUser();
+
+        if (!$user->hasPermission('attendance.export')) {
+            abort(403, 'Unauthorized access.');
+        }
 
         $query = Attendance::with(['user.profile', 'markedBy.profile']);
 

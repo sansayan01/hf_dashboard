@@ -33,9 +33,9 @@ class DashboardController extends Controller
             return redirect()->route('inventory.index');
         }
 
-        $canViewDownline = $user->canViewDownline();
-        $canViewReports = $user->isSuperAdmin() || \App\Models\RolePermission::check($user->designation, 'can_view_reports');
-        $canApprove = $user->isSuperAdmin() || \App\Models\RolePermission::check($user->designation, 'can_approve_users');
+        $canViewDownline = $user->hasPermission('team.view') && $user->hasPermission('dashboard.view_hierarchy_tree');
+        $canViewReports = $user->hasPermission('dashboard.view_reports');
+        $canApprove = $user->hasPermission('team.approve_users');
 
         $downlineIds = $canViewDownline ? $user->getTeamDownlineIds() : [];
         $allAccessibleIds = array_merge($downlineIds, [$user->id]);
@@ -44,11 +44,17 @@ class DashboardController extends Controller
             $allAccessibleIds[] = $user->upline_id;
         }
 
-        $stats = $this->getStats($user, $downlineIds, $canViewDownline);
+        $canViewStats = $user->hasPermission('dashboard.view_stats');
+        $stats = $canViewStats ? $this->getStats($user, $downlineIds, $canViewDownline) : [
+            'total_downline' => 0,
+            'active_downline' => 0,
+            'pending_approvals' => 0,
+            'direct_children' => 0
+        ];
         $reports = $canViewReports ? $this->getReports($allAccessibleIds) : [];
         $recentActivities = $this->getRecentActivities($allAccessibleIds);
-        $earnings = $this->getEarnings($user);
-        $financials = $user->hasFinancePermission('view') ? $this->getFinancialOverview() : null;
+        $earnings = $user->hasPermission('dashboard.view_earnings') ? $this->getEarnings($user) : null;
+        $financials = ($user->hasFinancePermission('view') && $user->hasPermission('dashboard.view_financial_overview')) ? $this->getFinancialOverview() : null;
 
         $pendingUsers = [];
         if ($canApprove) {
@@ -65,7 +71,7 @@ class DashboardController extends Controller
 
         $isViewAs = $currentUser->id !== $user->id;
 
-        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'canViewReports', 'canViewDownline', 'earnings', 'pendingUsers', 'financials'));
+        return view('dashboard.index', compact('user', 'currentUser', 'stats', 'reports', 'recentActivities', 'isViewAs', 'canApprove', 'canViewReports', 'canViewDownline', 'canViewStats', 'earnings', 'pendingUsers', 'financials'));
     }
 
     private function getStats(User $user, array $downlineIds, bool $canViewDownline): array
@@ -217,10 +223,10 @@ class DashboardController extends Controller
     public function getHierarchyTree(Request $request)
     {
         $user = User::getEffectiveUser();
-
+        
         // Permission Check
-        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_view_downline')) {
-            abort(403);
+        if (!$user->hasPermission('team.view')) {
+            abort(403, 'Unauthorized access.');
         }
 
         $targetUserId = $request->get('user_id', $user->id);
@@ -244,7 +250,7 @@ class DashboardController extends Controller
             $currentUser = auth()->user(); // Still needed for raw permission check if necessary, but we should use effectiveUser for access
 
             // Permission Check
-            if (!$effectiveUser->isSuperAdmin() && !\App\Models\RolePermission::check($effectiveUser->designation, 'can_view_downline')) {
+            if (!$effectiveUser->hasPermission('team.view')) {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
 

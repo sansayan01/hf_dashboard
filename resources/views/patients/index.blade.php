@@ -48,8 +48,10 @@
                 <h3 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Active Patients Registry</h3>
                 <div class="flex items-center space-x-2">
                     <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1 italic">Verified Field Submissions</p>
+                    @if(auth()->user()->hasPermission('bin.patient_bin'))
                     <span class="text-slate-300 dark:text-slate-700 font-black">|</span>
                     <a href="{{ route('patients.bin') }}" class="text-[10px] text-rose-500 font-black uppercase tracking-widest mt-1 hover:underline">View Deleted Records</a>
+                    @endif
                 </div>
             </div>
             <div class="flex items-center space-x-3">
@@ -73,15 +75,17 @@
                         <span class="hidden lg:inline uppercase tracking-widest">View All</span>
                     </a>
                 @endif
-                <a href="{{ route('patients.export', request()->all()) }}"
-                    class="px-2 sm:px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-all flex items-center space-x-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                        </path>
-                    </svg>
-                    <span class="hidden lg:inline uppercase tracking-widest">Download CSV</span>
-                </a>
+                @if(auth()->user()->hasPermission('patients.export'))
+                    <a href="{{ route('patients.export', request()->all()) }}"
+                        class="px-2 sm:px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-all flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        <span class="hidden lg:inline uppercase tracking-widest">Download CSV</span>
+                    </a>
+                @endif
                 <button type="button" onclick="toggleFilters()"
                     class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center space-x-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

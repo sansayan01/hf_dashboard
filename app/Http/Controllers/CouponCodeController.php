@@ -16,9 +16,9 @@ class CouponCodeController extends Controller
     {
         $currentUser = auth()->user();
 
-        // Only Super Admin can manage coupons
-        if (!$currentUser->isSuperAdmin()) {
-            abort(403, 'Unauthorized access: Only Super Admin can manage coupon codes.');
+        // Only Users with permission can manage coupons
+        if (!$currentUser->hasPermission('admin.manage_coupons')) {
+            abort(403, 'Unauthorized access: You do not have permission to manage coupon codes.');
         }
 
         // Automatic cleanup of used coupons older than 7 days
@@ -86,7 +86,7 @@ class CouponCodeController extends Controller
     {
         $currentUser = auth()->user();
 
-        if (!$currentUser->isSuperAdmin()) {
+        if (!$currentUser->hasPermission('admin.manage_coupons')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -100,7 +100,7 @@ class CouponCodeController extends Controller
     {
         $currentUser = auth()->user();
 
-        if (!$currentUser->isSuperAdmin()) {
+        if (!$currentUser->hasPermission('admin.manage_coupons')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -140,7 +140,7 @@ class CouponCodeController extends Controller
     {
         $currentUser = auth()->user();
 
-        if (!$currentUser->isSuperAdmin()) {
+        if (!$currentUser->hasPermission('admin.manage_coupons')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -197,7 +197,7 @@ class CouponCodeController extends Controller
     {
         $currentUser = auth()->user();
 
-        if (!$currentUser->isSuperAdmin()) {
+        if (!$currentUser->hasPermission('admin.manage_coupons')) {
             abort(403, 'Unauthorized access.');
         }
 

@@ -62,7 +62,7 @@
                             </svg>
                         </a>
                     @endif
-                    @if(auth()->user()->hasFinancePermission('edit'))
+                    @if(auth()->user()->hasPermission('finances.edit_income'))
                         <a href="{{ route('incomes.edit', $income) }}"
                             class="icon-btn bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10"
                             title="Edit">

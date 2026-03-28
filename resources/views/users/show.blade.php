@@ -390,7 +390,7 @@
 
                         {{-- Action Buttons --}}
                         <div class="flex flex-wrap gap-2">
-                            @if((auth()->user()->isSuperAdmin() || auth()->user()->hasFinancePermission('view')) && auth()->user()->canAccess($user) && auth()->user()->id !== $user->id)
+                            @if(auth()->user()->hasPermission('dashboard.view_as') && auth()->user()->canAccess($user) && auth()->user()->id !== $user->id)
                                 <a href="{{ route('dashboard', ['as_user' => $user->id]) }}"
                                     class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-indigo-600/30 hover:bg-indigo-500">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,40 +401,17 @@
                                 </a>
                             @endif
 
-                            @if(in_array(auth()->user()->employee_id, ['HFSA000001', 'HFSA000002']) && str_starts_with($user->employee_id, 'HFSA') && auth()->user()->id !== $user->id)
-                                <div class="relative inline-block text-left">
-                                    <button type="button"
-                                        onclick="document.getElementById('financeDropdown').classList.toggle('hidden')"
-                                        class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/30 hover:bg-emerald-500">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Finance Access
-                                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 9l-7 7-7-7"></path>
-                                        </svg>
-                                    </button>
-
-                                    <div id="financeDropdown"
-                                        class="absolute z-50 mt-2 w-48 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 overflow-hidden hidden">
-                                        <div class="py-1">
-                                            <button onclick="updateFinancePermission('none')"
-                                                class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 {{ $user->finance_permission == null ? 'font-bold bg-gray-50' : '' }}">
-                                                None @if($user->finance_permission == null) ✓ @endif
-                                            </button>
-                                            <button onclick="updateFinancePermission('view')"
-                                                class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 {{ $user->finance_permission == 'view' ? 'font-bold bg-gray-50' : '' }}">
-                                                Can view only @if($user->finance_permission == 'view') ✓ @endif
-                                            </button>
-                                            <button onclick="updateFinancePermission('edit')"
-                                                class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 {{ $user->finance_permission == 'edit' ? 'font-bold bg-gray-50' : '' }}">
-                                                Can view & edit @if($user->finance_permission == 'edit') ✓ @endif
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                            @if(in_array(auth()->user()->employee_id, ['HFSA000001', 'HFSA000002']) && auth()->user()->id !== $user->id)
+                                <a href="{{ route('users.permissions', $user->id) }}"
+                                    class="btn-action inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-blue-600/30 hover:from-cyan-500 hover:to-blue-500">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Permissions & Controls
+                                </a>
                             @endif
 
                             @if(auth()->user()->isSuperAdmin())
@@ -1217,35 +1194,6 @@
             });
         }
 
-        // Handle Finance Permission update
-        function updateFinancePermission(permission) {
-            document.getElementById('financeDropdown').classList.add('hidden');
 
-            fetch("{{ route('users.finance-permission', $user->id) }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                },
-                body: JSON.stringify({
-                    finance_permission: permission
-                })
-            }).then(async response => {
-                const data = await response.json().catch(() => ({}));
-                if (response.ok && data.success) {
-                    if (typeof Toast !== 'undefined') {
-                        Toast.fire({ icon: 'success', title: data.message });
-                    } else {
-                        alert(data.message);
-                    }
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    throw new Error(data.message || 'Server returned ' + response.status);
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-                alert('Error: ' + error.message);
-            });
-        }
     </script>
 @endsection

@@ -16,6 +16,10 @@ class MembershipController extends Controller
     {
         $user = User::getEffectiveUser();
 
+        if (!$user->hasPermission('membership.view')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // Get all members this user is allowed to see
         if ($user->designation === 'staff') {
             $allowedIds = Survey::pluck('created_by')->unique()->toArray();
@@ -66,8 +70,11 @@ class MembershipController extends Controller
      */
     public function show(Survey $patient)
     {
-        // Check access
+        // Permission & Authorization Check
         $user = User::getEffectiveUser();
+        if (!$user->hasPermission('membership.view')) {
+            abort(403, 'Unauthorized access.');
+        }
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
             abort(403);
         }
@@ -84,8 +91,11 @@ class MembershipController extends Controller
      */
     public function register(Request $request, Survey $patient)
     {
-        // Check access
+        // Permission & Authorization Check
         $user = User::getEffectiveUser();
+        if (!$user->hasPermission('membership.register')) {
+            abort(403, 'Unauthorized access.');
+        }
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
             abort(403);
         }
@@ -201,10 +211,10 @@ class MembershipController extends Controller
      */
     public function cancel(Request $request, Survey $patient)
     {
-        // Check access
+        // Permission & Authorization Check
         $user = User::getEffectiveUser();
-        if (!$user->isSuperAdmin()) {
-            abort(403, 'Only administrators can cancel memberships.');
+        if (!$user->hasPermission('membership.cancel')) {
+            abort(403, 'Unauthorized: You do not have permission to cancel memberships.');
         }
 
         $patient->is_member = false;

@@ -27,6 +27,10 @@ class InventoryController extends Controller
     public function index(Request $request)
     {
         $user = User::getEffectiveUser();
+        if (!$user->hasPermission('inventory.view')) {
+            abort(403, 'Unauthorized access.');
+        }
+        
         $currentUser = auth()->user(); // Still needed for some specific logic
         $selectedWarehouseId = $this->resolveSelectedWarehouseId($user, $request);
 
@@ -115,6 +119,10 @@ class InventoryController extends Controller
     public function exportBatchInventory(Request $request)
     {
         $user = User::getEffectiveUser();
+        if (!$user->hasPermission('inventory.export')) {
+            abort(403, 'Unauthorized access.');
+        }
+        
         $selectedWarehouseId = $this->resolveSelectedWarehouseId($user, $request);
         $stocks = $this->getAggregatedStocks($request, $selectedWarehouseId);
 
@@ -163,6 +171,10 @@ class InventoryController extends Controller
      */
     public function create()
     {
+        if (!User::getEffectiveUser()->hasPermission('inventory.add_stock')) {
+            abort(403, 'Unauthorized access.');
+        }
+        
         $medicines = Medicine::orderBy('name')->get();
         $warehouses = InventoryWarehouse::where('is_active', true)
             ->where('type', InventoryWarehouse::TYPE_WAREHOUSE)
@@ -176,6 +188,10 @@ class InventoryController extends Controller
      */
     public function store(Request $request)
     {
+        if (!User::getEffectiveUser()->hasPermission('inventory.add_stock')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $validated = $request->validate([
             'medicine_id' => 'required|exists:medicines,id',
             'warehouse_id' => 'required|exists:inventory_warehouses,id',
@@ -222,7 +238,12 @@ class InventoryController extends Controller
      */
     public function exportTransactions()
     {
-        $isStaff = auth()->user()->designation === 'staff' || auth()->user()->isOfficeInCharge();
+        $user = User::getEffectiveUser();
+        if (!$user->hasPermission('inventory.view_transactions')) {
+            abort(403, 'Unauthorized access.');
+        }
+        
+        $isStaff = $user->designation === 'staff' || $user->isOfficeInCharge();
         $isRestricted = $isStaff && auth()->user()->camp_id;
         $defaultView = $isRestricted ? 'dispenses' : 'movements';
         $view = request('view', $defaultView);
@@ -394,7 +415,12 @@ class InventoryController extends Controller
 
     public function transactions()
     {
-        $isStaff = auth()->user()->designation === 'staff' || auth()->user()->isOfficeInCharge();
+        $user = User::getEffectiveUser();
+        if (!$user->hasPermission('inventory.view_transactions')) {
+            abort(403, 'Unauthorized access.');
+        }
+        
+        $isStaff = $user->designation === 'staff' || $user->isOfficeInCharge();
         $isRestricted = $isStaff && auth()->user()->camp_id;
         $defaultView = $isRestricted ? 'dispenses' : 'movements';
         $view = request('view', $defaultView);
@@ -614,6 +640,10 @@ class InventoryController extends Controller
     public function dispense($patientId = null)
     {
         $user = User::getEffectiveUser();
+        if (!$user->hasPermission('inventory.dispense')) {
+            abort(403, 'Unauthorized access.');
+        }
+        
         $patient = $patientId ? Survey::findOrFail($patientId) : null;
         $allowedIds = $user->getDataVisibilityIds();
         $patients = Survey::whereIn('created_by', $allowedIds)->orderBy('full_name')->get();
@@ -648,6 +678,10 @@ class InventoryController extends Controller
      */
     public function processDispense(Request $request)
     {
+        if (!User::getEffectiveUser()->hasPermission('inventory.dispense')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $validated = $request->validate([
             'patient_id' => 'required|exists:surveys,id',
             'warehouse_id' => 'required|exists:inventory_warehouses,id',
@@ -717,6 +751,10 @@ class InventoryController extends Controller
      */
     public function destroyTransaction(InventoryTransaction $transaction)
     {
+        if (!User::getEffectiveUser()->hasPermission('inventory.manage_transactions')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         try {
             DB::transaction(function () use ($transaction) {
                 /** @var InventoryTransaction $transaction */
@@ -748,6 +786,10 @@ class InventoryController extends Controller
      */
     public function updateTransaction(Request $request, InventoryTransaction $transaction)
     {
+        if (!User::getEffectiveUser()->hasPermission('inventory.manage_transactions')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $validated = $request->validate([
             'quantity' => 'required|integer|min:1',
             'notes' => 'nullable|string',
@@ -789,7 +831,10 @@ class InventoryController extends Controller
     public function transfer(Request $request)
     {
         $user = auth()->user();
-
+        if (!User::getEffectiveUser()->hasPermission('inventory.transfer')) {
+            abort(403, 'Unauthorized access.');
+        }
+        
         // Pharmacists can only see their assigned camp
         if (($user->designation === 'staff' || $user->isOfficeInCharge()) && $user->camp_id) {
             $warehouses = InventoryWarehouse::where('id', $user->camp_id)->where('is_active', true)->get();
@@ -834,6 +879,10 @@ class InventoryController extends Controller
      */
     public function processTransfer(Request $request)
     {
+        if (!User::getEffectiveUser()->hasPermission('inventory.transfer')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         // Check if transfer_all is enabled
         $transferAll = $request->input('transfer_all') == '1';
 
@@ -1035,6 +1084,10 @@ class InventoryController extends Controller
      */
     public function adjust(InventoryStock $stock)
     {
+        if (!User::getEffectiveUser()->hasPermission('inventory.manage_inventory')) {
+            abort(403, 'Unauthorized access.');
+        }
+        
         $stock->load(['medicine', 'warehouse', 'sponsor']);
         return view('inventory.adjust', compact('stock'));
     }
@@ -1044,6 +1097,10 @@ class InventoryController extends Controller
      */
     public function processAdjust(Request $request, InventoryStock $stock)
     {
+        if (!User::getEffectiveUser()->hasPermission('inventory.manage_inventory')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $validated = $request->validate([
             'new_quantity' => 'required|integer|min:0',
             'notes' => 'required|string|max:255',
@@ -1274,6 +1331,10 @@ class InventoryController extends Controller
      */
     public function clearDue(Request $request, $id)
     {
+        if (!User::getEffectiveUser()->hasPermission('finances.clear_due')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $distribution = MedicineDistribution::findOrFail($id);
 
         // Ensure due amount is greater than 0

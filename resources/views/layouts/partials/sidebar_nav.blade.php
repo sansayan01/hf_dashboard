@@ -2,7 +2,7 @@
 $effectiveUser = \App\Models\User::getEffectiveUser();
 ?>
 <ul class="space-y-1">
-    @if($effectiveUser->designation !== 'staff')
+    @if($effectiveUser->hasPermission('dashboard.view'))
         <li>
             <a href="{{ route('dashboard') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('dashboard') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -15,7 +15,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
             </a>
         </li>
     @endif
-    @if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_create_surveys'))
+    @if($effectiveUser->hasPermission('survey.view'))
         <li>
             <a href="{{ route('surveys.index') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('surveys.*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -28,7 +28,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
             </a>
         </li>
     @endif
-    @if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_create_surveys') || $effectiveUser->designation === 'staff')
+    @if($effectiveUser->hasPermission('patients.view'))
         <li>
             <a href="{{ route('patients.index') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('patients.*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -41,7 +41,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
             </a>
         </li>
     @endif
-    @if($effectiveUser->isSuperAdmin() || \App\Models\RolePermission::check($effectiveUser->designation, 'can_manage_appointments'))
+    @if($effectiveUser->hasPermission('appointments.view'))
         <li>
             <a href="{{ route('appointments.all') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('appointments.all') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -55,7 +55,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
         </li>
     @endif
 
-    @if($effectiveUser->isRO())
+    @if($effectiveUser->hasPermission('attendance.view'))
         <li>
             <a href="{{ route('attendance.dashboard') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->is('attendance*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -68,7 +68,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
             </a>
         </li>
     @endif
-    @if($effectiveUser->designation !== 'staff')
+    @if($effectiveUser->hasPermission('membership.view'))
         <li>
             <a href="{{ route('membership.index') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('membership.*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -81,7 +81,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
             </a>
         </li>
     @endif
-    @if($effectiveUser->isSuperAdmin() || $effectiveUser->designation === 'staff' || $effectiveUser->isOfficeInCharge())
+    @if($effectiveUser->hasPermission('inventory.view'))
         <li>
             <a href="{{ route('inventory.index') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('inventory.*') && !request()->routeIs('inventory.camps.*') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -98,7 +98,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
         </li>
     @endif
 
-    @if($effectiveUser->canViewDownline())
+    @if($effectiveUser->hasPermission('team.view'))
         <li>
             <a href="{{ route('users.index') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.*') && !request()->routeIs('users.bin') && !request()->routeIs('users.staffIndex') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -111,7 +111,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
             </a>
         </li>
 
-        @if($effectiveUser->isSuperAdmin())
+        @if($effectiveUser->hasPermission('staffs.view'))
             <li>
                 <a href="{{ route('users.staffIndex') }}"
                     class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.staffIndex') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -125,7 +125,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
             </li>
         @endif
 
-        @if($effectiveUser->isSuperAdmin())
+        @if($effectiveUser->hasPermission('bin.view'))
             <li>
                 <a href="{{ route('users.bin') }}"
                     class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('users.bin') ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -140,7 +140,7 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
         @endif
     @endif
 
-    @if($effectiveUser->hasFinancePermission('view'))
+    @if($effectiveUser->hasPermission('finances.view'))
         <li>
             <a href="{{ route('finances.index') }}"
                 class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ (request()->routeIs('finances.*') || request()->routeIs('camp_records.*') || request()->routeIs('expenses.*')) ? 'bg-accent text-white shadow-lg' : '' }}">
@@ -154,17 +154,30 @@ $effectiveUser = \App\Models\User::getEffectiveUser();
         </li>
     @endif
 
+    @if($effectiveUser->hasPermission('admin.view'))
+        <li>
+            <a href="{{ route('admin.control-panel') }}"
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('admin.control-panel') ? 'bg-accent text-white shadow-lg' : '' }}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span>Admin Controls</span>
+            </a>
+        </li>
+    @endif
+
     <li>
-        <a href="{{ auth()->user()->isSuperAdmin() ? route('admin.control-panel') : route('profile.edit') }}"
-            class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ (request()->routeIs('profile.*') || request()->routeIs('admin.control-panel')) ? 'bg-accent text-white shadow-lg' : '' }}">
+        <a href="{{ route('profile.edit') }}"
+            class="flex items-center space-x-3 px-4 py-3 rounded-lg text-bodydark hover:text-white hover:bg-secondary transition font-medium {{ request()->routeIs('profile.*') ? 'bg-accent text-white shadow-lg' : '' }}">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                </path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
-            <span>{{ auth()->user()->isSuperAdmin() ? 'Admin Controls' : 'Account Settings' }}</span>
+            <span>Account Settings</span>
         </a>
     </li>
 </ul>

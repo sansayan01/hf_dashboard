@@ -79,6 +79,7 @@
                         Reset
                     </a>
 
+                    @if(auth()->user()->hasPermission('attendance.export'))
                     <button type="button" onclick="exportCSV()"
                         class="px-8 py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20 flex items-center space-x-2 ml-auto">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,6 +89,7 @@
                         </svg>
                         <span>Export CSV</span>
                     </button>
+                    @endif
                 </div>
             </form>
         </div>

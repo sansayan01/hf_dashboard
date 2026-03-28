@@ -30,8 +30,8 @@ class IncentiveConfigController extends Controller
      */
     public function storeTa(Request $request)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403);
+        if (!auth()->user()->hasPermission('admin.manage_incentives')) {
+             abort(403, 'Unauthorized access.');
         }
 
         $validated = $request->validate([
@@ -74,8 +74,8 @@ class IncentiveConfigController extends Controller
      */
     public function storeDa(Request $request)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403);
+        if (!auth()->user()->hasPermission('admin.manage_incentives')) {
+             abort(403, 'Unauthorized access.');
         }
 
         $validated = $request->validate([
@@ -117,8 +117,8 @@ class IncentiveConfigController extends Controller
 
     public function destroy(IncentiveConfig $incentiveConfig)
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403);
+        if (!auth()->user()->hasPermission('admin.manage_incentives')) {
+             abort(403, 'Unauthorized access.');
         }
 
         $incentiveConfig->delete();
@@ -128,8 +128,8 @@ class IncentiveConfigController extends Controller
 
     public function syncAttendances()
     {
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403);
+        if (!auth()->user()->hasPermission('admin.manage_incentives')) {
+             abort(403, 'Unauthorized access.');
         }
 
         try {

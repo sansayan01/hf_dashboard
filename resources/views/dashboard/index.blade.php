@@ -42,9 +42,9 @@
         </div>
     @endif
     <!-- Stats Grid -->
-    @if($canViewDownline)
+    @if($canViewStats)
         <div
-            class="grid {{ auth()->user()->isSuperAdmin() ? 'grid-cols-3' : 'grid-cols-2' }} md:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} lg:grid-cols-{{ auth()->user()->isSuperAdmin() ? '3' : '2' }} gap-2 md:gap-6 mb-2">
+            class="grid {{ $canApprove ? 'grid-cols-3' : 'grid-cols-2' }} md:grid-cols-{{ $canApprove ? '3' : '2' }} lg:grid-cols-{{ $canApprove ? '3' : '2' }} gap-2 md:gap-6 mb-2">
             <!-- Total Downline -->
             <div
                 class="glass bg-white dark:bg-darkbg/40 {{ auth()->user()->isSuperAdmin() ? 'p-1.5' : 'p-2' }} md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative">
@@ -92,7 +92,7 @@
                 </p>
             </div>
 
-            @if(auth()->user()->isSuperAdmin())
+            @if($canApprove)
                 <!-- Pending Approvals -->
                 <div onclick="window.location.href='{{ route('users.index', ['status' => 'pending']) }}'"
                     class="glass bg-white dark:bg-darkbg/40 p-1.5 md:p-6 rounded-xl md:rounded-2xl border border-slate-200/10 dark:border-white/5 shadow-sm hover:shadow-lg hover:bg-slate-50 dark:hover:bg-darkbg/60 transition-all group overflow-hidden relative cursor-pointer">
@@ -317,7 +317,7 @@
     @endif
 
     <!-- Reports Grid -->
-    @if($canViewReports)
+    @if($canViewReports && !empty($reports))
         <div class="grid grid-cols-2 gap-2 md:gap-6 mb-10">
             <!-- Survey Reports -->
             <a href="{{ route('surveys.index') }}"
@@ -419,8 +419,8 @@
         </div>
     @endif
 
-    {{-- ── FINANCIAL OVERVIEW (Super Admin Only) ── --}}
-    @if($user->hasFinancePermission('view') && isset($financials) && $financials)
+    {{-- ── FINANCIAL OVERVIEW ── --}}
+    @if(isset($financials) && $financials)
         <div class="mb-10">
             {{-- Quick Actions Bar --}}
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
@@ -437,7 +437,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    @if(auth()->user()->hasFinancePermission('edit'))
+                    @if(auth()->user()->hasPermission('finances.create_income'))
                         <a href="{{ route('incomes.create') }}"
                             class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-all shadow-sm shadow-emerald-500/20 hover:shadow-md hover:shadow-emerald-500/30 hover:-translate-y-0.5">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -445,6 +445,8 @@
                             </svg>
                             Record Income
                         </a>
+                    @endif
+                    @if(auth()->user()->hasPermission('finances.create_expense'))
                         <a href="{{ route('expenses.create') }}"
                             class="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-lg transition-all shadow-sm shadow-rose-500/20 hover:shadow-md hover:shadow-rose-500/30 hover:-translate-y-0.5">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">

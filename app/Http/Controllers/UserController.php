@@ -153,9 +153,9 @@ class UserController extends Controller
 
     public function staffIndex(Request $request)
     {
-        $currentUser = auth()->user();
-        if (!$currentUser->isSuperAdmin()) {
-            abort(403, 'Unauthorized access');
+        $currentUser = User::getEffectiveUser();
+        if (!$currentUser->hasPermission('staffs.view')) {
+            abort(403, 'Unauthorized access.');
         }
 
         $query = User::with('profile')->where(function ($q) {
@@ -189,14 +189,14 @@ class UserController extends Controller
 
     public function export(Request $request)
     {
-        $currentUser = auth()->user();
+        $currentUser = User::getEffectiveUser();
         $type = $request->get('type', 'team'); // 'team' or 'staff'
 
         $query = User::with(['profile', 'parent.profile', 'upline.profile', 'bankDetails', 'camp']);
 
         if ($type === 'staff') {
-            if (!$currentUser->isSuperAdmin()) {
-                abort(403, 'Unauthorized access');
+            if (!$currentUser->hasPermission('staffs.export')) {
+                abort(403, 'Unauthorized access: You do not have permission to export staff data.');
             }
             $query->where(function ($q) {
                 $q->whereIn('designation', ['staff', 'office_in_charge', 'camp_organizer'])
@@ -204,14 +204,8 @@ class UserController extends Controller
             });
         } else {
             // My Team logic
-            if (!$currentUser->isSuperAdmin()) {
-                if (!$currentUser->canViewDownline()) {
-                    abort(403, 'Unauthorized access');
-                }
-                $downlineIds = $currentUser->getAllDownline()->pluck('id');
-                $query->whereIn('id', $downlineIds);
-            } else {
-                $query->where('id', '!=', $currentUser->id);
+            if (!$currentUser->hasPermission('team.export')) {
+                abort(403, 'Unauthorized access: You do not have permission to export team data.');
             }
             $query->whereNotIn('designation', ['staff', 'office_in_charge', 'camp_organizer'])
                 ->where('is_office_in_charge', false);
@@ -1013,19 +1007,24 @@ class UserController extends Controller
                 }
             }
 
-            // Update Per-User Permissions (Super Admin Only)
-            if ($currentUser->isSuperAdmin()) {
+            // Update Per-User Permissions (Specialized Users Only)
+            if ($currentUser->hasPermission('team.edit_restricted')) {
                 $userData['can_create_users'] = $request->has('can_create_users');
                 $userData['can_edit_user_details'] = $request->has('can_edit_user_details');
             }
 
-            // Update Camp ID for Pharmacists (Super Admin/Office In-Charge Only)
-            if (($currentUser->isSuperAdmin() || $currentUser->isOfficeInCharge()) && $request->has('camp_id')) {
+            // Update Camp ID and Designation Post (Specialized Users Only)
+            if ($request->has('camp_id')) {
+                if (!$currentUser->hasPermission('team.edit_restricted')) {
+                    return back()->with('error', 'Only specialized users can update camp assignments.');
+                }
                 $userData['camp_id'] = $request->camp_id;
             }
 
-            // Update Post for Super Admin
-            if ($currentUser->isSuperAdmin() && $request->has('post')) {
+            if ($request->has('post')) {
+                if (!$currentUser->hasPermission('team.edit_restricted')) {
+                    return back()->with('error', 'Only specialized users can update designations.');
+                }
                 $userData['post'] = ($request->input('designation', $user->designation) === 'super_admin') ? $request->post : null;
             }
 
@@ -1159,7 +1158,7 @@ class UserController extends Controller
         $currentUser = auth()->user();
 
         // Permission check
-        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_approve_users')) {
+        if (!$currentUser->hasPermission('team.approve_users')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -1251,12 +1250,15 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $currentUser = auth()->user();
+        $currentUser = User::getEffectiveUser();
         $user = User::findOrFail($id);
 
-        // Check access
-        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_delete_users')) {
-            abort(403, 'Permission denied: You do not have permission to delete members.');
+        // Check permission based on target user type
+        $isStaff = in_array($user->designation, ['staff', 'office_in_charge', 'camp_organizer']) || $user->is_office_in_charge;
+        $permissionKey = $isStaff ? 'staffs.delete' : 'team.delete';
+
+        if (!$currentUser->hasPermission($permissionKey)) {
+            abort(403, "Permission denied: You do not have permission to delete this member.");
         }
 
         // Prevent self-deletion
@@ -1295,20 +1297,25 @@ class UserController extends Controller
      */
     public function bin()
     {
-        $currentUser = auth()->user();
+        $currentUser = User::getEffectiveUser();
+        if (!$currentUser->hasPermission('bin.team_bin')) {
+            abort(403, 'Unauthorized access.');
+        }
 
         $query = User::onlyTrashed()->with('profile');
 
-        if (!$currentUser->isSuperAdmin() && !$currentUser->isOfficeInCharge()) {
+        if (!$currentUser->hasPermission('bin.view')) {
+            abort(403, 'Unauthorized access to BIN Recovery.');
+        }
+
+        if (!$currentUser->hasPermission('bin.view_all')) {
             // Standard users only see their own downline deleted
             $query->where(function ($q) use ($currentUser) {
                 $q->where('parent_id', $currentUser->id)
                     ->orWhereIn('id', $currentUser->getAllDownline()->pluck('id'));
             });
-        } elseif ($currentUser->isOfficeInCharge()) {
-            // Office In-Charge sees all deleted EXCEPT Super Admins
-            $query->where('designation', '!=', 'super_admin');
         }
+        // If they have bin.view_all, we don't apply the where condition, hence they see all records.
 
         $deletedUsers = $query->paginate(20);
 
@@ -1320,13 +1327,12 @@ class UserController extends Controller
      */
     public function restore($id)
     {
-        $currentUser = auth()->user();
-        $user = User::onlyTrashed()->findOrFail($id);
-
-        // Check if user can restore (Super Admin, Office In-Charge, or direct parent)
-        if (!$currentUser->isSuperAdmin() && !$currentUser->isOfficeInCharge() && $user->parent_id !== $currentUser->id) {
-            abort(403, 'You do not have permission to restore this user.');
+        $currentUser = User::getEffectiveUser();
+        if (!$currentUser->hasPermission('bin.restore')) {
+            abort(403, 'Unauthorized access.');
         }
+
+        $user = User::onlyTrashed()->findOrFail($id);
 
         // Prevent Office In-Charge from restoring Super Admin
         if ($currentUser->isOfficeInCharge() && $user->isSuperAdmin()) {
@@ -1353,10 +1359,10 @@ class UserController extends Controller
      */
     public function forceDelete($id)
     {
-        $currentUser = auth()->user();
+        $currentUser = User::getEffectiveUser();
 
-        if (!$currentUser->isSuperAdmin()) {
-            abort(403, 'Only Super Admin can permanently delete users.');
+        if (!$currentUser->hasPermission('bin.force_delete')) {
+            abort(403, 'Unauthorized: Only specialized users can permanently delete records.');
         }
 
         $user = User::onlyTrashed()->findOrFail($id);
@@ -1392,9 +1398,9 @@ class UserController extends Controller
      */
     public function idCard(User $user, Request $request)
     {
-        // Only Super Admin can generate ID cards for now
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403, 'Unauthorized. Only Super Admin can generate ID cards.');
+        // Only specific users can generate ID cards
+        if (!User::getEffectiveUser()->hasPermission('team.id_card')) {
+            abort(403, 'Unauthorized. You do not have permission to generate ID cards.');
         }
 
         $format = $request->get('format', 'png'); // Default to PNG, can be 'pdf' or 'svg'
@@ -1493,8 +1499,8 @@ class UserController extends Controller
     public function printAllIdCards(Request $request)
     {
         // Only Super Admin can print IDs
-        if (!auth()->user()->isSuperAdmin()) {
-            abort(403, 'Unauthorized. Only Super Admin can print ID cards.');
+        if (!User::getEffectiveUser()->hasPermission('team.id_card')) {
+            abort(403, 'Unauthorized. You do not have permission to generate ID cards.');
         }
 
         // Get active users with profile pictures, optionally filtered by selection
@@ -1516,11 +1522,11 @@ class UserController extends Controller
      */
     public function toggleOic(User $user)
     {
-        $currentUser = auth()->user();
+        $currentUser = User::getEffectiveUser();
 
         // Permission check
-        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_assign_oic')) {
-            abort(403, 'Unauthorized access: You do not have permission to assign Officer in Charge status.');
+        if (!$currentUser->hasPermission('staffs.manage')) {
+            abort(403, 'Unauthorized access.');
         }
 
         if ($user->employee_id === 'HFSA000001' && $currentUser->employee_id !== 'HFSA000001') {
@@ -1620,9 +1626,9 @@ class UserController extends Controller
      */
     public function toggleSalaryMode(User $user)
     {
-        $currentUser = auth()->user();
-        if (!$currentUser->isSuperAdmin()) {
-            abort(403, 'Only Super Admin can change salary mode.');
+        $currentUser = User::getEffectiveUser();
+        if (!$currentUser->hasPermission('users.salary_mode')) {
+            abort(403, 'Unauthorized access.');
         }
 
         if ($user->employee_id === 'HFSA000001' && $currentUser->employee_id !== 'HFSA000001') {
@@ -1666,8 +1672,8 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         // Access check: only upline can upload
-        if ($user->parent_id !== $currentUser->id && !$currentUser->isSuperAdmin()) {
-            abort(403, 'Unauthorized access');
+        if ($user->parent_id !== $currentUser->id && !$currentUser->hasPermission('team.view_any_profile')) {
+            abort(403, 'Unauthorized access: You can only view your own downline profiles.');
         }
 
         if ($request->hasFile('signed_letter')) {
@@ -1748,8 +1754,8 @@ class UserController extends Controller
      */
     public function resetAndRevealPassword(User $user)
     {
-        $currentUser = auth()->user();
-        if (!$currentUser->isSuperAdmin()) {
+        $currentUser = User::getEffectiveUser();
+        if (!$currentUser->hasPermission('users.reset_password')) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 

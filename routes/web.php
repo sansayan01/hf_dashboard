@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserPermissionController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AttendanceController;
@@ -75,6 +76,11 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
         // Reset and Reveal Password
         Route::post('/{user}/reset-reveal-password', [UserController::class, 'resetAndRevealPassword'])->name('reset-reveal-password');
 
+        // Permissions & Controls
+        Route::get('/{user}/permissions', [UserPermissionController::class, 'show'])->name('permissions');
+        Route::put('/{user}/permissions', [UserPermissionController::class, 'update'])->name('permissions.update');
+        Route::post('/{user}/permissions/reset', [UserPermissionController::class, 'reset'])->name('permissions.reset');
+
         Route::match(['get', 'post'], '/bulk/print-all', [UserController::class, 'printAllIdCards'])->name('print-all-id-cards');
 
         // Real-time Uniqueness Check
@@ -145,6 +151,12 @@ Route::middleware(['auth', 'hierarchy.access'])->group(function () {
 
     // Admin Control Panel (Super Admin Only)
     Route::get('/admin/control-panel', [App\Http\Controllers\AdminPanelController::class, 'index'])->name('admin.control-panel');
+
+    // Bulk Role Permissions (Admin)
+    Route::get('/admin/permissions', [UserPermissionController::class, 'roleIndex'])->name('admin.permissions.index');
+    Route::get('/admin/permissions/{designation}', [UserPermissionController::class, 'roleShow'])->name('admin.permissions.show');
+    Route::put('/admin/permissions/{designation}', [UserPermissionController::class, 'roleUpdate'])->name('admin.permissions.update');
+    Route::post('/admin/permissions/{designation}/reset', [UserPermissionController::class, 'roleReset'])->name('admin.permissions.reset');
 
     // Profile Settings
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');

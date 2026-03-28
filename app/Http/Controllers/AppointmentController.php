@@ -15,7 +15,7 @@ class AppointmentController extends Controller
     public function index(Survey $patient)
     {
         // Permission Check
-        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+        if (!auth()->user()->hasPermission('appointments.view')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -36,7 +36,7 @@ class AppointmentController extends Controller
     {
         $currentUser = auth()->user();
         // Permission Check
-        if (!$currentUser->isSuperAdmin() && !\App\Models\RolePermission::check($currentUser->designation, 'can_manage_appointments')) {
+        if (!$currentUser->hasPermission('appointments.view')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -121,7 +121,7 @@ class AppointmentController extends Controller
     public function export(Request $request)
     {
         // Permission Check
-        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+        if (!auth()->user()->hasPermission('appointments.export')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -249,7 +249,7 @@ class AppointmentController extends Controller
     {
         $user = User::getEffectiveUser();
         // Permission Check
-        if (!$user->isSuperAdmin() && !\App\Models\RolePermission::check($user->designation, 'can_manage_appointments')) {
+        if (!$user->hasPermission('appointments.create')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -332,7 +332,7 @@ class AppointmentController extends Controller
     public function edit(Appointment $appointment)
     {
         // Permission Check
-        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+        if (!auth()->user()->hasPermission('appointments.edit')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -352,7 +352,7 @@ class AppointmentController extends Controller
     public function update(Request $request, Appointment $appointment)
     {
         // Permission Check
-        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+        if (!auth()->user()->hasPermission('appointments.edit')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -407,8 +407,8 @@ class AppointmentController extends Controller
      */
     public function complete(Appointment $appointment)
     {
-        // Check access - Powered by RolePermission
-        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+        // Check access
+        if (!auth()->user()->hasPermission('appointments.complete')) {
             abort(403);
         }
 
@@ -437,7 +437,7 @@ class AppointmentController extends Controller
     public function destroy(Appointment $appointment)
     {
         // Permission Check
-        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+        if (!auth()->user()->hasPermission('appointments.delete')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -463,7 +463,7 @@ class AppointmentController extends Controller
     public function reportMissed(Appointment $appointment)
     {
         // Check access
-        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+        if (!auth()->user()->hasPermission('appointments.report_missed')) {
             abort(403);
         }
 
@@ -484,7 +484,7 @@ class AppointmentController extends Controller
      */
     public function confirmMissed(Appointment $appointment)
     {
-        if (!auth()->user()->isSuperAdmin() && !\App\Models\RolePermission::check(auth()->user()->designation, 'can_manage_appointments')) {
+        if (!auth()->user()->hasPermission('appointments.report_missed')) {
             abort(403, 'Unauthorized access.');
         }
 

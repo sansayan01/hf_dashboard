@@ -97,6 +97,7 @@
                             </td>
                             <td class="px-8 py-6 text-right">
                                 <div class="flex items-center justify-end space-x-3">
+                                    @if(auth()->user()->hasPermission('bin.patient_restore'))
                                     <form action="{{ route('patients.restore', $patient->id) }}" method="POST">
                                         @csrf
                                         <button type="submit"
@@ -104,8 +105,9 @@
                                             Restore Record
                                         </button>
                                     </form>
+                                    @endif
 
-                                    @if(auth()->user()->isSuperAdmin())
+                                    @if(auth()->user()->hasPermission('bin.force_delete'))
                                         <form action="{{ route('patients.force-delete', $patient->id) }}" method="POST"
                                             id="force-delete-{{ $patient->id }}">
                                             @csrf

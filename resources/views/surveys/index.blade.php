@@ -43,25 +43,27 @@
                         <span class="hidden lg:inline uppercase tracking-widest">View All</span>
                     </a>
                 @endif
-                <button type="button" onclick="toggleNIA()" id="nia-toggle-btn"
-                    class="px-4 py-2 {{ request('show_nia') ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} rounded-xl text-sm font-bold hover:opacity-80 transition flex items-center space-x-2">
-                    @if(request('show_nia'))
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        <span>View Active</span>
-                    @else
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                        <span>View NIA</span>
-                    @endif
-                </button>
-                <input type="hidden" name="show_nia" value="{{ request('show_nia', 0) }}" form="filterForm">
+                @if(auth()->user()->hasPermission('survey.view_nia'))
+                    <button type="button" onclick="toggleNIA()" id="nia-toggle-btn"
+                        class="px-4 py-2 {{ request('show_nia') ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }} rounded-xl text-sm font-bold hover:opacity-80 transition flex items-center space-x-2">
+                        @if(request('show_nia'))
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <span>View Active</span>
+                        @else
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                            </svg>
+                            <span>View NIA</span>
+                        @endif
+                    </button>
+                    <input type="hidden" name="show_nia" value="{{ request('show_nia', 0) }}" form="filterForm">
+                @endif
 
                 <button type="button" onclick="toggleFilters()"
                     class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center space-x-2">
@@ -72,10 +74,12 @@
                     </svg>
                     <span>Filter</span>
                 </button>
-                <a href="{{ route('surveys.create') }}"
-                    class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
-                    + New Survey
-                </a>
+                @if(auth()->user()->hasPermission('survey.create'))
+                    <a href="{{ route('surveys.create') }}"
+                        class="px-4 py-2 bg-accent text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/10 hover:opacity-90 transition">
+                        + New Survey
+                    </a>
+                @endif
             </div>
         </div>
 
@@ -411,7 +415,7 @@
             </div>
         @else
             <!-- Bulk Actions Bar -->
-            @if(Auth::user()->isSuperAdmin())
+            @if(auth()->user()->hasPermission('survey.bulk_delete'))
                 <div id="bulk-actions-bar"
                     class="hidden sticky top-0 z-20 bg-accent text-white px-6 py-4 flex items-center justify-between shadow-xl">
                     <div class="flex items-center space-x-4">
@@ -439,7 +443,7 @@
                     <table class="w-full text-left border-collapse" id="surveys-table">
                         <thead>
                             <tr class="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5">
-                                @if(Auth::user()->isSuperAdmin())
+                                @if(auth()->user()->hasPermission('survey.bulk_delete'))
                                     <th class="p-6 w-10">
                                         <input type="checkbox" id="select-all"
                                             class="w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent transition-all cursor-pointer">
@@ -475,7 +479,7 @@
                 @endif
             </div>
 
-            @if(Auth::user()->isSuperAdmin())
+            @if(auth()->user()->hasPermission('survey.bulk_delete'))
                 <script>
                     function initBulkSelection() {
                         const selectAll = document.getElementById('select-all');

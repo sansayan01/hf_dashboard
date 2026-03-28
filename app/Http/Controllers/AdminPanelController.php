@@ -17,15 +17,15 @@ class AdminPanelController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user->isSuperAdmin()) {
-            abort(403, 'Unauthorized access: Only Super Admin can access the Control Panel.');
+        if (!$user->hasPermission('admin.view')) {
+            abort(403, 'Unauthorized access: You do not have permission to access the Control Panel.');
         }
 
         // Stats for the tiles
         $stats = [
             'permissions' => [
-                'roles_count' => 6, // office_in_charge, hs, dm, bm, rm, ro
-                'total_perms' => RolePermission::count(),
+                'roles_count' => 8, // hs, dm, bm, rm, ro, office_in_charge, staff, camp_organizer
+                'total_perms' => count(\App\Models\User::PERMISSION_DEFAULTS),
             ],
             'coupons' => [
                 'total' => CouponCode::count(),

@@ -490,14 +490,16 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ route('expenses.export', request()->query()) }}" class="btn-secondary" id="exportBtn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Export
-                </a>
-                @if(auth()->user()->hasFinancePermission('edit'))
+                @if(auth()->user()->hasPermission('finances.export_expense'))
+                    <a href="{{ route('expenses.export', request()->query()) }}" class="btn-secondary" id="exportBtn">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export
+                    </a>
+                @endif
+                @if(auth()->user()->hasPermission('finances.create_expense'))
                     <a href="{{ route('expenses.create') }}" class="btn-primary">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />

@@ -94,6 +94,7 @@ class User extends Authenticatable
         'password_plain',
         'offer_letter_signed',
         'finance_permission',
+        'permissions',
     ];
 
     /**
@@ -122,6 +123,7 @@ class User extends Authenticatable
             'can_create_users' => 'boolean',
             'can_edit_user_details' => 'boolean',
             'joining_donation' => 'decimal:2',
+            'permissions' => 'array',
         ];
     }
 
@@ -372,17 +374,7 @@ class User extends Authenticatable
     // Check if user can create users
     public function canCreateUsers()
     {
-        if ($this->isSuperAdmin())
-            return true;
-
-        // Check per-user override first (Inherited)
-        if ($this->hasInheritedPermission('can_create_users')) {
-            return true;
-        }
-
-        // For OIC, we check if they have permission button enabled.
-        // What they can create is determined by getAllowedChildDesignation (proxied to Upline).
-        return RolePermission::check($this->designation, 'can_create_users');
+        return $this->hasPermission('team.create_users');
     }
 
     /**
@@ -406,40 +398,20 @@ class User extends Authenticatable
 
     public function canViewDownline()
     {
-        if ($this->isSuperAdmin())
-            return true;
-
-        // If they can create members, they must be able to view their team to access the button
-        if ($this->canCreateUsers()) {
-            return true;
-        }
-
-        return RolePermission::check($this->designation, 'can_view_downline');
+        return $this->hasPermission('team.view');
     }
 
     public function canEditUserDetails()
     {
-        if ($this->isSuperAdmin())
-            return true;
-
-        // Check per-user override first
-        if ($this->can_edit_user_details) {
-            return true;
-        }
-
-        return RolePermission::check($this->designation, 'can_edit_user_details');
+        return $this->hasPermission('team.edit_users');
     }
 
     public function hasFinancePermission($type = 'view')
     {
-        if (in_array($this->employee_id, ['HFSA000001', 'HFSA000002'])) {
-            return true;
-        }
-
         if ($type === 'view') {
-            return in_array($this->finance_permission, ['view', 'edit']);
+            return $this->hasPermission('finances.view');
         } elseif ($type === 'edit') {
-            return $this->finance_permission === 'edit';
+            return $this->hasPermission('finances.create_income') || $this->hasPermission('finances.create_expense');
         }
 
         return false;
@@ -447,19 +419,7 @@ class User extends Authenticatable
 
     public function canApprove(User $user)
     {
-        if ($this->isSuperAdmin())
-            return true;
-
-        // If OIC, check if Upline could approve (based on designation logic)
-        // AND check if OIC has the specific permission enabled
-        if ($this->isOfficeInCharge() && $this->upline) {
-            // Proxy upline's designation for the logic, but use OIC's own enabled permission toggle
-            // Actually, "if admin permit him" implies OIC's RolePermission.
-            // But the SCOPE relies on Upline.
-            return RolePermission::check($this->designation, 'can_approve_users');
-        }
-
-        return RolePermission::check($this->designation, 'can_approve_users');
+        return $this->hasPermission('team.approve_users');
     }
 
     // Get allowed child designation
@@ -940,4 +900,199 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    // ──────────────────────────────────────────────────────────
+    // Permissions & Controls System
+    // ──────────────────────────────────────────────────────────
+
+    /**
+     * Master defaults map: permission_key => default boolean.
+     * When a user has no per-user override, these defaults apply.
+     */
+    public const PERMISSION_DEFAULTS = [
+        // Dashboard
+        'dashboard.view' => true,
+        'dashboard.view_stats' => true,
+        'dashboard.view_earnings' => true,
+        'dashboard.view_reports' => true,
+        'dashboard.view_financial_overview' => false,
+        'dashboard.view_hierarchy_tree' => true,
+        'dashboard.view_as' => false,
+
+        // Survey
+        'survey.view' => true,
+        'survey.create' => true,
+        'survey.edit' => true,
+        'survey.delete' => true,
+        'survey.bulk_delete' => false,
+        'survey.view_nia' => true,
+
+        // Patients
+        'patients.view' => true,
+        'patients.create' => true,
+        'patients.edit' => true,
+        'patients.delete' => true,
+        'patients.export' => false,
+        'patients.view_profile' => true,
+
+        // Appointments
+        'appointments.view' => true,
+        'appointments.create' => true,
+        'appointments.edit' => true,
+        'appointments.delete' => true,
+        'appointments.complete' => true,
+        'appointments.report_missed' => true,
+        'appointments.export' => false,
+
+        // Attendance
+        'attendance.view' => true,
+        'attendance.mark' => true,
+        'attendance.view_report' => true,
+        'attendance.export' => false,
+
+        // Membership
+        'membership.view' => true,
+        'membership.register' => true,
+        'membership.cancel' => false,
+
+        // Inventory
+        'inventory.view' => true,
+        'inventory.add_stock' => false,
+        'inventory.dispense' => true,
+        'inventory.transfer' => false,
+        'inventory.view_transactions' => true,
+        'inventory.edit_transactions' => false,
+        'inventory.export' => false,
+        'inventory.manage_medicines' => false,
+        'inventory.manage_warehouses' => false,
+        'inventory.manage_sponsors' => false,
+        'inventory.billing' => true,
+
+        // My Team
+        'team.view' => true,
+        'team.create_users' => true,
+        'team.edit_users' => true,
+        'team.approve_users' => true,
+        'team.edit_restricted' => false,
+        'team.delete_users' => false,
+        'team.view_profile' => true,
+        'team.view_any_profile' => false,
+        'team.view_password' => false,
+        'team.generate_id_card' => false,
+        'team.generate_offer_letter' => true,
+        'team.toggle_oic' => false,
+        'team.toggle_salary_mode' => false,
+        'team.bulk_actions' => false,
+        'team.export' => false,
+
+        // Staffs
+        'staffs.view' => false,
+        'staffs.create' => false,
+        'staffs.edit' => false,
+        'staffs.delete' => false,
+        'staffs.export' => false,
+
+        // BIN Recovery
+        'bin.view' => false,
+        'bin.view_all' => false,
+        'bin.restore' => false,
+        'bin.force_delete' => false,
+        'bin.patient_bin' => false,
+        'bin.patient_restore' => false,
+
+        // Finances
+        'finances.view' => false,
+        'finances.view_income' => false,
+        'finances.create_income' => false,
+        'finances.edit_income' => false,
+        'finances.export_income' => false,
+        'finances.view_expense' => false,
+        'finances.create_expense' => false,
+        'finances.edit_expense' => false,
+        'finances.export_expense' => false,
+
+        // Admin Controls
+        'admin.view' => false,
+        'admin.manage_roles' => false,
+        'admin.manage_incentives' => false,
+        'admin.manage_coupons' => false,
+        'admin.system_settings' => false,
+        'admin.manage_permissions' => false,
+
+        // Pathology
+        'pathology.view' => true,
+        'pathology.create' => true,
+
+        // Additional Inventory
+        'inventory.adjust' => false,
+
+        // Camp Records
+        'finances.view_camp_records' => false,
+        'finances.create_camp_record' => false,
+        'finances.edit_camp_record' => false,
+        'finances.delete_camp_record' => false,
+        'finances.export_camp_records' => false,
+    ];
+
+    /**
+     * Check if the user has a specific permission.
+     *
+     * Priority:
+     *   1. Super Admins (HFSA000001, HFSA000002) always return true
+     *   2. Per-user JSON override (if key exists in permissions column)
+     *   3. Role-level override from role_permissions table (bulk editor)
+     *   4. Fall back to PERMISSION_DEFAULTS
+     */
+    public function hasPermission(string $key): bool
+    {
+        // Super Admins bypass all permission checks
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Check per-user override first
+        $perUser = $this->permissions;
+        if (is_array($perUser) && array_key_exists($key, $perUser)) {
+            return (bool) $perUser[$key];
+        }
+
+        // Check role-level override (bulk permissions)
+        $roleOverride = RolePermission::getPermissionForRole($this->designation, $key);
+        if ($roleOverride !== null) {
+            return $roleOverride;
+        }
+
+        // Fall back to defaults
+        return self::PERMISSION_DEFAULTS[$key] ?? false;
+    }
+
+    /**
+     * Get all permissions as a merged array (defaults + role overrides + per-user overrides).
+     */
+    public function getAllPermissions(): array
+    {
+        $defaults = self::PERMISSION_DEFAULTS;
+        $roleOverrides = RolePermission::getForRole($this->designation);
+        $userOverrides = $this->permissions ?? [];
+
+        return array_merge($defaults, $roleOverrides, $userOverrides);
+    }
+
+
+    /**
+     * Set a specific permission for the user.
+     */
+    public function setPermission(string $key, bool $value): void
+    {
+        $permissions = $this->permissions ?? [];
+        $permissions[$key] = $value;
+        $this->permissions = $permissions;
+    }
+
+    /**
+     * Reset all permissions to defaults (clear overrides).
+     */
+    public function resetPermissions(): void
+    {
+        $this->permissions = null;
+    }
 }

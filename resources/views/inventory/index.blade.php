@@ -77,19 +77,25 @@
 
             <!-- Quick Navigation -->
             <div class="flex flex-wrap items-center gap-2">
-                @if(auth()->user()->designation !== 'staff')
+                @if(auth()->user()->hasPermission('inventory.manage_warehouses'))
                     <a href="{{ route('inventory.warehouses.index') }}"
                         class="px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition">Warehouses</a>
                     <a href="{{ route('inventory.camps.index') }}"
                         class="px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition">Camps</a>
+                @endif
+                @if(auth()->user()->hasPermission('inventory.manage_sponsors'))
                     <a href="{{ route('inventory.sponsors.index') }}"
                         class="px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition">Sponsors</a>
+                @endif
+                @if(auth()->user()->hasPermission('inventory.manage_medicines'))
                     <a href="{{ route('inventory.medicines.index') }}"
                         class="px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition">Medicine
                         Registry</a>
                 @endif
+                @if(auth()->user()->hasPermission('inventory.view_transactions'))
                 <a href="{{ route('inventory.transactions') }}"
                     class="px-3 py-2 text-xs font-bold bg-slate-50 dark:bg-white/5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition">Logs</a>
+                @endif
             </div>
         </div>
 
@@ -208,6 +214,7 @@
 
             <!-- Quick Actions (Takes 1 col) -->
             <div class="lg:col-span-1 flex flex-col gap-4">
+                @if(auth()->user()->hasPermission('inventory.add_stock'))
                 <a href="{{ route('inventory.create') }}"
                     class="group bg-accent text-white rounded-3xl p-6 flex flex-col items-center justify-center text-center shadow-xl shadow-accent/20 hover:opacity-90 transition relative overflow-hidden">
                     <div
@@ -219,8 +226,10 @@
                     <span class="font-bold">Stock In</span>
                     <span class="text-[10px] opacity-80 mt-1">Add new purchase</span>
                 </a>
+                @endif
 
                 <div class="grid grid-cols-2 gap-4 flex-1">
+                    @if(auth()->user()->hasPermission('inventory.dispense'))
                     <a href="{{ route('inventory.dispense') }}"
                         class="bg-emerald-500 text-white rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-lg shadow-emerald-500/20 hover:opacity-90 transition">
                         <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,6 +238,8 @@
                         </svg>
                         <span class="font-bold text-xs">New Bill</span>
                     </a>
+                    @endif
+                    @if(auth()->user()->hasPermission('inventory.transfer'))
                     <a href="{{ route('inventory.transfer') }}"
                         class="bg-amber-500 text-white rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-lg shadow-amber-500/20 hover:opacity-90 transition">
                         <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,6 +248,8 @@
                         </svg>
                         <span class="font-bold text-xs">Transfer</span>
                     </a>
+                    @endif
+                    @if(auth()->user()->hasPermission('inventory.manage_medicines'))
                     <a href="{{ route('inventory.medicines.create') }}"
                         class="bg-indigo-500 text-white rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-lg shadow-indigo-500/20 hover:opacity-90 transition">
                         <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,6 +258,7 @@
                         </svg>
                         <span class="font-bold text-xs">Add Med</span>
                     </a>
+                    @endif
                     <a href="#" onclick="alert('Use Transactions Log to identify returns.')"
                         class="bg-rose-500 text-white rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-lg shadow-rose-500/20 hover:opacity-90 transition">
                         <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -570,6 +584,7 @@
                                     <span>Filter</span>
                                 </button>
 
+                                @if(auth()->user()->hasPermission('inventory.export'))
                                 <a href="#" id="download-batch-csv"
                                     onclick="event.preventDefault(); downloadBatchCSV();"
                                     class="h-10 px-4 rounded-2xl bg-emerald-500 text-white text-xs font-bold hover:bg-opacity-90 transition-all shadow-md shadow-emerald-500/20 flex items-center space-x-2"
@@ -580,6 +595,7 @@
                                     </svg>
                                     <span>CSV</span>
                                 </a>
+                                @endif
 
                                 @if($activeFilterCount > 0)
                                     <a href="{{ route('inventory.index') }}"
@@ -650,6 +666,7 @@
                                     </td>
                                     <td class="p-4 text-right">
                                         <div class="flex items-center justify-end space-x-2">
+                                            @if(auth()->user()->hasPermission('inventory.adjust'))
                                             <a href="{{ route('inventory.adjust', $stock->id) }}"
                                                 class="text-slate-400 hover:text-accent transition" title="Manual Adjustment">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -657,6 +674,8 @@
                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                 </svg>
                                             </a>
+                                            @endif
+                                            @if(auth()->user()->hasPermission('inventory.transfer'))
                                             <a href="{{ route('inventory.transfer', ['stock_id' => $stock->id]) }}"
                                                 class="text-slate-400 hover:text-accent transition" title="Transfer Stock">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -664,6 +683,7 @@
                                                         d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                                 </svg>
                                             </a>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

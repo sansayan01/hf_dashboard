@@ -73,6 +73,7 @@
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end space-x-2">
+                                    @if(auth()->user()->hasPermission('bin.restore'))
                                     <form action="{{ route('users.restore', $u->id) }}" method="POST">
                                         @csrf
                                         <button type="submit"
@@ -80,8 +81,9 @@
                                             Restore
                                         </button>
                                     </form>
+                                    @endif
 
-                                    @if(auth()->user()->isSuperAdmin())
+                                    @if(auth()->user()->hasPermission('bin.force_delete'))
                                         <form action="{{ route('users.force-delete', $u->id) }}" method="POST"
                                             onsubmit="return confirm('PERMANENTLY DELETE? This cannot be undone!')">
                                             @csrf

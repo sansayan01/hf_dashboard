@@ -15,7 +15,8 @@
         <!-- Main Hub Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             <!-- 1. Permissions -->
-            <a href="{{ route('profile.edit') }}"
+            @if(auth()->user()->hasPermission('admin.manage_roles'))
+            <a href="{{ route('admin.permissions.index') }}"
                 class="group relative block p-1 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[2.5rem] shadow-2xl transition-all hover:scale-[1.02] hover:-translate-y-1 duration-500">
                 <div class="bg-white dark:bg-darkcard rounded-[2.4rem] p-8 h-full relative overflow-hidden">
                     <!-- Shimmer Background -->
@@ -54,8 +55,10 @@
                     </div>
                 </div>
             </a>
+            @endif
 
             <!-- 2. Coupons -->
+            @if(auth()->user()->hasPermission('admin.manage_coupons'))
             <a href="{{ route('coupons.index') }}"
                 class="group relative block p-1 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-[2.5rem] shadow-2xl transition-all hover:scale-[1.02] hover:-translate-y-1 duration-500">
                 <div class="bg-white dark:bg-darkcard rounded-[2.4rem] p-8 h-full relative overflow-hidden">
@@ -94,8 +97,10 @@
                     </div>
                 </div>
             </a>
+            @endif
 
             <!-- 3. Incentives -->
+            @if(auth()->user()->hasPermission('admin.manage_incentives'))
             <a href="{{ route('admin.incentive-configs.index') }}"
                 class="group relative block p-1 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 rounded-[2.5rem] shadow-2xl transition-all hover:scale-[1.02] hover:-translate-y-1 duration-500">
                 <div class="bg-white dark:bg-darkcard rounded-[2.4rem] p-8 h-full relative overflow-hidden">
@@ -135,6 +140,7 @@
                     </div>
                 </div>
             </a>
+            @endif
         </div>
 
         <!-- Secondary Info Section -->

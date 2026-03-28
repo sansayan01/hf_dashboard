@@ -54,35 +54,38 @@
             <div class="divide-y divide-slate-100 dark:divide-white/5">
 
                 <!-- Camp Records Option -->
-                <a href="{{ route('camp_records.index') }}"
-                    class="group flex items-center justify-between p-6 sm:px-8 hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
-                    <div class="flex items-center space-x-5">
+                @if(auth()->user()->hasPermission('finances.view_camp_records'))
+                    <a href="{{ route('camp_records.index') }}"
+                        class="group flex items-center justify-between p-6 sm:px-8 hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
+                        <div class="flex items-center space-x-5">
+                            <div
+                                class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-500/10 dark:to-blue-500/10 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20 shadow-sm text-indigo-500 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4
+                                    class="text-lg font-bold text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                    Camp Records</h4>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5 max-w-lg">Track
+                                    expenses, revenue, and patients for all health camps globally.</p>
+                            </div>
+                        </div>
+                        <!-- Right Chev -->
                         <div
-                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-500/10 dark:to-blue-500/10 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20 shadow-sm text-indigo-500 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shrink-0">
+                            class="text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 group-hover:translate-x-1 transition-all">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </div>
-                        <div>
-                            <h4
-                                class="text-lg font-bold text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                Camp Records</h4>
-                            <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5 max-w-lg">Track
-                                expenses, revenue, and patients for all health camps globally.</p>
-                        </div>
-                    </div>
-                    <!-- Right Chev -->
-                    <div
-                        class="text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 group-hover:translate-x-1 transition-all">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                </a>
+                    </a>
+                @endif
 
                 <!-- Expense Tracker Option -->
-                <a href="{{ route('expenses.index') }}"
+                @if(auth()->user()->hasPermission('finances.view_expense'))
+                    <a href="{{ route('expenses.index') }}"
                     class="group flex items-center justify-between p-6 sm:px-8 hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                     <div class="flex items-center space-x-5">
                         <div
@@ -108,9 +111,11 @@
                         </svg>
                     </div>
                 </a>
+                @endif
 
                 <!-- Income Tracker Option -->
-                <a href="{{ route('incomes.index') }}"
+                @if(auth()->user()->hasPermission('finances.view_income'))
+                    <a href="{{ route('incomes.index') }}"
                     class="group flex items-center justify-between p-6 sm:px-8 hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
                     <div class="flex items-center space-x-5">
                         <div
@@ -136,6 +141,7 @@
                         </svg>
                     </div>
                 </a>
+                @endif
 
             </div>
         </div>

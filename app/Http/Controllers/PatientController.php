@@ -19,11 +19,7 @@ class PatientController extends Controller
         $user = User::getEffectiveUser();
 
         // Permission check
-        if (
-            !$user->isSuperAdmin() &&
-            !RolePermission::check($user->designation, 'can_create_surveys') &&
-            $user->designation !== 'staff'
-        ) {
+        if (!$user->hasPermission('patients.view')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -132,12 +128,8 @@ class PatientController extends Controller
     {
         $user = User::getEffectiveUser();
 
-        // Permission check (Allow Super Admin, users with survey permission, and Pharmacists)
-        if (
-            !$user->isSuperAdmin() &&
-            !RolePermission::check($user->designation, 'can_create_surveys') &&
-            $user->designation !== 'staff'
-        ) {
+        // Permission check
+        if (!$user->hasPermission('patients.view')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -229,7 +221,7 @@ class PatientController extends Controller
         $user = User::getEffectiveUser();
 
         // Permission check
-        if (!$user->isSuperAdmin() && !RolePermission::check($user->designation, 'can_create_surveys')) {
+        if (!$user->hasPermission('patients.create')) {
             abort(403, 'Unauthorized: You do not have permission to register new patients.');
         }
 
@@ -246,7 +238,7 @@ class PatientController extends Controller
         $user = User::getEffectiveUser();
 
         // Permission check
-        if (!$user->isSuperAdmin() && !RolePermission::check($user->designation, 'can_create_surveys')) {
+        if (!$user->hasPermission('patients.create')) {
             abort(403, 'Unauthorized: You do not have permission to register new patients.');
         }
 
@@ -397,8 +389,11 @@ class PatientController extends Controller
     public function show(Survey $patient)
     {
         /** @var Survey $patient */
-        // Authorization Check
+        // Permission & Authorization Check
         $user = Auth::user();
+        if (!$user->hasPermission('patients.view_profile')) {
+            abort(403, 'Unauthorized access.');
+        }
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
             abort(403);
         }
@@ -422,8 +417,11 @@ class PatientController extends Controller
      */
     public function edit(Survey $patient)
     {
-        // Authorization Check: Only creator or their upline can edit
+        // Permission & Authorization Check
         $user = Auth::user();
+        if (!$user->hasPermission('patients.edit')) {
+            abort(403, 'Unauthorized access.');
+        }
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
             abort(403);
         }
@@ -437,8 +435,11 @@ class PatientController extends Controller
     public function update(Request $request, Survey $patient)
     {
         /** @var Survey $patient */
-        // Authorization Check
+        // Permission & Authorization Check
         $user = Auth::user();
+        if (!$user->hasPermission('patients.edit')) {
+            abort(403, 'Unauthorized access.');
+        }
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
             abort(403);
         }
@@ -508,8 +509,11 @@ class PatientController extends Controller
     public function destroy(Survey $patient)
     {
         /** @var Survey $patient */
-        // Authorization Check
+        // Permission & Authorization Check
         $user = Auth::user();
+        if (!$user->hasPermission('patients.delete')) {
+            abort(403, 'Unauthorized access.');
+        }
         if ($user->id !== $patient->created_by && !$user->canAccess($patient->creator)) {
             abort(403);
         }
@@ -533,6 +537,9 @@ class PatientController extends Controller
     public function bin()
     {
         $currentUser = Auth::user();
+        if (!$currentUser->hasPermission('bin.patient_bin')) {
+            abort(403, 'Unauthorized access.');
+        }
 
         $query = Survey::onlyTrashed()->with('creator.profile');
 
@@ -552,7 +559,11 @@ class PatientController extends Controller
         $patient = Survey::onlyTrashed()->findOrFail($id);
         $currentUser = Auth::user();
 
-        // Check if user has access to the record
+        // Permission & Authorization Check
+        if (!$currentUser->hasPermission('bin.patient_restore')) {
+            abort(403, 'Unauthorized access.');
+        }
+        
         if ($currentUser->id !== $patient->created_by && !$currentUser->canAccess($patient->creator)) {
             abort(403);
         }
@@ -575,8 +586,8 @@ class PatientController extends Controller
      */
     public function forceDelete($id)
     {
-        if (!Auth::user()->isSuperAdmin()) {
-            abort(403, 'Only Super Admin can permanently delete records.');
+        if (!Auth::user()->hasPermission('bin.force_delete')) {
+            abort(403, 'You do not have permission to permanently delete records.');
         }
 
         $patient = Survey::onlyTrashed()->findOrFail($id);

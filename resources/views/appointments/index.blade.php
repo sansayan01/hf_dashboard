@@ -50,13 +50,15 @@
                         </span>
                     </div>
                 </div>
-                <a href="{{ route('patients.appointments.create', $patient->id) }}"
-                    class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    New Appointment
-                </a>
+                @if(auth()->user()->hasPermission('appointments.create'))
+                    <a href="{{ route('patients.appointments.create', $patient->id) }}"
+                        class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        New Appointment
+                    </a>
+                @endif
             </div>
         </div>
 
@@ -123,7 +125,7 @@
                         <div class="flex flex-col items-end space-y-2">
                              @if($appointment->status === 'scheduled' || $appointment->status === 'missed_reported')
                                 <div class="flex items-center space-x-2">
-                                    @if($appointment->status === 'scheduled' && (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()))
+                                    @if($appointment->status === 'scheduled' && auth()->user()->hasPermission('appointments.complete'))
                                         <form action="{{ route('appointments.complete', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Mark as successful?')">
                                             @csrf
                                             <button type="submit" class="p-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white rounded-xl transition-all shadow-sm border border-emerald-500/10" title="Mark Successful">
@@ -132,6 +134,8 @@
                                                 </svg>
                                             </button>
                                         </form>
+                                    @endif
+                                    @if($appointment->status === 'scheduled' && auth()->user()->hasPermission('appointments.report_missed'))
                                         <form action="{{ route('appointments.report_missed', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Report as missed?')">
                                             @csrf
                                             <button type="submit" class="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white rounded-xl transition-all shadow-sm border border-rose-500/10" title="Report Missed">
@@ -142,7 +146,7 @@
                                         </form>
                                     @endif
 
-                                    @if($appointment->status === 'missed_reported' && (auth()->user()->isSuperAdmin() || auth()->user()->isOfficeInCharge()))
+                                    @if($appointment->status === 'missed_reported' && auth()->user()->hasPermission('appointments.complete'))
                                         <form action="{{ route('appointments.complete', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Confirm as SUCCESSFUL?')">
                                             @csrf
                                             <button type="submit" class="p-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl transition-all shadow-lg shadow-emerald-500/20" title="Confirm Success">
@@ -151,6 +155,8 @@
                                                 </svg>
                                             </button>
                                         </form>
+                                    @endif
+                                    @if($appointment->status === 'missed_reported' && auth()->user()->hasPermission('appointments.report_missed'))
                                         <form action="{{ route('appointments.confirm_missed', $appointment->id) }}" method="POST" class="inline" onsubmit="return confirm('Confirm as NOT ATTENDED?')">
                                             @csrf
                                             <button type="submit" class="p-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition-all shadow-lg shadow-rose-500/20" title="Confirm Not Attended">
@@ -161,24 +167,28 @@
                                         </form>
                                     @endif
 
-                                    <a href="{{ route('patients.appointments.edit', $appointment->id) }}" 
-                                        class="p-2 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl transition-all shadow-sm border border-amber-500/10 group/edit"
-                                        title="Edit Appointment">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                    </a>
-                                    <form action="{{ route('patients.appointments.destroy', $appointment->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                            class="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white rounded-xl transition-all shadow-sm border border-rose-500/10 group/delete"
-                                            title="Delete Appointment">
+                                    @if(auth()->user()->hasPermission('appointments.edit'))
+                                        <a href="{{ route('patients.appointments.edit', $appointment->id) }}" 
+                                            class="p-2 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl transition-all shadow-sm border border-amber-500/10 group/edit"
+                                            title="Edit Appointment">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
-                                        </button>
-                                    </form>
+                                        </a>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('appointments.delete'))
+                                        <form action="{{ route('patients.appointments.destroy', $appointment->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                class="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-600 hover:text-white rounded-xl transition-all shadow-sm border border-rose-500/10 group/delete"
+                                                title="Delete Appointment">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    @endif>
                                 </div>
                             @endif
                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">Booked by</p>
@@ -214,10 +224,12 @@
                     </div>
                     <h3 class="text-slate-800 dark:text-white font-bold text-lg">No appointments yet</h3>
                     <p class="text-slate-500 text-sm mb-6">Schedule the first visit for this patient.</p>
-                    <a href="{{ route('patients.appointments.create', $patient->id) }}"
-                        class="px-6 py-2 bg-accent text-white font-bold rounded-xl text-sm hover:bg-accent/90 transition shadow-lg shadow-accent/20">
-                        Book Appointment
-                    </a>
+                    @if(auth()->user()->hasPermission('appointments.create'))
+                        <a href="{{ route('patients.appointments.create', $patient->id) }}"
+                            class="px-6 py-2 bg-accent text-white font-bold rounded-xl text-sm hover:bg-accent/90 transition shadow-lg shadow-accent/20">
+                            Book Appointment
+                        </a>
+                    @endif
                 </div>
             @endforelse
         </div>

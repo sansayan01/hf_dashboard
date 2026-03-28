@@ -1,6 +1,6 @@
 @foreach($surveys as $survey)
     <tr class="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
-        @if(Auth::user()->isSuperAdmin())
+        @if(auth()->user()->hasPermission('survey.bulk_delete'))
             <td class="p-6 w-10">
                 <input type="checkbox"
                     class="survey-checkbox w-5 h-5 rounded border-slate-300 text-accent focus:ring-accent accent-accent transition-all cursor-pointer"
@@ -29,7 +29,7 @@
                         class="inline-flex items-center px-4 py-2 bg-emerald-500/10 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-500/10">
                         Member
                     </span>
-                @elseif(auth()->user()->designation !== 'staff')
+                @elseif(auth()->user()->designation !== 'staff' && auth()->user()->hasPermission('membership.register'))
                     <a href="{{ route('patients.membership', $survey->id) }}"
                         class="inline-flex items-center space-x-2 px-4 py-2 bg-amber-500/10 text-amber-500 rounded-xl hover:bg-amber-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border border-amber-500/10 shadow-sm">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,7 +38,7 @@
                         </svg>
                         <span>Become Member</span>
                     </a>
-                @else
+                @elseif(auth()->user()->designation !== 'staff')
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Non-Member</span>
                 @endif
             </td>
@@ -72,14 +72,18 @@
         </td>
         <td class="p-6">
             <div class="flex items-center space-x-1">
+                @if(auth()->user()->hasPermission('appointments.create'))
                 <a href="{{ route('patients.appointments.create', $survey->id) }}"
                     class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-400 dark:hover:bg-indigo-500/20 text-[10px] font-black uppercase tracking-wider transition-colors">
                     Create
                 </a>
+                @endif
+                @if(auth()->user()->hasPermission('appointments.view'))
                 <a href="{{ route('patients.appointments.index', $survey->id) }}"
                     class="px-3 py-1.5 rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 text-[10px] font-black uppercase tracking-wider transition-colors">
                     View
                 </a>
+                @endif
             </div>
         </td>
         <td class="p-6">
@@ -115,25 +119,29 @@
         <td class="p-6 text-right">
             @if(Auth::id() === $survey->created_by || Auth::user()->canAccess($survey->creator))
                 <div class="flex items-center justify-end space-x-2">
-                    <a href="{{ route('surveys.edit', $survey->id) }}"
-                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 hover:bg-accent hover:text-white dark:bg-slate-800 dark:hover:bg-accent text-slate-400 transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                    </a>
-                    <form action="{{ route('surveys.destroy', $survey->id) }}" method="POST" class="inline-block"
-                        onsubmit="return confirm('Are you sure you want to delete this survey?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-500 hover:text-white dark:bg-slate-800 dark:hover:bg-red-500 text-slate-400 transition-all">
+                    @if(auth()->user()->hasPermission('survey.edit'))
+                        <a href="{{ route('surveys.edit', $survey->id) }}"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 hover:bg-accent hover:text-white dark:bg-slate-800 dark:hover:bg-accent text-slate-400 transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>
-                        </button>
-                    </form>
+                        </a>
+                    @endif
+                    @if(auth()->user()->hasPermission('survey.delete'))
+                        <form action="{{ route('surveys.destroy', $survey->id) }}" method="POST" class="inline-block"
+                            onsubmit="return confirm('Are you sure you want to delete this survey?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-500 hover:text-white dark:bg-slate-800 dark:hover:bg-red-500 text-slate-400 transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </form>
+                    @endif
                 </div>
             @endif
         </td>

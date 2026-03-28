@@ -55,7 +55,7 @@
         </td>
         <td class="text-right">
             <div class="flex items-center justify-end gap-1.5">
-                @if(auth()->user()->hasFinancePermission('edit'))
+                @if(auth()->user()->hasPermission('finances.edit_expense'))
                     <a href="{{ route('expenses.edit', $expense) }}"
                         class="icon-btn bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
