@@ -1037,31 +1037,37 @@ class User extends Authenticatable
      * Check if the user has a specific permission.
      *
      * Priority:
-     *   1. Super Admins (HFSA000001, HFSA000002) always return true
-     *   2. Per-user JSON override (if key exists in permissions column)
-     *   3. Role-level override from role_permissions table (bulk editor)
-     *   4. Fall back to PERMISSION_DEFAULTS
+     *   1. Primary Administrator (HFSA000001) always returns true (absolute safety)
+     *   2. Per-user JSON override (Toggle in Portal) - THIS TAKES PRIORITY FOR SAs
+     *   3. Role-level override (Bulk Editor)
+     *   4. Super Admins (default to true if no override exists)
+     *   5. Fall back to PERMISSION_DEFAULTS
      */
     public function hasPermission(string $key): bool
     {
-        // Super Admins bypass all permission checks
-        if ($this->isSuperAdmin()) {
+        // 1. Absolute safety for primary administrator
+        if ($this->employee_id === 'HFSA000001') {
             return true;
         }
 
-        // Check per-user override first
+        // 2. Per-user JSON override (if key exists in permissions column)
         $perUser = $this->permissions;
         if (is_array($perUser) && array_key_exists($key, $perUser)) {
             return (bool) $perUser[$key];
         }
 
-        // Check role-level override (bulk permissions)
+        // 3. Role-level override (bulk permissions)
         $roleOverride = RolePermission::getPermissionForRole($this->designation, $key);
         if ($roleOverride !== null) {
             return $roleOverride;
         }
 
-        // Fall back to defaults
+        // 4. Super Admins default to true if no override exists
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // 5. Fall back to defaults
         return self::PERMISSION_DEFAULTS[$key] ?? false;
     }
 
@@ -1070,11 +1076,19 @@ class User extends Authenticatable
      */
     public function getAllPermissions(): array
     {
-        $defaults = self::PERMISSION_DEFAULTS;
+        $basePermissions = self::PERMISSION_DEFAULTS;
+
+        // Super admins start with everything enabled by default
+        if ($this->isSuperAdmin()) {
+            foreach ($basePermissions as $key => $val) {
+                $basePermissions[$key] = true;
+            }
+        }
+
         $roleOverrides = RolePermission::getForRole($this->designation);
         $userOverrides = $this->permissions ?? [];
 
-        return array_merge($defaults, $roleOverrides, $userOverrides);
+        return array_merge($basePermissions, $roleOverrides, $userOverrides);
     }
 
 
