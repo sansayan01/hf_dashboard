@@ -282,13 +282,15 @@ class DashboardController extends Controller
      */
     private function buildTree(User $user)
     {
-        $children = $user->children()
-            ->whereNotIn('designation', ['office_in_charge', 'camp_organizer', 'staff'])
-            ->with(['profile'])
-            ->get()
-            ->map(function ($child) {
-                return $this->buildTree($child);
-            });
+        $directChildren = $user->getDirectChildren();
+        
+        if ($directChildren instanceof \Illuminate\Database\Eloquent\Collection) {
+            $directChildren->load('profile');
+        }
+
+        $children = $directChildren->map(function ($child) {
+            return $this->buildTree($child);
+        })->values();
 
         return [
             'id' => $user->id,
