@@ -292,6 +292,8 @@ class DashboardController extends Controller
             return $this->buildTree($child);
         })->values();
 
+        $totalDownline = $children->sum('total_downline') + $children->count();
+
         return [
             'id' => $user->id,
             'employee_id' => $user->employee_id,
@@ -300,6 +302,7 @@ class DashboardController extends Controller
             'status' => $user->status,
             'profile_picture' => $user->profile?->profile_picture ?? null,
             'children' => $children,
+            'total_downline' => $totalDownline,
         ];
     }
 

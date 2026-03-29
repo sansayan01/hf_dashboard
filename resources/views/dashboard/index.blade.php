@@ -799,7 +799,7 @@
                     </div>
                     
                     <!-- Visual Chart Container (Hidden by default) -->
-                    <div id="org-chart-container" class="hidden absolute inset-0 w-full h-full bg-slate-50/50 dark:bg-[#0c1221]/40" style="font-family: 'Outfit', sans-serif;">
+                    <div id="org-chart-container" class="hidden absolute inset-0 w-full h-full bg-[#f1f5f9] dark:bg-[#0c1221]/90" style="font-family: 'Outfit', sans-serif;">
                         <div id="org-chart-render" class="w-full h-full"></div>
                         
                         <!-- Floating Toolbar -->
@@ -1012,29 +1012,28 @@
             width: 100%;
             height: 100%;
             border-radius: 24px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.8));
             backdrop-filter: blur(20px) saturate(200%);
             -webkit-backdrop-filter: blur(20px) saturate(200%);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 1);
             box-shadow: 
-                0 10px 40px -10px rgba(31, 38, 135, 0.15),
-                inset 0 1px 0 rgba(255,255,255,0.8),
-                inset 0 -1px 0 rgba(255,255,255,0.2);
+                0 15px 35px -5px rgba(31, 38, 135, 0.1),
+                0 5px 15px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,1);
             position: relative;
             overflow: hidden;
             display: flex;
             align-items: center;
-            padding: 4px 16px;
+            padding: 8px 16px;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .dark .premium-node-card {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6));
-            border-color: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.8));
+            border-color: rgba(255, 255, 255, 0.15);
             box-shadow: 
                 0 20px 50px -10px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255,255,255,0.1),
-                inset 0 -1px 0 rgba(0,0,0,0.5);
+                inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
         .premium-node-card:hover {
@@ -1370,10 +1369,10 @@
             orgChart = new d3.OrgChart()
                 .container('#org-chart-render')
                 .data(flattenTree(data))
-                .nodeWidth(n => 240)
-                .nodeHeight(n => 150)
-                .childrenMargin(n => 80)
-                .compactMarginBetween(n => 45)
+                .nodeWidth(n => 280)
+                .nodeHeight(n => 160)
+                .childrenMargin(n => 100)
+                .compactMarginBetween(n => 50)
                 .compactMarginPair(n => 40)
                 .neighbourMargin(n => 60)
                 .onNodeClick(d => {
@@ -1412,16 +1411,14 @@
                                     <div class="premium-name">${d.data.name}</div>
                                     <div class="premium-role" style="color: ${statusColor}">${d.data.designation}</div>
                                     <div class="premium-badges">
-                                        <div class="premium-badge">
+                                        <div class="premium-badge" title="Employee ID">
                                             <svg style="width:10px; height:10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
                                             ${d.data.employee_id}
                                         </div>
-                                        ${d.data._directSubordinates > 0 ? `
-                                        <div class="premium-badge">
+                                        <div class="premium-badge" title="Total Team Size">
                                             <svg style="width:10px; height:10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                            ${d.data._directSubordinates}
+                                            ${d.data.total_downline || 0}
                                         </div>
-                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
