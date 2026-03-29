@@ -776,14 +776,7 @@
                 <div class="p-6 flex-1 bg-slate-50/30 dark:bg-transparent overflow-auto relative" id="tree-canvas">
                     <div id="tree-zoom-container" class="origin-top-left transition-transform duration-200">
                         <div id="tree-root" class="space-y-2">
-                            @if(in_array($user->employee_id, ['HFSA000001', 'HFSA000002']))
-                                @php
-                                    $superAdmins = \App\Models\User::where('designation', 'super_admin')->get();
-                                @endphp
-                                @foreach($superAdmins as $superAdmin)
-                                    @include('dashboard.partials.tree_item', ['item' => $superAdmin])
-                                @endforeach
-                            @elseif($user->isOfficeInCharge() && $user->upline)
+                            @if($user->isOfficeInCharge() && $user->upline)
                                 @include('dashboard.partials.tree_item', ['item' => $user->upline])
                             @else
                                 @include('dashboard.partials.tree_item', ['item' => $user])
