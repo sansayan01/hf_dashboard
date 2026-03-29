@@ -34,10 +34,6 @@ class DashboardController extends Controller
         }
 
         $canViewDownline = $user->hasPermission('team.view') && $user->hasPermission('dashboard.view_hierarchy_tree');
-        if (in_array($user->designation, ['staff', 'camp_organizer'])) {
-            $canViewDownline = false;
-        }
-
         $canViewReports = $user->hasPermission('dashboard.view_reports');
         $canApprove = $user->hasPermission('team.approve_users');
 

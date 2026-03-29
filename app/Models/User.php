@@ -452,23 +452,12 @@ class User extends Authenticatable
         if ($this->isSuperAdmin()) {
             // SA sees all HS users plus everyone reporting to ANY SA
             $saRoleIds = self::where('designation', 'super_admin')->pluck('id');
-            
-            $childrenQuery = self::where(function ($q) use ($saRoleIds) {
+            return self::where(function ($q) use ($saRoleIds) {
                 $q->where('designation', 'hs')
                     ->orWhereIn('parent_id', $saRoleIds);
-            });
-
-            // If this is HFSA000001 or HFSA000002, they can see other super admins
-            // ONLY if they are the ones viewing their own top-level downline
-            if (in_array($this->employee_id, ['HFSA000001', 'HFSA000002']) && auth()->check() && auth()->id() === $this->id) {
-                $childrenQuery->orWhere(function ($q) {
-                    $q->where('designation', 'super_admin')
-                      ->where('id', '!=', $this->id);
-                });
-                return $childrenQuery->whereNotIn('designation', ['office_in_charge', 'camp_organizer', 'staff'])->get();
-            }
-
-            return $childrenQuery->whereNotIn('designation', ['super_admin', 'office_in_charge', 'camp_organizer', 'staff'])->get();
+            })
+                ->whereNotIn('designation', ['super_admin', 'office_in_charge', 'camp_organizer', 'staff'])
+                ->get();
         }
 
         if ($this->isOfficeInCharge()) {
